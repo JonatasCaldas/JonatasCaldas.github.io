@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otimizador de Compras de Cartas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para a barra de rolagem */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+        /* Estilização customizada para o slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #4a5568;
+            height: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px; /* Centraliza o thumb na track */
+            background-color: #22d3ee;
+            height: 1.25rem;
+            width: 1.25rem;
+            border-radius: 50%;
+        }
+        input[type=range]::-moz-range-track {
+            background: #4a5568;
+            height: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        input[type=range]::-moz-range-thumb {
+            border: none;
+            background-color: #22d3ee;
+            height: 1.25rem;
+            width: 1.25rem;
+            border-radius: 50%;
+        }
+        input[type=radio]:checked {
+             box-shadow: 0 0 0 4px #1e293b;
+        }
+        .tab-btn.active {
+            background-color: #22d3ee;
+            color: #1a202c;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
+        <!-- Cabeçalho -->
+        <div class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-cyan-400">Analisador de Cartas</h1>
+            <p class="text-gray-400 mt-2">Otimize suas compras e classifique sua coleção com precisão.</p>
+        </div>
+        
+        <!-- Navegação das Abas -->
+        <div class="flex border-b border-gray-700">
+            <button id="tab-otimizador" class="tab-btn active py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300">Otimizador de Compras</button>
+            <button id="tab-classificador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Classificador e Priorizador</button>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <div id="tab-content">
+            <!-- Otimizador de Compras -->
+            <div id="otimizador-view">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Coluna da Esquerda: Textareas -->
+                    <div class="flex flex-col space-y-4">
+                        <div>
+                            <label for="promo" class="font-semibold text-gray-300">PROMO (Cole os dados prioritários)</label>
+                            <textarea id="promo" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Ex: Valor Med.,Card,Prioridade&#10;R$ 148,00,Mew ex,1"></textarea>
+                        </div>
+                        <div>
+                            <label for="regulares" class="font-semibold text-gray-300">REGULARES (Cole as demais cartas)</label>
+                            <textarea id="regulares" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Cole aqui os dados das cartas regulares..."></textarea>
+                        </div>
+                    </div>
+                    <!-- Coluna da Direita: Campos de Controle -->
+                    <div class="flex flex-col space-y-4">
+                        <div>
+                            <label for="orcamento" class="font-semibold text-gray-300">ORÇAMENTO (R$)</label>
+                            <input type="number" id="orcamento" class="w-full p-3 mt-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Ex: 200">
+                        </div>
+                        <div>
+                            <label for="tolerancia" class="font-semibold text-gray-300">TOLERÂNCIA (%)</label>
+                            <div class="flex items-center space-x-4 mt-2 pt-2">
+                                <input type="range" id="tolerancia" value="0" min="0" max="100" class="w-full">
+                                <span id="tolerancia-valor" class="font-semibold text-cyan-400 w-12 text-right">0%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-300 block mb-3">PRIORIDADE (para a lista PROMO)</label>
+                            <div class="flex items-center justify-around p-2 bg-gray-700 rounded-lg">
+                                <div class="flex items-center" title="Prioridade 1">
+                                    <input id="prio-1" name="prioridade" type="radio" value="1" checked class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                    <label for="prio-1" class="ml-2 font-medium text-gray-300 cursor-pointer">1</label>
+                                </div>
+                                 <div class="flex items-center" title="Prioridade 2">
+                                    <input id="prio-2" name="prioridade" type="radio" value="2" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                    <label for="prio-2" class="ml-2 font-medium text-gray-300 cursor-pointer">2</label>
+                                </div>
+                                 <div class="flex items-center" title="Prioridade 3">
+                                    <input id="prio-3" name="prioridade" type="radio" value="3" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                    <label for="prio-3" class="ml-2 font-medium text-gray-300 cursor-pointer">3</label>
+                                </div>
+                                 <div class="flex items-center" title="Prioridade 4">
+                                    <input id="prio-4" name="prioridade" type="radio" value="4" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                    <label for="prio-4" class="ml-2 font-medium text-gray-300 cursor-pointer">4</label>
+                                </div>
+                                 <div class="flex items-center" title="Prioridade 5">
+                                    <input id="prio-5" name="prioridade" type="radio" value="5" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                    <label for="prio-5" class="ml-2 font-medium text-gray-300 cursor-pointer">5</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="analisarBtn" class="w-full bg-cyan-500 hover:bg-cyan-600 text-gray-900 font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg mt-auto">
+                            Analisar Compras
+                        </button>
+                    </div>
+                </div>
+                 <div id="resultado-otimizador" class="pt-6 border-t border-gray-700 mt-6"></div>
+            </div>
+
+            <!-- Classificador e Priorizador -->
+            <div id="classificador-view" class="hidden space-y-6">
+                 <!-- Seção 1: Lista Atual -->
+                 <div class="bg-gray-700/50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-cyan-400 mb-3">1. Sua Lista Atual</h3>
+                    <div>
+                        <label for="lista-atual-csv" class="font-semibold text-gray-300">Cole sua lista aqui (formato CSV)</label>
+                        <textarea id="lista-atual-csv" rows="8" class="mt-2 w-full p-3 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-500" placeholder="Cole o CSV da sua lista de cartas..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Analisar Nova Carta -->
+                <div class="bg-gray-700/50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-cyan-400 mb-3">2. Analisar e Integrar Nova Carta</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="card-nome" class="font-semibold text-gray-300 text-sm">Nome do Card</label>
+                            <input type="text" id="card-nome" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: Charizard ex">
+                        </div>
+                         <div>
+                            <label for="card-valor" class="font-semibold text-gray-300 text-sm">Valor (R$)</label>
+                            <input type="number" id="card-valor" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 150.00">
+                        </div>
+                         <div>
+                            <label for="card-lancamento" class="font-semibold text-gray-300 text-sm">Lançamento</label>
+                            <input type="text" id="card-lancamento" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="dd/mm/aaaa">
+                        </div>
+                        <div>
+                             <label for="card-popularidade" class="font-semibold text-gray-300 text-sm">Popularidade</label>
+                            <div class="flex items-center space-x-4 mt-1">
+                                <input type="range" id="card-popularidade" value="2" min="1" max="3" step="1" class="w-full">
+                                <span id="popularidade-valor" class="font-semibold text-cyan-400 w-32 text-center">Popular</span>
+                            </div>
+                        </div>
+                         <div class="md:col-span-2">
+                            <label for="valor-referencia" class="font-semibold text-gray-300 text-sm">Valor de Referência para Classificação (R$)</label>
+                            <input type="number" id="valor-referencia" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 60.00">
+                        </div>
+                    </div>
+                     <button id="gerarListaBtn" class="mt-4 w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        Gerar Nova Lista
+                    </button>
+                </div>
+
+                <!-- Seção 3: Resultado -->
+                <div class="bg-gray-700/50 p-4 rounded-lg">
+                     <h3 class="font-bold text-lg text-cyan-400 mb-3">3. Nova Lista Gerada</h3>
+                     <div id="tabela-integrada-container" class="overflow-x-auto">
+                        <!-- A tabela será inserida aqui -->
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Lógica das Abas ---
+        const tabOtimizadorBtn = document.getElementById('tab-otimizador');
+        const tabClassificadorBtn = document.getElementById('tab-classificador');
+        const otimizadorView = document.getElementById('otimizador-view');
+        const classificadorView = document.getElementById('classificador-view');
+
+        tabOtimizadorBtn.addEventListener('click', () => {
+            otimizadorView.classList.remove('hidden');
+            classificadorView.classList.add('hidden');
+            tabOtimizadorBtn.classList.add('active', 'text-gray-900');
+            tabClassificadorBtn.classList.remove('active', 'text-gray-900');
+        });
+
+        tabClassificadorBtn.addEventListener('click', () => {
+            otimizadorView.classList.add('hidden');
+            classificadorView.classList.remove('hidden');
+            tabOtimizadorBtn.classList.remove('active', 'text-gray-900');
+            tabClassificadorBtn.classList.add('active', 'text-gray-900');
+        });
+
+        // --- Lógica do Otimizador ---
+        const toleranciaSlider = document.getElementById('tolerancia');
+        const toleranciaValor = document.getElementById('tolerancia-valor');
+        toleranciaSlider.addEventListener('input', () => {
+            toleranciaValor.textContent = `${toleranciaSlider.value}%`;
+        });
+        
+        document.getElementById('analisarBtn').addEventListener('click', () => {
+            const promoData = document.getElementById('promo').value.trim();
+            const regularesData = document.getElementById('regulares').value.trim();
+            const orcamento = parseFloat(document.getElementById('orcamento').value);
+            const tolerancia = parseFloat(document.getElementById('tolerancia').value) || 0;
+            const prioridade = parseInt(document.querySelector('input[name="prioridade"]:checked').value, 10);
+            const resultadoDiv = document.getElementById('resultado-otimizador');
+
+            resultadoDiv.innerHTML = '';
+            
+            if (!promoData || isNaN(orcamento) || orcamento <= 0 || isNaN(prioridade)) {
+                resultadoDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg"><p class="font-bold">Erro!</p><p>Por favor, preencha os campos PROMO, Orçamento e Prioridade com valores válidos.</p></div>`;
+                return;
+            }
+
+            try {
+                const orcamentoComTolerancia = orcamento * (1 + (tolerancia / 100));
+
+                const linhasPromo = promoData.split('\n').filter(Boolean);
+                const cabecalhoPromo = linhasPromo[0].split(',').map(h => h.trim());
+                const valorIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('valor med'));
+                const cardIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().trim() === 'card');
+                const prioridadeIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('prioridade'));
+
+                if (valorIndexP === -1 || cardIndexP === -1 || prioridadeIndexP === -1) throw new Error("Cabeçalho inválido na lista PROMO.");
+
+                const dadosCartasPromo = linhasPromo.slice(1).map(linha => parseLinha(linha, valorIndexP, cardIndexP, prioridadeIndexP));
+                const cartasPrioritarias = dadosCartasPromo.filter(carta => carta.prioridade === prioridade && carta.valor > 0).sort((a, b) => a.valor - b.valor);
+
+                let orcamentoRestante = orcamentoComTolerancia;
+                const { cartasEscolhidas: cartasEscolhidasPromo, custoTotal: custoTotalPromo } = selecionarCartas(cartasPrioritarias, orcamentoRestante);
+                orcamentoRestante -= custoTotalPromo;
+                
+                renderizarResultado(cartasEscolhidasPromo, custoTotalPromo, orcamentoComTolerancia, prioridade, orcamentoRestante);
+
+                if (regularesData && orcamentoRestante > 0) {
+                    const linhasRegulares = regularesData.split('\n').filter(Boolean);
+                    const cabecalhoRegulares = linhasRegulares[0].split(',').map(h => h.trim());
+                    const valorIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().includes('valor med') || h.toLowerCase().includes('valor méd liga'));
+                    const cardIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().trim() === 'card');
+
+                    if (valorIndexR === -1 || cardIndexR === -1) throw new Error("Cabeçalho inválido na lista REGULARES.");
+                    
+                    const dadosCartasRegulares = linhasRegulares.slice(1).map(linha => parseLinha(linha, valorIndexR, cardIndexR, -1));
+                    const cartasRegularesCandidatas = dadosCartasRegulares.filter(carta => carta.valor > 0).sort((a, b) => a.valor - b.valor);
+
+                    const { cartasEscolhidas: cartasEscolhidasRegulares, custoTotal: custoTotalRegulares } = selecionarCartas(cartasRegularesCandidatas, orcamentoRestante);
+                    
+                    renderizarResultadoRegulares(cartasEscolhidasRegulares, custoTotalRegulares, orcamentoRestante);
+                }
+
+            } catch (error) {
+                resultadoDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg"><p class="font-bold">Erro!</p><p>${error.message}</p></div>`;
+            }
+        });
+
+        function selecionarCartas(listaCartas, orcamento) {
+            let custoTotal = 0;
+            const cartasEscolhidas = [];
+            for (const carta of listaCartas) {
+                if (orcamento >= custoTotal + carta.valor) {
+                    cartasEscolhidas.push(carta);
+                    custoTotal += carta.valor;
+                }
+            }
+            return { cartasEscolhidas, custoTotal };
+        }
+
+        function parseLinha(linha, valorIndex, cardIndex, prioridadeIndex) {
+            const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            return {
+                nome: colunas[cardIndex] ? colunas[cardIndex].trim().replace(/"/g, '') : 'Nome não encontrado',
+                prioridade: prioridadeIndex !== -1 && colunas[prioridadeIndex] ? parseInt(colunas[prioridadeIndex].trim().replace(/"/g, ''), 10) : 0,
+                valor: parseCurrency(colunas[valorIndex] ? colunas[valorIndex].trim() : '0')
+            };
+        }
+
+        function renderizarResultado(cartas, custo, orcamentoAnalisado, prioridade, orcamentoRestante) {
+           const resultadoDiv = document.getElementById('resultado-otimizador');
+            if (cartas.length === 0) {
+                resultadoDiv.innerHTML = `<h2 class="text-2xl font-bold text-yellow-400 mb-4">Análise Concluída (PROMO)</h2><div class="bg-yellow-900 border border-yellow-700 text-yellow-300 p-4 rounded-lg"><p>Nenhuma carta de prioridade ${prioridade} pôde ser comprada com o orçamento de ${formatCurrency(orcamentoAnalisado)} (incluindo tolerância).</p></div>`;
+                return;
+            }
+            const listaHtml = cartas.map(carta => `<li class="flex justify-between items-center p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors duration-200"><span class="font-medium text-gray-200">${carta.nome}</span><span class="font-semibold text-cyan-400">${formatCurrency(carta.valor)}</span></li>`).join('');
+            resultadoDiv.innerHTML = `<h2 class="text-2xl font-bold text-cyan-400 mb-4">Cartas Prioritárias Escolhidas</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-lg">Custo Total (Promo): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Restante: <span class="font-semibold">${formatCurrency(orcamentoRestante)}</span></p></div></div>`;
+        }
+                
+        function renderizarResultadoRegulares(cartas, custo, orcamentoInicial) {
+            const resultadoDiv = document.getElementById('resultado-otimizador');
+            if (cartas.length === 0) {
+                 resultadoDiv.innerHTML += `<div class="bg-gray-700 text-gray-300 p-4 rounded-lg mt-4"><p>Nenhuma carta regular adicional pôde ser comprada com o orçamento restante.</p></div>`;
+                 return;
+            }
+            const listaHtml = cartas.map(carta => `<li class="flex justify-between items-center p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors duration-200"><span class="font-medium text-gray-200">${carta.nome}</span><span class="font-semibold text-cyan-400">${formatCurrency(carta.valor)}</span></li>`).join('');
+            const htmlAdicional = `<h2 class="text-2xl font-bold text-cyan-400 mt-6 mb-4">Cartas Regulares Adicionais</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-lg">Custo Adicional (Regulares): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Final Restante: <span class="font-semibold">${formatCurrency(orcamentoInicial - custo)}</span></p></div></div>`;
+            resultadoDiv.innerHTML += htmlAdicional;
+        }
+
+        // --- Lógica do Classificador ---
+        const popularidadeSlider = document.getElementById('card-popularidade');
+        const popularidadeValor = document.getElementById('popularidade-valor');
+        const popMap = { '1': 'Pouco Popular', '2': 'Popular', '3': 'Muito Popular' };
+        popularidadeSlider.addEventListener('input', () => {
+            popularidadeValor.textContent = popMap[popularidadeSlider.value];
+        });
+
+        function processarCarta(cartaObj, valorReferencia) {
+            const valor = cartaObj['Valor Med.'] ? parseCurrency(cartaObj['Valor Med.']) : 0;
+            cartaObj.valorNumerico = valor;
+            const dataLancamento = cartaObj['Lançamento'] || '';
+            const ano = dataLancamento.split('/')[2] || new Date().getFullYear();
+            
+            // Lógica de Grupo baseada no valor de referência
+            if (valor > valorReferencia) {
+                cartaObj.grupo = 'A';
+                cartaObj.pontoValor = 3;
+            } else if (valor <= valorReferencia * 0.5) {
+                cartaObj.grupo = 'C';
+                cartaObj.pontoValor = 1;
+            } else { // Cobre o intervalo entre > 50% e <= 100% do valor de referência
+                cartaObj.grupo = 'B';
+                cartaObj.pontoValor = 2;
+            }
+
+            // PontoAno
+            cartaObj.ano = parseInt(ano);
+            const anoAtual = 2025; // Conforme especificado nas regras
+            cartaObj.pontoAno = cartaObj.ano < anoAtual ? 2 : 1;
+            
+            // PontoPop
+            if (cartaObj.pontoPopManual) {
+                cartaObj.pontoPop = cartaObj.pontoPopManual;
+            } else {
+                 const popScore = parseInt(cartaObj['Popularidade'], 10);
+                 cartaObj.pontoPop = isNaN(popScore) ? 1 : popScore;
+            }
+
+            cartaObj.pontuacaoTotal = cartaObj.pontoValor + cartaObj.pontoAno + cartaObj.pontoPop;
+            return cartaObj;
+        }
+
+        document.getElementById('gerarListaBtn').addEventListener('click', () => {
+            const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
+            const tabelaContainer = document.getElementById('tabela-integrada-container');
+            
+            // Inputs da nova carta
+            const nome = document.getElementById('card-nome').value.trim();
+            const valor = parseFloat(document.getElementById('card-valor').value);
+            const dataLancamento = document.getElementById('card-lancamento').value.trim();
+            const pontoPop = parseInt(popularidadeSlider.value, 10);
+            const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
+
+            // Validação
+            if (!listaAtualCsv || !nome || isNaN(valor) || !dataLancamento || isNaN(valorReferencia)) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos: lista atual, dados da nova carta e valor de referência.</p>`;
+                return;
+            }
+
+            try {
+                // 1. Processar lista existente
+                const linhas = listaAtualCsv.split('\n').filter(Boolean);
+                const headerKeys = linhas[0].split(',').map(h => h.trim());
+                const listaExistente = linhas.slice(1).map(linha => {
+                    const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    let cardObj = {};
+                    headerKeys.forEach((key, i) => {
+                        cardObj[key] = colunas[i] ? colunas[i].replace(/"/g, '').trim() : '';
+                    });
+                    // Re-processa cada carta com o novo valor de referência para consistência
+                    return processarCarta(cardObj, valorReferencia);
+                });
+
+                // 2. Processar e classificar a nova carta
+                const novaCarta = processarCarta({ 
+                    "Card": nome, 
+                    "Valor Med.": valor, 
+                    "Lançamento": dataLancamento, 
+                    "pontoPopManual": pontoPop 
+                }, valorReferencia);
+
+                // 3. Combinar listas
+                const listaCompleta = [...listaExistente, novaCarta];
+
+                // 4. Separar, ordenar e re-priorizar dentro de cada grupo
+                const grupoA = listaCompleta.filter(c => c.grupo === 'A');
+                const grupoB = listaCompleta.filter(c => c.grupo === 'B');
+                const grupoC = listaCompleta.filter(c => c.grupo === 'C');
+
+                const sortFunction = (a, b) => {
+                    if (b.pontuacaoTotal !== a.pontuacaoTotal) return b.pontuacaoTotal - a.pontuacaoTotal;
+                    if (b.valorNumerico !== a.valorNumerico) return b.valorNumerico - a.valorNumerico;
+                    return a.ano - b.ano;
+                };
+
+                grupoA.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+                grupoB.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+                grupoC.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+                
+                // 5. Montar lista final e atribuir rank geral
+                const listaFinal = [...grupoA, ...grupoB, ...grupoC];
+                listaFinal.forEach((c, i) => c.rankGeral = i + 1);
+                
+                // 6. Renderizar a tabela
+                renderizarTabelaIntegrada(listaFinal, tabelaContainer);
+
+            } catch (error) {
+                console.error(error);
+                tabelaContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao processar a lista: ${error.message}</p>`;
+            }
+        });
+        
+        function renderizarTabelaIntegrada(cartas, container) {
+             if (cartas.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma carta para exibir.</p>';
+                return;
+             }
+             const thead = `
+                <thead class="bg-gray-700">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Rank Geral</th>
+                        <th class="px-4 py-2 text-left">Card</th>
+                        <th class="px-4 py-2 text-left">Valor</th>
+                        <th class="px-4 py-2 text-left">Ano</th>
+                        <th class="px-4 py-2 text-left">Grupo</th>
+                        <th class="px-4 py-2 text-left">Prioridade (no Grupo)</th>
+                        <th class="px-4 py-2 text-left">Pontuação</th>
+                    </tr>
+                </thead>`;
+            
+            const tbody = cartas.map((carta) => `
+                <tr class="border-b border-gray-700 hover:bg-gray-600/50">
+                    <td class="px-4 py-2 font-bold">${carta.rankGeral}</td>
+                    <td class="px-4 py-2">${carta['Card']}</td>
+                    <td class="px-4 py-2">${formatCurrency(carta.valorNumerico)}</td>
+                    <td class="px-4 py-2">${carta.ano}</td>
+                    <td class="px-4 py-2 font-semibold">${carta.grupo}</td>
+                    <td class="px-4 py-2 font-bold text-yellow-400">${carta.prioridadeGrupo}</td>
+                    <td class="px-4 py-2 font-bold text-cyan-400">${carta.pontuacaoTotal}</td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `<table class="w-full text-sm text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
+        }
+
+        // --- Funções Utilitárias ---
+        function parseCurrency(valorString) {
+            if (!valorString) return 0;
+            const valorLimpo = String(valorString).replace(/"/g, '').replace('R$', '').trim().replace('.', '').replace(',', '.');
+            return parseFloat(valorLimpo);
+        }
+        
+        function formatCurrency(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+    </script>
+</body>
+</html>
+

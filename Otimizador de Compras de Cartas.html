@@ -97,11 +97,11 @@
                     <div class="flex flex-col space-y-4">
                         <div>
                             <label for="promo" class="font-semibold text-gray-300">PROMO (Cole os dados prioritários)</label>
-                            <textarea id="promo" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Ex: Valor Med.,Card,Prioridade&#10;R$ 148,00,Mew ex,1"></textarea>
+                            <textarea id="promo" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
                         </div>
                         <div>
                             <label for="regulares" class="font-semibold text-gray-300">REGULARES (Cole as demais cartas)</label>
-                            <textarea id="regulares" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Cole aqui os dados das cartas regulares..."></textarea>
+                            <textarea id="regulares" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
                         </div>
                     </div>
                     <!-- Coluna da Direita: Campos de Controle -->
@@ -111,8 +111,11 @@
                             <input type="number" id="orcamento" class="w-full p-3 mt-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Ex: 200">
                         </div>
                         <div>
-                            <label for="tolerancia" class="font-semibold text-gray-300">TOLERÂNCIA (%)</label>
-                            <div class="flex items-center space-x-4 mt-2 pt-2">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="tolerancia" class="font-semibold text-gray-300">TOLERÂNCIA (%)</label>
+                                <span id="tolerancia-em-reais" class="text-green-400 font-semibold text-sm"></span>
+                            </div>
+                            <div class="flex items-center space-x-4">
                                 <input type="range" id="tolerancia" value="0" min="0" max="100" class="w-full">
                                 <span id="tolerancia-valor" class="font-semibold text-cyan-400 w-12 text-right">0%</span>
                             </div>
@@ -156,8 +159,11 @@
                  <div class="bg-gray-700/50 p-4 rounded-lg">
                     <h3 class="font-bold text-lg text-cyan-400 mb-3">1. Sua Lista Atual</h3>
                     <div>
-                        <label for="lista-atual-csv" class="font-semibold text-gray-300">Cole sua lista aqui (formato CSV)</label>
-                        <textarea id="lista-atual-csv" rows="8" class="mt-2 w-full p-3 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-500" placeholder="Cole o CSV da sua lista de cartas..."></textarea>
+                        <div class="flex justify-between items-center">
+                            <label for="lista-atual-csv" class="font-semibold text-gray-300">Cole sua lista aqui</label>
+                            <button id="importarPromoBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors duration-200">Importar da lista PROMO</button>
+                        </div>
+                        <textarea id="lista-atual-csv" rows="8" class="mt-2 w-full p-3 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
                     </div>
                 </div>
 
@@ -226,18 +232,56 @@
             tabClassificadorBtn.classList.add('active', 'text-gray-900');
         });
 
+        // --- Funções Utilitárias ---
+        function smartSplit(line) {
+            // Se a linha contiver tabs, assume-se que é separada por tabs (do Excel)
+            if (line.includes('\t')) {
+                return line.split('\t').map(item => item.trim());
+            }
+            // Caso contrário, assume-se que é CSV e usa a regex para lidar com vírgulas entre aspas
+            return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.trim().replace(/"/g, ''));
+        }
+
+        function parseCurrency(valorString) {
+            if (!valorString) return 0;
+            const valorLimpo = String(valorString).replace(/"/g, '').replace('R$', '').trim().replace('.', '').replace(',', '.');
+            return parseFloat(valorLimpo);
+        }
+        
+        function formatCurrency(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
         // --- Lógica do Otimizador ---
         const toleranciaSlider = document.getElementById('tolerancia');
         const toleranciaValor = document.getElementById('tolerancia-valor');
-        toleranciaSlider.addEventListener('input', () => {
-            toleranciaValor.textContent = `${toleranciaSlider.value}%`;
-        });
+        const orcamentoInput = document.getElementById('orcamento');
+        const toleranciaReais = document.getElementById('tolerancia-em-reais');
+
+        function atualizarDisplayTolerancia() {
+            const orcamento = parseFloat(orcamentoInput.value) || 0;
+            const tolerancia = parseInt(toleranciaSlider.value, 10);
+            
+            // Atualiza o valor percentual
+            toleranciaValor.textContent = `${tolerancia}%`;
+
+            // Calcula e exibe o valor adicional em reais
+            if (orcamento > 0 && tolerancia > 0) {
+                const valorAdicional = (orcamento * tolerancia) / 100;
+                toleranciaReais.textContent = `+${formatCurrency(valorAdicional)}`;
+            } else {
+                toleranciaReais.textContent = '';
+            }
+        }
+
+        toleranciaSlider.addEventListener('input', atualizarDisplayTolerancia);
+        orcamentoInput.addEventListener('input', atualizarDisplayTolerancia);
         
         document.getElementById('analisarBtn').addEventListener('click', () => {
             const promoData = document.getElementById('promo').value.trim();
             const regularesData = document.getElementById('regulares').value.trim();
-            const orcamento = parseFloat(document.getElementById('orcamento').value);
-            const tolerancia = parseFloat(document.getElementById('tolerancia').value) || 0;
+            const orcamento = parseFloat(orcamentoInput.value);
+            const tolerancia = parseFloat(toleranciaSlider.value) || 0;
             const prioridade = parseInt(document.querySelector('input[name="prioridade"]:checked').value, 10);
             const resultadoDiv = document.getElementById('resultado-otimizador');
 
@@ -252,14 +296,14 @@
                 const orcamentoComTolerancia = orcamento * (1 + (tolerancia / 100));
 
                 const linhasPromo = promoData.split('\n').filter(Boolean);
-                const cabecalhoPromo = linhasPromo[0].split(',').map(h => h.trim());
+                const cabecalhoPromo = smartSplit(linhasPromo[0]);
                 const valorIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('valor med'));
                 const cardIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().trim() === 'card');
                 const prioridadeIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('prioridade'));
 
                 if (valorIndexP === -1 || cardIndexP === -1 || prioridadeIndexP === -1) throw new Error("Cabeçalho inválido na lista PROMO.");
 
-                const dadosCartasPromo = linhasPromo.slice(1).map(linha => parseLinha(linha, valorIndexP, cardIndexP, prioridadeIndexP));
+                const dadosCartasPromo = linhasPromo.slice(1).map(linha => parseLinhaOtimizador(linha, valorIndexP, cardIndexP, prioridadeIndexP));
                 const cartasPrioritarias = dadosCartasPromo.filter(carta => carta.prioridade === prioridade && carta.valor > 0).sort((a, b) => a.valor - b.valor);
 
                 let orcamentoRestante = orcamentoComTolerancia;
@@ -270,13 +314,13 @@
 
                 if (regularesData && orcamentoRestante > 0) {
                     const linhasRegulares = regularesData.split('\n').filter(Boolean);
-                    const cabecalhoRegulares = linhasRegulares[0].split(',').map(h => h.trim());
+                    const cabecalhoRegulares = smartSplit(linhasRegulares[0]);
                     const valorIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().includes('valor med') || h.toLowerCase().includes('valor méd liga'));
                     const cardIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().trim() === 'card');
 
                     if (valorIndexR === -1 || cardIndexR === -1) throw new Error("Cabeçalho inválido na lista REGULARES.");
                     
-                    const dadosCartasRegulares = linhasRegulares.slice(1).map(linha => parseLinha(linha, valorIndexR, cardIndexR, -1));
+                    const dadosCartasRegulares = linhasRegulares.slice(1).map(linha => parseLinhaOtimizador(linha, valorIndexR, cardIndexR, -1));
                     const cartasRegularesCandidatas = dadosCartasRegulares.filter(carta => carta.valor > 0).sort((a, b) => a.valor - b.valor);
 
                     const { cartasEscolhidas: cartasEscolhidasRegulares, custoTotal: custoTotalRegulares } = selecionarCartas(cartasRegularesCandidatas, orcamentoRestante);
@@ -301,12 +345,12 @@
             return { cartasEscolhidas, custoTotal };
         }
 
-        function parseLinha(linha, valorIndex, cardIndex, prioridadeIndex) {
-            const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        function parseLinhaOtimizador(linha, valorIndex, cardIndex, prioridadeIndex) {
+            const colunas = smartSplit(linha);
             return {
-                nome: colunas[cardIndex] ? colunas[cardIndex].trim().replace(/"/g, '') : 'Nome não encontrado',
-                prioridade: prioridadeIndex !== -1 && colunas[prioridadeIndex] ? parseInt(colunas[prioridadeIndex].trim().replace(/"/g, ''), 10) : 0,
-                valor: parseCurrency(colunas[valorIndex] ? colunas[valorIndex].trim() : '0')
+                nome: colunas[cardIndex] || 'Nome não encontrado',
+                prioridade: prioridadeIndex !== -1 && colunas[prioridadeIndex] ? parseInt(colunas[prioridadeIndex], 10) : 0,
+                valor: parseCurrency(colunas[valorIndex] || '0')
             };
         }
 
@@ -317,7 +361,7 @@
                 return;
             }
             const listaHtml = cartas.map(carta => `<li class="flex justify-between items-center p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors duration-200"><span class="font-medium text-gray-200">${carta.nome}</span><span class="font-semibold text-cyan-400">${formatCurrency(carta.valor)}</span></li>`).join('');
-            resultadoDiv.innerHTML = `<h2 class="text-2xl font-bold text-cyan-400 mb-4">Cartas Prioritárias Escolhidas</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-lg">Custo Total (Promo): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Restante: <span class="font-semibold">${formatCurrency(orcamentoRestante)}</span></p></div></div>`;
+            resultadoDiv.innerHTML = `<h2 class="text-2xl font-bold text-cyan-400 mb-4">Cartas Prioritárias Escolhidas</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-md text-gray-400">Orçamento Total: <span class="font-semibold">${formatCurrency(orcamentoAnalisado)}</span></p><p class="text-lg">Custo Total (Promo): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Restante: <span class="font-semibold">${formatCurrency(orcamentoRestante)}</span></p></div></div>`;
         }
                 
         function renderizarResultadoRegulares(cartas, custo, orcamentoInicial) {
@@ -339,30 +383,34 @@
             popularidadeValor.textContent = popMap[popularidadeSlider.value];
         });
 
+        document.getElementById('importarPromoBtn').addEventListener('click', (event) => {
+            event.preventDefault(); // Evita comportamento padrão de formulário
+            const promoData = document.getElementById('promo').value;
+            const listaAtualTextarea = document.getElementById('lista-atual-csv');
+            listaAtualTextarea.value = promoData;
+        });
+
         function processarCarta(cartaObj, valorReferencia) {
             const valor = cartaObj['Valor Med.'] ? parseCurrency(cartaObj['Valor Med.']) : 0;
             cartaObj.valorNumerico = valor;
             const dataLancamento = cartaObj['Lançamento'] || '';
             const ano = dataLancamento.split('/')[2] || new Date().getFullYear();
             
-            // Lógica de Grupo baseada no valor de referência
             if (valor > valorReferencia) {
                 cartaObj.grupo = 'A';
                 cartaObj.pontoValor = 3;
             } else if (valor <= valorReferencia * 0.5) {
                 cartaObj.grupo = 'C';
                 cartaObj.pontoValor = 1;
-            } else { // Cobre o intervalo entre > 50% e <= 100% do valor de referência
+            } else {
                 cartaObj.grupo = 'B';
                 cartaObj.pontoValor = 2;
             }
 
-            // PontoAno
             cartaObj.ano = parseInt(ano);
-            const anoAtual = 2025; // Conforme especificado nas regras
+            const anoAtual = 2025;
             cartaObj.pontoAno = cartaObj.ano < anoAtual ? 2 : 1;
             
-            // PontoPop
             if (cartaObj.pontoPopManual) {
                 cartaObj.pontoPop = cartaObj.pontoPopManual;
             } else {
@@ -378,46 +426,39 @@
             const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
             const tabelaContainer = document.getElementById('tabela-integrada-container');
             
-            // Inputs da nova carta
             const nome = document.getElementById('card-nome').value.trim();
             const valor = parseFloat(document.getElementById('card-valor').value);
             const dataLancamento = document.getElementById('card-lancamento').value.trim();
             const pontoPop = parseInt(popularidadeSlider.value, 10);
             const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
 
-            // Validação
             if (!listaAtualCsv || !nome || isNaN(valor) || !dataLancamento || isNaN(valorReferencia)) {
                 tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos: lista atual, dados da nova carta e valor de referência.</p>`;
                 return;
             }
 
             try {
-                // 1. Processar lista existente
                 const linhas = listaAtualCsv.split('\n').filter(Boolean);
-                const headerKeys = linhas[0].split(',').map(h => h.trim());
+                const headerKeys = smartSplit(linhas[0]);
                 const listaExistente = linhas.slice(1).map(linha => {
-                    const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    const colunas = smartSplit(linha);
                     let cardObj = {};
                     headerKeys.forEach((key, i) => {
-                        cardObj[key] = colunas[i] ? colunas[i].replace(/"/g, '').trim() : '';
+                        cardObj[key] = colunas[i] || '';
                     });
-                    // Re-processa cada carta com o novo valor de referência para consistência
                     return processarCarta(cardObj, valorReferencia);
                 });
 
-                // 2. Processar e classificar a nova carta
                 const novaCarta = processarCarta({ 
                     "Card": nome, 
                     "Valor Med.": valor, 
                     "Lançamento": dataLancamento, 
                     "pontoPopManual": pontoPop,
-                    "isNew": true // Flag para destacar na tabela
+                    "isNew": true
                 }, valorReferencia);
 
-                // 3. Combinar listas
                 const listaCompleta = [...listaExistente, novaCarta];
 
-                // 4. Separar, ordenar e re-priorizar dentro de cada grupo
                 const grupoA = listaCompleta.filter(c => c.grupo === 'A');
                 const grupoB = listaCompleta.filter(c => c.grupo === 'B');
                 const grupoC = listaCompleta.filter(c => c.grupo === 'C');
@@ -432,11 +473,9 @@
                 grupoB.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
                 grupoC.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
                 
-                // 5. Montar lista final e atribuir rank geral
                 const listaFinal = [...grupoA, ...grupoB, ...grupoC];
                 listaFinal.forEach((c, i) => c.rankGeral = i + 1);
                 
-                // 6. Renderizar a tabela
                 renderizarTabelaIntegrada(listaFinal, tabelaContainer);
 
             } catch (error) {
@@ -479,18 +518,6 @@
 
             container.innerHTML = `<table class="w-full text-sm text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
         }
-
-        // --- Funções Utilitárias ---
-        function parseCurrency(valorString) {
-            if (!valorString) return 0;
-            const valorLimpo = String(valorString).replace(/"/g, '').replace('R$', '').trim().replace('.', '').replace(',', '.');
-            return parseFloat(valorLimpo);
-        }
-        
-        function formatCurrency(valor) {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
     </script>
 </body>
 </html>
-

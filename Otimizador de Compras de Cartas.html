@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Otimizador de Compras de Cartas</title>
+    <title>Analisador de Cartas</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -63,7 +64,7 @@
             width: 1.25rem;
             border-radius: 50%;
         }
-        input[type=radio]:checked {
+        input[type=radio]:checked, input[type=checkbox]:checked {
              box-shadow: 0 0 0 4px #1e293b;
         }
         .tab-btn.active {
@@ -83,29 +84,23 @@
         </div>
         
         <!-- Navegação das Abas -->
-        <div class="flex border-b border-gray-700">
+        <div class="flex border-b border-gray-700 flex-wrap">
             <button id="tab-otimizador" class="tab-btn active py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300">Otimizador de Compras</button>
             <button id="tab-classificador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Classificador e Priorizador</button>
+            <button id="tab-gerenciador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Gerenciador de Listas</button>
+            <button id="tab-dashboard" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Dashboard</button>
         </div>
 
         <!-- Conteúdo das Abas -->
         <div id="tab-content">
             <!-- Otimizador de Compras -->
             <div id="otimizador-view">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Coluna da Esquerda: Textareas -->
-                    <div class="flex flex-col space-y-4">
-                        <div>
-                            <label for="promo" class="font-semibold text-gray-300">PROMO (Cole os dados prioritários)</label>
-                            <textarea id="promo" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
-                        </div>
-                        <div>
-                            <label for="regulares" class="font-semibold text-gray-300">REGULARES (Cole as demais cartas)</label>
-                            <textarea id="regulares" rows="8" class="mt-2 w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
-                        </div>
-                    </div>
-                    <!-- Coluna da Direita: Campos de Controle -->
-                    <div class="flex flex-col space-y-4">
+                <div class="bg-gray-700/50 p-4 rounded-lg text-center mb-6">
+                    <p class="text-gray-300">Esta ferramenta utiliza as listas salvas no <strong class="text-cyan-400">Gerenciador de Listas</strong>. Certifique-se de que suas listas estão salvas e atualizadas.</p>
+                </div>
+                <div class="grid grid-cols-1">
+                    <!-- Coluna de Campos de Controle -->
+                    <div class="flex flex-col space-y-4 max-w-md mx-auto w-full">
                         <div>
                             <label for="orcamento" class="font-semibold text-gray-300">ORÇAMENTO (R$)</label>
                             <input type="number" id="orcamento" class="w-full p-3 mt-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300 placeholder-gray-500" placeholder="Ex: 200">
@@ -190,14 +185,25 @@
                                 <span id="popularidade-valor" class="font-semibold text-cyan-400 w-32 text-center">Popular</span>
                             </div>
                         </div>
-                         <div class="md:col-span-2">
+                        <div class="md:col-span-2">
                             <label for="valor-referencia" class="font-semibold text-gray-300 text-sm">Valor de Referência para Classificação (R$)</label>
                             <input type="number" id="valor-referencia" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 60.00">
                         </div>
+                         <div class="md:col-span-2">
+                            <div class="flex items-center mt-2">
+                                <input id="card-quarentena" type="checkbox" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                <label for="card-quarentena" class="ml-2 font-medium text-gray-300 cursor-pointer">Quarentena</label>
+                            </div>
+                        </div>
                     </div>
-                     <button id="gerarListaBtn" class="mt-4 w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                        Gerar Nova Lista
-                    </button>
+                    <div class="flex items-center space-x-4 mt-4">
+                        <button id="gerarListaBtn" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Gerar Nova Lista
+                        </button>
+                        <button id="analisarListaAtualBtn" class="w-full md:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Analisar Lista Atual
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Seção 3: Resultado -->
@@ -208,38 +214,191 @@
                      </div>
                 </div>
             </div>
+            
+            <!-- Gerenciador de Listas -->
+            <div id="gerenciador-view" class="hidden space-y-6">
+                <div>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button id="gravarBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Salvar
+                        </button>
+                        <button id="importarGeradaBtn" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">Importar Nova Lista Gerada</button>
+                        <button id="exportPromoBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">Exportar PROMO</button>
+                    </div>
+                    <p id="save-feedback" class="text-green-400 h-4 mt-2"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Coluna PROMO -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-lg text-cyan-400">Lista PROMO</h3>
+                        </div>
+                        <textarea id="gerenciador-promo-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
+                        <label for="upload-promo" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
+                            Upload Promo CSV
+                        </label>
+                        <input type="file" id="upload-promo" class="hidden" accept=".csv, .txt">
+                        <div id="tabela-promo-container" class="overflow-x-auto"></div>
+                    </div>
+                    <!-- Coluna REGULARES -->
+                     <div class="space-y-4">
+                         <h3 class="font-bold text-lg text-cyan-400">Lista REGULARES</h3>
+                        <textarea id="gerenciador-regulares-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
+                         <label for="upload-regulares" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
+                            Upload Regulares CSV
+                        </label>
+                        <input type="file" id="upload-regulares" class="hidden" accept=".csv, .txt">
+                        <div id="tabela-regulares-container" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboard-view" class="hidden space-y-8">
+                <!-- Indicadores -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400 font-semibold">Valor Total</h4>
+                        <p id="db-valor-total" class="text-2xl font-bold text-cyan-400">R$ 0,00</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400 font-semibold">Total Investido</h4>
+                        <p id="db-total-investido" class="text-2xl font-bold text-green-400">R$ 0,00</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400 font-semibold">Total de Cartas</h4>
+                        <p id="db-total-cartas" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400 font-semibold">Cartas Compradas</h4>
+                        <p id="db-cartas-compradas" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400 font-semibold">Cartas Faltantes</h4>
+                        <p id="db-cartas-faltantes" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                </div>
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 bg-gray-700/50 p-4 rounded-lg flex flex-col items-center">
+                        <h4 class="font-semibold text-gray-300 mb-4">Status da Coleção</h4>
+                        <div class="w-full max-w-[250px] mx-auto">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-300 mb-4">Distribuição por Grupo</h4>
+                        <canvas id="group-chart"></canvas>
+                    </div>
+                    <div class="lg:col-span-3 bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-300 mb-4">Distribuição por Ano</h4>
+                        <canvas id="year-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] flex flex-col sm:flex-row gap-6">
+            <!-- Coluna da Imagem -->
+            <div class="w-full sm:w-1/3 flex-shrink-0 flex flex-col items-center justify-start gap-4">
+                <!-- Imagem Card -->
+                <div class="w-full">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2 text-center">Imagem do Card</h3>
+                    <div class="w-full max-w-[200px] mx-auto aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                        <img id="modal-image-preview" src="https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem" alt="Prévia do card" class="w-full h-full object-contain">
+                    </div>
+                </div>
+                <!-- Detalhes Quarentena -->
+                <div id="modal-quarentena-info" class="hidden text-center bg-gray-700/50 p-3 rounded-md w-full max-w-[200px] mx-auto space-y-2">
+                     <p class="text-sm text-gray-400">Bloco: <span id="modal-bloco-display" class="font-semibold text-gray-200">N/A</span></p>
+                    <p class="text-sm text-gray-400">Tipo: <span id="modal-tipo-display" class="font-semibold text-gray-200">N/A</span></p>
+                    <div id="modal-quarentena-tag" class="bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full">Quarentena</div>
+                    <div id="modal-quarentena-end-date" class="bg-red-800 text-white text-xs font-semibold px-2 py-1 rounded"></div>
+                </div>
+                <!-- Imagem Produto -->
+                <div class="w-full">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2 text-center">Imagem do Produto</h3>
+                    <div class="w-full max-w-[200px] mx-auto aspect-square bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                        <img id="modal-product-image-preview" src="https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem" alt="Prévia do produto" class="w-full h-full object-contain">
+                    </div>
+                </div>
+            </div>
+            <!-- Coluna dos Campos -->
+            <div class="w-full sm:w-2/3 flex flex-col">
+                <h2 id="modal-title" class="text-2xl font-bold text-cyan-400 mb-4 flex-shrink-0">Editar Item</h2>
+                <div id="modal-fields" class="space-y-3 overflow-y-auto flex-grow pr-2">
+                    <!-- Campos do formulário serão injetados aqui -->
+                </div>
+                <div id="modal-actions" class="mt-6 flex-shrink-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                     <button id="save-modal-changes" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Salvar Alterações</button>
+                     <button id="delete-modal-item" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Excluir Item</button>
+                     <button id="close-modal" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Fechar</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // --- Variáveis Globais ---
+        let lastGeneratedList = [];
+        let promoDataArray = [];
+        let regularesDataArray = [];
+        let currentlyEditingIndex = -1;
+        let chartInstances = {};
+
         // --- Lógica das Abas ---
         const tabOtimizadorBtn = document.getElementById('tab-otimizador');
         const tabClassificadorBtn = document.getElementById('tab-classificador');
+        const tabGerenciadorBtn = document.getElementById('tab-gerenciador');
+        const tabDashboardBtn = document.getElementById('tab-dashboard');
+        
         const otimizadorView = document.getElementById('otimizador-view');
         const classificadorView = document.getElementById('classificador-view');
+        const gerenciadorView = document.getElementById('gerenciador-view');
+        const dashboardView = document.getElementById('dashboard-view');
 
-        tabOtimizadorBtn.addEventListener('click', () => {
-            otimizadorView.classList.remove('hidden');
-            classificadorView.classList.add('hidden');
-            tabOtimizadorBtn.classList.add('active', 'text-gray-900');
-            tabClassificadorBtn.classList.remove('active', 'text-gray-900');
-        });
+        const allViews = [otimizadorView, classificadorView, gerenciadorView, dashboardView];
+        const allTabs = [tabOtimizadorBtn, tabClassificadorBtn, tabGerenciadorBtn, tabDashboardBtn];
 
-        tabClassificadorBtn.addEventListener('click', () => {
-            otimizadorView.classList.add('hidden');
-            classificadorView.classList.remove('hidden');
-            tabOtimizadorBtn.classList.remove('active', 'text-gray-900');
-            tabClassificadorBtn.classList.add('active', 'text-gray-900');
-        });
+        function switchTab(viewToShow, tabToActivate) {
+            allViews.forEach(view => view.classList.add('hidden'));
+            allTabs.forEach(tab => tab.classList.remove('active', 'text-gray-900'));
+            
+            viewToShow.classList.remove('hidden');
+            tabToActivate.classList.add('active', 'text-gray-900');
+            
+            if (viewToShow === dashboardView) {
+                updateDashboard();
+            }
+        }
+
+        tabOtimizadorBtn.addEventListener('click', () => switchTab(otimizadorView, tabOtimizadorBtn));
+        tabClassificadorBtn.addEventListener('click', () => switchTab(classificadorView, tabClassificadorBtn));
+        tabGerenciadorBtn.addEventListener('click', () => switchTab(gerenciadorView, tabGerenciadorBtn));
+        tabDashboardBtn.addEventListener('click', () => switchTab(dashboardView, tabDashboardBtn));
 
         // --- Funções Utilitárias ---
         function smartSplit(line) {
-            // Se a linha contiver tabs, assume-se que é separada por tabs (do Excel)
+            const cleanItem = (item) => {
+                let s = item.trim();
+                // Remove quotes only if they are at the very start and end of the item
+                if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
+                    s = s.substring(1, s.length - 1);
+                }
+                // Also handle CSVs where quotes are escaped by doubling them (e.g., "a ""b"" c" -> a "b" c)
+                return s.replace(/""/g, '"');
+            };
+
+            // This handles both comma-separated and tab-separated data that has been re-saved by Excel, which might quote fields.
             if (line.includes('\t')) {
-                return line.split('\t').map(item => item.trim());
+                return line.split('\t').map(cleanItem);
             }
-            // Caso contrário, assume-se que é CSV e usa a regex para lidar com vírgulas entre aspas
-            return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.trim().replace(/"/g, ''));
+            
+            // For pure CSV, split by comma respecting quotes, then clean each part
+            return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cleanItem);
         }
 
         function parseCurrency(valorString) {
@@ -252,6 +411,24 @@
             return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
+        function objectArrayToText(data, useComma = false) {
+             if (!data || data.length === 0) return "";
+             const separator = useComma ? ',' : '\t';
+             const headers = Object.keys(data[0]);
+             
+             const escapeField = (field) => {
+                const str = String(field || '');
+                if (useComma && (str.includes(',') || str.includes('"') || str.includes('\n'))) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+             };
+
+             const headerLine = headers.map(escapeField).join(separator);
+             const lines = data.map(row => headers.map(header => escapeField(row[header])).join(separator));
+             return [headerLine, ...lines].join('\n');
+        }
+
         // --- Lógica do Otimizador ---
         const toleranciaSlider = document.getElementById('tolerancia');
         const toleranciaValor = document.getElementById('tolerancia-valor');
@@ -261,11 +438,8 @@
         function atualizarDisplayTolerancia() {
             const orcamento = parseFloat(orcamentoInput.value) || 0;
             const tolerancia = parseInt(toleranciaSlider.value, 10);
-            
-            // Atualiza o valor percentual
             toleranciaValor.textContent = `${tolerancia}%`;
 
-            // Calcula e exibe o valor adicional em reais
             if (orcamento > 0 && tolerancia > 0) {
                 const valorAdicional = (orcamento * tolerancia) / 100;
                 toleranciaReais.textContent = `+${formatCurrency(valorAdicional)}`;
@@ -278,30 +452,29 @@
         orcamentoInput.addEventListener('input', atualizarDisplayTolerancia);
         
         document.getElementById('analisarBtn').addEventListener('click', () => {
-            const promoData = document.getElementById('promo').value.trim();
-            const regularesData = document.getElementById('regulares').value.trim();
             const orcamento = parseFloat(orcamentoInput.value);
             const tolerancia = parseFloat(toleranciaSlider.value) || 0;
             const prioridade = parseInt(document.querySelector('input[name="prioridade"]:checked').value, 10);
             const resultadoDiv = document.getElementById('resultado-otimizador');
-
             resultadoDiv.innerHTML = '';
             
+            const promoData = objectArrayToText(promoDataArray);
+            const regularesData = objectArrayToText(regularesDataArray);
+            
             if (!promoData || isNaN(orcamento) || orcamento <= 0 || isNaN(prioridade)) {
-                resultadoDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg"><p class="font-bold">Erro!</p><p>Por favor, preencha os campos PROMO, Orçamento e Prioridade com valores válidos.</p></div>`;
+                resultadoDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg"><p class="font-bold">Erro!</p><p>Orçamento e prioridade devem ser preenchidos. Certifique-se de que a lista PROMO foi salva no Gerenciador de Listas.</p></div>`;
                 return;
             }
 
             try {
                 const orcamentoComTolerancia = orcamento * (1 + (tolerancia / 100));
-
                 const linhasPromo = promoData.split('\n').filter(Boolean);
                 const cabecalhoPromo = smartSplit(linhasPromo[0]);
                 const valorIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('valor med'));
                 const cardIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().trim() === 'card');
                 const prioridadeIndexP = cabecalhoPromo.findIndex(h => h.toLowerCase().includes('prioridade'));
 
-                if (valorIndexP === -1 || cardIndexP === -1 || prioridadeIndexP === -1) throw new Error("Cabeçalho inválido na lista PROMO.");
+                if (valorIndexP === -1 || cardIndexP === -1 || prioridadeIndexP === -1) throw new Error("Cabeçalho inválido na lista PROMO salva.");
 
                 const dadosCartasPromo = linhasPromo.slice(1).map(linha => parseLinhaOtimizador(linha, valorIndexP, cardIndexP, prioridadeIndexP));
                 const cartasPrioritarias = dadosCartasPromo.filter(carta => carta.prioridade === prioridade && carta.valor > 0).sort((a, b) => a.valor - b.valor);
@@ -317,14 +490,12 @@
                     const cabecalhoRegulares = smartSplit(linhasRegulares[0]);
                     const valorIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().includes('valor med') || h.toLowerCase().includes('valor méd liga'));
                     const cardIndexR = cabecalhoRegulares.findIndex(h => h.toLowerCase().trim() === 'card');
-
-                    if (valorIndexR === -1 || cardIndexR === -1) throw new Error("Cabeçalho inválido na lista REGULARES.");
+                    if (valorIndexR === -1 || cardIndexR === -1) throw new Error("Cabeçalho inválido na lista REGULARES salva.");
                     
                     const dadosCartasRegulares = linhasRegulares.slice(1).map(linha => parseLinhaOtimizador(linha, valorIndexR, cardIndexR, -1));
                     const cartasRegularesCandidatas = dadosCartasRegulares.filter(carta => carta.valor > 0).sort((a, b) => a.valor - b.valor);
 
                     const { cartasEscolhidas: cartasEscolhidasRegulares, custoTotal: custoTotalRegulares } = selecionarCartas(cartasRegularesCandidatas, orcamentoRestante);
-                    
                     renderizarResultadoRegulares(cartasEscolhidasRegulares, custoTotalRegulares, orcamentoRestante);
                 }
 
@@ -384,10 +555,9 @@
         });
 
         document.getElementById('importarPromoBtn').addEventListener('click', (event) => {
-            event.preventDefault(); // Evita comportamento padrão de formulário
-            const promoData = document.getElementById('promo').value;
-            const listaAtualTextarea = document.getElementById('lista-atual-csv');
-            listaAtualTextarea.value = promoData;
+            event.preventDefault();
+            const promoText = objectArrayToText(promoDataArray);
+            document.getElementById('lista-atual-csv').value = promoText;
         });
 
         function processarCarta(cartaObj, valorReferencia) {
@@ -396,16 +566,12 @@
             const dataLancamento = cartaObj['Lançamento'] || '';
             const ano = dataLancamento.split('/')[2] || new Date().getFullYear();
             
-            if (valor > valorReferencia) {
-                cartaObj.grupo = 'A';
-                cartaObj.pontoValor = 3;
-            } else if (valor <= valorReferencia * 0.5) {
-                cartaObj.grupo = 'C';
-                cartaObj.pontoValor = 1;
-            } else {
-                cartaObj.grupo = 'B';
-                cartaObj.pontoValor = 2;
-            }
+            if (valor > valorReferencia) cartaObj.grupo = 'A';
+            else if (valor <= valorReferencia * 0.5) cartaObj.grupo = 'C';
+            else cartaObj.grupo = 'B';
+            
+            const grupoPontos = {'A': 3, 'B': 2, 'C': 1};
+            cartaObj.pontoValor = grupoPontos[cartaObj.grupo];
 
             cartaObj.ano = parseInt(ano);
             const anoAtual = 2025;
@@ -422,18 +588,84 @@
             return cartaObj;
         }
 
+        function runClassifier(listaCompleta, container) {
+            const grupoA = listaCompleta.filter(c => c.grupo === 'A');
+            const grupoB = listaCompleta.filter(c => c.grupo === 'B');
+            const grupoC = listaCompleta.filter(c => c.grupo === 'C');
+
+            const sortFunction = (a, b) => {
+                if (b.pontuacaoTotal !== a.pontuacaoTotal) return b.pontuacaoTotal - a.pontuacaoTotal;
+                if (b.valorNumerico !== a.valorNumerico) return b.valorNumerico - a.valorNumerico;
+                return a.ano - b.ano;
+            };
+
+            grupoA.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+            grupoB.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+            grupoC.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
+            
+            const listaFinal = [...grupoA, ...grupoB, ...grupoC];
+            listaFinal.forEach((c, i) => c.rankGeral = i + 1);
+            
+            lastGeneratedList = listaFinal; // Armazena a lista para importação posterior
+            renderizarTabelaIntegrada(listaFinal, container);
+        }
+
         document.getElementById('gerarListaBtn').addEventListener('click', () => {
             const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
             const tabelaContainer = document.getElementById('tabela-integrada-container');
-            
             const nome = document.getElementById('card-nome').value.trim();
             const valor = parseFloat(document.getElementById('card-valor').value);
+            const isQuarantined = document.getElementById('card-quarentena').checked;
+
+            if (!listaAtualCsv || !nome || (!isQuarantined && isNaN(valor)) || !document.getElementById('card-lancamento').value.trim() || isNaN(parseFloat(document.getElementById('valor-referencia').value))) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos (Valor é opcional apenas em quarentena).</p>`;
+                return;
+            }
+
             const dataLancamento = document.getElementById('card-lancamento').value.trim();
             const pontoPop = parseInt(popularidadeSlider.value, 10);
             const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
 
-            if (!listaAtualCsv || !nome || isNaN(valor) || !dataLancamento || isNaN(valorReferencia)) {
-                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos: lista atual, dados da nova carta e valor de referência.</p>`;
+            try {
+                const linhas = listaAtualCsv.split('\n').filter(Boolean);
+                const headerKeys = smartSplit(linhas[0]);
+                const listaExistente = linhas.slice(1).map(linha => {
+                    const colunas = smartSplit(linha);
+                    let cardObj = {};
+                    headerKeys.forEach((key, i) => { cardObj[key] = colunas[i] || ''; });
+                    return processarCarta(cardObj, valorReferencia);
+                });
+
+                const newCardTemplate = {};
+                headerKeys.forEach(key => newCardTemplate[key] = '');
+
+                const novaCarta = processarCarta({ 
+                    ...newCardTemplate,
+                    "Card": nome, "Valor Med.": valor, "Lançamento": dataLancamento, 
+                    "Quarentena": isQuarantined ? 'SIM' : 'NAO',
+                    "pontoPopManual": pontoPop, "isNew": true
+                }, valorReferencia);
+
+                const listaCompleta = [...listaExistente, novaCarta];
+                runClassifier(listaCompleta, tabelaContainer);
+
+            } catch (error) {
+                tabelaContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('analisarListaAtualBtn').addEventListener('click', () => {
+            const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
+            const tabelaContainer = document.getElementById('tabela-integrada-container');
+            const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
+
+            if (isNaN(valorReferencia) || valorReferencia <= 0) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha o campo "Valor de Referência" para continuar.</p>`;
+                return;
+            }
+
+            if (!listaAtualCsv) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">O campo "Sua Lista Atual" está vazio.</p>`;
                 return;
             }
 
@@ -443,81 +675,469 @@
                 const listaExistente = linhas.slice(1).map(linha => {
                     const colunas = smartSplit(linha);
                     let cardObj = {};
-                    headerKeys.forEach((key, i) => {
-                        cardObj[key] = colunas[i] || '';
-                    });
+                    headerKeys.forEach((key, i) => { cardObj[key] = colunas[i] || ''; });
                     return processarCarta(cardObj, valorReferencia);
                 });
-
-                const novaCarta = processarCarta({ 
-                    "Card": nome, 
-                    "Valor Med.": valor, 
-                    "Lançamento": dataLancamento, 
-                    "pontoPopManual": pontoPop,
-                    "isNew": true
-                }, valorReferencia);
-
-                const listaCompleta = [...listaExistente, novaCarta];
-
-                const grupoA = listaCompleta.filter(c => c.grupo === 'A');
-                const grupoB = listaCompleta.filter(c => c.grupo === 'B');
-                const grupoC = listaCompleta.filter(c => c.grupo === 'C');
-
-                const sortFunction = (a, b) => {
-                    if (b.pontuacaoTotal !== a.pontuacaoTotal) return b.pontuacaoTotal - a.pontuacaoTotal;
-                    if (b.valorNumerico !== a.valorNumerico) return b.valorNumerico - a.valorNumerico;
-                    return a.ano - b.ano;
-                };
-
-                grupoA.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
-                grupoB.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
-                grupoC.sort(sortFunction).forEach((c, i) => c.prioridadeGrupo = i + 1);
                 
-                const listaFinal = [...grupoA, ...grupoB, ...grupoC];
-                listaFinal.forEach((c, i) => c.rankGeral = i + 1);
-                
-                renderizarTabelaIntegrada(listaFinal, tabelaContainer);
+                runClassifier(listaExistente, tabelaContainer);
 
             } catch (error) {
-                console.error(error);
                 tabelaContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao processar a lista: ${error.message}</p>`;
             }
         });
-        
+
         function renderizarTabelaIntegrada(cartas, container) {
              if (cartas.length === 0) {
                 container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma carta para exibir.</p>';
                 return;
              }
-             const thead = `
-                <thead class="bg-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-left">Rank Geral</th>
-                        <th class="px-4 py-2 text-left">Card</th>
-                        <th class="px-4 py-2 text-left">Valor</th>
-                        <th class="px-4 py-2 text-left">Ano</th>
-                        <th class="px-4 py-2 text-left">Grupo</th>
-                        <th class="px-4 py-2 text-left">Prioridade (no Grupo)</th>
-                        <th class="px-4 py-2 text-left">Pontuação</th>
-                    </tr>
-                </thead>`;
-            
-            const tbody = cartas.map((carta) => {
+             const thead = `<thead class="bg-gray-700"><tr><th class="px-4 py-2 text-left">Rank Geral</th><th class="px-4 py-2 text-left">Card</th><th class="px-4 py-2 text-left">Valor</th><th class="px-4 py-2 text-left">Ano</th><th class="px-4 py-2 text-left">Grupo</th><th class="px-4 py-2 text-left">Prioridade (no Grupo)</th><th class="px-4 py-2 text-left">Pontuação</th></tr></thead>`;
+             const tbody = cartas.map((carta) => {
                 const highlightClass = carta.isNew ? 'bg-cyan-900/60 border-l-4 border-cyan-500' : 'border-b border-gray-700';
-                return `
-                <tr class="${highlightClass} hover:bg-gray-600/50 transition-colors duration-200">
-                    <td class="px-4 py-2 font-bold">${carta.rankGeral}</td>
-                    <td class="px-4 py-2">${carta['Card']}</td>
-                    <td class="px-4 py-2">${formatCurrency(carta.valorNumerico)}</td>
-                    <td class="px-4 py-2">${carta.ano}</td>
-                    <td class="px-4 py-2 font-semibold">${carta.grupo}</td>
-                    <td class="px-4 py-2 font-bold text-yellow-400">${carta.prioridadeGrupo}</td>
-                    <td class="px-4 py-2 font-bold text-cyan-400">${carta.pontuacaoTotal}</td>
-                </tr>
-            `}).join('');
-
+                const quarentenaTag = carta.Quarentena === 'SIM' ? `<span class="ml-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Quarentena</span>` : '';
+                return `<tr class="${highlightClass} hover:bg-gray-600/50 transition-colors duration-200"><td class="px-4 py-2 font-bold">${carta.rankGeral}</td><td class="px-4 py-2">${carta['Card']}${quarentenaTag}</td><td class="px-4 py-2">${formatCurrency(carta.valorNumerico)}</td><td class="px-4 py-2">${carta.ano}</td><td class="px-4 py-2 font-semibold">${carta.grupo}</td><td class="px-4 py-2 font-bold text-yellow-400">${carta.prioridadeGrupo}</td><td class="px-4 py-2 font-bold text-cyan-400">${carta.pontuacaoTotal}</td></tr>`;
+            }).join('');
             container.innerHTML = `<table class="w-full text-sm text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
         }
+
+        // --- Lógica do Gerenciador de Listas ---
+        const gerenciadorPromoTexto = document.getElementById('gerenciador-promo-texto');
+        const gerenciadorRegularesTexto = document.getElementById('gerenciador-regulares-texto');
+        const tabelaPromoContainer = document.getElementById('tabela-promo-container');
+        const tabelaRegularesContainer = document.getElementById('tabela-regulares-container');
+        const saveFeedback = document.getElementById('save-feedback');
+        const exportPromoBtn = document.getElementById('exportPromoBtn');
+
+        function generatedListToText(data) {
+            if (!data || data.length === 0) return "";
+
+            const dataToProcess = JSON.parse(JSON.stringify(data));
+            const finalData = dataToProcess.map(row => {
+                const newRow = { ...row };
+                if (newRow.hasOwnProperty('valorNumerico')) {
+                    newRow['Valor Med.'] = newRow.valorNumerico ? `R$ ${newRow.valorNumerico.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+                }
+                if (newRow.hasOwnProperty('grupo')) newRow['Grupo'] = newRow.grupo;
+                if (newRow.hasOwnProperty('prioridadeGrupo')) newRow['Prioridade'] = newRow.prioridadeGrupo;
+                if (newRow.hasOwnProperty('ano')) newRow['Ano'] = newRow.ano;
+                if (newRow.hasOwnProperty('pontoPop')) newRow['Popularidade'] = newRow.pontoPop;
+                if (newRow.hasOwnProperty('rankGeral')) newRow['Rank'] = newRow.rankGeral;
+                if (newRow.hasOwnProperty('pontuacaoTotal')) newRow['Pontuação'] = newRow.pontuacaoTotal;
+
+                delete newRow.valorNumerico;
+                delete newRow.pontoValor;
+                delete newRow.pontoAno;
+                delete newRow.pontoPop;
+                delete newRow.pontuacaoTotal;
+                delete newRow.prioridadeGrupo;
+                delete newRow.rankGeral;
+                delete newRow.isNew;
+                delete newRow.pontoPopManual;
+                return newRow;
+            });
+            return objectArrayToText(finalData);
+        }
+
+        document.getElementById('importarGeradaBtn').addEventListener('click', () => {
+            if (lastGeneratedList.length === 0) {
+                alert('Nenhuma lista foi gerada na aba "Classificador e Priorizador".');
+                return;
+            }
+            const generatedText = generatedListToText(lastGeneratedList);
+            gerenciadorPromoTexto.value = generatedText;
+            saveFeedback.textContent = 'Lista importada! Clique em "Salvar" para confirmar.';
+            setTimeout(() => saveFeedback.textContent = '', 4000);
+        });
+
+        exportPromoBtn.addEventListener('click', () => {
+            try {
+                const promoData = promoDataArray;
+                if (promoData.length === 0) {
+                    alert('Não há dados na "Lista PROMO" para exportar. Salve a lista primeiro.');
+                    return;
+                }
+                const csvContent = objectArrayToText(promoData, true); // Use comma for CSV
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "promo_export.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                alert('Ocorreu um erro ao exportar os dados.');
+                console.error("Erro na exportação:", error);
+            }
+        });
+
+        function parseToObjectArray(text) {
+            const lines = text.trim().split('\n').filter(Boolean);
+            if (lines.length === 0) return [];
+            if (lines.length === 1 && lines[0].split(/[\t,]/).length <= 1) return [];
+            
+            const cleanedLines = lines.map(line => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                    return trimmed.substring(1, trimmed.length - 1);
+                }
+                return trimmed;
+            });
+
+            const headers = smartSplit(cleanedLines[0]);
+            return cleanedLines.slice(1).map(line => {
+                const values = smartSplit(line);
+                const obj = {};
+                headers.forEach((header, i) => {
+                    obj[header] = values[i] || '';
+                });
+                return obj;
+            });
+        }
+        
+        function renderDataTable(data, container, isPromo = false) {
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhum dado para exibir.</p>';
+                return;
+            }
+            const headers = Object.keys(data[0]);
+            const thead = `<thead class="bg-gray-700"><tr>${headers.map(h => `<th class="px-4 py-2 text-left text-sm">${h}</th>`).join('')}</tr></thead>`;
+            const tbody = data.map((row, index) => {
+                return `
+                <tr data-index="${index}" class="border-b border-gray-700 hover:bg-gray-600/50 ${isPromo ? 'cursor-pointer' : ''}">
+                    ${headers.map(h => `<td class="px-4 py-2 text-xs">${row[h] || ''}</td>`).join('')}
+                </tr>`;
+            }).join('');
+            container.innerHTML = `<table class="w-full text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
+        
+            if (isPromo) {
+                container.querySelectorAll('tr[data-index]').forEach(row => {
+                    row.addEventListener('click', () => {
+                        openEditModal(row.dataset.index);
+                    });
+                });
+            }
+        }
+        
+        document.getElementById('gravarBtn').addEventListener('click', () => {
+            try {
+                // Salvar PROMO
+                const promoText = gerenciadorPromoTexto.value.trim();
+                let parsedPromoData = parseToObjectArray(promoText);
+                // Normalize data
+                parsedPromoData.forEach(item => {
+                    if (!item.hasOwnProperty('Foto')) item['Foto'] = '';
+                    if (!item.hasOwnProperty('Foto Produto')) item['Foto Produto'] = '';
+                    if (!item.hasOwnProperty('Quarentena')) item['Quarentena'] = 'NAO';
+                });
+                promoDataArray = parsedPromoData;
+                localStorage.setItem('listaPromo', JSON.stringify(promoDataArray));
+                renderDataTable(promoDataArray, tabelaPromoContainer, true);
+                
+                // Salvar REGULARES
+                const regularesText = gerenciadorRegularesTexto.value.trim();
+                regularesDataArray = parseToObjectArray(regularesText);
+                localStorage.setItem('listaRegulares', JSON.stringify(regularesDataArray));
+                renderDataTable(regularesDataArray, tabelaRegularesContainer);
+
+                saveFeedback.textContent = 'Listas salvas com sucesso!';
+                setTimeout(() => saveFeedback.textContent = '', 3000);
+            } catch (error) {
+                saveFeedback.textContent = 'Erro ao salvar as listas.';
+                console.error("Erro ao salvar no Local Storage:", error);
+            }
+        });
+
+        function setupUpload(inputId, textareaId) {
+            document.getElementById(inputId).addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const textarea = document.getElementById(textareaId);
+                        textarea.value = e.target.result;
+                        textarea.dispatchEvent(new Event('input')); // Trigger input event
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        setupUpload('upload-promo', 'gerenciador-promo-texto');
+        setupUpload('upload-regulares', 'gerenciador-regulares-texto');
+        
+        // --- Lógica do Modal de Edição ---
+        const modal = document.getElementById('edit-modal');
+        const modalFields = document.getElementById('modal-fields');
+        const modalTitle = document.getElementById('modal-title');
+
+        function openEditModal(index) {
+            currentlyEditingIndex = parseInt(index, 10);
+            const item = promoDataArray[currentlyEditingIndex];
+            if (!item) return;
+
+            modalTitle.textContent = 'Editar Item';
+            modalTitle.classList.add('text-cyan-400');
+            modalTitle.classList.remove('text-green-400');
+            document.getElementById('save-modal-changes').textContent = 'Salvar Alterações';
+            document.getElementById('delete-modal-item').style.display = 'block';
+
+            // Garante que as propriedades existam
+            ['Foto', 'Foto Produto', 'Bloco', 'Tipo', 'Quarentena'].forEach(prop => {
+                if (!item.hasOwnProperty(prop)) item[prop] = '';
+            });
+
+
+            modalFields.innerHTML = '';
+            const cardImgPreview = document.getElementById('modal-image-preview');
+            const productImgPreview = document.getElementById('modal-product-image-preview');
+            const quarentenaInfo = document.getElementById('modal-quarentena-info');
+            const placeholderCardImg = 'https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem';
+            const placeholderProductImg = 'https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem';
+            
+            // Popula as imagens e displays
+            cardImgPreview.src = item['Foto'] || placeholderCardImg;
+            cardImgPreview.onerror = () => { cardImgPreview.src = placeholderCardImg; };
+
+            productImgPreview.src = item['Foto Produto'] || placeholderProductImg;
+            productImgPreview.onerror = () => { productImgPreview.src = placeholderProductImg; };
+            
+            if (item['Quarentena'] === 'SIM') {
+                quarentenaInfo.classList.remove('hidden');
+                document.getElementById('modal-bloco-display').textContent = item['Bloco'] || 'N/A';
+                document.getElementById('modal-tipo-display').textContent = item['Tipo'] || 'N/A';
+                
+                const endDateEl = document.getElementById('modal-quarentena-end-date');
+                if (item['Lançamento']) {
+                    const parts = item['Lançamento'].split('/');
+                    if(parts.length === 3) {
+                        const [day, month, year] = parts;
+                        const launchDate = new Date(year, month - 1, day);
+                        launchDate.setDate(launchDate.getDate() + 90);
+                        endDateEl.textContent = `Fim: ${launchDate.toLocaleDateString('pt-BR')}`;
+                    } else {
+                         endDateEl.textContent = 'Data de Lançamento inválida';
+                    }
+                } else {
+                    endDateEl.textContent = 'Sem data de Lançamento';
+                }
+
+            } else {
+                quarentenaInfo.classList.add('hidden');
+            }
+
+
+            // Cria os campos de input dinamicamente
+            Object.keys(item).forEach(key => {
+                const value = item[key];
+                const fieldHtml = `
+                    <div>
+                        <label for="modal-field-${key.replace(/\s/g, '-')}" class="text-sm font-semibold text-gray-400">${key}</label>
+                        <input type="text" id="modal-field-${key.replace(/\s/g, '-')}" data-key="${key}" value="${value}" class="mt-1 w-full p-2 bg-gray-700 border border-gray-600 rounded-lg">
+                    </div>
+                `;
+                modalFields.innerHTML += fieldHtml;
+            });
+
+            attachImagePreviewListeners();
+            modal.classList.remove('hidden');
+        }
+
+        function attachImagePreviewListeners() {
+            const cardImgPreview = document.getElementById('modal-image-preview');
+            const productImgPreview = document.getElementById('modal-product-image-preview');
+            const placeholderCardImg = 'https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem';
+            const placeholderProductImg = 'https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem';
+
+            const cardPhotoInput = modalFields.querySelector('input[data-key="Foto"]');
+            if (cardPhotoInput) {
+                cardPhotoInput.addEventListener('input', (e) => {
+                    cardImgPreview.src = e.target.value || placeholderCardImg;
+                });
+            }
+
+            const productPhotoInput = modalFields.querySelector('input[data-key="Foto Produto"]');
+            if (productPhotoInput) {
+                productPhotoInput.addEventListener('input', (e) => {
+                    productImgPreview.src = e.target.value || placeholderProductImg;
+                });
+            }
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            currentlyEditingIndex = -1;
+        }
+
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('save-modal-changes').addEventListener('click', () => {
+            if (currentlyEditingIndex === -1) return;
+
+            const updatedItem = {};
+            modalFields.querySelectorAll('input').forEach(input => {
+                updatedItem[input.dataset.key] = input.value;
+            });
+
+            promoDataArray[currentlyEditingIndex] = updatedItem;
+            saveFeedback.textContent = 'Item atualizado! Clique em "Salvar" para confirmar.';
+
+            gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
+            renderDataTable(promoDataArray, tabelaPromoContainer, true);
+            closeModal();
+        });
+
+        document.getElementById('delete-modal-item').addEventListener('click', () => {
+            if (currentlyEditingIndex === -1) return;
+
+            promoDataArray.splice(currentlyEditingIndex, 1);
+            gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
+            renderDataTable(promoDataArray, tabelaPromoContainer, true);
+
+            saveFeedback.textContent = 'Item removido! Clique em "Salvar" para confirmar.';
+            closeModal();
+        });
+        
+        // --- Lógica do Dashboard ---
+        function updateDashboard() {
+            const data = promoDataArray;
+
+            if (!data || data.length === 0) {
+                // Resetar para valores padrão se não houver dados
+                document.getElementById('db-valor-total').textContent = formatCurrency(0);
+                document.getElementById('db-total-investido').textContent = formatCurrency(0);
+                document.getElementById('db-total-cartas').textContent = 0;
+                document.getElementById('db-cartas-compradas').textContent = 0;
+                document.getElementById('db-cartas-faltantes').textContent = 0;
+                // Limpar gráficos
+                Object.values(chartInstances).forEach(chart => chart.destroy());
+                chartInstances = {};
+                return;
+            }
+
+            let valorTotal = 0;
+            let totalInvestido = 0;
+            let cartasCompradas = 0;
+            const groupCounts = {};
+            const yearCounts = {};
+
+            data.forEach(item => {
+                valorTotal += parseCurrency(item['Valor Med.']);
+                const valorPago = parseCurrency(item['Valor Pago']);
+                if (valorPago > 0) {
+                    totalInvestido += valorPago;
+                    cartasCompradas++;
+                }
+
+                const grupo = item['Grupo'] || 'N/A';
+                groupCounts[grupo] = (groupCounts[grupo] || 0) + 1;
+
+                const ano = item['Ano'] || 'N/A';
+                yearCounts[ano] = (yearCounts[ano] || 0) + 1;
+            });
+
+            const totalCartas = data.length;
+            const cartasFaltantes = totalCartas - cartasCompradas;
+
+            // Update Indicators
+            document.getElementById('db-valor-total').textContent = formatCurrency(valorTotal);
+            document.getElementById('db-total-investido').textContent = formatCurrency(totalInvestido);
+            document.getElementById('db-total-cartas').textContent = totalCartas;
+            document.getElementById('db-cartas-compradas').textContent = cartasCompradas;
+            document.getElementById('db-cartas-faltantes').textContent = cartasFaltantes;
+
+            // Render Charts
+            renderStatusChart(cartasCompradas, cartasFaltantes);
+            renderGroupChart(groupCounts);
+            renderYearChart(yearCounts);
+        }
+
+        function renderChart(chartId, type, data, options) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            if (chartInstances[chartId]) {
+                chartInstances[chartId].destroy();
+            }
+            chartInstances[chartId] = new Chart(ctx, { type, data, options });
+        }
+        
+        function renderStatusChart(compradas, faltantes) {
+            renderChart('status-chart', 'doughnut', {
+                labels: ['Compradas', 'Faltantes'],
+                datasets: [{
+                    data: [compradas, faltantes],
+                    backgroundColor: ['#22d3ee', '#4a5568'],
+                    borderColor: '#1f2937',
+                    borderWidth: 4
+                }]
+            }, {
+                responsive: true,
+                plugins: { legend: { position: 'top', labels: { color: '#e2e8f0' } } }
+            });
+        }
+
+        function renderGroupChart(groupCounts) {
+            const labels = Object.keys(groupCounts).sort();
+            const data = labels.map(label => groupCounts[label]);
+            renderChart('group-chart', 'bar', {
+                labels: labels,
+                datasets: [{
+                    label: '# de Cartas',
+                    data: data,
+                    backgroundColor: '#22d3ee',
+                    borderColor: '#22d3ee',
+                    borderWidth: 1
+                }]
+            }, {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#e2e8f0', stepSize: 1 } },
+                    x: { ticks: { color: '#e2e8f0' } }
+                }
+            });
+        }
+
+        function renderYearChart(yearCounts) {
+             const labels = Object.keys(yearCounts).sort((a, b) => a - b);
+            const data = labels.map(label => yearCounts[label]);
+            renderChart('year-chart', 'bar', {
+                labels: labels,
+                datasets: [{
+                    label: '# de Cartas',
+                    data: data,
+                    backgroundColor: '#81e6d9',
+                    borderColor: '#81e6d9',
+                    borderWidth: 1
+                }]
+            }, {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#e2e8f0', stepSize: 1 } },
+                    x: { ticks: { color: '#e2e8f0' } }
+                }
+            });
+        }
+
+
+        // --- Carregar Dados Iniciais ---
+        window.addEventListener('load', () => {
+            promoDataArray = JSON.parse(localStorage.getItem('listaPromo') || '[]');
+            gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
+            renderDataTable(promoDataArray, tabelaPromoContainer, true);
+            
+            regularesDataArray = JSON.parse(localStorage.getItem('listaRegulares') || '[]');
+            gerenciadorRegularesTexto.value = objectArrayToText(regularesDataArray);
+            renderDataTable(regularesDataArray, tabelaRegularesContainer, false);
+        });
+
     </script>
 </body>
 </html>
+

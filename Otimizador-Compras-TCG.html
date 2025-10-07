@@ -12,6 +12,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
         }
         /* Estilo para a barra de rolagem */
         ::-webkit-scrollbar {
@@ -71,33 +72,139 @@
             background-color: #22d3ee;
             color: #1a202c;
         }
+        .modal-tab-btn.active {
+            border-color: #22d3ee;
+            color: #22d3ee;
+        }
 
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-900 text-white flex items-start justify-center min-h-screen p-4">
 
     <div class="w-full max-w-5xl bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 space-y-6">
         <!-- Cabeçalho -->
         <div class="text-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-cyan-400">Analisador de Cartas</h1>
-            <p class="text-gray-400 mt-2">Otimize suas compras e classifique sua coleção com precisão.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-cyan-400">Otimizador de Compras</h1>
+            <p class="text-gray-400 mt-2">Gerencie, classifique e otimize a compra de suas cartas.</p>
         </div>
         
         <!-- Navegação das Abas -->
         <div class="flex border-b border-gray-700 flex-wrap">
-            <button id="tab-otimizador" class="tab-btn active py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300">Otimizador de Compras</button>
-            <button id="tab-classificador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Classificador e Priorizador</button>
-            <button id="tab-gerenciador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Gerenciador de Listas</button>
+            <button id="tab-gerenciador" class="tab-btn active py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300">Atualizar</button>
+            <button id="tab-classificador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Gerenciar</button>
+            <button id="tab-otimizador" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Otimizar</button>
             <button id="tab-dashboard" class="tab-btn py-2 px-4 font-semibold rounded-t-lg transition-colors duration-300 text-gray-400">Dashboard</button>
         </div>
 
         <!-- Conteúdo das Abas -->
         <div id="tab-content">
-            <!-- Otimizador de Compras -->
-            <div id="otimizador-view">
-                <div class="bg-gray-700/50 p-4 rounded-lg text-center mb-6">
-                    <p class="text-gray-300">Esta ferramenta utiliza as listas salvas no <strong class="text-cyan-400">Gerenciador de Listas</strong>. Certifique-se de que suas listas estão salvas e atualizadas.</p>
+            <!-- Gerenciador de Listas -->
+            <div id="gerenciador-view" class="space-y-6">
+                <div class="text-center">
+                    <p class="text-gray-300">Comece por aqui. Insira os dados das suas listas de cartas e salve para continuar.</p>
                 </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button id="gravarBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Salvar Listas
+                        </button>
+                        <button id="goToClassifierBtn" class="hidden ml-auto bg-cyan-500 hover:bg-cyan-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Ir para o Classificador →
+                        </button>
+                    </div>
+                    <p id="save-feedback" class="text-green-400 h-6 mt-2"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Coluna PROMO -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-lg text-cyan-400">Lista PROMO</h3>
+                        </div>
+                        <textarea id="gerenciador-promo-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
+                        <label for="upload-promo" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
+                            Upload Promo CSV
+                        </label>
+                        <input type="file" id="upload-promo" class="hidden" accept=".csv, .txt">
+                        <div id="tabela-promo-container" class="overflow-x-auto"></div>
+                    </div>
+                    <!-- Coluna REGULARES -->
+                     <div class="space-y-4">
+                         <h3 class="font-bold text-lg text-cyan-400">Lista REGULARES</h3>
+                        <textarea id="gerenciador-regulares-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
+                         <label for="upload-regulares" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
+                            Upload Regulares CSV
+                        </label>
+                        <input type="file" id="upload-regulares" class="hidden" accept=".csv, .txt">
+                        <div id="tabela-regulares-container" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Classificador e Priorizador -->
+            <div id="classificador-view" class="hidden space-y-6">
+                 <!-- Seção 1: Analisar Nova Carta -->
+                <div class="bg-gray-700/50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-cyan-400 mb-3">Adicionar Nova Carta</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="card-nome" class="font-semibold text-gray-300 text-sm">Nome do Card</label>
+                            <input type="text" id="card-nome" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: Charizard ex">
+                        </div>
+                         <div>
+                            <label for="card-valor" class="font-semibold text-gray-300 text-sm">Valor (R$)</label>
+                            <input type="number" id="card-valor" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 150.00">
+                        </div>
+                         <div>
+                            <label for="card-lancamento" class="font-semibold text-gray-300 text-sm">Lançamento</label>
+                            <input type="text" id="card-lancamento" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="dd/mm/aaaa">
+                        </div>
+                        <div>
+                             <label for="card-popularidade" class="font-semibold text-gray-300 text-sm">Popularidade</label>
+                            <div class="flex items-center space-x-4 mt-1">
+                                <input type="range" id="card-popularidade" value="2" min="1" max="3" step="1" class="w-full">
+                                <span id="popularidade-valor" class="font-semibold text-cyan-400 w-32 text-center">Popular</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="valor-referencia" class="font-semibold text-gray-300 text-sm">Valor de Referência para Classificação (R$)</label>
+                            <input type="number" id="valor-referencia" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 60.00">
+                        </div>
+                         <div class="md:col-span-2">
+                            <div class="flex items-center mt-2">
+                                <input id="card-quarentena" type="checkbox" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
+                                <label for="card-quarentena" class="ml-2 font-medium text-gray-300 cursor-pointer">Quarentena</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-4 mt-4">
+                        <button id="gerarListaBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Adicionar Nova Carta
+                        </button>
+                        <button id="analisarListaAtualBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Atualizar Lista Atual
+                        </button>
+                        <button id="salvarClassificadaBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Salvar
+                        </button>
+                        <button id="exportClassificadaBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                            Exportar
+                        </button>
+                    </div>
+                    <p id="classifier-feedback" class="text-green-400 h-6 mt-2"></p>
+                </div>
+
+                <!-- Seção 2: Resultado -->
+                <div class="bg-gray-700/50 p-4 rounded-lg">
+                     <h3 class="font-bold text-lg text-cyan-400 mb-3">Lista Atualizada</h3>
+                     <div id="tabela-integrada-container" class="overflow-x-auto">
+                        <!-- A tabela será inserida aqui -->
+                     </div>
+                     <div id="classifier-actions" class="mt-6 text-center"></div>
+                </div>
+            </div>
+
+            <!-- Otimizador de Compras -->
+            <div id="otimizador-view" class="hidden">
                 <div class="grid grid-cols-1">
                     <!-- Coluna de Campos de Controle -->
                     <div class="flex flex-col space-y-4 max-w-md mx-auto w-full">
@@ -146,111 +253,7 @@
                     </div>
                 </div>
                  <div id="resultado-otimizador" class="pt-6 border-t border-gray-700 mt-6"></div>
-            </div>
-
-            <!-- Classificador e Priorizador -->
-            <div id="classificador-view" class="hidden space-y-6">
-                 <!-- Seção 1: Lista Atual -->
-                 <div class="bg-gray-700/50 p-4 rounded-lg">
-                    <h3 class="font-bold text-lg text-cyan-400 mb-3">1. Sua Lista Atual</h3>
-                    <div>
-                        <div class="flex justify-between items-center">
-                            <label for="lista-atual-csv" class="font-semibold text-gray-300">Cole sua lista aqui</label>
-                            <button id="importarPromoBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors duration-200">Importar da lista PROMO</button>
-                        </div>
-                        <textarea id="lista-atual-csv" rows="8" class="mt-2 w-full p-3 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-500" placeholder="Copie e cole aqui os dados da sua planilha..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Seção 2: Analisar Nova Carta -->
-                <div class="bg-gray-700/50 p-4 rounded-lg">
-                    <h3 class="font-bold text-lg text-cyan-400 mb-3">2. Analisar e Integrar Nova Carta</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="card-nome" class="font-semibold text-gray-300 text-sm">Nome do Card</label>
-                            <input type="text" id="card-nome" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: Charizard ex">
-                        </div>
-                         <div>
-                            <label for="card-valor" class="font-semibold text-gray-300 text-sm">Valor (R$)</label>
-                            <input type="number" id="card-valor" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 150.00">
-                        </div>
-                         <div>
-                            <label for="card-lancamento" class="font-semibold text-gray-300 text-sm">Lançamento</label>
-                            <input type="text" id="card-lancamento" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="dd/mm/aaaa">
-                        </div>
-                        <div>
-                             <label for="card-popularidade" class="font-semibold text-gray-300 text-sm">Popularidade</label>
-                            <div class="flex items-center space-x-4 mt-1">
-                                <input type="range" id="card-popularidade" value="2" min="1" max="3" step="1" class="w-full">
-                                <span id="popularidade-valor" class="font-semibold text-cyan-400 w-32 text-center">Popular</span>
-                            </div>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="valor-referencia" class="font-semibold text-gray-300 text-sm">Valor de Referência para Classificação (R$)</label>
-                            <input type="number" id="valor-referencia" class="w-full mt-1 p-2 bg-gray-600 border border-gray-500 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Ex: 60.00">
-                        </div>
-                         <div class="md:col-span-2">
-                            <div class="flex items-center mt-2">
-                                <input id="card-quarentena" type="checkbox" class="h-5 w-5 cursor-pointer appearance-none rounded-full border-2 border-gray-500 bg-gray-600 checked:bg-cyan-500 checked:border-cyan-400 transition-all duration-200">
-                                <label for="card-quarentena" class="ml-2 font-medium text-gray-300 cursor-pointer">Quarentena</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 mt-4">
-                        <button id="gerarListaBtn" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                            Gerar Nova Lista
-                        </button>
-                        <button id="analisarListaAtualBtn" class="w-full md:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                            Analisar Lista Atual
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Seção 3: Resultado -->
-                <div class="bg-gray-700/50 p-4 rounded-lg">
-                     <h3 class="font-bold text-lg text-cyan-400 mb-3">3. Nova Lista Gerada</h3>
-                     <div id="tabela-integrada-container" class="overflow-x-auto">
-                        <!-- A tabela será inserida aqui -->
-                     </div>
-                </div>
-            </div>
-            
-            <!-- Gerenciador de Listas -->
-            <div id="gerenciador-view" class="hidden space-y-6">
-                <div>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <button id="gravarBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                            Salvar
-                        </button>
-                        <button id="importarGeradaBtn" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">Importar Nova Lista Gerada</button>
-                        <button id="exportPromoBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">Exportar PROMO</button>
-                    </div>
-                    <p id="save-feedback" class="text-green-400 h-4 mt-2"></p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Coluna PROMO -->
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="font-bold text-lg text-cyan-400">Lista PROMO</h3>
-                        </div>
-                        <textarea id="gerenciador-promo-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
-                        <label for="upload-promo" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
-                            Upload Promo CSV
-                        </label>
-                        <input type="file" id="upload-promo" class="hidden" accept=".csv, .txt">
-                        <div id="tabela-promo-container" class="overflow-x-auto"></div>
-                    </div>
-                    <!-- Coluna REGULARES -->
-                     <div class="space-y-4">
-                         <h3 class="font-bold text-lg text-cyan-400">Lista REGULARES</h3>
-                        <textarea id="gerenciador-regulares-texto" rows="8" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" placeholder="Cole os dados aqui ou use o botão de upload."></textarea>
-                         <label for="upload-regulares" class="w-full text-center cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 block">
-                            Upload Regulares CSV
-                        </label>
-                        <input type="file" id="upload-regulares" class="hidden" accept=".csv, .txt">
-                        <div id="tabela-regulares-container" class="overflow-x-auto"></div>
-                    </div>
-                </div>
+                 <div id="optimizer-actions" class="hidden mt-6 flex flex-col sm:flex-row gap-4 justify-center"></div>
             </div>
 
             <!-- Dashboard -->
@@ -301,41 +304,56 @@
 
     <!-- Modal de Edição -->
     <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] flex flex-col sm:flex-row gap-6">
-            <!-- Coluna da Imagem -->
-            <div class="w-full sm:w-1/3 flex-shrink-0 flex flex-col items-center justify-start gap-4">
-                <!-- Imagem Card -->
-                <div class="w-full">
-                    <h3 class="text-lg font-semibold text-gray-300 mb-2 text-center">Imagem do Card</h3>
-                    <div class="w-full max-w-[200px] mx-auto aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                        <img id="modal-image-preview" src="https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem" alt="Prévia do card" class="w-full h-full object-contain">
-                    </div>
-                </div>
-                <!-- Detalhes Quarentena -->
-                <div id="modal-quarentena-info" class="hidden text-center bg-gray-700/50 p-3 rounded-md w-full max-w-[200px] mx-auto space-y-2">
-                     <p class="text-sm text-gray-400">Bloco: <span id="modal-bloco-display" class="font-semibold text-gray-200">N/A</span></p>
-                    <p class="text-sm text-gray-400">Tipo: <span id="modal-tipo-display" class="font-semibold text-gray-200">N/A</span></p>
-                    <div id="modal-quarentena-tag" class="bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full">Quarentena</div>
-                    <div id="modal-quarentena-end-date" class="bg-red-800 text-white text-xs font-semibold px-2 py-1 rounded"></div>
-                </div>
-                <!-- Imagem Produto -->
-                <div class="w-full">
-                    <h3 class="text-lg font-semibold text-gray-300 mb-2 text-center">Imagem do Produto</h3>
-                    <div class="w-full max-w-[200px] mx-auto aspect-square bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                        <img id="modal-product-image-preview" src="https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem" alt="Prévia do produto" class="w-full h-full object-contain">
-                    </div>
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] flex gap-6">
+            <!-- Coluna da Imagem Esquerda -->
+            <div class="w-1/3 flex-shrink-0">
+                <div class="w-full aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center sticky top-6">
+                    <img id="modal-image-preview" src="https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem" alt="Prévia do card" class="w-full h-full object-contain">
                 </div>
             </div>
-            <!-- Coluna dos Campos -->
-            <div class="w-full sm:w-2/3 flex flex-col">
-                <h2 id="modal-title" class="text-2xl font-bold text-cyan-400 mb-4 flex-shrink-0">Editar Item</h2>
-                <div id="modal-fields" class="space-y-3 overflow-y-auto flex-grow pr-2">
-                    <!-- Campos do formulário serão injetados aqui -->
+
+            <!-- Coluna de Conteúdo Direita -->
+            <div class="w-2/3 flex flex-col">
+                <!-- Cabeçalho do Modal -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-grow">
+                        <input id="modal-card-name" type="text" class="text-3xl font-bold bg-transparent border-0 border-b-2 border-gray-700 focus:border-cyan-400 focus:ring-0 w-full text-white p-0" placeholder="Nome do Card">
+                        <div class="flex items-center mt-2">
+                             <span class="mr-2 text-gray-400 text-sm">Edição:</span>
+                             <input id="modal-card-edition" type="text" class="text-sm font-semibold bg-transparent border-0 border-b border-gray-600 focus:border-cyan-400 focus:ring-0 w-auto text-gray-300 p-0" placeholder="Nome da Edição">
+                             <span class="mx-2 text-gray-500">|</span>
+                             <span class="mr-2 text-gray-400 text-sm">Nº:</span>
+                             <input id="modal-card-number" type="text" class="text-sm font-semibold bg-transparent border-0 border-b border-gray-600 focus:border-cyan-400 focus:ring-0 w-24 text-gray-300 p-0" placeholder="000/000">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                        <button id="save-modal-changes" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Salvar</button>
+                        <button id="delete-modal-item" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Excluir</button>
+                        <button id="close-modal" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Fechar</button>
+                    </div>
                 </div>
-                <div id="modal-actions" class="mt-6 flex-shrink-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                     <button id="save-modal-changes" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Salvar Alterações</button>
-                     <button id="delete-modal-item" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Excluir Item</button>
-                     <button id="close-modal" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Fechar</button>
+
+                <!-- Abas do Modal -->
+                <div class="flex border-b border-gray-700 mb-4">
+                    <button class="modal-tab-btn active text-lg font-semibold py-2 px-4 border-b-2 transition-colors duration-300" data-tab="info">Info</button>
+                    <button class="modal-tab-btn text-lg font-semibold py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition-colors duration-300" data-tab="produto">Produto</button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div id="modal-tab-content" class="flex-grow overflow-y-auto pr-2">
+                    <!-- Aba Info -->
+                    <div id="modal-info-tab">
+                        <!-- Conteúdo dinâmico será injetado aqui -->
+                    </div>
+                    <!-- Aba Produto -->
+                    <div id="modal-produto-tab" class="hidden">
+                         <div class="flex flex-col items-center gap-4">
+                            <h3 class="text-lg font-semibold text-gray-300">Imagem do Produto</h3>
+                            <div class="w-full max-w-sm aspect-square bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                                 <img id="modal-product-image-preview" src="https://placehold.co/400x400/2d3748/718096?text=Sem+Imagem" alt="Prévia do produto" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -365,19 +383,23 @@
 
         function switchTab(viewToShow, tabToActivate) {
             allViews.forEach(view => view.classList.add('hidden'));
-            allTabs.forEach(tab => tab.classList.remove('active', 'text-gray-900'));
+            allTabs.forEach(tab => {
+                tab.classList.remove('active', 'text-gray-900');
+                tab.classList.add('text-gray-400');
+            });
             
             viewToShow.classList.remove('hidden');
             tabToActivate.classList.add('active', 'text-gray-900');
+            tabToActivate.classList.remove('text-gray-400');
             
             if (viewToShow === dashboardView) {
                 updateDashboard();
             }
         }
 
-        tabOtimizadorBtn.addEventListener('click', () => switchTab(otimizadorView, tabOtimizadorBtn));
-        tabClassificadorBtn.addEventListener('click', () => switchTab(classificadorView, tabClassificadorBtn));
         tabGerenciadorBtn.addEventListener('click', () => switchTab(gerenciadorView, tabGerenciadorBtn));
+        tabClassificadorBtn.addEventListener('click', () => switchTab(classificadorView, tabClassificadorBtn));
+        tabOtimizadorBtn.addEventListener('click', () => switchTab(otimizadorView, tabOtimizadorBtn));
         tabDashboardBtn.addEventListener('click', () => switchTab(dashboardView, tabDashboardBtn));
 
         // --- Funções Utilitárias ---
@@ -451,6 +473,27 @@
         toleranciaSlider.addEventListener('input', atualizarDisplayTolerancia);
         orcamentoInput.addEventListener('input', atualizarDisplayTolerancia);
         
+        function showOptimizerActions() {
+            const actionsDiv = document.getElementById('optimizer-actions');
+            actionsDiv.innerHTML = `
+                <button id="adjustListBtn" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Ajustar Lista e Reanalisar</button>
+                <button id="newOptimizationBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">Iniciar Nova Otimização</button>
+            `;
+            actionsDiv.classList.remove('hidden');
+
+            document.getElementById('adjustListBtn').addEventListener('click', () => {
+                switchTab(classificadorView, tabClassificadorBtn);
+            });
+            document.getElementById('newOptimizationBtn').addEventListener('click', () => {
+                orcamentoInput.value = '';
+                toleranciaSlider.value = '0';
+                atualizarDisplayTolerancia();
+                document.getElementById('resultado-otimizador').innerHTML = '';
+                actionsDiv.classList.add('hidden');
+                orcamentoInput.focus();
+            });
+        }
+        
         document.getElementById('analisarBtn').addEventListener('click', () => {
             const orcamento = parseFloat(orcamentoInput.value);
             const tolerancia = parseFloat(toleranciaSlider.value) || 0;
@@ -498,6 +541,8 @@
                     const { cartasEscolhidas: cartasEscolhidasRegulares, custoTotal: custoTotalRegulares } = selecionarCartas(cartasRegularesCandidatas, orcamentoRestante);
                     renderizarResultadoRegulares(cartasEscolhidasRegulares, custoTotalRegulares, orcamentoRestante);
                 }
+                
+                showOptimizerActions();
 
             } catch (error) {
                 resultadoDiv.innerHTML = `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg"><p class="font-bold">Erro!</p><p>${error.message}</p></div>`;
@@ -542,7 +587,7 @@
                  return;
             }
             const listaHtml = cartas.map(carta => `<li class="flex justify-between items-center p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors duration-200"><span class="font-medium text-gray-200">${carta.nome}</span><span class="font-semibold text-cyan-400">${formatCurrency(carta.valor)}</span></li>`).join('');
-            const htmlAdicional = `<h2 class="text-2xl font-bold text-cyan-400 mt-6 mb-4">Cartas Regulares Adicionais</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-lg">Custo Adicional (Regulares): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Final Restante: <span class="font-semibold">${formatCurrency(orcamentoInicial - custo)}</span></p></div></div>`;
+            const htmlAdicional = `<div class="pt-6 mt-6 border-t-2 border-dashed border-gray-600"><h2 class="text-2xl font-bold text-cyan-400 mb-4">Cartas Regulares Adicionais (Bônus)</h2><div class="bg-gray-900/50 p-4 rounded-lg"><ul class="space-y-2 mb-4">${listaHtml}</ul><div class="pt-4 border-t border-gray-600 space-y-2 text-right"><p class="text-lg">Custo Adicional (Regulares): <span class="font-bold text-green-400">${formatCurrency(custo)}</span></p><p class="text-md text-gray-400">Orçamento Final Restante: <span class="font-semibold">${formatCurrency(orcamentoInicial - custo)}</span></p></div></div>`;
             resultadoDiv.innerHTML += htmlAdicional;
         }
 
@@ -552,12 +597,6 @@
         const popMap = { '1': 'Pouco Popular', '2': 'Popular', '3': 'Muito Popular' };
         popularidadeSlider.addEventListener('input', () => {
             popularidadeValor.textContent = popMap[popularidadeSlider.value];
-        });
-
-        document.getElementById('importarPromoBtn').addEventListener('click', (event) => {
-            event.preventDefault();
-            const promoText = objectArrayToText(promoDataArray);
-            document.getElementById('lista-atual-csv').value = promoText;
         });
 
         function processarCarta(cartaObj, valorReferencia) {
@@ -608,54 +647,76 @@
             
             lastGeneratedList = listaFinal; // Armazena a lista para importação posterior
             renderizarTabelaIntegrada(listaFinal, container);
+
+            const actionsContainer = document.getElementById('classifier-actions');
+            actionsContainer.innerHTML = `<button id="goToOptimizerBtn" class="bg-cyan-500 hover:bg-cyan-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">Avançar para Otimização →</button>`;
+            document.getElementById('goToOptimizerBtn').addEventListener('click', () => {
+                switchTab(otimizadorView, tabOtimizadorBtn);
+            });
+            container.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         document.getElementById('gerarListaBtn').addEventListener('click', () => {
-            const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
             const tabelaContainer = document.getElementById('tabela-integrada-container');
-            const nome = document.getElementById('card-nome').value.trim();
-            const valor = parseFloat(document.getElementById('card-valor').value);
-            const isQuarantined = document.getElementById('card-quarentena').checked;
+            const nomeInput = document.getElementById('card-nome');
+            const valorInput = document.getElementById('card-valor');
+            const lancamentoInput = document.getElementById('card-lancamento');
+            const quarentenaInput = document.getElementById('card-quarentena');
+            const valorReferenciaInput = document.getElementById('valor-referencia');
 
-            if (!listaAtualCsv || !nome || (!isQuarantined && isNaN(valor)) || !document.getElementById('card-lancamento').value.trim() || isNaN(parseFloat(document.getElementById('valor-referencia').value))) {
-                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos (Valor é opcional apenas em quarentena).</p>`;
+            const nome = nomeInput.value.trim();
+            const valor = valorInput.value; // Get as string to preserve format
+            const isQuarantined = quarentenaInput.checked;
+            const dataLancamento = lancamentoInput.value.trim();
+            const pontoPop = parseInt(popularidadeSlider.value, 10);
+
+            if (!nome || (!isQuarantined && !valor) || !dataLancamento || !valorReferenciaInput.value) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Por favor, preencha todos os campos da nova carta (Valor é opcional apenas em quarentena).</p>`;
                 return;
             }
 
-            const dataLancamento = document.getElementById('card-lancamento').value.trim();
-            const pontoPop = parseInt(popularidadeSlider.value, 10);
-            const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
-
             try {
-                const linhas = listaAtualCsv.split('\n').filter(Boolean);
-                const headerKeys = smartSplit(linhas[0]);
-                const listaExistente = linhas.slice(1).map(linha => {
-                    const colunas = smartSplit(linha);
-                    let cardObj = {};
-                    headerKeys.forEach((key, i) => { cardObj[key] = colunas[i] || ''; });
-                    return processarCarta(cardObj, valorReferencia);
-                });
+                // Determine the headers from existing data or create a default set
+                const headerKeys = promoDataArray.length > 0 
+                    ? Object.keys(promoDataArray[0]) 
+                    : ['Card', 'Valor Med.', 'Lançamento', 'Quarentena', 'Popularidade', 'Foto', 'Foto Produto', 'Bloco', 'Tipo', 'Grupo', 'Prioridade', 'Ano', 'Rank', 'Pontuação', 'Valor Pago', 'Edição', 'Número'];
+                
+                const newItem = {};
+                headerKeys.forEach(key => newItem[key] = ''); // Initialize with empty strings
 
-                const newCardTemplate = {};
-                headerKeys.forEach(key => newCardTemplate[key] = '');
+                // Populate the new item with data from the form
+                newItem['Card'] = nome;
+                newItem['Valor Med.'] = valor ? `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+                newItem['Lançamento'] = dataLancamento;
+                newItem['Quarentena'] = isQuarantined ? 'SIM' : 'NAO';
+                newItem['Popularidade'] = pontoPop;
 
-                const novaCarta = processarCarta({ 
-                    ...newCardTemplate,
-                    "Card": nome, "Valor Med.": valor, "Lançamento": dataLancamento, 
-                    "Quarentena": isQuarantined ? 'SIM' : 'NAO',
-                    "pontoPopManual": pontoPop, "isNew": true
-                }, valorReferencia);
+                // Add the new item to the main data array
+                promoDataArray.push(newItem);
 
-                const listaCompleta = [...listaExistente, novaCarta];
-                runClassifier(listaCompleta, tabelaContainer);
+                // Update the manager's textarea to reflect the addition, ensuring save will work
+                gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
+                
+                // Give feedback to the user
+                classifierFeedback.innerHTML = `Item <strong class="text-white">${nome}</strong> adicionado. Clique em <strong class="text-cyan-400">[Salvar]</strong> para salvar permanentemente.`;
+
+                // Automatically run the analysis on the updated list
+                document.getElementById('analisarListaAtualBtn').click();
+                
+                // Clear input fields for the next entry
+                nomeInput.value = '';
+                valorInput.value = '';
+                lancamentoInput.value = '';
+                quarentenaInput.checked = false;
+                nomeInput.focus();
+
 
             } catch (error) {
-                tabelaContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro: ${error.message}</p>`;
+                tabelaContainer.innerHTML = `<p class="text-red-400">Ocorreu um erro ao adicionar o item: ${error.message}</p>`;
             }
         });
         
         document.getElementById('analisarListaAtualBtn').addEventListener('click', () => {
-            const listaAtualCsv = document.getElementById('lista-atual-csv').value.trim();
             const tabelaContainer = document.getElementById('tabela-integrada-container');
             const valorReferencia = parseFloat(document.getElementById('valor-referencia').value);
 
@@ -664,18 +725,14 @@
                 return;
             }
 
-            if (!listaAtualCsv) {
-                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">O campo "Sua Lista Atual" está vazio.</p>`;
+            if (promoDataArray.length === 0) {
+                tabelaContainer.innerHTML = `<p class="text-red-400 text-center py-4">Sua lista PROMO está vazia. Adicione itens no Gerenciador de Listas primeiro.</p>`;
                 return;
             }
 
             try {
-                const linhas = listaAtualCsv.split('\n').filter(Boolean);
-                const headerKeys = smartSplit(linhas[0]);
-                const listaExistente = linhas.slice(1).map(linha => {
-                    const colunas = smartSplit(linha);
-                    let cardObj = {};
-                    headerKeys.forEach((key, i) => { cardObj[key] = colunas[i] || ''; });
+                const listaExistente = JSON.parse(JSON.stringify(promoDataArray)).map((cardObj, index) => {
+                    cardObj.originalIndex = index;
                     return processarCarta(cardObj, valorReferencia);
                 });
                 
@@ -695,9 +752,20 @@
              const tbody = cartas.map((carta) => {
                 const highlightClass = carta.isNew ? 'bg-cyan-900/60 border-l-4 border-cyan-500' : 'border-b border-gray-700';
                 const quarentenaTag = carta.Quarentena === 'SIM' ? `<span class="ml-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">Quarentena</span>` : '';
-                return `<tr class="${highlightClass} hover:bg-gray-600/50 transition-colors duration-200"><td class="px-4 py-2 font-bold">${carta.rankGeral}</td><td class="px-4 py-2">${carta['Card']}${quarentenaTag}</td><td class="px-4 py-2">${formatCurrency(carta.valorNumerico)}</td><td class="px-4 py-2">${carta.ano}</td><td class="px-4 py-2 font-semibold">${carta.grupo}</td><td class="px-4 py-2 font-bold text-yellow-400">${carta.prioridadeGrupo}</td><td class="px-4 py-2 font-bold text-cyan-400">${carta.pontuacaoTotal}</td></tr>`;
+                const isEditable = carta.originalIndex !== undefined;
+                const cursorClass = isEditable ? 'cursor-pointer' : '';
+                const dataIndexAttr = isEditable ? `data-index="${carta.originalIndex}"` : '';
+
+                return `<tr ${dataIndexAttr} class="${highlightClass} hover:bg-gray-600/50 transition-colors duration-200 ${cursorClass}"><td class="px-4 py-2 font-bold">${carta.rankGeral}</td><td class="px-4 py-2">${carta['Card']}${quarentenaTag}</td><td class="px-4 py-2">${formatCurrency(carta.valorNumerico)}</td><td class="px-4 py-2">${carta.ano}</td><td class="px-4 py-2 font-semibold">${carta.grupo}</td><td class="px-4 py-2 font-bold text-yellow-400">${carta.prioridadeGrupo}</td><td class="px-4 py-2 font-bold text-cyan-400">${carta.pontuacaoTotal}</td></tr>`;
             }).join('');
             container.innerHTML = `<table class="w-full text-sm text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
+
+            // Add event listeners
+            container.querySelectorAll('tr[data-index]').forEach(row => {
+                row.addEventListener('click', () => {
+                    openEditModal(row.dataset.index);
+                });
+            });
         }
 
         // --- Lógica do Gerenciador de Listas ---
@@ -706,51 +774,48 @@
         const tabelaPromoContainer = document.getElementById('tabela-promo-container');
         const tabelaRegularesContainer = document.getElementById('tabela-regulares-container');
         const saveFeedback = document.getElementById('save-feedback');
-        const exportPromoBtn = document.getElementById('exportPromoBtn');
 
-        function generatedListToText(data) {
-            if (!data || data.length === 0) return "";
+        function saveLists(feedbackEl) {
+             try {
+                // The textareas are kept in sync with the global arrays after edits.
+                // We use them as the source of truth for saving to ensure consistency.
+                const promoText = gerenciadorPromoTexto.value.trim();
+                let parsedPromoData = parseToObjectArray(promoText);
+                parsedPromoData.forEach(item => {
+                    if (!item.hasOwnProperty('Foto')) item['Foto'] = '';
+                    if (!item.hasOwnProperty('Foto Produto')) item['Foto Produto'] = '';
+                    if (!item.hasOwnProperty('Quarentena')) item['Quarentena'] = 'NAO';
+                    if (!item.hasOwnProperty('Edição')) item['Edição'] = '';
+                    if (!item.hasOwnProperty('Número')) item['Número'] = '';
+                });
+                promoDataArray = parsedPromoData;
+                localStorage.setItem('listaPromo', JSON.stringify(promoDataArray));
+                renderDataTable(promoDataArray, tabelaPromoContainer);
+                
+                const regularesText = gerenciadorRegularesTexto.value.trim();
+                regularesDataArray = parseToObjectArray(regularesText);
+                localStorage.setItem('listaRegulares', JSON.stringify(regularesDataArray));
+                renderDataTable(regularesDataArray, tabelaRegularesContainer);
 
-            const dataToProcess = JSON.parse(JSON.stringify(data));
-            const finalData = dataToProcess.map(row => {
-                const newRow = { ...row };
-                if (newRow.hasOwnProperty('valorNumerico')) {
-                    newRow['Valor Med.'] = newRow.valorNumerico ? `R$ ${newRow.valorNumerico.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+                feedbackEl.innerHTML = '<strong class="text-green-400">Alterações salvas com sucesso!</strong>';
+                setTimeout(() => { feedbackEl.innerHTML = '' }, 4000);
+
+                if (feedbackEl.id === 'save-feedback') {
+                    document.getElementById('goToClassifierBtn').classList.remove('hidden');
                 }
-                if (newRow.hasOwnProperty('grupo')) newRow['Grupo'] = newRow.grupo;
-                if (newRow.hasOwnProperty('prioridadeGrupo')) newRow['Prioridade'] = newRow.prioridadeGrupo;
-                if (newRow.hasOwnProperty('ano')) newRow['Ano'] = newRow.ano;
-                if (newRow.hasOwnProperty('pontoPop')) newRow['Popularidade'] = newRow.pontoPop;
-                if (newRow.hasOwnProperty('rankGeral')) newRow['Rank'] = newRow.rankGeral;
-                if (newRow.hasOwnProperty('pontuacaoTotal')) newRow['Pontuação'] = newRow.pontuacaoTotal;
-
-                delete newRow.valorNumerico;
-                delete newRow.pontoValor;
-                delete newRow.pontoAno;
-                delete newRow.pontoPop;
-                delete newRow.pontuacaoTotal;
-                delete newRow.prioridadeGrupo;
-                delete newRow.rankGeral;
-                delete newRow.isNew;
-                delete newRow.pontoPopManual;
-                return newRow;
-            });
-            return objectArrayToText(finalData);
+            } catch (error) {
+                feedbackEl.textContent = 'Erro ao salvar as listas.';
+                console.error("Erro ao salvar no Local Storage:", error);
+            }
         }
 
-        document.getElementById('importarGeradaBtn').addEventListener('click', () => {
-            if (lastGeneratedList.length === 0) {
-                alert('Nenhuma lista foi gerada na aba "Classificador e Priorizador".');
-                return;
-            }
-            const generatedText = generatedListToText(lastGeneratedList);
-            gerenciadorPromoTexto.value = generatedText;
-            saveFeedback.textContent = 'Lista importada! Clique em "Salvar" para confirmar.';
-            setTimeout(() => saveFeedback.textContent = '', 4000);
+        document.getElementById('goToClassifierBtn').addEventListener('click', () => {
+            switchTab(classificadorView, tabClassificadorBtn);
         });
 
-        exportPromoBtn.addEventListener('click', () => {
-            try {
+        // Refactored export logic into a reusable function
+        function exportPromoCSV() {
+             try {
                 const promoData = promoDataArray;
                 if (promoData.length === 0) {
                     alert('Não há dados na "Lista PROMO" para exportar. Salve a lista primeiro.');
@@ -770,7 +835,9 @@
                 alert('Ocorreu um erro ao exportar os dados.');
                 console.error("Erro na exportação:", error);
             }
-        });
+        }
+
+        document.getElementById('exportClassificadaBtn').addEventListener('click', exportPromoCSV);
 
         function parseToObjectArray(text) {
             const lines = text.trim().split('\n').filter(Boolean);
@@ -796,7 +863,7 @@
             });
         }
         
-        function renderDataTable(data, container, isPromo = false) {
+        function renderDataTable(data, container) {
             if (!data || data.length === 0) {
                 container.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhum dado para exibir.</p>';
                 return;
@@ -805,48 +872,36 @@
             const thead = `<thead class="bg-gray-700"><tr>${headers.map(h => `<th class="px-4 py-2 text-left text-sm">${h}</th>`).join('')}</tr></thead>`;
             const tbody = data.map((row, index) => {
                 return `
-                <tr data-index="${index}" class="border-b border-gray-700 hover:bg-gray-600/50 ${isPromo ? 'cursor-pointer' : ''}">
+                <tr data-index="${index}" class="border-b border-gray-700 hover:bg-gray-600/50">
                     ${headers.map(h => `<td class="px-4 py-2 text-xs">${row[h] || ''}</td>`).join('')}
                 </tr>`;
             }).join('');
             container.innerHTML = `<table class="w-full text-left text-gray-300 rounded-lg overflow-hidden">${thead}<tbody>${tbody}</tbody></table>`;
-        
-            if (isPromo) {
-                container.querySelectorAll('tr[data-index]').forEach(row => {
-                    row.addEventListener('click', () => {
-                        openEditModal(row.dataset.index);
-                    });
-                });
-            }
         }
         
         document.getElementById('gravarBtn').addEventListener('click', () => {
-            try {
-                // Salvar PROMO
-                const promoText = gerenciadorPromoTexto.value.trim();
-                let parsedPromoData = parseToObjectArray(promoText);
-                // Normalize data
-                parsedPromoData.forEach(item => {
-                    if (!item.hasOwnProperty('Foto')) item['Foto'] = '';
-                    if (!item.hasOwnProperty('Foto Produto')) item['Foto Produto'] = '';
-                    if (!item.hasOwnProperty('Quarentena')) item['Quarentena'] = 'NAO';
-                });
-                promoDataArray = parsedPromoData;
-                localStorage.setItem('listaPromo', JSON.stringify(promoDataArray));
-                renderDataTable(promoDataArray, tabelaPromoContainer, true);
-                
-                // Salvar REGULARES
-                const regularesText = gerenciadorRegularesTexto.value.trim();
-                regularesDataArray = parseToObjectArray(regularesText);
-                localStorage.setItem('listaRegulares', JSON.stringify(regularesDataArray));
-                renderDataTable(regularesDataArray, tabelaRegularesContainer);
+            saveLists(document.getElementById('save-feedback'));
+        });
 
-                saveFeedback.textContent = 'Listas salvas com sucesso!';
-                setTimeout(() => saveFeedback.textContent = '', 3000);
-            } catch (error) {
-                saveFeedback.textContent = 'Erro ao salvar as listas.';
-                console.error("Erro ao salvar no Local Storage:", error);
+        const classifierFeedback = document.getElementById('classifier-feedback');
+        document.getElementById('salvarClassificadaBtn').addEventListener('click', () => {
+            if (lastGeneratedList.length > 0) {
+                // Atualiza o array de dados principal com os resultados da classificação
+                lastGeneratedList.forEach(classifiedItem => {
+                    if (classifiedItem.originalIndex !== undefined && promoDataArray[classifiedItem.originalIndex]) {
+                        const originalItem = promoDataArray[classifiedItem.originalIndex];
+                        originalItem['Grupo'] = classifiedItem.grupo;
+                        originalItem['Prioridade'] = classifiedItem.prioridadeGrupo;
+                        originalItem['Ano'] = classifiedItem.ano;
+                        originalItem['Rank'] = classifiedItem.rankGeral;
+                        originalItem['Pontuação'] = classifiedItem.pontuacaoTotal;
+                        originalItem['Popularidade'] = classifiedItem.pontoPop;
+                    }
+                });
+                // Atualiza a área de texto para refletir os dados classificados que serão salvos
+                gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
             }
+            saveLists(classifierFeedback);
         });
 
         function setupUpload(inputId, textareaId) {
@@ -869,76 +924,114 @@
         
         // --- Lógica do Modal de Edição ---
         const modal = document.getElementById('edit-modal');
-        const modalFields = document.getElementById('modal-fields');
-        const modalTitle = document.getElementById('modal-title');
+        const infoTab = document.getElementById('modal-info-tab');
+        const produtoTab = document.getElementById('modal-produto-tab');
+
+        function setupModalTabs() {
+            const tabButtons = modal.querySelectorAll('.modal-tab-btn');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active', 'text-cyan-400');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+                    });
+                    button.classList.add('active', 'text-cyan-400');
+                    button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-300');
+
+                    infoTab.classList.toggle('hidden', button.dataset.tab !== 'info');
+                    produtoTab.classList.toggle('hidden', button.dataset.tab !== 'produto');
+                });
+            });
+        }
 
         function openEditModal(index) {
             currentlyEditingIndex = parseInt(index, 10);
             const item = promoDataArray[currentlyEditingIndex];
             if (!item) return;
 
-            modalTitle.textContent = 'Editar Item';
-            modalTitle.classList.add('text-cyan-400');
-            modalTitle.classList.remove('text-green-400');
-            document.getElementById('save-modal-changes').textContent = 'Salvar Alterações';
-            document.getElementById('delete-modal-item').style.display = 'block';
+            // Garante que as novas propriedades existam no objeto
+            if (!item.hasOwnProperty('Edição')) item['Edição'] = '';
+            if (!item.hasOwnProperty('Número')) item['Número'] = '';
+            if (!item.hasOwnProperty('Foto Produto')) item['Foto Produto'] = '';
 
-            // Garante que as propriedades existam
-            ['Foto', 'Foto Produto', 'Bloco', 'Tipo', 'Quarentena'].forEach(prop => {
-                if (!item.hasOwnProperty(prop)) item[prop] = '';
-            });
+            // Popula cabeçalho do modal
+            document.getElementById('modal-card-name').value = item['Card'] || '';
+            document.getElementById('modal-card-edition').value = item['Edição'] || '';
+            document.getElementById('modal-card-number').value = item['Número'] || '';
 
-
-            modalFields.innerHTML = '';
+            // Popula imagem do card
             const cardImgPreview = document.getElementById('modal-image-preview');
-            const productImgPreview = document.getElementById('modal-product-image-preview');
-            const quarentenaInfo = document.getElementById('modal-quarentena-info');
             const placeholderCardImg = 'https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem';
-            const placeholderProductImg = 'https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem';
-            
-            // Popula as imagens e displays
             cardImgPreview.src = item['Foto'] || placeholderCardImg;
             cardImgPreview.onerror = () => { cardImgPreview.src = placeholderCardImg; };
-
+            
+            // Popula imagem do produto
+            const productImgPreview = document.getElementById('modal-product-image-preview');
+            const placeholderProductImg = 'https://placehold.co/400x400/2d3748/718096?text=Sem+Imagem';
             productImgPreview.src = item['Foto Produto'] || placeholderProductImg;
             productImgPreview.onerror = () => { productImgPreview.src = placeholderProductImg; };
+
+
+            // Popula dinamicamente a aba "Info" com os campos restantes
+            infoTab.innerHTML = '';
+            const fieldsToExclude = ['Card', 'Edição', 'Número'];
+            const advancedFields = ['Grupo', 'Prioridade', 'Valor Med.', 'Ano', 'Popularidade', 'Quarentena', 'Rank', 'Pontuação'];
+
+            const primaryFieldsContainer = document.createElement('div');
+            primaryFieldsContainer.className = 'space-y-4';
             
-            if (item['Quarentena'] === 'SIM') {
-                quarentenaInfo.classList.remove('hidden');
-                document.getElementById('modal-bloco-display').textContent = item['Bloco'] || 'N/A';
-                document.getElementById('modal-tipo-display').textContent = item['Tipo'] || 'N/A';
-                
-                const endDateEl = document.getElementById('modal-quarentena-end-date');
-                if (item['Lançamento']) {
-                    const parts = item['Lançamento'].split('/');
-                    if(parts.length === 3) {
-                        const [day, month, year] = parts;
-                        const launchDate = new Date(year, month - 1, day);
-                        launchDate.setDate(launchDate.getDate() + 90);
-                        endDateEl.textContent = `Fim: ${launchDate.toLocaleDateString('pt-BR')}`;
-                    } else {
-                         endDateEl.textContent = 'Data de Lançamento inválida';
-                    }
-                } else {
-                    endDateEl.textContent = 'Sem data de Lançamento';
-                }
+            const advancedFieldsContainer = document.createElement('div');
+            advancedFieldsContainer.className = 'space-y-4 pt-4 mt-4 border-t border-gray-700 hidden';
 
-            } else {
-                quarentenaInfo.classList.add('hidden');
-            }
+            const allKeys = Object.keys(item);
+            
+            // Reorder keys to put advanced fields at the end
+            const orderedKeys = allKeys.filter(k => !advancedFields.includes(k)).concat(allKeys.filter(k => advancedFields.includes(k)));
 
+            orderedKeys.forEach(key => {
+                if (fieldsToExclude.includes(key)) return;
 
-            // Cria os campos de input dinamicamente
-            Object.keys(item).forEach(key => {
                 const value = item[key];
-                const fieldHtml = `
-                    <div>
-                        <label for="modal-field-${key.replace(/\s/g, '-')}" class="text-sm font-semibold text-gray-400">${key}</label>
-                        <input type="text" id="modal-field-${key.replace(/\s/g, '-')}" data-key="${key}" value="${value}" class="mt-1 w-full p-2 bg-gray-700 border border-gray-600 rounded-lg">
-                    </div>
-                `;
-                modalFields.innerHTML += fieldHtml;
+                const fieldWrapper = document.createElement('div');
+                fieldWrapper.className = 'grid grid-cols-3 gap-4 items-center';
+                
+                const label = document.createElement('label');
+                label.htmlFor = `modal-field-${key.replace(/\s/g, '-')}`;
+                label.className = 'text-sm font-semibold text-gray-400 col-span-1';
+                label.textContent = key;
+                fieldWrapper.appendChild(label);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `modal-field-${key.replace(/\s/g, '-')}`;
+                input.dataset.key = key;
+                input.value = value;
+                input.className = 'col-span-2 w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-cyan-500 focus:border-cyan-500';
+                fieldWrapper.appendChild(input);
+                
+                if (advancedFields.includes(key)) {
+                    advancedFieldsContainer.appendChild(fieldWrapper);
+                } else {
+                    primaryFieldsContainer.appendChild(fieldWrapper);
+                }
             });
+
+            infoTab.appendChild(primaryFieldsContainer);
+            
+            if (advancedFieldsContainer.hasChildNodes()) {
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'text-cyan-400 hover:text-cyan-300 font-semibold mt-4 text-sm';
+                toggleButton.textContent = 'Ver mais detalhes de análise...';
+                toggleButton.onclick = () => {
+                    advancedFieldsContainer.classList.toggle('hidden');
+                    toggleButton.textContent = advancedFieldsContainer.classList.contains('hidden') 
+                        ? 'Ver mais detalhes de análise...' 
+                        : 'Ver menos';
+                };
+                infoTab.appendChild(toggleButton);
+            }
+            
+            infoTab.appendChild(advancedFieldsContainer);
 
             attachImagePreviewListeners();
             modal.classList.remove('hidden');
@@ -946,18 +1039,20 @@
 
         function attachImagePreviewListeners() {
             const cardImgPreview = document.getElementById('modal-image-preview');
-            const productImgPreview = document.getElementById('modal-product-image-preview');
             const placeholderCardImg = 'https://placehold.co/200x280/2d3748/718096?text=Sem+Imagem';
-            const placeholderProductImg = 'https://placehold.co/200x200/2d3748/718096?text=Sem+Imagem';
+            const productImgPreview = document.getElementById('modal-product-image-preview');
+            const placeholderProductImg = 'https://placehold.co/400x400/2d3748/718096?text=Sem+Imagem';
 
-            const cardPhotoInput = modalFields.querySelector('input[data-key="Foto"]');
+            // Listener for Card Photo
+            const cardPhotoInput = infoTab.querySelector('input[data-key="Foto"]');
             if (cardPhotoInput) {
                 cardPhotoInput.addEventListener('input', (e) => {
                     cardImgPreview.src = e.target.value || placeholderCardImg;
                 });
             }
 
-            const productPhotoInput = modalFields.querySelector('input[data-key="Foto Produto"]');
+            // Listener for Product Photo
+            const productPhotoInput = infoTab.querySelector('input[data-key="Foto Produto"]');
             if (productPhotoInput) {
                 productPhotoInput.addEventListener('input', (e) => {
                     productImgPreview.src = e.target.value || placeholderProductImg;
@@ -980,16 +1075,24 @@
         document.getElementById('save-modal-changes').addEventListener('click', () => {
             if (currentlyEditingIndex === -1) return;
 
-            const updatedItem = {};
-            modalFields.querySelectorAll('input').forEach(input => {
+            const updatedItem = { ...promoDataArray[currentlyEditingIndex] };
+
+            // Salva campos do cabeçalho
+            updatedItem['Card'] = document.getElementById('modal-card-name').value;
+            updatedItem['Edição'] = document.getElementById('modal-card-edition').value;
+            updatedItem['Número'] = document.getElementById('modal-card-number').value;
+
+            // Salva campos da aba Info
+            infoTab.querySelectorAll('input').forEach(input => {
                 updatedItem[input.dataset.key] = input.value;
             });
 
             promoDataArray[currentlyEditingIndex] = updatedItem;
-            saveFeedback.textContent = 'Item atualizado! Clique em "Salvar" para confirmar.';
+            classifierFeedback.innerHTML = 'Item atualizado. Clique em <strong class="text-cyan-400">[Salvar]</strong> para salvar permanentemente.';
 
             gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
-            renderDataTable(promoDataArray, tabelaPromoContainer, true);
+            // Re-analisa a lista atual para refletir a mudança
+            document.getElementById('analisarListaAtualBtn').click();
             closeModal();
         });
 
@@ -998,9 +1101,10 @@
 
             promoDataArray.splice(currentlyEditingIndex, 1);
             gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
-            renderDataTable(promoDataArray, tabelaPromoContainer, true);
 
-            saveFeedback.textContent = 'Item removido! Clique em "Salvar" para confirmar.';
+            classifierFeedback.innerHTML = 'Item removido. Clique em <strong class="text-cyan-400">[Salvar]</strong> para salvar permanentemente.';
+            // Re-analisa a lista atual para refletir a remoção
+            document.getElementById('analisarListaAtualBtn').click();
             closeModal();
         });
         
@@ -1024,7 +1128,7 @@
             let valorTotal = 0;
             let totalInvestido = 0;
             let cartasCompradas = 0;
-            const groupCounts = {};
+            let groupCounts = {};
             const yearCounts = {};
 
             data.forEach(item => {
@@ -1038,7 +1142,8 @@
                 const grupo = item['Grupo'] || 'N/A';
                 groupCounts[grupo] = (groupCounts[grupo] || 0) + 1;
 
-                const ano = item['Ano'] || 'N/A';
+                const lancamento = item['Lançamento'] || '';
+                const ano = lancamento.split('/')[2] || 'N/A';
                 yearCounts[ano] = (yearCounts[ano] || 0) + 1;
             });
 
@@ -1106,14 +1211,16 @@
         function renderYearChart(yearCounts) {
              const labels = Object.keys(yearCounts).sort((a, b) => a - b);
             const data = labels.map(label => yearCounts[label]);
-            renderChart('year-chart', 'bar', {
+            renderChart('year-chart', 'line', {
                 labels: labels,
                 datasets: [{
                     label: '# de Cartas',
                     data: data,
-                    backgroundColor: '#81e6d9',
+                    backgroundColor: 'rgba(129, 230, 217, 0.2)',
                     borderColor: '#81e6d9',
-                    borderWidth: 1
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointBackgroundColor: '#81e6d9'
                 }]
             }, {
                 responsive: true,
@@ -1130,14 +1237,17 @@
         window.addEventListener('load', () => {
             promoDataArray = JSON.parse(localStorage.getItem('listaPromo') || '[]');
             gerenciadorPromoTexto.value = objectArrayToText(promoDataArray);
-            renderDataTable(promoDataArray, tabelaPromoContainer, true);
+            renderDataTable(promoDataArray, tabelaPromoContainer);
             
             regularesDataArray = JSON.parse(localStorage.getItem('listaRegulares') || '[]');
             gerenciadorRegularesTexto.value = objectArrayToText(regularesDataArray);
-            renderDataTable(regularesDataArray, tabelaRegularesContainer, false);
+            renderDataTable(regularesDataArray, tabelaRegularesContainer);
+
+            // Inicia na primeira aba e configura o modal
+            setupModalTabs();
+            switchTab(gerenciadorView, tabGerenciadorBtn);
         });
 
     </script>
 </body>
 </html>
-

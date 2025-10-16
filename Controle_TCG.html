@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Colecionador TCG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-color: #4f46e5;
+            color: #e0e7ff;
+            background-color: #4338ca;
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div id="app" class="min-h-screen flex flex-col md:flex-row">
+        <!-- Barra de Navegação Lateral -->
+        <nav class="bg-gray-800 md:w-64 p-4 flex-shrink-0">
+            <h1 class="text-2xl font-bold text-indigo-400 mb-8">Painel TCG</h1>
+            <ul>
+                <li><button data-tab="dashboard" class="tab-button w-full text-left p-3 rounded-lg font-semibold tab-active">Painel de Controle</button></li>
+                <li><button data-tab="catalog" class="tab-button w-full text-left p-3 rounded-lg font-semibold">Catálogo de Cartas</button></li>
+                <li><button data-tab="financial" class="tab-button w-full text-left p-3 rounded-lg font-semibold">Controle Financeiro</button></li>
+                <li><button data-tab="archive" class="tab-button w-full text-left p-3 rounded-lg font-semibold">Coleções Arquivadas</button></li>
+                <li><button data-tab="info" class="tab-button w-full text-left p-3 rounded-lg font-semibold">Informações</button></li>
+            </ul>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 p-4 md:p-8 overflow-auto">
+            
+            <!-- Aba: Painel de Controle -->
+            <div id="dashboard-tab" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-sm font-medium text-gray-400">COLEÇÃO ATIVA</h3>
+                        <p id="dashboard-active-collection" class="text-2xl font-bold text-indigo-400">-</p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-sm font-medium text-gray-400">STATUS ATUAL</h3>
+                        <p id="dashboard-collection-status" class="text-2xl font-bold">-</p>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-sm font-medium text-gray-400">FUNDO ESPECIAL</h3>
+                        <p id="dashboard-special-fund" class="text-2xl font-bold text-green-400">R$ 0,00</p>
+                    </div>
+                     <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-sm font-medium text-gray-400">ORÇAMENTO DO MÊS</h3>
+                        <p id="dashboard-monthly-budget" class="text-2xl font-bold">R$ 0,00</p>
+                    </div>
+                </div>
+                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+                    <div class="flex justify-between items-center mb-2">
+                         <h3 class="text-lg font-semibold text-gray-300">Progresso da Coleção Ativa</h3>
+                         <span id="dashboard-progress-text" class="text-sm font-medium">0 / 0</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-4">
+                        <div id="dashboard-progress-bar" class="bg-indigo-500 h-4 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-green-400">Radar de Oportunidades</h3>
+                        <div id="dashboard-opportunities" class="space-y-3">
+                            <p class="text-gray-500">Nenhuma oportunidade no momento.</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-amber-400">Lista de Observação (Longo Prazo)</h3>
+                        <div id="dashboard-watchlist" class="space-y-3">
+                             <p class="text-gray-500">Nenhuma carta em observação.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mt-8 flex flex-wrap gap-4">
+                    <button id="archive-collection-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed">Arquivar Coleção Ativa</button>
+                    <button id="export-data-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Salvar e Exportar</button>
+                    <button id="import-data-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Importar</button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+                </div>
+            </div>
+
+            <!-- Aba: Catálogo -->
+            <div id="catalog-tab" class="tab-content hidden">
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                     <h2 class="text-3xl font-bold">Catálogo de Cartas</h2>
+                     <div class="flex items-center gap-2 md:gap-4">
+                        <input type="text" id="catalog-search" placeholder="Filtrar por nome ou num..." class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full md:w-64 p-2.5">
+                        <button id="add-collection-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Nova Coleção</button>
+                        <button id="edit-collections-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Editar Coleções</button>
+                        <button id="add-card-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Adicionar Carta</button>
+                     </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700 text-sm uppercase text-gray-400">
+                            <tr>
+                                <th class="p-4">Nome da Carta</th>
+                                <th class="p-4">Num.</th>
+                                <th class="p-4">Coleção</th>
+                                <th class="p-4">Categoria</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Preço Mercado</th>
+                                <th class="p-4">Preço Pago</th>
+                                <th class="p-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalog-table-body">
+                            <!-- Linhas inseridas via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aba: Financeiro -->
+            <div id="financial-tab" class="tab-content hidden">
+                 <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                     <h2 class="text-3xl font-bold">Controle Financeiro</h2>
+                     <button id="add-transaction-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Nova Transação</button>
+                </div>
+                 <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700 text-sm uppercase text-gray-400">
+                            <tr>
+                                <th class="p-4">Data</th>
+                                <th class="p-4">Descrição</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Valor</th>
+                                <th class="p-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financial-table-body">
+                           <!-- Linhas inseridas via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aba: Arquivo -->
+            <div id="archive-tab" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6">Coleções Arquivadas</h2>
+                <div id="archive-container" class="space-y-6">
+                    <p class="text-gray-500">Nenhuma coleção arquivada ainda.</p>
+                </div>
+            </div>
+
+            <!-- Aba: Informações -->
+            <div id="info-tab" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6">Informações e Regras</h2>
+                <div class="space-y-8">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold text-indigo-400 mb-4">Manual de Operações do Colecionador Estratégico</h3>
+                        <div class="space-y-4 text-gray-300">
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">I. Filosofia da Coleção (Os Princípios)</h4>
+                                <ul class="list-disc list-inside space-y-1 pl-4">
+                                    <li><span class="font-semibold">Foco:</span> A coleção é composta exclusivamente por cartas promocionais de Pokémon TCG.</li>
+                                    <li><span class="font-semibold">Estrutura:</span> Cada coleção é um projeto individual, contendo 5 sub-categorias: Pré-Release, Premium, Blisters, Caixas e Especiais.</li>
+                                    <li><span class="font-semibold">Ritmo:</span> O método é sequencial: uma coleção de cada vez, iniciando a próxima somente após a anterior ser considerada "fechada".</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">II. Regras Financeiras (O Orçamento)</h4>
+                                <ul class="list-disc list-inside space-y-1 pl-4">
+                                    <li><span class="font-semibold">Orçamento Mensal:</span> Teto de gastos de R$ 60,00 por mês.</li>
+                                    <li><span class="font-semibold">Preço Referencial:</span> Cartas "Regulares" abaixo de R$ 20,00; Cartas "Premium" e "Especiais" abaixo de R$ 60,00.</li>
+                                    <li><span class="font-semibold">Fundo Especial:</span> Valor não utilizado no mês é transferido para este fundo para viabilizar compras de cartas mais caras.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">III. O Ciclo de Conquista (O Processo)</h4>
+                                <ul class="list-disc list-inside space-y-1 pl-4">
+                                    <li><span class="font-semibold">Fase 1 - Aquisição da Base:</span> Compra dos blisters lacrados (um por mês).</li>
+                                    <li><span class="font-semibold">Fase 2 - Caça e Acumulação:</span> Orçamento dedicado a comprar singles que atingem o preço referencial.</li>
+                                    <li><span class="font-semibold">Fase 3 - Fechamento:</span> Uso do Fundo Especial para adquirir as cartas restantes.</li>
+                                    <li><span class="font-semibold">Lista de Observação:</span> Cartas excessivamente caras são movidas para esta lista para não travar o início da próxima coleção.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">IV. Regras de Classificação (A Organização)</h4>
+                                <ul class="list-disc list-inside space-y-1 pl-4">
+                                    <li><span class="font-semibold">Critério Principal (com Booster):</span> A promo pertence à coleção do booster mais recente do produto.</li>
+                                    <li><span class="font-semibold">Critério Secundário (sem Booster):</span> A promo pertence à coleção ativa na data de lançamento do produto.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold text-indigo-400 mb-4">Uso das Tags de Status</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="font-semibold text-lg text-gray-200">1. Lista de Desejo</p>
+                                <p class="text-gray-400 pl-4">Ponto de partida para toda carta que você pretende adquirir. Representa seu universo de interesse antes do monitoramento ativo.</p>
+                            </div>
+                             <div>
+                                <p class="font-semibold text-lg text-yellow-300">2. Em Quarentena</p>
+                                <p class="text-gray-400 pl-4">Fase de monitoramento ativo. Usado para cartas da coleção ativa que ainda estão acima do seu preço referencial.</p>
+                            </div>
+                             <div>
+                                <p class="font-semibold text-lg text-green-300">3. Possuo</p>
+                                <p class="text-gray-400 pl-4">Estado final, a conquista! A carta agora faz parte da sua coleção física e atualiza o progresso no painel.</p>
+                            </div>
+                             <div>
+                                <p class="font-semibold text-lg text-amber-300">4. Observação</p>
+                                <p class="text-gray-400 pl-4">O "backlog controlado". Para cartas muito caras que ficam para uma compra futura, permitindo que você avance para a próxima coleção.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Gerenciar Coleções -->
+    <div id="manage-collections-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-2xl">
+            <h2 class="text-2xl font-bold mb-6">Gerenciar Coleções</h2>
+            <div class="overflow-x-auto">
+                 <table class="w-full text-left">
+                    <thead class="bg-gray-700 text-sm uppercase text-gray-400">
+                        <tr>
+                            <th class="p-4">Nome da Coleção</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-collections-table-body">
+                       <!-- Linhas inseridas via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="close-manage-collections-modal" class="py-2 px-4 rounded-lg bg-gray-600 hover:bg-gray-500">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nova/Editar Coleção -->
+    <div id="collection-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-md">
+            <h2 id="collection-modal-title" class="text-2xl font-bold mb-6">Nova Coleção</h2>
+            <form id="collection-form">
+                <input type="hidden" id="collection-id">
+                <div class="mb-4">
+                    <label for="collection-name" class="block mb-2 text-sm font-medium">Nome da Coleção</label>
+                    <input type="text" id="collection-name" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                </div>
+                 <div class="mb-6">
+                    <label for="collection-status-select" class="block mb-2 text-sm font-medium">Status</label>
+                    <select id="collection-status-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5">
+                        <option value="Ativa">Ativa</option>
+                        <option value="Próxima">Próxima</option>
+                        <option value="Em Espera">Em Espera</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-collection-modal" class="py-2 px-4 rounded-lg bg-gray-600 hover:bg-gray-500">Cancelar</button>
+                    <button type="submit" class="py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar/Editar Carta -->
+    <div id="card-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-lg">
+            <h2 id="card-modal-title" class="text-2xl font-bold mb-6">Adicionar Nova Carta</h2>
+            <form id="card-form">
+                <input type="hidden" id="card-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="card-name" class="block mb-2 text-sm font-medium">Nome da Carta</label>
+                        <input type="text" id="card-name" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="card-number" class="block mb-2 text-sm font-medium">Numeração</label>
+                        <input type="text" id="card-number" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="card-collection" class="block mb-2 text-sm font-medium">Coleção</label>
+                        <select id="card-collection" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required></select>
+                    </div>
+                     <div>
+                        <label for="card-category" class="block mb-2 text-sm font-medium">Categoria</label>
+                        <select id="card-category" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                            <option>Pré-Release</option>
+                            <option>Premium</option>
+                            <option>Blister</option>
+                            <option>Caixa</option>
+                            <option>Especial</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="card-status" class="block mb-2 text-sm font-medium">Status</label>
+                        <select id="card-status" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                            <option>Lista de Desejo</option>
+                            <option>Em Quarentena</option>
+                            <option>Possuo</option>
+                            <option>Observação</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label for="card-ref-price" class="block mb-2 text-sm font-medium">Preço Referencial (R$)</label>
+                        <input type="number" step="0.01" id="card-ref-price" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="card-market-price" class="block mb-2 text-sm font-medium">Preço de Mercado (R$)</label>
+                        <input type="number" step="0.01" id="card-market-price" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5">
+                    </div>
+                    <div>
+                        <label for="card-paid-price" class="block mb-2 text-sm font-medium">Preço Pago (R$)</label>
+                        <input type="number" step="0.01" id="card-paid-price" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4 mt-6">
+                    <button type="button" id="cancel-card-modal" class="py-2 px-4 rounded-lg bg-gray-600 hover:bg-gray-500">Cancelar</button>
+                    <button type="submit" class="py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal: Transação -->
+    <div id="transaction-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-md">
+            <h2 id="transaction-modal-title" class="text-2xl font-bold mb-6">Nova Transação</h2>
+            <form id="transaction-form">
+                <input type="hidden" id="transaction-id">
+                <div class="mb-4">
+                    <label for="transaction-date" class="block mb-2 text-sm font-medium">Data</label>
+                    <input type="date" id="transaction-date" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                </div>
+                <div class="mb-4">
+                    <label for="transaction-desc" class="block mb-2 text-sm font-medium">Descrição</label>
+                    <input type="text" id="transaction-desc" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                </div>
+                 <div class="mb-4">
+                    <label for="transaction-type" class="block mb-2 text-sm font-medium">Tipo</label>
+                    <select id="transaction-type" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                        <option value="Entrada">Entrada (Orçamento)</option>
+                        <option value="Saída">Saída (Gasto)</option>
+                        <option value="Acúmulo">Acúmulo (Fundo)</option>
+                    </select>
+                </div>
+                 <div class="mb-6">
+                    <label for="transaction-amount" class="block mb-2 text-sm font-medium">Valor (R$)</label>
+                    <input type="number" step="0.01" id="transaction-amount" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-transaction-modal" class="py-2 px-4 rounded-lg bg-gray-600 hover:bg-gray-500">Cancelar</button>
+                    <button type="submit" class="py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Estado da aplicação
+            let db = {
+                collections: [],
+                cards: [],
+                transactions: [],
+                archived: []
+            };
+
+            // Função para carregar dados do localStorage
+            const loadData = () => {
+                const data = localStorage.getItem('collectorDashboardDB');
+                if (data) {
+                    db = JSON.parse(data);
+                } else {
+                    // Carregar dados de exemplo se não houver nada salvo
+                    loadSampleData();
+                }
+            };
+
+            // Função para salvar dados no localStorage
+            const saveData = () => {
+                localStorage.setItem('collectorDashboardDB', JSON.stringify(db));
+            };
+
+            const formatCurrency = (value) => {
+                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+            };
+            
+            // --- Lógica dos Modais ---
+            const cardModal = document.getElementById('card-modal');
+            const collectionModal = document.getElementById('collection-modal');
+            const transactionModal = document.getElementById('transaction-modal');
+            const manageCollectionsModal = document.getElementById('manage-collections-modal');
+
+            const openModal = (modal) => modal.classList.remove('hidden');
+            const closeModal = (modal) => modal.classList.add('hidden');
+
+            // --- Renderização ---
+            const renderAll = () => {
+                renderCatalog();
+                renderDashboard();
+                renderFinancials();
+                renderArchive();
+                saveData();
+            };
+
+            const renderDashboard = () => {
+                const activeCollection = db.collections.find(c => c.status === 'Ativa');
+                const dashboardActiveCollection = document.getElementById('dashboard-active-collection');
+                const dashboardCollectionStatus = document.getElementById('dashboard-collection-status');
+                const progressBar = document.getElementById('dashboard-progress-bar');
+                const progressText = document.getElementById('dashboard-progress-text');
+
+                document.getElementById('archive-collection-btn').disabled = !activeCollection;
+
+                if (activeCollection) {
+                    dashboardActiveCollection.textContent = activeCollection.name;
+                    
+                    const collectionCards = db.cards.filter(c => c.collectionId === activeCollection.id);
+                    const obtainedCards = collectionCards.filter(c => c.status === 'Possuo');
+                    const progress = collectionCards.length > 0 ? (obtainedCards.length / collectionCards.length) * 100 : 0;
+                    
+                    progressBar.style.width = `${progress}%`;
+                    progressText.textContent = `${obtainedCards.length} / ${collectionCards.length}`;
+
+                    const hasBlisters = collectionCards.some(c => c.category === 'Blister');
+                    const obtainedBlisters = collectionCards.filter(c => c.category === 'Blister' && c.status === 'Possuo').length;
+                    const allBlistersObtained = collectionCards.filter(c=>c.category === 'Blister').length === obtainedBlisters;
+
+                    if (!hasBlisters || allBlistersObtained) {
+                        dashboardCollectionStatus.textContent = 'Fase 2 - Caça';
+                    } else {
+                         dashboardCollectionStatus.textContent = 'Fase 1 - Blisters';
+                    }
+
+                } else {
+                    dashboardActiveCollection.textContent = 'Nenhuma';
+                    dashboardCollectionStatus.textContent = '-';
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '0 / 0';
+                }
+
+                // Calcular Fundo e Orçamento
+                const specialFund = db.transactions
+                    .filter(t => t.type === 'Acúmulo')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                document.getElementById('dashboard-special-fund').textContent = formatCurrency(specialFund);
+
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                const monthlyBudget = db.transactions
+                    .filter(t => t.type === 'Entrada' && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                const monthlySpending = db.transactions
+                    .filter(t => t.type === 'Saída' && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                document.getElementById('dashboard-monthly-budget').textContent = formatCurrency(monthlyBudget - monthlySpending);
+                
+                // Renderizar Oportunidades
+                const opportunitiesContainer = document.getElementById('dashboard-opportunities');
+                const opportunities = db.cards.filter(c => c.status !== 'Possuo' && c.marketPrice > 0 && c.refPrice && c.marketPrice <= c.refPrice);
+                opportunitiesContainer.innerHTML = '';
+                if (opportunities.length > 0) {
+                    opportunities.forEach(card => {
+                        const collection = db.collections.find(col => col.id === card.collectionId);
+                        opportunitiesContainer.innerHTML += `
+                            <div class="p-2 bg-gray-700 rounded-md">
+                                <p class="font-semibold text-green-300">${card.name} (${collection?.name || 'Sem coleção'})</p>
+                                <p class="text-sm">Mercado: ${formatCurrency(card.marketPrice)} (Ref: ${formatCurrency(card.refPrice)})</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    opportunitiesContainer.innerHTML = '<p class="text-gray-500">Nenhuma oportunidade no momento.</p>';
+                }
+
+                // Renderizar Lista de Observação
+                const watchlistContainer = document.getElementById('dashboard-watchlist');
+                const watchlist = db.cards.filter(c => c.status === 'Observação');
+                watchlistContainer.innerHTML = '';
+                if(watchlist.length > 0) {
+                    watchlist.forEach(card => {
+                         const collection = db.collections.find(col => col.id === card.collectionId);
+                         watchlistContainer.innerHTML += `
+                            <div class="p-2 bg-gray-700 rounded-md">
+                                <p class="font-semibold text-amber-300">${card.name} (${collection?.name || 'Sem coleção'})</p>
+                                <p class="text-sm">Mercado: ${formatCurrency(card.marketPrice)}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                     watchlistContainer.innerHTML = '<p class="text-gray-500">Nenhuma carta em observação.</p>';
+                }
+            };
+            
+            const renderCatalog = () => {
+                const tableBody = document.getElementById('catalog-table-body');
+                const searchTerm = document.getElementById('catalog-search').value.toLowerCase();
+                tableBody.innerHTML = '';
+
+                // Função para extrair o número de uma string (ex: "SVP 013" -> 13)
+                const extractNumber = (s) => {
+                    if (!s) return 0;
+                    const match = s.match(/\d+/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+
+                const filteredAndSortedCards = db.cards
+                    .filter(card => {
+                        const collection = db.collections.find(c => c.id === card.collectionId);
+                        return (
+                            card.name.toLowerCase().includes(searchTerm) ||
+                            card.number.toLowerCase().includes(searchTerm) ||
+                            (collection && collection.name.toLowerCase().includes(searchTerm))
+                        );
+                    })
+                    .sort((a, b) => {
+                        const numA = extractNumber(a.number);
+                        const numB = extractNumber(b.number);
+                        return numA - numB;
+                    });
+
+                filteredAndSortedCards.forEach(card => {
+                    const collection = db.collections.find(c => c.id === card.collectionId);
+                    let statusClass = '';
+                    if (card.status === 'Possuo') statusClass = 'bg-green-500/20 text-green-300';
+                    else if (card.status === 'Em Quarentena') statusClass = 'bg-yellow-500/20 text-yellow-300';
+                    else if (card.status === 'Observação') statusClass = 'bg-amber-500/20 text-amber-300';
+                    
+                    const isOpportunity = card.status !== 'Possuo' && card.marketPrice > 0 && card.refPrice && card.marketPrice <= card.refPrice;
+                    const priceClass = isOpportunity ? 'text-green-400 font-bold' : '';
+
+                    const row = `
+                        <tr class="border-b border-gray-700 hover:bg-gray-700/50 ${statusClass}">
+                            <td class="p-4 font-semibold">${card.name}</td>
+                            <td class="p-4">${card.number}</td>
+                            <td class="p-4">${collection ? collection.name : 'N/A'}</td>
+                            <td class="p-4">${card.category}</td>
+                            <td class="p-4">${card.status}</td>
+                            <td class="p-4 ${priceClass}">${formatCurrency(card.marketPrice)}</td>
+                            <td class="p-4">${formatCurrency(card.paidPrice)}</td>
+                            <td class="p-4">
+                                <button data-id="${card.id}" class="edit-card-btn text-indigo-400 hover:text-indigo-300 mr-2">Editar</button>
+                                <button data-id="${card.id}" class="delete-card-btn text-red-400 hover:text-red-300">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            };
+
+            const renderFinancials = () => {
+                 const tableBody = document.getElementById('financial-table-body');
+                 tableBody.innerHTML = '';
+                 db.transactions.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+                     let amountClass = '';
+                     let formattedAmount = formatCurrency(t.amount);
+                     if (t.type === 'Entrada') {
+                         amountClass = 'text-green-400';
+                         formattedAmount = `+ ${formattedAmount}`;
+                     } else if (t.type === 'Saída') {
+                         amountClass = 'text-red-400';
+                          formattedAmount = `- ${formattedAmount}`;
+                     } else {
+                         amountClass = 'text-yellow-400';
+                     }
+                     const row = `
+                        <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                            <td class="p-4">${new Date(t.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
+                            <td class="p-4">${t.desc}</td>
+                            <td class="p-4">${t.type}</td>
+                            <td class="p-4 font-semibold ${amountClass}">${formattedAmount}</td>
+                            <td class="p-4">
+                                <button data-id="${t.id}" class="edit-transaction-btn text-indigo-400 hover:text-indigo-300 mr-2">Editar</button>
+                                <button data-id="${t.id}" class="delete-transaction-btn text-red-400 hover:text-red-300">Excluir</button>
+                            </td>
+                        </tr>
+                     `;
+                     tableBody.innerHTML += row;
+                 });
+            };
+
+            const renderArchive = () => {
+                const container = document.getElementById('archive-container');
+                container.innerHTML = '';
+                if(db.archived.length === 0){
+                    container.innerHTML = '<p class="text-gray-500">Nenhuma coleção arquivada ainda.</p>';
+                    return;
+                }
+
+                db.archived.forEach(archivedCollection => {
+                    let cardsHtml = '';
+                    archivedCollection.cards.forEach(card => {
+                        cardsHtml += `<li class="text-sm text-gray-400">${card.name} - ${formatCurrency(card.paidPrice)}</li>`;
+                    });
+
+                    const totalSpent = archivedCollection.cards.reduce((sum, card) => sum + (card.paidPrice || 0), 0);
+
+                    const collectionHtml = `
+                        <div class="bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-bold text-indigo-400 mb-2">${archivedCollection.name}</h3>
+                            <p class="mb-4">Arquivada em: ${new Date(archivedCollection.archivedDate).toLocaleDateString('pt-BR')}</p>
+                            <p class="font-semibold mb-2">Total Gasto: ${formatCurrency(totalSpent)}</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                ${cardsHtml}
+                            </ul>
+                        </div>
+                    `;
+                    container.innerHTML += collectionHtml;
+                });
+            };
+            
+            const renderManageCollectionsModal = () => {
+                const tableBody = document.getElementById('manage-collections-table-body');
+                tableBody.innerHTML = '';
+                db.collections.forEach(collection => {
+                    const row = `
+                        <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                            <td class="p-4 font-semibold">${collection.name}</td>
+                            <td class="p-4">${collection.status}</td>
+                            <td class="p-4">
+                                <button data-id="${collection.id}" class="edit-collection-btn text-indigo-400 hover:text-indigo-300 mr-2">Editar</button>
+                                <button data-id="${collection.id}" class="delete-collection-btn text-red-400 hover:text-red-300">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            };
+
+
+            // --- Lógica dos Formulários ---
+            
+            // Coleção
+            document.getElementById('add-collection-btn').addEventListener('click', () => {
+                document.getElementById('collection-form').reset();
+                document.getElementById('collection-id').value = '';
+                document.getElementById('collection-modal-title').textContent = 'Nova Coleção';
+                openModal(collectionModal);
+            });
+            document.getElementById('cancel-collection-modal').addEventListener('click', () => closeModal(collectionModal));
+            document.getElementById('collection-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('collection-id').value;
+                const name = document.getElementById('collection-name').value;
+                const status = document.getElementById('collection-status-select').value;
+                
+                if (status === 'Ativa') {
+                    db.collections.forEach(c => { if(c.status === 'Ativa') c.status = 'Em Espera' });
+                }
+
+                if (id) { // Editando
+                    const index = db.collections.findIndex(c => c.id == id);
+                    db.collections[index] = { ...db.collections[index], name, status };
+                } else { // Criando
+                    db.collections.push({ id: Date.now(), name, status });
+                }
+
+                closeModal(collectionModal);
+                if (manageCollectionsModal.classList.contains('hidden')) {
+                    renderAll();
+                } else {
+                    renderManageCollectionsModal();
+                }
+            });
+
+            // Gerenciar Coleções Modal
+            document.getElementById('edit-collections-btn').addEventListener('click', () => {
+                renderManageCollectionsModal();
+                openModal(manageCollectionsModal);
+            });
+            document.getElementById('close-manage-collections-modal').addEventListener('click', () => {
+                closeModal(manageCollectionsModal);
+                renderAll();
+            });
+
+            document.getElementById('manage-collections-table-body').addEventListener('click', (e) => {
+                const collectionId = e.target.dataset.id;
+                if (!collectionId) return;
+
+                if (e.target.classList.contains('edit-collection-btn')) {
+                    const collection = db.collections.find(c => c.id == collectionId);
+                    if (collection) {
+                        document.getElementById('collection-modal-title').textContent = 'Editar Coleção';
+                        document.getElementById('collection-id').value = collection.id;
+                        document.getElementById('collection-name').value = collection.name;
+                        document.getElementById('collection-status-select').value = collection.status;
+                        openModal(collectionModal);
+                    }
+                } else if (e.target.classList.contains('delete-collection-btn')) {
+                    const collection = db.collections.find(c => c.id == collectionId);
+                    if (collection && confirm(`Tem certeza que deseja excluir a coleção "${collection.name}"?\n\nATENÇÃO: Todas as cartas associadas a ela também serão excluídas. Esta ação não pode ser desfeita.`)) {
+                        db.collections = db.collections.filter(c => c.id != collectionId);
+                        db.cards = db.cards.filter(card => card.collectionId != collectionId);
+                        renderManageCollectionsModal();
+                    }
+                }
+            });
+
+
+            // Carta
+            document.getElementById('add-card-btn').addEventListener('click', () => {
+                document.getElementById('card-form').reset();
+                document.getElementById('card-id').value = '';
+                document.getElementById('card-modal-title').textContent = 'Adicionar Nova Carta';
+                populateCollectionDropdown();
+                openModal(cardModal);
+            });
+             document.getElementById('cancel-card-modal').addEventListener('click', () => closeModal(cardModal));
+             document.getElementById('card-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('card-id').value;
+                const cardData = {
+                    name: document.getElementById('card-name').value,
+                    number: document.getElementById('card-number').value,
+                    collectionId: parseInt(document.getElementById('card-collection').value),
+                    category: document.getElementById('card-category').value,
+                    status: document.getElementById('card-status').value,
+                    refPrice: parseFloat(document.getElementById('card-ref-price').value),
+                    marketPrice: parseFloat(document.getElementById('card-market-price').value) || 0,
+                    paidPrice: parseFloat(document.getElementById('card-paid-price').value) || 0,
+                };
+                if(id) { // Editando
+                    const index = db.cards.findIndex(c => c.id == id);
+                    db.cards[index] = { ...db.cards[index], ...cardData };
+                } else { // Criando
+                    cardData.id = Date.now();
+                    db.cards.push(cardData);
+                }
+                closeModal(cardModal);
+                renderAll();
+             });
+            
+             // Transação
+            document.getElementById('add-transaction-btn').addEventListener('click', () => {
+                document.getElementById('transaction-form').reset();
+                document.getElementById('transaction-id').value = '';
+                document.getElementById('transaction-modal-title').textContent = 'Nova Transação';
+                document.getElementById('transaction-date').valueAsDate = new Date();
+                openModal(transactionModal);
+            });
+            document.getElementById('cancel-transaction-modal').addEventListener('click', () => closeModal(transactionModal));
+            document.getElementById('transaction-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('transaction-id').value;
+                const transactionData = {
+                    date: document.getElementById('transaction-date').value,
+                    desc: document.getElementById('transaction-desc').value,
+                    type: document.getElementById('transaction-type').value,
+                    amount: parseFloat(document.getElementById('transaction-amount').value),
+                };
+
+                if (id) { // Editando
+                    const index = db.transactions.findIndex(t => t.id == id);
+                    db.transactions[index] = { ...db.transactions[index], ...transactionData };
+                } else { // Criando
+                    transactionData.id = Date.now();
+                    db.transactions.push(transactionData);
+                }
+
+                closeModal(transactionModal);
+                renderAll();
+            });
+
+
+            const populateCollectionDropdown = () => {
+                const select = document.getElementById('card-collection');
+                select.innerHTML = '';
+                const activeStatuses = ['Ativa', 'Próxima', 'Em Espera'];
+                db.collections
+                    .filter(c => activeStatuses.includes(c.status))
+                    .forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = c.name;
+                        select.appendChild(option);
+                    });
+            };
+
+             // Event Listeners para Editar/Excluir Cartas
+            document.getElementById('catalog-table-body').addEventListener('click', (e) => {
+                const cardId = e.target.dataset.id;
+                if (!cardId) return;
+
+                if (e.target.classList.contains('edit-card-btn')) {
+                    const card = db.cards.find(c => c.id == cardId);
+                    if(card){
+                        document.getElementById('card-modal-title').textContent = 'Editar Carta';
+                        document.getElementById('card-id').value = card.id;
+                        document.getElementById('card-name').value = card.name;
+                        document.getElementById('card-number').value = card.number;
+                        populateCollectionDropdown();
+                        document.getElementById('card-collection').value = card.collectionId;
+                        document.getElementById('card-category').value = card.category;
+                        document.getElementById('card-status').value = card.status;
+                        document.getElementById('card-ref-price').value = card.refPrice;
+                        document.getElementById('card-market-price').value = card.marketPrice;
+                        document.getElementById('card-paid-price').value = card.paidPrice;
+                        openModal(cardModal);
+                    }
+                } else if (e.target.classList.contains('delete-card-btn')) {
+                    if (confirm('Tem certeza que deseja excluir esta carta?')) {
+                        db.cards = db.cards.filter(c => c.id != cardId);
+                        renderAll();
+                    }
+                }
+            });
+
+            // Event Listeners para Editar/Excluir Transações
+            document.getElementById('financial-table-body').addEventListener('click', (e) => {
+                const transactionId = e.target.dataset.id;
+                if (!transactionId) return;
+
+                if (e.target.classList.contains('edit-transaction-btn')) {
+                    const transaction = db.transactions.find(t => t.id == transactionId);
+                    if (transaction) {
+                        document.getElementById('transaction-modal-title').textContent = 'Editar Transação';
+                        document.getElementById('transaction-id').value = transaction.id;
+                        document.getElementById('transaction-date').value = transaction.date;
+                        document.getElementById('transaction-desc').value = transaction.desc;
+                        document.getElementById('transaction-type').value = transaction.type;
+                        document.getElementById('transaction-amount').value = transaction.amount;
+                        openModal(transactionModal);
+                    }
+                } else if (e.target.classList.contains('delete-transaction-btn')) {
+                    if (confirm('Tem certeza que deseja excluir esta transação?')) {
+                        db.transactions = db.transactions.filter(t => t.id != transactionId);
+                        renderAll();
+                    }
+                }
+            });
+
+            // Lógica de Arquivamento
+            document.getElementById('archive-collection-btn').addEventListener('click', () => {
+                 const activeCollection = db.collections.find(c => c.status === 'Ativa');
+                 if(!activeCollection) return;
+                 
+                 if(confirm(`Tem certeza que deseja arquivar a coleção "${activeCollection.name}"? Esta ação não pode ser desfeita.`)){
+                     const collectionCards = db.cards.filter(c => c.collectionId === activeCollection.id);
+                     db.archived.push({
+                         ...activeCollection,
+                         archivedDate: new Date().toISOString(),
+                         cards: collectionCards
+                     });
+
+                     // Remover coleção e cartas do estado ativo
+                     db.collections = db.collections.filter(c => c.id !== activeCollection.id);
+                     db.cards = db.cards.filter(c => c.collectionId !== activeCollection.id);
+                     
+                     renderAll();
+                 }
+            });
+
+            // --- Lógica de Importar/Exportar ---
+            const exportDataBtn = document.getElementById('export-data-btn');
+            const importDataBtn = document.getElementById('import-data-btn');
+            const importFileInput = document.getElementById('import-file-input');
+
+            exportDataBtn.addEventListener('click', () => {
+                saveData(); // Garante que os dados mais recentes estão salvos
+                const dataStr = JSON.stringify(db, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                const date = new Date().toISOString().split('T')[0];
+                link.download = `painel-tcg-backup-${date}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+
+            importDataBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            importFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        
+                        // Validação básica
+                        if (importedData.collections && importedData.cards && importedData.transactions && importedData.archived) {
+                            if (confirm('Atenção: Isso irá substituir todos os dados atuais no navegador. Deseja continuar?')) {
+                                db = importedData;
+                                saveData();
+                                renderAll();
+                                alert('Dados importados com sucesso!');
+                            }
+                        } else {
+                            alert('Erro: O arquivo selecionado não parece ser um backup válido.');
+                        }
+                    } catch (error) {
+                        alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
+                        console.error("Erro ao importar dados:", error);
+                    } finally {
+                        // Limpa o input para permitir importar o mesmo arquivo novamente
+                        importFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            // --- Lógica de Filtro do Catálogo ---
+            document.getElementById('catalog-search').addEventListener('input', renderCatalog);
+
+            // --- Lógica das Abas ---
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    const target = document.getElementById(`${tab.dataset.tab}-tab`);
+                    contents.forEach(c => c.classList.add('hidden'));
+                    target.classList.remove('hidden');
+                });
+            });
+
+            // --- Inicialização ---
+            
+            const loadSampleData = () => {
+                db = {
+                    collections: [
+                        { id: 1, name: "Escarlate e Violeta Promos", status: "Ativa" },
+                        { id: 2, name: "Obsidiana em Chamas Promos", status: "Próxima" }
+                    ],
+                    cards: [
+                        { id: 1, name: "Miraidon ex", number: "SVP 013", collectionId: 1, category: "Premium", status: "Possuo", refPrice: 60, marketPrice: 45, paidPrice: 42.50 },
+                        { id: 2, name: "Cyclizar ex", number: "SVP 010", collectionId: 1, category: "Blister", status: "Em Quarentena", refPrice: 20, marketPrice: 21, paidPrice: 0 },
+                        { id: 3, name: "Charmander", number: "SVP 044", collectionId: 2, category: "Premium", status: "Lista de Desejo", refPrice: 60, marketPrice: 75, paidPrice: 0 }
+                    ],
+                    transactions: [
+                        { id: 1, date: new Date().toISOString().split('T')[0], desc: "Orçamento do Mês", type: "Entrada", amount: 60 },
+                        { id: 2, date: new Date().toISOString().split('T')[0], desc: "Compra - Miraidon ex", type: "Saída", amount: 42.50 },
+                         { id: 3, date: new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().split('T')[0], desc: "Sobra do mês passado", type: "Acúmulo", amount: 10 }
+                    ],
+                    archived: []
+                };
+            };
+            
+            loadData();
+            renderAll();
+        });
+    </script>
+</body>
+</html>
+

@@ -86,10 +86,10 @@
                     </div>
                 </div>
                  <div class="mt-8 flex flex-wrap gap-4">
-                    <button id="archive-collection-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed">Arquivar Coleção Ativa</button>
                     <button id="export-data-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Salvar e Exportar</button>
                     <button id="import-data-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Importar</button>
                     <input type="file" id="import-file-input" class="hidden" accept=".json">
+                    <button id="archive-collection-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed">Arquivar Coleção Ativa</button>
                 </div>
             </div>
 
@@ -660,7 +660,7 @@
                 const status = document.getElementById('collection-status-select').value;
                 
                 if (status === 'Ativa') {
-                    db.collections.forEach(c => { if(c.status === 'Ativa') c.status = 'Em Espera' });
+                    db.collections.forEach(c => { if(c.status === 'Ativa' && c.id != id) c.status = 'Em Espera' });
                 }
 
                 if (id) { // Editando
@@ -966,4 +966,3 @@
     </script>
 </body>
 </html>
-

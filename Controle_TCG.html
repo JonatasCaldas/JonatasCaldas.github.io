@@ -99,6 +99,7 @@
                      <h2 class="text-3xl font-bold">Catálogo de Cartas</h2>
                      <div class="flex items-center gap-2 md:gap-4">
                         <input type="text" id="catalog-search" placeholder="Filtrar por nome ou num..." class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full md:w-64 p-2.5">
+                        <button id="view-collections-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Visualizar Coleção</button>
                         <button id="add-collection-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Nova Coleção</button>
                         <button id="edit-collections-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Editar Coleções</button>
                         <button id="add-card-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md whitespace-nowrap">Adicionar Carta</button>
@@ -108,8 +109,9 @@
                     <table class="w-full text-left">
                         <thead class="bg-gray-700 text-sm uppercase text-gray-400">
                             <tr>
+                                <th class="p-4">Item</th>
                                 <th class="p-4">Nome da Carta</th>
-                                <th class="p-4">Num.</th>
+                                <th class="p-4">Num Promo</th>
                                 <th class="p-4">Coleção</th>
                                 <th class="p-4">Categoria</th>
                                 <th class="p-4">Status</th>
@@ -225,6 +227,22 @@
         </main>
     </div>
 
+     <!-- Modal: Filtro de Coleção -->
+    <div id="view-collections-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6">Visualizar Coleções</h2>
+            <div id="view-collections-list" class="space-y-2 max-h-64 overflow-y-auto mb-6">
+                <!-- Checkboxes inseridos via JS -->
+            </div>
+            <div class="flex justify-end gap-4">
+                <button type="button" id="clear-collection-filter-btn" class="py-2 px-4 rounded-lg bg-yellow-600 hover:bg-yellow-700">Limpar Filtro</button>
+                <button type="button" id="apply-collection-filter-btn" class="py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700">Aplicar</button>
+                <button type="button" id="close-view-collections-modal" class="py-2 px-4 rounded-lg bg-gray-600 hover:bg-gray-500">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal: Gerenciar Coleções -->
     <div id="manage-collections-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center hidden">
         <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-2xl">
@@ -287,8 +305,8 @@
                         <input type="text" id="card-name" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
                     </div>
                     <div>
-                        <label for="card-number" class="block mb-2 text-sm font-medium">Numeração</label>
-                        <input type="text" id="card-number" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5" required>
+                        <label for="card-number" class="block mb-2 text-sm font-medium">Num Promo</label>
+                        <input type="text" id="card-number" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg w-full p-2.5">
                     </div>
                     <div>
                         <label for="card-collection" class="block mb-2 text-sm font-medium">Coleção</label>
@@ -379,6 +397,7 @@
                 transactions: [],
                 archived: []
             };
+            let activeCollectionFilter = [];
 
             // Função para carregar dados do localStorage
             const loadData = () => {
@@ -405,6 +424,7 @@
             const collectionModal = document.getElementById('collection-modal');
             const transactionModal = document.getElementById('transaction-modal');
             const manageCollectionsModal = document.getElementById('manage-collections-modal');
+            const viewCollectionsModal = document.getElementById('view-collections-modal');
 
             const openModal = (modal) => modal.classList.remove('hidden');
             const closeModal = (modal) => modal.classList.add('hidden');
@@ -520,7 +540,11 @@
                 };
 
                 const filteredAndSortedCards = db.cards
-                    .filter(card => {
+                    .filter(card => { // Filtro de coleção
+                        if (activeCollectionFilter.length === 0) return true;
+                        return activeCollectionFilter.includes(card.collectionId);
+                    })
+                    .filter(card => { // Filtro de pesquisa
                         const collection = db.collections.find(c => c.id === card.collectionId);
                         return (
                             card.name.toLowerCase().includes(searchTerm) ||
@@ -534,7 +558,7 @@
                         return numA - numB;
                     });
 
-                filteredAndSortedCards.forEach(card => {
+                filteredAndSortedCards.forEach((card, index) => {
                     const collection = db.collections.find(c => c.id === card.collectionId);
                     let statusClass = '';
                     if (card.status === 'Possuo') statusClass = 'bg-green-500/20 text-green-300';
@@ -546,6 +570,7 @@
 
                     const row = `
                         <tr class="border-b border-gray-700 hover:bg-gray-700/50 ${statusClass}">
+                            <td class="p-4">${index + 1}</td>
                             <td class="p-4 font-semibold">${card.name}</td>
                             <td class="p-4">${card.number}</td>
                             <td class="p-4">${collection ? collection.name : 'N/A'}</td>
@@ -709,6 +734,35 @@
                         renderManageCollectionsModal();
                     }
                 }
+            });
+
+            // Visualizar Coleções Modal
+            document.getElementById('view-collections-btn').addEventListener('click', () => {
+                const list = document.getElementById('view-collections-list');
+                list.innerHTML = '';
+                db.collections.forEach(c => {
+                    const isChecked = activeCollectionFilter.includes(c.id);
+                    list.innerHTML += `
+                        <label class="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500">
+                            <span>${c.name}</span>
+                        </label>
+                    `;
+                });
+                openModal(viewCollectionsModal);
+            });
+             document.getElementById('close-view-collections-modal').addEventListener('click', () => closeModal(viewCollectionsModal));
+             document.getElementById('apply-collection-filter-btn').addEventListener('click', () => {
+                activeCollectionFilter = [];
+                const checkboxes = document.querySelectorAll('#view-collections-list input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => activeCollectionFilter.push(parseInt(cb.value)));
+                closeModal(viewCollectionsModal);
+                renderCatalog();
+             });
+            document.getElementById('clear-collection-filter-btn').addEventListener('click', () => {
+                activeCollectionFilter = [];
+                closeModal(viewCollectionsModal);
+                renderCatalog();
             });
 
 

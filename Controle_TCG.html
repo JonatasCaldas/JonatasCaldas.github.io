@@ -89,7 +89,7 @@
                     <button id="export-data-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Salvar e Exportar</button>
                     <button id="import-data-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Importar</button>
                     <input type="file" id="import-file-input" class="hidden" accept=".json">
-                    <button id="archive-collection-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed">Arquivar Coleção Ativa</button>
+                    <button id="archive-collection-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed">Arquivar Cartas "Possuo"</button>
                 </div>
             </div>
 
@@ -162,66 +162,10 @@
             <!-- Aba: Informações -->
             <div id="info-tab" class="tab-content hidden">
                 <h2 class="text-3xl font-bold mb-6">Informações e Regras</h2>
-                <div class="space-y-8">
-                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h3 class="text-xl font-bold text-indigo-400 mb-4">Manual de Operações do Colecionador Estratégico</h3>
-                        <div class="space-y-4 text-gray-300">
-                            <div>
-                                <h4 class="font-semibold text-lg mb-2">I. Filosofia da Coleção (Os Princípios)</h4>
-                                <ul class="list-disc list-inside space-y-1 pl-4">
-                                    <li><span class="font-semibold">Foco:</span> A coleção é composta exclusivamente por cartas promocionais de Pokémon TCG.</li>
-                                    <li><span class="font-semibold">Estrutura:</span> Cada coleção é um projeto individual, contendo 5 sub-categorias: Pré-Release, Premium, Blisters, Caixas e Especiais.</li>
-                                    <li><span class="font-semibold">Ritmo:</span> O método é sequencial: uma coleção de cada vez, iniciando a próxima somente após a anterior ser considerada "fechada".</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-2">II. Regras Financeiras (O Orçamento)</h4>
-                                <ul class="list-disc list-inside space-y-1 pl-4">
-                                    <li><span class="font-semibold">Orçamento Mensal:</span> Teto de gastos de R$ 60,00 por mês.</li>
-                                    <li><span class="font-semibold">Preço Referencial:</span> Cartas "Regulares" abaixo de R$ 20,00; Cartas "Premium" e "Especiais" abaixo de R$ 60,00.</li>
-                                    <li><span class="font-semibold">Fundo Especial:</span> Valor não utilizado no mês é transferido para este fundo para viabilizar compras de cartas mais caras.</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-2">III. O Ciclo de Conquista (O Processo)</h4>
-                                <ul class="list-disc list-inside space-y-1 pl-4">
-                                    <li><span class="font-semibold">Fase 1 - Aquisição da Base:</span> Compra dos blisters lacrados (um por mês).</li>
-                                    <li><span class="font-semibold">Fase 2 - Caça e Acumulação:</span> Orçamento dedicado a comprar singles que atingem o preço referencial.</li>
-                                    <li><span class="font-semibold">Fase 3 - Fechamento:</span> Uso do Fundo Especial para adquirir as cartas restantes.</li>
-                                    <li><span class="font-semibold">Lista de Observação:</span> Cartas excessivamente caras são movidas para esta lista para não travar o início da próxima coleção.</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-2">IV. Regras de Classificação (A Organização)</h4>
-                                <ul class="list-disc list-inside space-y-1 pl-4">
-                                    <li><span class="font-semibold">Critério Principal (com Booster):</span> A promo pertence à coleção do booster mais recente do produto.</li>
-                                    <li><span class="font-semibold">Critério Secundário (sem Booster):</span> A promo pertence à coleção ativa na data de lançamento do produto.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h3 class="text-xl font-bold text-indigo-400 mb-4">Uso das Tags de Status</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="font-semibold text-lg text-gray-200">1. Lista de Desejo</p>
-                                <p class="text-gray-400 pl-4">Ponto de partida para toda carta que você pretende adquirir. Representa seu universo de interesse antes do monitoramento ativo.</p>
-                            </div>
-                             <div>
-                                <p class="font-semibold text-lg text-yellow-300">2. Em Quarentena</p>
-                                <p class="text-gray-400 pl-4">Fase de monitoramento ativo. Usado para cartas da coleção ativa que ainda estão acima do seu preço referencial.</p>
-                            </div>
-                             <div>
-                                <p class="font-semibold text-lg text-green-300">3. Possuo</p>
-                                <p class="text-gray-400 pl-4">Estado final, a conquista! A carta agora faz parte da sua coleção física e atualiza o progresso no painel.</p>
-                            </div>
-                             <div>
-                                <p class="font-semibold text-lg text-amber-300">4. Observação</p>
-                                <p class="text-gray-400 pl-4">O "backlog controlado". Para cartas muito caras que ficam para uma compra futura, permitindo que você avance para a próxima coleção.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-indigo-400 mb-4">Manual de Operações e Regras da Coleção</h3>
+                    <p class="text-gray-400 mb-4">Cole suas regras e anotações aqui. As informações são salvas automaticamente ao sair do campo e incluídas no arquivo de exportação.</p>
+                    <textarea id="info-rules-textarea" class="w-full h-96 bg-gray-900 text-gray-300 p-4 rounded-md border border-gray-700 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Cole aqui o seu Manual de Operações..."></textarea>
                 </div>
             </div>
         </main>
@@ -395,7 +339,8 @@
                 collections: [],
                 cards: [],
                 transactions: [],
-                archived: []
+                archived: [],
+                rulesText: ''
             };
             let activeCollectionFilter = [];
 
@@ -403,15 +348,20 @@
             const loadData = () => {
                 const data = localStorage.getItem('collectorDashboardDB');
                 if (data) {
-                    db = JSON.parse(data);
+                    const parsedData = JSON.parse(data);
+                    db.collections = parsedData.collections || [];
+                    db.cards = parsedData.cards || [];
+                    db.transactions = parsedData.transactions || [];
+                    db.archived = parsedData.archived || [];
+                    db.rulesText = parsedData.rulesText || '';
                 } else {
-                    // Carregar dados de exemplo se não houver nada salvo
                     loadSampleData();
                 }
             };
 
             // Função para salvar dados no localStorage
             const saveData = () => {
+                db.rulesText = document.getElementById('info-rules-textarea').value;
                 localStorage.setItem('collectorDashboardDB', JSON.stringify(db));
             };
 
@@ -435,6 +385,7 @@
                 renderDashboard();
                 renderFinancials();
                 renderArchive();
+                renderInfo();
                 saveData();
             };
 
@@ -548,7 +499,7 @@
                         const collection = db.collections.find(c => c.id === card.collectionId);
                         return (
                             card.name.toLowerCase().includes(searchTerm) ||
-                            card.number.toLowerCase().includes(searchTerm) ||
+                            (card.number && card.number.toLowerCase().includes(searchTerm)) ||
                             (collection && collection.name.toLowerCase().includes(searchTerm))
                         );
                     })
@@ -572,7 +523,7 @@
                         <tr class="border-b border-gray-700 hover:bg-gray-700/50 ${statusClass}">
                             <td class="p-4">${index + 1}</td>
                             <td class="p-4 font-semibold">${card.name}</td>
-                            <td class="p-4">${card.number}</td>
+                            <td class="p-4">${card.number || '-'}</td>
                             <td class="p-4">${collection ? collection.name : 'N/A'}</td>
                             <td class="p-4">${card.category}</td>
                             <td class="p-4">${card.status}</td>
@@ -647,6 +598,10 @@
                     `;
                     container.innerHTML += collectionHtml;
                 });
+            };
+
+            const renderInfo = () => {
+                document.getElementById('info-rules-textarea').value = db.rulesText || '';
             };
             
             const renderManageCollectionsModal = () => {
@@ -900,23 +855,39 @@
 
             // Lógica de Arquivamento
             document.getElementById('archive-collection-btn').addEventListener('click', () => {
-                 const activeCollection = db.collections.find(c => c.status === 'Ativa');
-                 if(!activeCollection) return;
-                 
-                 if(confirm(`Tem certeza que deseja arquivar a coleção "${activeCollection.name}"? Esta ação não pode ser desfeita.`)){
-                     const collectionCards = db.cards.filter(c => c.collectionId === activeCollection.id);
-                     db.archived.push({
-                         ...activeCollection,
-                         archivedDate: new Date().toISOString(),
-                         cards: collectionCards
-                     });
+                const activeCollection = db.collections.find(c => c.status === 'Ativa');
+                if (!activeCollection) return;
 
-                     // Remover coleção e cartas do estado ativo
-                     db.collections = db.collections.filter(c => c.id !== activeCollection.id);
-                     db.cards = db.cards.filter(c => c.collectionId !== activeCollection.id);
-                     
-                     renderAll();
-                 }
+                const cardsToArchive = db.cards.filter(c => c.collectionId === activeCollection.id && c.status === 'Possuo');
+
+                if (cardsToArchive.length === 0) {
+                    alert('Não há cartas com o status "Possuo" para arquivar nesta coleção.');
+                    return;
+                }
+
+                if (confirm(`Tem certeza que deseja arquivar ${cardsToArchive.length} carta(s) com o status "Possuo" da coleção "${activeCollection.name}"?\n\nAs cartas arquivadas serão removidas do catálogo ativo.`)) {
+                    
+                    let archiveEntry = db.archived.find(a => a.id === activeCollection.id);
+
+                    if (archiveEntry) {
+                        const existingCardIds = new Set(archiveEntry.cards.map(c => c.id));
+                        const newCards = cardsToArchive.filter(c => !existingCardIds.has(c.id));
+                        archiveEntry.cards.push(...newCards);
+                        archiveEntry.archivedDate = new Date().toISOString();
+                    } else {
+                        db.archived.push({
+                            ...activeCollection,
+                            archivedDate: new Date().toISOString(),
+                            cards: cardsToArchive
+                        });
+                    }
+                    
+                    const archivedCardIds = new Set(cardsToArchive.map(c => c.id));
+
+                    db.cards = db.cards.filter(c => !archivedCardIds.has(c.id));
+                    
+                    renderAll();
+                }
             });
 
             // --- Lógica de Importar/Exportar ---
@@ -954,10 +925,13 @@
                     try {
                         const importedData = JSON.parse(e.target.result);
                         
-                        // Validação básica
-                        if (importedData.collections && importedData.cards && importedData.transactions && importedData.archived) {
+                        if (importedData && typeof importedData === 'object') {
                             if (confirm('Atenção: Isso irá substituir todos os dados atuais no navegador. Deseja continuar?')) {
-                                db = importedData;
+                                db.collections = importedData.collections || [];
+                                db.cards = importedData.cards || [];
+                                db.transactions = importedData.transactions || [];
+                                db.archived = importedData.archived || [];
+                                db.rulesText = importedData.rulesText || '';
                                 saveData();
                                 renderAll();
                                 alert('Dados importados com sucesso!');
@@ -969,7 +943,6 @@
                         alert('Erro ao ler o arquivo. Verifique se é um arquivo JSON válido.');
                         console.error("Erro ao importar dados:", error);
                     } finally {
-                        // Limpa o input para permitir importar o mesmo arquivo novamente
                         importFileInput.value = '';
                     }
                 };
@@ -978,6 +951,9 @@
 
             // --- Lógica de Filtro do Catálogo ---
             document.getElementById('catalog-search').addEventListener('input', renderCatalog);
+
+            // --- Salvar Regras da Aba Info ---
+            document.getElementById('info-rules-textarea').addEventListener('blur', saveData);
 
             // --- Lógica das Abas ---
             const tabs = document.querySelectorAll('.tab-button');
@@ -1010,7 +986,20 @@
                         { id: 2, date: new Date().toISOString().split('T')[0], desc: "Compra - Miraidon ex", type: "Saída", amount: 42.50 },
                          { id: 3, date: new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().split('T')[0], desc: "Sobra do mês passado", type: "Acúmulo", amount: 10 }
                     ],
-                    archived: []
+                    archived: [],
+                    rulesText: `#### Manual de Operações do Colecionador Estratégico ####
+
+**I. Filosofia da Coleção**
+1. Foco: A coleção é composta exclusivamente por cartas promocionais de Pokémon TCG.
+2. Estrutura: Cada coleção é um projeto individual, contendo as 5 sub-categorias: Pré-Release, Premium (ETB/UPC), Blisters, Caixas e Especiais.
+3. Ritmo: O método é sequencial: uma coleção de cada vez. Uma nova coleção só é iniciada após a anterior ser considerada "fechada".
+
+**II. Regras Financeiras**
+4. Orçamento Mensal: O teto de gastos é de R$ 60,00 por mês.
+5. Preço Referencial de Compra:
+    - Cartas "Regulares": Abaixo de R$ 20,00.
+    - Cartas "Premium" e "Especiais": Abaixo de R$ 60,00.
+6. Fundo de Cartas Especiais: Valor não utilizado no mês é transferido para este fundo.`
                 };
             };
             

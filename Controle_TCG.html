@@ -395,29 +395,65 @@
                 const dashboardCollectionStatus = document.getElementById('dashboard-collection-status');
                 const progressBar = document.getElementById('dashboard-progress-bar');
                 const progressText = document.getElementById('dashboard-progress-text');
-
+    
                 document.getElementById('archive-collection-btn').disabled = !activeCollection;
-
+    
                 if (activeCollection) {
                     dashboardActiveCollection.textContent = activeCollection.name;
                     
-                    const collectionCards = db.cards.filter(c => c.collectionId === activeCollection.id);
-                    const obtainedCards = collectionCards.filter(c => c.status === 'Possuo');
-                    const progress = collectionCards.length > 0 ? (obtainedCards.length / collectionCards.length) * 100 : 0;
+                    // --- LÓGICA DE CÁLCULO ATUALIZADA (PARA PROGRESSO E STATUS) ---
+
+                    // 1. Definir categorias alvo para a barra de progresso
+                    const progressTargetCategories = ['Blister', 'Pré-Release'];
+
+                    // 2. Obter TODOS os cartões da coleção ativa (atuais e arquivados)
+                    const currentCards = db.cards.filter(c => c.collectionId === activeCollection.id);
+                    const archivedCards = db.archived.find(a => a.id === activeCollection.id)?.cards || [];
+                    const allCollectionCards = [...currentCards, ...archivedCards];
+
+                    // 3. Calcular Progresso (Baseado em Blister e Pré-Release)
                     
+                    // Denominador: Total de cartas nas categorias alvo
+                    const totalTargetCardsList = allCollectionCards.filter(c => 
+                        progressTargetCategories.includes(c.category)
+                    );
+                    const totalTargetCount = totalTargetCardsList.length;
+
+                    // Numerador: Cartas "Possuo" (atuais) + Arquivadas (que eram "Possuo") DENTRO das categorias alvo
+                    const currentObtainedInTarget = currentCards.filter(c => 
+                        c.status === 'Possuo' && 
+                        progressTargetCategories.includes(c.category)
+                    );
+                    const archivedObtainedInTarget = archivedCards.filter(c => 
+                        progressTargetCategories.includes(c.category)
+                    );
+                    
+                    const obtainedTargetCount = currentObtainedInTarget.length + archivedObtainedInTarget.length;
+
+                    // 4. Aplicar na Barra de Progresso
+                    const progress = totalTargetCount > 0 ? (obtainedTargetCount / totalTargetCount) * 100 : 0;
                     progressBar.style.width = `${progress}%`;
-                    progressText.textContent = `${obtainedCards.length} / ${collectionCards.length}`;
+                    progressText.textContent = `${obtainedTargetCount} / ${totalTargetCount}`;
 
-                    const hasBlisters = collectionCards.some(c => c.category === 'Blister');
-                    const obtainedBlisters = collectionCards.filter(c => c.category === 'Blister' && c.status === 'Possuo').length;
-                    const allBlistersObtained = collectionCards.filter(c=>c.category === 'Blister').length === obtainedBlisters;
+                    // 5. Calcular "Status Atual" (Baseado APENAS em Blisters, mas considerando arquivados)
+                    
+                    // Total de Blisters (atuais + arquivados)
+                    const allBlisters = allCollectionCards.filter(c => c.category === 'Blister');
+                    const hasBlisters = allBlisters.length > 0;
 
+                    // Total de Blisters Obtidos (atuais "Possuo" + arquivados)
+                    const currentObtainedBlisters = currentCards.filter(c => c.category === 'Blister' && c.status === 'Possuo').length;
+                    const archivedObtainedBlisters = archivedCards.filter(c => c.category === 'Blister').length;
+                    const totalObtainedBlisters = currentObtainedBlisters + archivedObtainedBlisters;
+
+                    const allBlistersObtained = (allBlisters.length === totalObtainedBlisters);
+    
                     if (!hasBlisters || allBlistersObtained) {
                         dashboardCollectionStatus.textContent = 'Fase 2 - Caça';
                     } else {
                          dashboardCollectionStatus.textContent = 'Fase 1 - Blisters';
                     }
-
+    
                 } else {
                     dashboardActiveCollection.textContent = 'Nenhuma';
                     dashboardCollectionStatus.textContent = '-';

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemáttico PRO | Portal de Acesso</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'accent': '#66b2b2',
+                    },
+                    boxShadow: {
+                        'card': '0 0 21px rgba(0,0,0,0.15)', // Sombra suavizada para combinar com design flat
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center overflow-hidden antialiased selection:bg-accent selection:text-white font-sans text-gray-800">
+
+    <!-- Cabeçalho Principal -->
+    <header class="text-center mb-16 relative z-10 px-4">
+        <h1 class="text-5xl md:text-6xl text-gray-900 tracking-tight font-bold uppercase">
+            Telemáttico <span class="text-accent">PRO</span>
+        </h1>
+        <p class="text-gray-500 mt-3 text-sm md:text-base tracking-wide font-normal uppercase border-t border-gray-200 pt-3 inline-block">
+            Analisador de Dados do Monitoramento de Rede Aérea
+        </p>
+    </header>
+
+    <!-- Seção de Tiles (Main) -->
+    <main class="w-full max-w-6xl px-8 flex justify-center gap-8 items-start">
+        
+        <!-- TILE 1: LOC (#66b2b2 - Teal) -->
+        <!-- Contraste: Fundo escuro permite texto branco no hover -->
+        <div onclick="navigateTo('https://jonatascaldas.github.io/Telemattico.html')" 
+             class="group w-[320px] min-h-[220px] bg-[#66b2b2] shadow-card relative mt-12 pl-12 hover:pl-0 transition-all duration-500 cursor-pointer overflow-hidden rounded-sm">
+            
+            <!-- Ícone de Fundo -->
+            <div class="absolute w-full h-full inset-0 overflow-hidden pointer-events-none">
+                <svg class="absolute -right-12 top-[40%] w-48 h-48 text-white opacity-20 transform rotate-12 transition-all duration-500 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="relative z-10 py-8 pr-6 -ml-12 group-hover:ml-8 transition-all duration-500 flex flex-col justify-center h-full">
+                <h2 class="text-3xl font-bold uppercase text-white group-hover:text-white transition-colors duration-500 tracking-tight">
+                    Telemáttico Loc
+                </h2>
+                <p class="text-xs text-white opacity-0 group-hover:opacity-100 mt-4 transition-opacity duration-500 delay-100 font-medium tracking-wide leading-relaxed">
+                    MONITORAMENTO<br>DA LOCALIDADE
+                </p>
+            </div>
+        </div>
+
+        <!-- TILE 2: ROUTE (#FFE599 - Amarelo) -->
+        <!-- Contraste: Fundo claro EXIGE texto escuro no hover -->
+        <div onclick="navigateTo('about:blank')" 
+             class="group w-[320px] min-h-[220px] bg-[#FFE599] shadow-card relative mt-12 pl-12 hover:pl-0 transition-all duration-500 cursor-pointer overflow-hidden rounded-sm">
+            
+            <div class="absolute w-full h-full inset-0 overflow-hidden pointer-events-none">
+                <svg class="absolute -right-12 top-[40%] w-48 h-48 text-gray-900 opacity-10 transform rotate-12 transition-all duration-500 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 15.18V7c0-2.21-1.79-4-4-4s-4 1.79-4 4v10c0 1.1-.9 2-2 2s-2-.9-2-2V8.82c2.21-.55 4-2.54 4-4.82 0-2.76-2.24-5-5-5S2 1.24 2 4c0 2.28 1.79 4.27 4 4.82V17c0 2.21 1.79 4 4 4s4-1.79 4-4V7c0-1.1.9-2 2-2s2 .9 2 2v8.18c-2.21.55-4 2.54-4 4.82 0 2.76 2.24 5 5 5s5-2.24 5-5c0-2.28-1.79-4.27-4-4.82z"/>
+                </svg>
+            </div>
+
+            <div class="relative z-10 py-8 pr-6 -ml-12 group-hover:ml-8 transition-all duration-500 flex flex-col justify-center h-full">
+                <h2 class="text-3xl font-bold uppercase text-gray-800 transition-colors duration-500 tracking-tight">
+                    Telemáttico Route
+                </h2>
+                <p class="text-xs text-gray-800 opacity-0 group-hover:opacity-100 mt-4 transition-opacity duration-500 delay-100 font-medium tracking-wide leading-relaxed">
+                    DIAGNÓSTICO<br>DO TRECHO
+                </p>
+            </div>
+        </div>
+
+        <!-- TILE 3: ALARM (#6FE6FC - Ciano) -->
+        <!-- Contraste: Fundo claro EXIGE texto escuro no hover -->
+        <div onclick="navigateTo('about:blank')" 
+             class="group w-[320px] min-h-[220px] bg-[#6FE6FC] shadow-card relative mt-12 pl-12 hover:pl-0 transition-all duration-500 cursor-pointer overflow-hidden rounded-sm">
+            
+            <div class="absolute w-full h-full inset-0 overflow-hidden pointer-events-none">
+                <svg class="absolute -right-12 top-[40%] w-48 h-48 text-gray-900 opacity-10 transform rotate-12 transition-all duration-500 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+            </div>
+
+            <div class="relative z-10 py-8 pr-6 -ml-12 group-hover:ml-8 transition-all duration-500 flex flex-col justify-center h-full">
+                <h2 class="text-3xl font-bold uppercase text-gray-800 transition-colors duration-500 tracking-tight">
+                    Telemáttico Alarm
+                </h2>
+                <p class="text-xs text-gray-800 opacity-0 group-hover:opacity-100 mt-4 transition-opacity duration-500 delay-100 font-medium tracking-wide leading-relaxed">
+                    GESTÃO<br>DE OCORRÊNCIAS
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de Navegação Inline -->
+    <script>
+        function navigateTo(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

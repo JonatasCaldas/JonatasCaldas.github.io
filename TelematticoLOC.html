@@ -30,7 +30,7 @@
                     colors: {
                         'accent': '#66b2b2',
                         'accent-dark': '#559595',
-                        'custom-accent': '#FFE599',
+                        'custom-accent': '#86A8E7',
                         'severity-accent': '#6FE6FC',
                     }
                 }
@@ -74,7 +74,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoLOC 1.5</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoLOC 1.6</h1>
             <p class="text-gray-500 mt-1 text-lg">Analise as condições operacionais de cada localidade onde houve um alarme</p>
         </header>
 
@@ -1107,7 +1107,7 @@
                 dropOffData.push(b.dropOffCount);
             });
 
-            const customColor = '#FFE599';
+            const customColor = '#86A8E7';
             customSpeedChartInstance = renderChart(elements.customChartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', customColor);
             customSeverityChartInstance = renderChart(elements.customChartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', customColor);
             

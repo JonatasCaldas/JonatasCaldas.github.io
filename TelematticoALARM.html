@@ -28,6 +28,9 @@
                     colors: {
                         'accent': '#6FE6FC', 
                         'accent-dark': '#5ACCE0',
+                        'warning-bg': '#FFF7ED', 
+                        'warning-border': '#FED7AA', 
+                        'warning-text': '#9A3412', 
                     }
                 }
             }
@@ -47,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 1.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 1.3</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -117,23 +120,51 @@
                 </div>
                 
                 <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300">
+                    <!-- Tile 1 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Registros</span>
                         <strong id="tile1Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">No Período</span>
                     </div>
+                    <!-- Tile 2 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs (>0)</span>
                         <strong id="tile2Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Contagem</span>
                     </div>
+                    <!-- Tile 3 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Severidade Média</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Impacto Médio</span>
                         <strong id="tile3Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Pontos (Filtrado)</span>
                     </div>
+                    
+                    <!-- Tile 4: Monitoramento de Revisões -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors relative">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Monitoramento de Revisões</span>
+                        
+                        <div class="w-full text-sm space-y-3 flex-1 flex flex-col justify-center">
+                            <!-- Oldest Review -->
+                            <div class="flex flex-col border-b border-gray-200 pb-2">
+                                <span class="text-[10px] text-gray-400 uppercase mb-1">Revisão Mais Antiga</span>
+                                <div id="tile4Oldest" class="font-semibold text-gray-700 truncate">-</div>
+                                <span id="tile4OldestDate" class="text-xs text-gray-500">-</span>
+                            </div>
+                            <!-- Newest Review -->
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-gray-400 uppercase mb-1">Revisão Mais Recente</span>
+                                <div id="tile4Newest" class="font-semibold text-gray-700 truncate">-</div>
+                                <span id="tile4NewestDate" class="text-xs text-gray-500">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Footer Ratio -->
+                        <div id="tile4Footer" class="mt-3 text-[10px] text-center text-red-500 font-semibold bg-red-50 py-1 rounded hidden">
+                            <span id="tile4RatioValue">0/0</span> Sites Sem Revisão
+                        </div>
+                    </div>
+
                     <!-- Placeholders -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 4</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 5</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 6</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 7</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
@@ -186,6 +217,14 @@
                 tile1: document.getElementById('tile1Value'),
                 tile2: document.getElementById('tile2Value'),
                 tile3: document.getElementById('tile3Value'),
+                // Tile 4 Elements
+                tile4Oldest: document.getElementById('tile4Oldest'),
+                tile4OldestDate: document.getElementById('tile4OldestDate'),
+                tile4Newest: document.getElementById('tile4Newest'),
+                tile4NewestDate: document.getElementById('tile4NewestDate'),
+                tile4Footer: document.getElementById('tile4Footer'),
+                tile4RatioValue: document.getElementById('tile4RatioValue'),
+                
                 btnMapCircle: document.getElementById('btnMapCircle'),
                 btnMapCluster: document.getElementById('btnMapCluster'),
                 btnMapHeat: document.getElementById('btnMapHeat')
@@ -203,14 +242,13 @@
             const detectSeparator = (txt) => txt.split(/\r?\n/)[0].includes(';') ? ';' : ',';
             
             const parseCSVLine = (line, sep) => {
-                // Split e remove aspas extras que possam ter vindo do CSV
+                // Split e remove aspas extras
                 return line.split(sep).map(i => i.trim().replace(/^"|"$/g, ''));
             };
             
             const parseNumber = (str, isBR) => {
                 if (!str) return NaN;
                 str = str.trim();
-                
                 if (isBR) {
                     str = str.replace(/\./g, '').replace(',', '.');
                 } else {
@@ -219,24 +257,56 @@
                 return parseFloat(str);
             };
 
+            // PARSER DATA ROBUSTO COM SANITY CHECK
             const parseDate = (str) => {
-                if (!str) return null;
-                str = str.trim().replace(/−/g, '-').replace(/\//g, '-');
-                // Tenta ISO
-                let d = new Date(str);
-                if (!isNaN(d.getTime())) return d;
-                
-                // Tenta PT-BR
-                const ptBr = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(.*)$/);
-                if (ptBr) {
-                    const day = parseInt(ptBr[1]), month = parseInt(ptBr[2])-1, year = parseInt(ptBr[3]);
-                    let h=0, m=0, s=0;
-                    const time = ptBr[4].match(/(\d{1,2}):(\d{1,2}):?(\d{1,2})?/);
-                    if(time) { h=parseInt(time[1]); m=parseInt(time[2]); if(time[3]) s=parseInt(time[3]); }
-                    d = new Date(year, month, day, h, m, s);
-                    if (!isNaN(d.getTime())) return d;
+                if (!str || str === '-' || str === '0' || str.toLowerCase() === 'null') return null;
+                str = str.trim().replace(/"/g, ''); 
+
+                let d = null;
+
+                // 1. Tenta formato ISO Manual (YYYY-MM-DD) para evitar deslocamento de timezone
+                const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (isoMatch) {
+                    const y = parseInt(isoMatch[1]);
+                    const m = parseInt(isoMatch[2]) - 1;
+                    const day = parseInt(isoMatch[3]);
+                    // Define meio-dia para evitar virada de dia por timezone
+                    d = new Date(y, m, day, 12, 0, 0); 
+                } 
+                else {
+                    // 2. Tenta formato PT-BR (DD/MM/YYYY)
+                    const ptMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+                    if (ptMatch) {
+                        const day = parseInt(ptMatch[1]);
+                        const m = parseInt(ptMatch[2]) - 1;
+                        const y = parseInt(ptMatch[3]);
+                        d = new Date(y, m, day, 12, 0, 0);
+                    } else {
+                        // 3. Fallback genérico
+                        const temp = new Date(str);
+                        if (!isNaN(temp.getTime())) d = temp;
+                    }
                 }
+
+                // TRAVA DE SEGURANÇA: Ano deve ser razoável (2000 - 2100)
+                // Isso elimina lixo como '100' ou '8884'
+                if (d && !isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    if (year < 2000 || year > 2100) return null; 
+                    return d;
+                }
+                
                 return null;
+            };
+
+            // Helper para formatar data (dd/mm/aaaa)
+            const formatDateDisplay = (dateObj) => {
+                if (!dateObj) return '-';
+                return dateObj.toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric' 
+                });
             };
 
             // --- MAPA ---
@@ -272,7 +342,7 @@
                                 <b>Site:</b> ${pt.siteName}<br>
                                 <b>Severidade Mais Recente:</b> ${pt.recentSeverity !== null ? pt.recentSeverity.toLocaleString('pt-BR') : 'N/A'}<br>
                                 <b>Maior Impacto (Ref.):</b> ${pt.largestImpact !== null ? pt.largestImpact.toLocaleString('pt-BR') : 'N/A'}<br>
-                                <b>Data:</b> ${pt.date ? pt.date.toLocaleDateString('pt-BR') : '-'}
+                                <b>Data:</b> ${formatDateDisplay(pt.date)}
                             </div>
                         `, { direction: 'top' }).addTo(mapLayerGroup);
                     });
@@ -280,7 +350,7 @@
                     const markers = L.markerClusterGroup();
                     valid.forEach(pt => {
                         const m = L.circleMarker([pt.lat, pt.lon], { radius: 6, fillColor: '#6FE6FC', color: '#000', weight: 1, fillOpacity: 0.8 });
-                        m.bindTooltip(`<b>Site:</b> ${pt.siteName}<br><b>Severidade Mais Recente:</b> ${pt.recentSeverity}<br><b>Data:</b> ${pt.date?.toLocaleDateString('pt-BR')}`);
+                        m.bindTooltip(`<b>Site:</b> ${pt.siteName}<br><b>Severidade Mais Recente:</b> ${pt.recentSeverity}<br><b>Data:</b> ${formatDateDisplay(pt.date)}`);
                         markers.addLayer(m);
                     });
                     mapLayerGroup.addLayer(markers);
@@ -304,17 +374,18 @@
                 const isBR = sep === ';'; 
                 const headers = parseCSVLine(lines[0].toLowerCase(), sep);
 
-                // Colunas
+                // Colunas Base
                 const idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity'));
-                
-                // IMPORTANTE: Agora lemos as duas colunas de severidade/impacto separadamente
                 const idxLargestImpact = headers.findIndex(h => h.includes('largest impact since last review'));
                 const idxRecentSeverity = headers.findIndex(h => h.includes('most recent event impact severity'));
-                
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
                 const idxDrop = headers.findIndex(h => h.includes('drop off events'));
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
+                
+                // Coluna Last Review: Busca estrita para evitar confusão com 'Time Since...'
+                const idxLastReview = headers.findIndex(h => h === 'last review' || (h.includes('last review') && !h.includes('time') && !h.includes('since')));
+                const idxUrl = headers.findIndex(h => h === 'url');
 
                 globalRawData = [];
 
@@ -322,24 +393,27 @@
                     const row = parseCSVLine(lines[i], sep);
                     
                     const d = idxDate !== -1 ? parseDate(row[idxDate]) : null;
-                    
-                    // Lemos os dois valores distintos
                     const largestImpact = idxLargestImpact !== -1 ? parseNumber(row[idxLargestImpact], isBR) : null;
                     const recentSeverity = idxRecentSeverity !== -1 ? parseNumber(row[idxRecentSeverity], isBR) : null;
-                    
                     const lat = idxLat !== -1 ? parseNumber(row[idxLat], isBR) : null;
                     const lon = idxLon !== -1 ? parseNumber(row[idxLon], isBR) : null;
                     const site = idxSite !== -1 ? row[idxSite] : "Unknown";
                     const drop = idxDrop !== -1 ? parseNumber(row[idxDrop], isBR) : 0;
+                    
+                    // Dados Tile 4
+                    const lastReviewDate = idxLastReview !== -1 ? parseDate(row[idxLastReview]) : null;
+                    const url = idxUrl !== -1 ? row[idxUrl] : null;
 
                     globalRawData.push({
                         siteName: site,
                         date: d,
-                        largestImpact: largestImpact, // Usado para filtro e Média (Tile 3)
-                        recentSeverity: recentSeverity, // Usado APENAS no tooltip
+                        largestImpact: largestImpact,
+                        recentSeverity: recentSeverity,
                         lat: lat,
                         lon: lon,
-                        dropOff: isNaN(drop) ? 0 : drop
+                        dropOff: isNaN(drop) ? 0 : drop,
+                        lastReviewDate: lastReviewDate,
+                        url: url
                     });
                 }
 
@@ -409,15 +483,72 @@
                 els.dashboardGrid.classList.remove('hidden');
                 els.noDataState.classList.add('hidden');
 
+                // Tiles 1-3 Calculations
                 const total = data.length;
                 const dropOffs = data.filter(d => d.dropOff > 0).length;
-                
                 const validImpacts = data.filter(d => d.largestImpact !== null && !isNaN(d.largestImpact));
                 const avgImpact = validImpacts.length ? (validImpacts.reduce((a,b)=>a+b.largestImpact,0)/validImpacts.length) : 0;
 
                 els.tile1.textContent = total.toLocaleString('pt-BR');
                 els.tile2.textContent = dropOffs.toLocaleString('pt-BR');
                 els.tile3.textContent = avgImpact.toLocaleString('pt-BR', {maximumFractionDigits: 1});
+
+                // --- TILE 4 LOGIC (REVISÕES) ---
+                let validReviews = [];
+                let noReviewCount = 0;
+
+                data.forEach(item => {
+                    if (item.lastReviewDate) {
+                        validReviews.push(item);
+                    } else {
+                        noReviewCount++;
+                    }
+                });
+
+                // Reset Defaults
+                els.tile4Oldest.textContent = '-';
+                els.tile4OldestDate.textContent = '-';
+                els.tile4Newest.textContent = '-';
+                els.tile4NewestDate.textContent = '-';
+                els.tile4Footer.classList.add('hidden');
+
+                if (validReviews.length > 0) {
+                    // Sort by Date Ascending
+                    validReviews.sort((a, b) => a.lastReviewDate - b.lastReviewDate);
+
+                    const oldest = validReviews[0];
+                    const newest = validReviews[validReviews.length - 1];
+
+                    // Helper para renderizar link ou texto
+                    const renderSite = (element, item) => {
+                        element.innerHTML = ''; // Clear
+                        if (item.url && item.url.length > 5) {
+                            const link = document.createElement('a');
+                            link.href = item.url;
+                            link.target = '_blank';
+                            link.className = 'hover:text-accent hover:underline decoration-accent cursor-pointer flex items-center gap-1';
+                            link.innerHTML = `
+                                <span class="truncate">${item.siteName}</span>
+                                <svg class="w-3 h-3 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            `;
+                            element.appendChild(link);
+                        } else {
+                            element.textContent = item.siteName;
+                        }
+                    };
+
+                    renderSite(els.tile4Oldest, oldest);
+                    els.tile4OldestDate.textContent = formatDateDisplay(oldest.lastReviewDate);
+
+                    renderSite(els.tile4Newest, newest);
+                    els.tile4NewestDate.textContent = formatDateDisplay(newest.lastReviewDate);
+                }
+
+                // Show Footer Count
+                if (data.length > 0) {
+                    els.tile4Footer.classList.remove('hidden');
+                    els.tile4RatioValue.textContent = `${noReviewCount}/${data.length}`;
+                }
 
                 updateMap(data);
             }

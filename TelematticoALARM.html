@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 1.3</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 1.7.1</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -122,19 +122,19 @@
                 <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300">
                     <!-- Tile 1 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Registros</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes</span>
                         <strong id="tile1Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">No Período</span>
                     </div>
                     <!-- Tile 2 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs (>0)</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs</span>
                         <strong id="tile2Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Contagem</span>
                     </div>
                     <!-- Tile 3 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Impacto Médio</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Severidade Média</span>
                         <strong id="tile3Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Pontos (Filtrado)</span>
                     </div>
@@ -160,12 +160,23 @@
 
                         <!-- Footer Ratio -->
                         <div id="tile4Footer" class="mt-3 text-[10px] text-center text-red-500 font-semibold bg-red-50 py-1 rounded hidden">
-                            <span id="tile4RatioValue">0/0</span> Sites Sem Revisão
+                            <!-- Conteúdo gerado via JS -->
                         </div>
                     </div>
 
-                    <!-- Placeholders -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 5</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
+                    <!-- Tile 5: Alarmes por Severidade Média -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 text-center">Severidade Média por Alarmes</span>
+                        <div class="flex-1 flex flex-col justify-center items-center">
+                            <strong id="tile5Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                            <span class="text-xs text-accent font-medium">Global (Filtrado)</span>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-gray-200 w-full text-center">
+                            <div class="text-[10px] text-gray-400 uppercase mb-1">Últimos 7 dias</div>
+                            <div id="tile5SubValue" class="text-sm font-semibold text-gray-600">-</div>
+                        </div>
+                    </div>
+
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 6</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 7</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 8</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
@@ -223,7 +234,9 @@
                 tile4Newest: document.getElementById('tile4Newest'),
                 tile4NewestDate: document.getElementById('tile4NewestDate'),
                 tile4Footer: document.getElementById('tile4Footer'),
-                tile4RatioValue: document.getElementById('tile4RatioValue'),
+                // Tile 5 Elements
+                tile5Value: document.getElementById('tile5Value'),
+                tile5SubValue: document.getElementById('tile5SubValue'),
                 
                 btnMapCircle: document.getElementById('btnMapCircle'),
                 btnMapCluster: document.getElementById('btnMapCluster'),
@@ -257,20 +270,19 @@
                 return parseFloat(str);
             };
 
-            // PARSER DATA ROBUSTO COM SANITY CHECK
+            // PARSER DATA ROBUSTO
             const parseDate = (str) => {
                 if (!str || str === '-' || str === '0' || str.toLowerCase() === 'null') return null;
                 str = str.trim().replace(/"/g, ''); 
 
                 let d = null;
 
-                // 1. Tenta formato ISO Manual (YYYY-MM-DD) para evitar deslocamento de timezone
+                // 1. Tenta formato ISO Manual (YYYY-MM-DD)
                 const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
                 if (isoMatch) {
                     const y = parseInt(isoMatch[1]);
                     const m = parseInt(isoMatch[2]) - 1;
                     const day = parseInt(isoMatch[3]);
-                    // Define meio-dia para evitar virada de dia por timezone
                     d = new Date(y, m, day, 12, 0, 0); 
                 } 
                 else {
@@ -288,8 +300,7 @@
                     }
                 }
 
-                // TRAVA DE SEGURANÇA: Ano deve ser razoável (2000 - 2100)
-                // Isso elimina lixo como '100' ou '8884'
+                // TRAVA DE SEGURANÇA: Ano 2000 - 2100
                 if (d && !isNaN(d.getTime())) {
                     const year = d.getFullYear();
                     if (year < 2000 || year > 2100) return null; 
@@ -299,7 +310,7 @@
                 return null;
             };
 
-            // Helper para formatar data (dd/mm/aaaa)
+            // Helper format
             const formatDateDisplay = (dateObj) => {
                 if (!dateObj) return '-';
                 return dateObj.toLocaleDateString('pt-BR', { 
@@ -383,9 +394,9 @@
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
                 
-                // Coluna Last Review: Busca estrita para evitar confusão com 'Time Since...'
-                const idxLastReview = headers.findIndex(h => h === 'last review' || (h.includes('last review') && !h.includes('time') && !h.includes('since')));
-                const idxUrl = headers.findIndex(h => h === 'url');
+                // Colunas Novas (Last Review e URL) - Correção: Busca mais estrita
+                const idxLastReview = headers.findIndex(h => h === 'last review' || (h.includes('last review') && !h.includes('impact') && !h.includes('time') && !h.includes('since')));
+                const idxUrl = headers.findIndex(h => h === 'url' || h === 'site url');
 
                 globalRawData = [];
 
@@ -513,15 +524,12 @@
                 els.tile4Footer.classList.add('hidden');
 
                 if (validReviews.length > 0) {
-                    // Sort by Date Ascending
                     validReviews.sort((a, b) => a.lastReviewDate - b.lastReviewDate);
-
                     const oldest = validReviews[0];
                     const newest = validReviews[validReviews.length - 1];
 
-                    // Helper para renderizar link ou texto
                     const renderSite = (element, item) => {
-                        element.innerHTML = ''; // Clear
+                        element.innerHTML = ''; 
                         if (item.url && item.url.length > 5) {
                             const link = document.createElement('a');
                             link.href = item.url;
@@ -544,10 +552,61 @@
                     els.tile4NewestDate.textContent = formatDateDisplay(newest.lastReviewDate);
                 }
 
-                // Show Footer Count
                 if (data.length > 0) {
                     els.tile4Footer.classList.remove('hidden');
-                    els.tile4RatioValue.textContent = `${noReviewCount}/${data.length}`;
+                    const pct = ((noReviewCount / data.length) * 100).toFixed(1);
+                    els.tile4Footer.textContent = `${noReviewCount}/${data.length} Sites Sem Revisão (${pct}%)`;
+                }
+
+                // --- TILE 5 LOGIC (ALARMES POR SEVERIDADE) ---
+                let metric5Main = "Sem dados";
+                if (total > 0) {
+                    const val = avgImpact / total;
+                    metric5Main = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                els.tile5Value.textContent = metric5Main;
+
+                // Métrica Secundária (Últimos 7 dias)
+                const endStr = els.filterEndDate.value;
+                if (endStr) {
+                    const parts = endStr.split('-');
+                    const endDateRef = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), 23, 59, 59, 999);
+                    const startDateRef = new Date(endDateRef);
+                    startDateRef.setDate(startDateRef.getDate() - 6); 
+                    startDateRef.setHours(0,0,0,0);
+
+                    // Recalcular no Global Raw
+                    const impactMode = els.impactFilter.value;
+                    
+                    const subData = globalRawData.filter(item => {
+                        // Data Filter (Last 7 days)
+                        if (!item.date) return false;
+                        if (item.date < startDateRef || item.date > endDateRef) return false;
+
+                        // Impact Filter (mesma lógica)
+                        if (impactMode !== 'all') {
+                            if (item.largestImpact === null || isNaN(item.largestImpact)) return false;
+                            const s = item.largestImpact;
+                            if (impactMode === 'level1' && s < 4500) return false;
+                            else if (impactMode === 'level2' && (s < 2000 || s > 4499)) return false;
+                            else if (impactMode === 'level3' && (s < 1000 || s > 1999)) return false;
+                            else if (impactMode === 'level4' && (s < 500 || s > 999)) return false;
+                        }
+                        return true;
+                    });
+
+                    const subTotal = subData.length;
+                    const validSubImpacts = subData.filter(d => d.largestImpact !== null && !isNaN(d.largestImpact));
+                    const subAvgImpact = validSubImpacts.length ? (validSubImpacts.reduce((a,b)=>a+b.largestImpact,0)/validSubImpacts.length) : 0;
+
+                    let metric5Sub = "Sem dados";
+                    if (subTotal > 0) {
+                        const val = subAvgImpact / subTotal;
+                        metric5Sub = val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                    els.tile5SubValue.textContent = metric5Sub;
+                } else {
+                    els.tile5SubValue.textContent = "Sem data final";
                 }
 
                 updateMap(data);

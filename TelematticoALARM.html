@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 1.9.5</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.0.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -75,10 +75,10 @@
                 <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide">Resultados da Triagem</h2>
             </div>
 
-            <!-- Nível de Acompanhamento -->
+            <!-- Nível de Acompanhamento / Visão Geral do Sistema -->
             <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-l-4 border-accent pl-3">
-                    <h2 class="text-xl font-semibold text-gray-800">Nível de Acompanhamento</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">Visão Geral do Sistema</h2>
                 </div>
 
                 <!-- Controles -->
@@ -114,26 +114,138 @@
                 </div>
                 
                 <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300">
-                    <!-- Tile 1 -->
+                    <!-- Tile 1: Total de Registros -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Registros</span>
                         <strong id="tile1Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">No Período</span>
                     </div>
-                    <!-- Tile 2 -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs</span>
-                        <strong id="tile2Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                        <span class="text-sm text-accent font-medium">Contagem</span>
-                    </div>
-                    <!-- Tile 3 -->
+                    <!-- Tile 2: Severidade Média -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Severidade Média</span>
-                        <strong id="tile3Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <strong id="tile2Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Pontos (Filtrado)</span>
                     </div>
+                    <!-- Tile 3: Drop Offs (>0) -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs (>0)</span>
+                        <strong id="tile8Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-sm text-accent font-medium">Contagem</span>
+                    </div>
                     
-                    <!-- Tile 4: Monitoramento de Revisões -->
+                    <!-- Tile 4: Alarmes por Severidade Média -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 text-center cursor-help" title="Quanto mais próximo de 1, pior">Severidade Média por Alarmes</span>
+                        <div class="flex-1 flex flex-col justify-center items-center">
+                            <strong id="tile5Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                            <span class="text-xs text-accent font-medium">Global (Filtrado)</span>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-gray-200 w-full text-center">
+                            <div class="text-xs text-accent font-medium">Últimos 7 dias</div>
+                            <div id="tile5SubValue" class="text-3xl font-bold text-gray-800 mb-1">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Tile 5: Nível de Degradação -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors justify-center items-center text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Nível Médio de Degradação</span>
+                        <div class="text-[10px] text-gray-400 uppercase mb-1">Últimos 7 dias em relação ao Global (Filtrado)</div>
+                        <div class="flex flex-col items-center justify-center h-full w-full">
+                            <div id="tile7Result" class="font-bold text-gray-400 text-sm italic">Aguardando dados...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tile 6: Concentração de Impacto -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 cursor-help" title="Mostra quanto do impacto total está concentrado nos 10% de alarmes mais críticos.">Concentração de Impacto</span>
+                        <strong id="tile3Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="tile3Desc" class="text-[10px] text-gray-500 font-medium leading-tight px-2">Aguardando dados...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Estado Operacional Atual -->
+            <section id="operationalStateSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Estado Operacional Atual</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-opacity duration-300">
+                    
+                    <!-- Tile 1: Drop Offs Recentes -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs Recentes</span>
+                        <strong id="compDropOffsRecentesValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-sm text-accent font-medium">Dia Anterior</span>
+                    </div>
+
+                    <!-- Tile 2: Consistência dos Impactos -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Consistência dos Impactos</span>
+                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    </div>
+
+                    <!-- Tile 3: Carga Operacional -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Carga Operacional</span>
+                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Distribuição dos Alarmes -->
+            <section id="generalSummarySection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Distribuição dos Alarmes</h2>
+                </div>
+                
+                <div id="generalSummaryContent">
+                    <!-- Conteúdo gerado via JS -->
+                </div>
+
+                <!-- Novos Tiles Placeholder -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 transition-opacity duration-300">
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
+                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
+                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
+                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Priorização Operacional -->
+            <section id="prioritizationSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Priorização Operacional</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-opacity duration-300">
+                    
+                    <!-- Tile: Maiores Criticidades Instantâneas -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Maiores Criticidades Instantâneas</span>
+                        <div id="tile6Content" class="w-full text-sm space-y-3 flex-1 flex flex-col justify-start overflow-hidden">
+                            <!-- Lista Top 3 Inserida via JS -->
+                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tile: Menores Criticidades Instantâneas -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Menores Criticidades Instantâneas</span>
+                        <div id="tile9Content" class="w-full text-sm space-y-3 flex-1 flex flex-col justify-start overflow-hidden">
+                            <!-- Lista Bottom 3 Inserida via JS -->
+                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tile: Monitoramento de Revisões -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors relative">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Monitoramento de Revisões</span>
                         
@@ -158,53 +270,11 @@
                         </div>
                     </div>
 
-                    <!-- Tile 5: Alarmes por Severidade Média -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 text-center cursor-help" title="Quanto mais próximo de 1, pior">Severidade Média por Alarmes</span>
-                        <div class="flex-1 flex flex-col justify-center items-center">
-                            <strong id="tile5Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                            <span class="text-xs text-accent font-medium">Global (Filtrado)</span>
-                        </div>
-                        <div class="mt-2 pt-2 border-t border-gray-200 w-full text-center">
-                            <div class="text-xs text-accent font-medium">Últimos 7 dias</div>
-                            <div id="tile5SubValue" class="text-3xl font-bold text-gray-800 mb-1">-</div>
-                        </div>
-                    </div>
-
-                    <!-- Tile 6: Ranking por Criticidade Instantânea -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Maiores Criticidades Instantâneas</span>
-                        <div id="tile6Content" class="w-full text-sm space-y-3 flex-1 flex flex-col justify-start overflow-hidden">
-                            <!-- Lista Top 3 Inserida via JS -->
-                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
-                        </div>
-                    </div>
-
-                    <!-- Tile 7: Nível de Degradação -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors justify-center items-center text-center">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Nível Médio de Degradação</span>
-                        <div class="text-[10px] text-gray-400 uppercase mb-1">Últimos 7 dias em relação ao Global (Filtrado)</div>
-                        <div class="flex flex-col items-center justify-center h-full w-full">
-                            <div id="tile7Result" class="font-bold text-gray-400 text-sm italic">Aguardando dados...</div>
-                        </div>
-                    </div>
-
-                    <!-- Tile 8: Placeholder -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60"><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica 8</span><strong class="text-2xl font-bold text-gray-300 mb-1">-</strong></div>
-                    
-                    <!-- Tile 9: Menores Criticidades Instantâneas -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center block">Menores Criticidades Instantâneas</span>
-                        <div id="tile9Content" class="w-full text-sm space-y-3 flex-1 flex flex-col justify-start overflow-hidden">
-                            <!-- Lista Bottom 3 Inserida via JS -->
-                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
             <!-- Posicionamento Geográfico -->
-            <section id="mapSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 hidden">
+            <section id="mapSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 hidden mt-6">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
                     <h2 class="text-xl font-semibold text-gray-800">Posicionamento Geográfico</h2>
                     <div class="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
@@ -215,47 +285,6 @@
                 </div>
                 <div class="w-full relative border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                     <div id="map" class="w-full h-[400px] md:h-[600px] z-0"></div>
-                </div>
-            </section>
-
-            <!-- Indicadores Complementares -->
-            <section id="complementarySection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Indicadores Complementares</h2>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-opacity duration-300">
-                    
-                    <!-- Tile: Drop Offs Severos -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs Severos</span>
-                        <strong id="compDropOffsSeverosValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                        <span class="text-sm text-accent font-medium">Últimos 30 dias</span>
-                    </div>
-
-                    <!-- Tile: Drop Offs Recentes -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs Recentes</span>
-                        <strong id="compDropOffsRecentesValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                        <span class="text-sm text-accent font-medium">Dia Anterior</span>
-                    </div>
-
-                    <!-- Tile: Alarmes Contínuos -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alarmes Contínuos</span>
-                        <strong id="compAlarmesContinuosValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                        <span class="text-sm text-accent font-medium">Últimos 10 dias</span>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- Resumo Geral -->
-            <section id="generalSummarySection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Resumo Geral</h2>
-                </div>
-                <div id="generalSummaryContent">
-                    <!-- Conteúdo gerado via JS -->
                 </div>
             </section>
 
@@ -288,36 +317,36 @@
                 tile1: document.getElementById('tile1Value'),
                 tile2: document.getElementById('tile2Value'),
                 tile3: document.getElementById('tile3Value'),
-                // Tile 4 Elements
+                tile3Desc: document.getElementById('tile3Desc'),
                 tile4Oldest: document.getElementById('tile4Oldest'),
                 tile4OldestDate: document.getElementById('tile4OldestDate'),
                 tile4Newest: document.getElementById('tile4Newest'),
                 tile4NewestDate: document.getElementById('tile4NewestDate'),
                 tile4Footer: document.getElementById('tile4Footer'),
-                // Tile 5 Elements
                 tile5Value: document.getElementById('tile5Value'),
                 tile5SubValue: document.getElementById('tile5SubValue'),
-                // Tile 6 Elements
                 tile6Content: document.getElementById('tile6Content'),
-                // Tile 7 Elements
                 tile7Result: document.getElementById('tile7Result'),
-                // Tile 9 Elements
+                tile8: document.getElementById('tile8Value'),
                 tile9Content: document.getElementById('tile9Content'),
-                
-                // Indicadores Complementares
-                compDropOffsSeverosValue: document.getElementById('compDropOffsSeverosValue'),
                 compDropOffsRecentesValue: document.getElementById('compDropOffsRecentesValue'),
-                compAlarmesContinuosValue: document.getElementById('compAlarmesContinuosValue'),
-
-                // Resumo Geral
                 generalSummaryContent: document.getElementById('generalSummaryContent'),
-                
                 btnMapCircle: document.getElementById('btnMapCircle'),
                 btnMapCluster: document.getElementById('btnMapCluster'),
                 btnMapHeat: document.getElementById('btnMapHeat')
             };
 
-            // --- UTILS ---
+            const setupDefaultDates = () => {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 90);
+                
+                const pad = n => n < 10 ? '0' + n : n;
+                els.filterEndDate.value = `${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}`;
+                els.filterStartDate.value = `${start.getFullYear()}-${pad(start.getMonth()+1)}-${pad(start.getDate())}`;
+            };
+            setupDefaultDates();
+
             const showError = (msg) => { 
                 if(!els.errorMsg) return;
                 els.errorMsg.textContent = msg; 
@@ -329,7 +358,6 @@
             const detectSeparator = (txt) => txt.split(/\r?\n/)[0].includes(';') ? ';' : ',';
             
             const parseCSVLine = (line, sep) => {
-                // Split e remove aspas extras
                 return line.split(sep).map(i => i.trim().replace(/^"|"$/g, ''));
             };
             
@@ -344,58 +372,69 @@
                 return parseFloat(str);
             };
 
-            // PARSER DATA ROBUSTO
             const parseDate = (str) => {
                 if (!str || str === '-' || str === '0' || str.toLowerCase() === 'null') return null;
                 str = str.trim().replace(/"/g, ''); 
 
                 let d = null;
 
-                // Tenta preservar a hora exata se for uma string ISO 8601 autêntica
                 if (str.includes('T')) {
-                    const temp = new Date(str);
+                    const localStr = str.endsWith('Z') ? str.slice(0, -1) : str;
+                    const temp = new Date(localStr);
                     if (!isNaN(temp.getTime())) {
                         d = temp;
                     }
                 }
                 
-                // Caso não contenha "T" ou a tentativa acima falhe
                 if (!d) {
-                    // 1. Tenta formato ISO Manual (YYYY-MM-DD)
-                    const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                    if (isoMatch && !str.includes('/')) {
-                        const y = parseInt(isoMatch[1]);
-                        const m = parseInt(isoMatch[2]) - 1;
-                        const day = parseInt(isoMatch[3]);
-                        d = new Date(y, m, day, 12, 0, 0); 
-                    } 
-                    else {
-                        // 2. Tenta formato PT-BR (DD/MM/YYYY)
-                        const ptMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-                        if (ptMatch) {
-                            const day = parseInt(ptMatch[1]);
-                            const m = parseInt(ptMatch[2]) - 1;
-                            const y = parseInt(ptMatch[3]);
-                            d = new Date(y, m, day, 12, 0, 0);
-                        } else {
-                            // 3. Fallback genérico
-                            const temp = new Date(str);
-                            if (!isNaN(temp.getTime())) d = temp;
+                    const dateMatch = str.match(/^(\d{4}|\d{1,2})[-/](\d{1,2})[-/](\d{4}|\d{1,2})(.*)/);
+                    if (dateMatch) {
+                        let p1 = parseInt(dateMatch[1]);
+                        let p2 = parseInt(dateMatch[2]);
+                        let p3 = parseInt(dateMatch[3]);
+                        const timeStr = dateMatch[4] ? dateMatch[4].trim() : '';
+
+                        let y, m, day;
+
+                        if (p1 > 1000) {
+                            y = p1; m = p2 - 1; day = p3;
+                        } 
+                        else if (p3 > 1000) {
+                            y = p3;
+                            if (p2 > 12) { 
+                                m = p1 - 1; day = p2;
+                            } else { 
+                                day = p1; m = p2 - 1;
+                            }
                         }
+
+                        if (y !== undefined) {
+                            d = new Date(y, m, day);
+                            if (timeStr) {
+                                const tMatch = timeStr.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+                                if (tMatch) {
+                                    d.setHours(parseInt(tMatch[1]), parseInt(tMatch[2]), tMatch[3] ? parseInt(tMatch[3]) : 0);
+                                } else {
+                                    d.setHours(12, 0, 0); 
+                                }
+                            } else {
+                                d.setHours(12, 0, 0); 
+                            }
+                        }
+                    } else {
+                        const temp = new Date(str);
+                        if (!isNaN(temp.getTime())) d = temp;
                     }
                 }
 
-                // TRAVA DE SEGURANÇA: Ano 2000 - 2100
                 if (d && !isNaN(d.getTime())) {
                     const year = d.getFullYear();
-                    if (year < 2000 || year > 2100) return null; 
-                    return d;
+                    if (year >= 2000 && year <= 2100) return d; 
                 }
                 
                 return null;
             };
 
-            // Helper format
             const formatDateDisplay = (dateObj) => {
                 if (!dateObj) return '-';
                 return dateObj.toLocaleDateString('pt-BR', { 
@@ -405,7 +444,6 @@
                 });
             };
 
-            // --- MAPA ---
             function initMap() {
                 if (typeof L === 'undefined' || mapInstance) return;
                 mapInstance = L.map('map').setView([-23.55, -46.63], 4);
@@ -460,8 +498,6 @@
                 }
             }
 
-            // --- LÓGICA PRINCIPAL ---
-
             function processMainCSV(text) {
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
                 if (lines.length < 2) return showError("Arquivo principal vazio.");
@@ -470,8 +506,10 @@
                 const isBR = sep === ';'; 
                 const headers = parseCSVLine(lines[0].toLowerCase(), sep);
 
-                // Colunas Base
-                const idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity'));
+                let idxDate = headers.indexOf('most recent event');
+                if (idxDate === -1) {
+                    idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity') && !h.includes('drop'));
+                }
                 const idxLargestImpact = headers.findIndex(h => h.includes('largest impact since last review'));
                 const idxRecentSeverity = headers.findIndex(h => h.includes('most recent event impact severity'));
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
@@ -479,11 +517,8 @@
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
                 
-                // Colunas Novas (Last Review e URL) - Correção: Busca mais estrita
                 const idxLastReview = headers.findIndex(h => h === 'last review' || (h.includes('last review') && !h.includes('impact') && !h.includes('time') && !h.includes('since')));
                 const idxUrl = headers.findIndex(h => h === 'url' || h === 'site url');
-                
-                // Nova Coluna Tile 6 e Tile 9
                 const idxEventsSince = headers.findIndex(h => h.includes('events since last review') && !h.includes('drop'));
 
                 globalRawData = [];
@@ -491,7 +526,7 @@
                 for (let i = 1; i < lines.length; i++) {
                     const row = parseCSVLine(lines[i], sep);
                     
-                    const d = idxDate !== -1 ? parseDate(row[idxDate]) : null;
+                    const d = idxDate !== -1 && row[idxDate] ? parseDate(row[idxDate]) : null;
                     const largestImpact = idxLargestImpact !== -1 ? parseNumber(row[idxLargestImpact], isBR) : null;
                     const recentSeverity = idxRecentSeverity !== -1 ? parseNumber(row[idxRecentSeverity], isBR) : null;
                     const lat = idxLat !== -1 ? parseNumber(row[idxLat], isBR) : null;
@@ -499,11 +534,8 @@
                     const site = idxSite !== -1 ? row[idxSite] : "Unknown";
                     const drop = idxDrop !== -1 ? parseNumber(row[idxDrop], isBR) : 0;
                     
-                    // Dados Tile 4
                     const lastReviewDate = idxLastReview !== -1 ? parseDate(row[idxLastReview]) : null;
                     const url = idxUrl !== -1 ? row[idxUrl] : null;
-                    
-                    // Dados Tile 6 e 9
                     const eventsSince = idxEventsSince !== -1 ? parseNumber(row[idxEventsSince], isBR) : null;
 
                     globalRawData.push({
@@ -520,14 +552,6 @@
                     });
                 }
 
-                // Configurar datas padrão (Hoje - 90 dias)
-                const end = new Date();
-                const start = new Date();
-                start.setDate(end.getDate() - 90);
-                
-                els.filterEndDate.value = end.toISOString().split('T')[0];
-                els.filterStartDate.value = start.toISOString().split('T')[0];
-
                 els.emptyState.classList.add('hidden');
                 els.outputContainer.classList.remove('hidden');
                 
@@ -543,7 +567,6 @@
                 let end = endVal ? new Date(endVal + 'T23:59:59.999') : null;
 
                 const filtered = globalRawData.filter(item => {
-                    // 1. Filtro Data
                     if (item.date) {
                         if (start && item.date < start) return false;
                         if (end && item.date > end) return false;
@@ -551,7 +574,6 @@
                         return false; 
                     }
 
-                    // 2. Filtro Impacto (Usa Largest Impact conforme regra)
                     if (impactMode !== 'all') {
                         if (item.largestImpact === null || isNaN(item.largestImpact)) return false;
                         const s = item.largestImpact;
@@ -576,64 +598,202 @@
             }
 
             function updateUI(data) {
+                
+                const dataAtualNavegador = new Date();
+                
+                const yesterdayStartRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 0, 0, 0, 0);
+                const yesterdayEndRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 23, 59, 59, 999);
+                
+                let recentDropOffsCount = 0;
+                let hasSummaryData = false;
+
+                const summary = [
+                    { id: 'l1', name: 'Nível 1: Crítico', range: '(≥ 4500)', count: 0, peakDate: null, peakSeverity: -1 },
+                    { id: 'l2', name: 'Nível 2: Alerta', range: '(2000-4499)', count: 0, peakDate: null, peakSeverity: -1 },
+                    { id: 'l3', name: 'Nível 3: Observação', range: '(1000-1999)', count: 0, peakDate: null, peakSeverity: -1 },
+                    { id: 'l4', name: 'Nível 4: Informativo', range: '(500-999)', count: 0, peakDate: null, peakSeverity: -1 }
+                ];
+
+                globalRawData.forEach(item => {
+                    const isDropOffValid = item.dropOff !== null && !isNaN(item.dropOff);
+                    const isSeverityValid = item.recentSeverity !== null && !isNaN(item.recentSeverity);
+                    const isLargestImpactValid = item.largestImpact !== null && !isNaN(item.largestImpact);
+
+                    if (item.date) {
+                        if (item.date >= yesterdayStartRef && item.date <= yesterdayEndRef) {
+                            if (isDropOffValid && item.dropOff >= 50) {
+                                recentDropOffsCount++;
+                            }
+                            
+                            if (isLargestImpactValid && item.largestImpact >= 500) {
+                                hasSummaryData = true;
+                                let targetLevel = null;
+
+                                if (item.largestImpact >= 4500) targetLevel = summary[0];
+                                else if (item.largestImpact >= 2000 && item.largestImpact <= 4499) targetLevel = summary[1];
+                                else if (item.largestImpact >= 1000 && item.largestImpact <= 1999) targetLevel = summary[2];
+                                else if (item.largestImpact >= 500 && item.largestImpact <= 999) targetLevel = summary[3];
+
+                                if (targetLevel) {
+                                    targetLevel.count++;
+                                    
+                                    if (isSeverityValid) {
+                                        if (targetLevel.peakSeverity === -1 || item.recentSeverity > targetLevel.peakSeverity) {
+                                            targetLevel.peakSeverity = item.recentSeverity;
+                                            targetLevel.peakDate = item.date;
+                                        } else if (item.recentSeverity === targetLevel.peakSeverity) {
+                                            if (!targetLevel.peakDate || item.date > targetLevel.peakDate) {
+                                                targetLevel.peakDate = item.date;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (els.compDropOffsRecentesValue) {
+                    els.compDropOffsRecentesValue.textContent = (recentDropOffsCount === 0 && globalRawData.length === 0) ? "Sem dados" : recentDropOffsCount.toLocaleString('pt-BR');
+                    els.compDropOffsRecentesValue.className = (recentDropOffsCount === 0 && globalRawData.length === 0) ? "text-lg font-bold text-gray-400 mb-1" : "text-3xl font-bold text-gray-800 mb-1";
+                }
+
+                if (els.generalSummaryContent) {
+                    let rowsHtml = '';
+                    summary.forEach(lvl => {
+                        let destaque = 'Sem Registros no Dia';
+                        let qtdSites = '-';
+                        
+                        if (lvl.count > 0 && lvl.peakDate) {
+                            qtdSites = lvl.count.toLocaleString('pt-BR');
+                            let hours = lvl.peakDate.getHours();
+                            let minutes = lvl.peakDate.getMinutes();
+                            const ampm = hours >= 12 ? 'PM' : 'AM';
+                            hours = hours % 12;
+                            hours = hours ? hours : 12; 
+                            minutes = minutes < 10 ? '0' + minutes : minutes;
+                            const timeStr = `${hours}:${minutes} ${ampm}`;
+                            destaque = `Pico de ${lvl.peakSeverity.toLocaleString('pt-BR')} às ${timeStr}`;
+                        }
+                        
+                        rowsHtml += `
+                            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                                <td class="py-4 px-4 font-bold text-gray-800">${lvl.name} <span class="font-normal text-gray-500 text-xs ml-1">${lvl.range}</span></td>
+                                <td class="py-4 px-4 text-gray-700 font-medium">${qtdSites}</td>
+                                <td class="py-4 px-4 text-gray-600">${destaque}</td>
+                            </tr>
+                        `;
+                    });
+
+                    els.generalSummaryContent.innerHTML = `
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200 bg-gray-50">
+                                        <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Nível</th>
+                                        <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Qtd Sites</th>
+                                        <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Destaque Recente</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
                 if (data.length === 0) {
                     els.dashboardGrid.classList.add('hidden');
                     els.mapSection.classList.add('hidden');
                     els.noDataState.classList.remove('hidden');
-                    if (els.compDropOffsSeverosValue) {
-                        els.compDropOffsSeverosValue.textContent = "Sem dados";
-                        els.compDropOffsSeverosValue.className = "text-lg font-bold text-gray-400 mb-1";
-                    }
-                    if (els.compDropOffsRecentesValue) {
-                        els.compDropOffsRecentesValue.textContent = "Sem dados";
-                        els.compDropOffsRecentesValue.className = "text-lg font-bold text-gray-400 mb-1";
-                    }
-                    if (els.compAlarmesContinuosValue) {
-                        els.compAlarmesContinuosValue.textContent = "Sem dados";
-                        els.compAlarmesContinuosValue.className = "text-lg font-bold text-gray-400 mb-1";
-                    }
-                    if (els.generalSummaryContent) {
-                        els.generalSummaryContent.innerHTML = `
-                            <div class="flex flex-col justify-center items-center py-8">
-                                <strong class="text-xl font-bold text-gray-400 mb-1">Sem dados</strong>
-                            </div>
-                        `;
-                    }
-                    return;
+                    return; 
                 }
 
                 els.dashboardGrid.classList.remove('hidden');
                 els.noDataState.classList.add('hidden');
 
-                // Define renderSite helper at the top of updateUI scope
-                const renderSite = (element, item) => {
+                const renderSite = (element, item, suffix = '') => {
                     element.innerHTML = ''; 
+                    const displayText = item.siteName + suffix;
                     if (item.url && item.url.length > 5) {
                         const link = document.createElement('a');
                         link.href = item.url;
                         link.target = '_blank';
                         link.className = 'hover:text-accent hover:underline decoration-accent cursor-pointer flex items-center gap-1';
                         link.innerHTML = `
-                            <span class="truncate">${item.siteName}</span>
+                            <span class="truncate">${displayText}</span>
                             <svg class="w-3 h-3 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                         `;
                         element.appendChild(link);
                     } else {
-                        element.textContent = item.siteName;
+                        element.textContent = displayText;
                     }
                 };
 
-                // Tiles 1-3 Calculations
                 const total = data.length;
                 const dropOffs = data.filter(d => d.dropOff > 0).length;
                 const validImpacts = data.filter(d => d.largestImpact !== null && !isNaN(d.largestImpact));
                 const avgImpact = validImpacts.length ? (validImpacts.reduce((a,b)=>a+b.largestImpact,0)/validImpacts.length) : 0;
 
                 els.tile1.textContent = total.toLocaleString('pt-BR');
-                els.tile2.textContent = dropOffs.toLocaleString('pt-BR');
-                els.tile3.textContent = avgImpact.toLocaleString('pt-BR', {maximumFractionDigits: 1});
+                els.tile2.textContent = avgImpact.toLocaleString('pt-BR', {maximumFractionDigits: 1});
+                if (els.tile8) els.tile8.textContent = dropOffs.toLocaleString('pt-BR');
 
-                // --- TILE 4 LOGIC (REVISÕES) ---
+                // --- TILE 3 LOGIC (Concentração de Impacto) ---
+                const validConcentrationImpacts = data.filter(d => d.largestImpact !== null && !isNaN(d.largestImpact) && d.largestImpact > 0);
+
+                let concText = "Sem dados";
+                let concDesc = "Não há registros válidos";
+                let concClass = "text-lg font-bold text-gray-400 mb-1";
+
+                if (validConcentrationImpacts.length > 0) {
+                    const totalImpact = validConcentrationImpacts.reduce((sum, item) => sum + item.largestImpact, 0);
+
+                    if (totalImpact > 0) {
+                        validConcentrationImpacts.sort((a, b) => b.largestImpact - a.largestImpact);
+                        const nTop = Math.ceil(validConcentrationImpacts.length * 0.10);
+                        const topRecords = validConcentrationImpacts.slice(0, nTop);
+
+                        const topImpact = topRecords.reduce((sum, item) => sum + item.largestImpact, 0);
+                        const concentration = (topImpact / totalImpact) * 100;
+
+                        concText = concentration.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+                        concClass = "text-3xl font-bold text-gray-800 mb-1";
+
+                        let classif = "";
+                        let descOp = "";
+
+                        if (concentration >= 70) {
+                            classif = "Extrema";
+                            descOp = "pouquíssimos sites dominam o risco";
+                        } else if (concentration >= 55) {
+                            classif = "Alta";
+                            descOp = "pequena parcela dos sites concentra a maior parte dos impactos";
+                        } else if (concentration >= 40) {
+                            classif = "Moderada";
+                            descOp = "distribuição relativamente equilibrada";
+                        } else if (concentration >= 25) {
+                            classif = "Baixa";
+                            descOp = "impactos relativamente espalhados";
+                        } else {
+                            classif = "Difusa";
+                            descOp = "impactos distribuídos amplamente";
+                        }
+
+                        concDesc = `Concentração ${classif} © Motivo: ${descOp}.`;
+                    }
+                }
+
+                if (els.tile3) {
+                    els.tile3.textContent = concText;
+                    els.tile3.className = concClass;
+                }
+                if (els.tile3Desc) {
+                    els.tile3Desc.textContent = concDesc;
+                }
+                // ----------------------------------------------
+
                 let validReviews = [];
                 let noReviewCount = 0;
 
@@ -645,7 +805,6 @@
                     }
                 });
 
-                // Reset Defaults
                 els.tile4Oldest.textContent = '-';
                 els.tile4OldestDate.textContent = '-';
                 els.tile4Newest.textContent = '-';
@@ -670,9 +829,7 @@
                     els.tile4Footer.textContent = `${noReviewCount}/${data.length} Sites Sem Revisão (${pct}%)`;
                 }
 
-                // --- TILE 5 LOGIC (ALARMES POR SEVERIDADE) ---
                 const impactMode = els.impactFilter.value;
-                // Definir os limites baseados no filtro selecionado
                 let minImpact = 500;
                 let maxImpact = 500;
                 const maxInData = validImpacts.length > 0 ? Math.max(...validImpacts.map(d => d.largestImpact)) : 500;
@@ -685,35 +842,29 @@
 
                 const rangeSize = maxImpact - minImpact;
 
-                let smaGlobal = 0; // Guardar valor numérico para Tile 7
+                let smaGlobal = 0; 
                 let metric5Main = "Sem dados";
                 
                 if (validImpacts.length > 0) {
                     const dist = avgImpact - minImpact;
                     smaGlobal = rangeSize > 0 ? (dist / rangeSize) : 0;
-                    // Limitar entre 0 e 1 por segurança matemática
                     smaGlobal = Math.max(0, Math.min(1, smaGlobal)); 
                     metric5Main = smaGlobal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
                 els.tile5Value.textContent = metric5Main;
 
-                // Métrica Secundária (Últimos 7 dias)
-                let smaRecent = 0; // Guardar valor numérico para Tile 7
+                let smaRecent = 0; 
                 const endStr = els.filterEndDate.value;
                 if (endStr) {
                     const parts = endStr.split('-');
-                    const endDateRef = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), 23, 59, 59, 999);
-                    const startDateRef = new Date(endDateRef);
-                    startDateRef.setDate(startDateRef.getDate() - 6); 
-                    startDateRef.setHours(0,0,0,0);
+                    const endDateRefUI = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), 23, 59, 59, 999);
+                    const startDateRefUI = new Date(endDateRefUI);
+                    startDateRefUI.setDate(startDateRefUI.getDate() - 6); 
+                    startDateRefUI.setHours(0,0,0,0);
 
-                    // Recalcular no Global Raw
                     const subData = globalRawData.filter(item => {
-                        // Data Filter (Last 7 days)
                         if (!item.date) return false;
-                        if (item.date < startDateRef || item.date > endDateRef) return false;
-
-                        // Impact Filter (mesma lógica)
+                        if (item.date < startDateRefUI || item.date > endDateRefUI) return false;
                         if (impactMode !== 'all') {
                             if (item.largestImpact === null || isNaN(item.largestImpact)) return false;
                             const s = item.largestImpact;
@@ -740,15 +891,26 @@
                     els.tile5SubValue.textContent = "Sem data final";
                 }
 
-                // --- TILE 6 LOGIC (RANKING CRITICIDADE) ---
                 const validForRanking = data.filter(item => 
                     item.largestImpact !== null && !isNaN(item.largestImpact) &&
                     item.recentSeverity !== null && !isNaN(item.recentSeverity) &&
-                    item.eventsSince !== null && !isNaN(item.eventsSince)
-                ).map(item => ({
-                    ...item,
-                    score: (item.largestImpact * 0.4) + (item.recentSeverity * 0.4) + (item.eventsSince * 0.2)
-                }));
+                    item.eventsSince !== null && !isNaN(item.eventsSince) &&
+                    item.date !== null
+                ).map(item => {
+                    const daysAgo = Math.max(0, (dataAtualNavegador - item.date) / (1000 * 60 * 60 * 24));
+                    const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
+                    
+                    const dropOffFactor = item.dropOff !== null && !isNaN(item.dropOff) ? item.dropOff : 0;
+
+                    return {
+                        ...item,
+                        score: (item.largestImpact * 0.30) + 
+                               (item.recentSeverity * 0.25) + 
+                               (item.eventsSince * 0.15) + 
+                               (recencyFactor * 0.15) + 
+                               (dropOffFactor * 0.15)
+                    };
+                });
 
                 validForRanking.sort((a, b) => {
                     if (b.score !== a.score) return b.score - a.score;
@@ -756,7 +918,7 @@
                 });
 
                 const top3 = validForRanking.slice(0, 3);
-                els.tile6Content.innerHTML = ''; // Limpar anterior
+                els.tile6Content.innerHTML = ''; 
 
                 if (top3.length === 0) {
                     els.tile6Content.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Sem dados suficientes</div>';
@@ -772,12 +934,17 @@
 
                         const nameContainer = document.createElement('div');
                         nameContainer.className = 'font-semibold text-gray-700 truncate';
-                        renderSite(nameContainer, item); // Reusar função de link
+                        renderSite(nameContainer, item);
                         div.appendChild(nameContainer);
+
+                        const sevLabel = document.createElement('span');
+                        const sevValue = item.largestImpact !== null ? item.largestImpact.toLocaleString('pt-BR') : '0';
+                        sevLabel.className = 'text-xs text-gray-500 font-normal mt-0.5';
+                        sevLabel.textContent = `Maior Severidade ${sevValue}`;
+                        div.appendChild(sevLabel);
 
                         const scoreSpan = document.createElement('span');
                         scoreSpan.className = 'text-xs text-gray-500';
-                        // Exibição sem casas decimais (arredondado)
                         scoreSpan.textContent = `${Math.round(item.score)} pontos`;
                         div.appendChild(scoreSpan);
 
@@ -785,56 +952,6 @@
                     });
                 }
 
-                // --- TILE 7 LOGIC (NÍVEL DE DEGRADAÇÃO) ---
-                const startStr = els.filterStartDate.value;
-                let daysDiff = 0;
-                
-                if (startStr && endStr) {
-                    const startD = new Date(startStr);
-                    const endD = new Date(endStr);
-                    // Time diff in ms -> days
-                    const timeDiff = Math.abs(endD - startD);
-                    daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); 
-                }
-
-                let degText = "Dados insuficientes";
-                let degClass = "font-bold text-gray-400 text-sm italic";
-
-                // Se o período total for <= 7 dias, não faz sentido comparar global vs ultimos 7 (pois é o mesmo conjunto)
-                if (total > 0 && daysDiff > 7) {
-                    let variacao = 0;
-                    
-                    if (smaGlobal === 0) {
-                        if (smaRecent === 0) {
-                            variacao = 0; 
-                        } else {
-                            variacao = 100; // de 0 para algo > 0 é piora total
-                        }
-                    } else {
-                        variacao = ((smaRecent - smaGlobal) / smaGlobal) * 100;
-                    }
-
-                    if (variacao < 10) {
-                        degText = "Pouca Piora ou Melhora";
-                        degClass = "text-green-600 text-xl font-bold";
-                    } else if (variacao < 50) {
-                        degText = "Piora Moderada";
-                        degClass = "text-orange-500 text-xl font-bold";
-                    } else {
-                        degText = "Piora Significativa";
-                        degClass = "text-red-600 text-2xl font-extrabold";
-                    }
-                } else if (total > 0 && daysDiff <= 7) {
-                    degText = "Período curto (< 7 dias)";
-                    degClass = "text-gray-400 text-xs";
-                }
-
-                els.tile7Result.textContent = degText;
-                els.tile7Result.className = degClass;
-
-                // --- TILE 9 LOGIC (MENORES CRITICIDADES INSTANTÂNEAS) ---
-                // validForRanking is already sorted in descending order (highest score first)
-                // Extracting the bottom 3 gives us the smallest scores, in descending order.
                 const bottom3 = validForRanking.length > 0 ? validForRanking.slice(-3) : [];
                 els.tile9Content.innerHTML = '';
 
@@ -852,8 +969,14 @@
 
                         const nameContainer = document.createElement('div');
                         nameContainer.className = 'font-semibold text-gray-700 truncate';
-                        renderSite(nameContainer, item); // Using the same renderSite link function
+                        renderSite(nameContainer, item);
                         div.appendChild(nameContainer);
+
+                        const sevLabel = document.createElement('span');
+                        const sevValue = item.largestImpact !== null ? item.largestImpact.toLocaleString('pt-BR') : '0';
+                        sevLabel.className = 'text-xs text-gray-500 font-normal mt-0.5';
+                        sevLabel.textContent = `Maior Severidade ${sevValue}`;
+                        div.appendChild(sevLabel);
 
                         const scoreSpan = document.createElement('span');
                         scoreSpan.className = 'text-xs text-gray-500';
@@ -864,156 +987,49 @@
                     });
                 }
 
-                // --- REFERÊNCIAS DE DATA GLOBAIS ---
-                const dataAtualNavegador = new Date();
-                const todayRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate(), 23, 59, 59, 999);
+                const startStr = els.filterStartDate.value;
+                let daysDiff = 0;
                 
-                // Janela de 30 dias atrás até hoje (23:59)
-                const thirtyDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 30, 0, 0, 0, 0);
-                
-                // Janela exata do dia anterior (00:00:00 a 23:59:59)
-                const yesterdayStartRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 0, 0, 0, 0);
-                const yesterdayEndRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 23, 59, 59, 999);
-
-                // Janela de 10 dias atrás até hoje (23:59)
-                const tenDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 10, 0, 0, 0, 0);
-
-                // --- INDICADORES COMPLEMENTARES: DROP OFFS SEVEROS ---
-                let severeDropOffsCount = 0;
-
-                data.forEach(item => {
-                    const isDateValid = item.date && item.date >= thirtyDaysAgoRef && item.date <= todayRef;
-                    const isDropOffValid = item.dropOff !== null && !isNaN(item.dropOff) && item.dropOff >= 20;
-                    const isSeverityValid = item.recentSeverity !== null && !isNaN(item.recentSeverity) && item.recentSeverity >= 500;
-
-                    if (isDateValid && isDropOffValid && isSeverityValid) {
-                        severeDropOffsCount++;
-                    }
-                });
-
-                if (els.compDropOffsSeverosValue) {
-                    els.compDropOffsSeverosValue.textContent = severeDropOffsCount.toLocaleString('pt-BR');
-                    els.compDropOffsSeverosValue.className = "text-3xl font-bold text-gray-800 mb-1";
+                if (startStr && endStr) {
+                    const startD = new Date(startStr);
+                    const endD = new Date(endStr);
+                    const timeDiff = Math.abs(endD - startD);
+                    daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); 
                 }
 
-                // --- INDICADORES COMPLEMENTARES: DROP OFFS RECENTES ---
-                let recentDropOffsCount = 0;
+                let degText = "Dados insuficientes";
+                let degClass = "font-bold text-gray-400 text-sm italic";
 
-                data.forEach(item => {
-                    const isDateYesterday = item.date && item.date >= yesterdayStartRef && item.date <= yesterdayEndRef;
-                    const isDropOffHigh = item.dropOff !== null && !isNaN(item.dropOff) && item.dropOff >= 50;
-
-                    if (isDateYesterday && isDropOffHigh) {
-                        recentDropOffsCount++;
-                    }
-                });
-
-                if (els.compDropOffsRecentesValue) {
-                    els.compDropOffsRecentesValue.textContent = recentDropOffsCount.toLocaleString('pt-BR');
-                    els.compDropOffsRecentesValue.className = "text-3xl font-bold text-gray-800 mb-1";
-                }
-
-                // --- INDICADORES COMPLEMENTARES: ALARMES CONTÍNUOS ---
-                let continuousAlarmsCount = 0;
-
-                data.forEach(item => {
-                    const isDateValid = item.date && item.date >= tenDaysAgoRef && item.date <= todayRef;
-                    const isEventsValid = item.eventsSince !== null && !isNaN(item.eventsSince) && item.eventsSince >= 100;
-
-                    if (isDateValid && isEventsValid) {
-                        continuousAlarmsCount++;
-                    }
-                });
-
-                if (els.compAlarmesContinuosValue) {
-                    els.compAlarmesContinuosValue.textContent = continuousAlarmsCount.toLocaleString('pt-BR');
-                    els.compAlarmesContinuosValue.className = "text-3xl font-bold text-gray-800 mb-1";
-                }
-
-                // --- RESUMO GERAL ---
-                const summary = [
-                    { id: 'l1', name: 'Nível 1: Crítico', range: '(≥ 4500)', count: 0, maxSev: -1, maxDate: null },
-                    { id: 'l2', name: 'Nível 2: Alerta', range: '(2000-4499)', count: 0, maxSev: -1, maxDate: null },
-                    { id: 'l3', name: 'Nível 3: Observação', range: '(1000-1999)', count: 0, maxSev: -1, maxDate: null },
-                    { id: 'l4', name: 'Nível 4: Informativo', range: '(500-999)', count: 0, maxSev: -1, maxDate: null }
-                ];
-
-                let hasSummaryData = false;
-
-                data.forEach(item => {
-                    // Restringe estritamente para o dia anterior fechado (00:00 - 23:59 da data do navegador - 1 dia)
-                    const isDateYesterday = item.date && item.date >= yesterdayStartRef && item.date <= yesterdayEndRef;
-                    const sev = item.recentSeverity;
-
-                    if (isDateYesterday && sev !== null && !isNaN(sev) && sev >= 500) {
-                        hasSummaryData = true;
-                        let targetLevel = null;
-
-                        if (sev >= 4500) targetLevel = summary[0];
-                        else if (sev >= 2000) targetLevel = summary[1];
-                        else if (sev >= 1000) targetLevel = summary[2];
-                        else if (sev >= 500) targetLevel = summary[3];
-
-                        if (targetLevel) {
-                            targetLevel.count++;
-                            if (sev > targetLevel.maxSev) {
-                                targetLevel.maxSev = sev;
-                                targetLevel.maxDate = item.date;
-                            }
+                if (total > 0 && daysDiff > 7) {
+                    let variacao = 0;
+                    
+                    if (smaGlobal === 0) {
+                        if (smaRecent === 0) {
+                            variacao = 0; 
+                        } else {
+                            variacao = 100; 
                         }
-                    }
-                });
-
-                if (els.generalSummaryContent) {
-                    if (!hasSummaryData) {
-                        els.generalSummaryContent.innerHTML = `
-                            <div class="flex flex-col justify-center items-center py-10 bg-gray-50 rounded-lg border border-gray-100">
-                                <strong class="text-xl font-bold text-gray-400 mb-1">Sem dados</strong>
-                                <span class="text-sm text-gray-400 font-medium">Nenhum registro de severidade válido detectado no dia anterior</span>
-                            </div>
-                        `;
                     } else {
-                        let rowsHtml = '';
-                        summary.forEach(lvl => {
-                            let destaque = '-';
-                            if (lvl.count > 0 && lvl.maxDate) {
-                                let hours = lvl.maxDate.getHours();
-                                let minutes = lvl.maxDate.getMinutes();
-                                const ampm = hours >= 12 ? 'PM' : 'AM';
-                                hours = hours % 12;
-                                hours = hours ? hours : 12; 
-                                minutes = minutes < 10 ? '0' + minutes : minutes;
-                                const timeStr = `${hours}:${minutes} ${ampm}`;
-                                destaque = `Pico de ${lvl.maxSev.toLocaleString('pt-BR')} às ${timeStr}`;
-                            }
-                            
-                            rowsHtml += `
-                                <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                                    <td class="py-4 px-4 font-bold text-gray-800">${lvl.name} <span class="font-normal text-gray-500 text-xs ml-1">${lvl.range}</span></td>
-                                    <td class="py-4 px-4 text-gray-700">${lvl.count.toLocaleString('pt-BR')}</td>
-                                    <td class="py-4 px-4 text-gray-600">${destaque}</td>
-                                </tr>
-                            `;
-                        });
-
-                        els.generalSummaryContent.innerHTML = `
-                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="border-b-2 border-gray-200 bg-gray-50">
-                                            <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Nível</th>
-                                            <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Qtd Sites</th>
-                                            <th class="py-3 px-4 font-bold text-gray-800 uppercase tracking-wider text-xs">Destaque Recente</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-sm">
-                                        ${rowsHtml}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
+                        variacao = ((smaRecent - smaGlobal) / smaGlobal) * 100;
                     }
+
+                    if (variacao < 10) {
+                        degText = "Pouca Piora, Melhora ou Estável";
+                        degClass = "text-green-600 text-xl font-bold";
+                    } else if (variacao < 50) {
+                        degText = "Piora Moderada";
+                        degClass = "text-orange-500 text-xl font-bold";
+                    } else {
+                        degText = "Piora Significativa";
+                        degClass = "text-red-600 text-2xl font-extrabold";
+                    }
+                } else if (total > 0 && daysDiff <= 7) {
+                    degText = "Período curto (< 7 dias)";
+                    degClass = "text-gray-400 text-xs";
                 }
+
+                els.tile7Result.textContent = degText;
+                els.tile7Result.className = degClass;
 
                 updateMap(data);
             }

@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.3.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.4.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -124,21 +124,21 @@
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2" title="Média de Largest Impact Since Last Review">Severidade Média</span>
                         <strong id="tile2Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                        <span class="text-sm text-accent font-medium">Pontos (Filtrado)</span>
+                        <span class="text-sm text-accent font-medium">Pontos</span>
                     </div>
                     <!-- Tile 3: Drop Offs (>0) -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs (>0)</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Drop Offs</span>
                         <strong id="tile8Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
                         <span class="text-sm text-accent font-medium">Contagem</span>
                     </div>
                     
-                    <!-- Tile 4: Alarmes por Severidade Média -->
+                    <!-- Tile 4: Índice de Piora -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-between h-full hover:border-accent transition-colors">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 text-center cursor-help" title="Quanto mais próximo de 1, pior">Severidade Média por Alarmes</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 text-center cursor-help" title="Quanto mais próximo de 1, pior">Índice de Piora</span>
                         <div class="flex-1 flex flex-col justify-center items-center">
                             <strong id="tile5Value" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
-                            <span class="text-xs text-accent font-medium">Global (Filtrado)</span>
+                            <span class="text-xs text-accent font-medium">Período Selecionado</span>
                         </div>
                         <div class="mt-2 pt-2 border-t border-gray-200 w-full text-center">
                             <div class="text-xs text-accent font-medium">Últimos 7 dias</div>
@@ -146,10 +146,10 @@
                         </div>
                     </div>
 
-                    <!-- Tile 5: Nível de Degradação -->
+                    <!-- Tile 5: Análise de Piora -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col h-full hover:border-accent transition-colors justify-center items-center text-center">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Nível Médio de Degradação</span>
-                        <div class="text-[10px] text-gray-400 uppercase mb-1">Últimos 7 dias em relação ao Global (Filtrado)</div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Diagnóstico da Piora</span>
+                        <div class="text-[10px] text-gray-400 uppercase mb-1">Últimos 7 dias em relação ao período selecionado</div>
                         <div class="flex flex-col items-center justify-center h-full w-full">
                             <div id="tile7Result" class="font-bold text-gray-400 text-sm italic">Aguardando dados...</div>
                         </div>
@@ -973,7 +973,7 @@
                     const dist = avgImpact - minImpact;
                     smaGlobal = rangeSize > 0 ? (dist / rangeSize) : 0;
                     smaGlobal = Math.max(0, Math.min(1, smaGlobal)); 
-                    metric5Main = smaGlobal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    metric5Main = (smaGlobal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
                 }
                 els.tile5Value.textContent = metric5Main;
 
@@ -1008,7 +1008,7 @@
                         const subDist = subAvgImpact - minImpact;
                         smaRecent = rangeSize > 0 ? (subDist / rangeSize) : 0;
                         smaRecent = Math.max(0, Math.min(1, smaRecent));
-                        metric5Sub = smaRecent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        metric5Sub = (smaRecent * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
                     }
                     els.tile5SubValue.textContent = metric5Sub;
                 } else {

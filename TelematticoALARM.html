@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.1.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.2.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -622,7 +622,7 @@
                 let validConsistenciaCount = 0;
 
                 let sumCargaEvents = 0;
-                let countCargaSites = 0;
+                let totalAlarms30Days = 0;
 
                 const summary = [
                     { id: 'l1', name: 'Nível 1: Crítico', range: '(≥ 4500)', count: 0, peakDate: null, peakSeverity: -1 },
@@ -686,7 +686,7 @@
                         if (item.date >= thirtyDaysAgoRef && item.date <= todayRef) {
                             if (isEventsValid && item.eventsSince > 0) {
                                 sumCargaEvents += item.eventsSince;
-                                countCargaSites++;
+                                totalAlarms30Days++;
                             }
                         }
                     }
@@ -731,33 +731,36 @@
 
                 // Renderização: Carga Operacional
                 if (els.compCargaOperacionalValue) {
-                    if (countCargaSites === 0 || sumCargaEvents === 0) {
+                    if (totalAlarms30Days === 0 || sumCargaEvents === 0) {
                         els.compCargaOperacionalValue.textContent = "Sem dados";
                         els.compCargaOperacionalValue.className = "text-lg font-bold text-gray-400 mb-1";
                         if (els.compCargaOperacionalDesc) els.compCargaOperacionalDesc.textContent = "Não há registros válidos no período";
                     } else {
-                        const carga = Math.ceil(sumCargaEvents / countCargaSites);
-                        els.compCargaOperacionalValue.textContent = carga.toLocaleString('pt-BR');
+                        const A = totalAlarms30Days * 1000;
+                        const B = sumCargaEvents;
+                        const pct = (B / A) * 100;
+                        
+                        els.compCargaOperacionalValue.textContent = pct.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
                         els.compCargaOperacionalValue.className = "text-3xl font-bold text-gray-800 mb-1";
 
                         let classif = "";
                         let desc = "";
 
-                        if (carga < 2) {
+                        if (pct < 20) {
                             classif = "Operação Estável";
                             desc = "maioria dos sites está gerando poucos eventos e o sistema não apresenta pressão relevante";
-                        } else if (carga < 5) {
+                        } else if (pct < 40) {
                             classif = "Atividade Moderada";
-                            desc = "há geração consistente de alarmes, mas ainda dentro de um comportamento esperado para sistemas monitorados";
-                        } else if (carga < 10) {
+                            desc = "geração consistente de alarmes, mas ainda dentro do esperado";
+                        } else if (pct < 60) {
                             classif = "Alta Atividade";
-                            desc = "o volume de eventos começa a indicar degradação operacional ou condições recorrentes de falha";
-                        } else if (carga <= 20) {
+                            desc = "volume de eventos começa a indicar degradação operacional";
+                        } else if (pct < 80) {
                             classif = "Sobrecarga Operacional";
-                            desc = "muitos sites estão gerando eventos repetidos e isso normalmente aponta instabilidade no sistema monitorado";
+                            desc = "muitos sites gerando eventos repetidos, apontando instabilidade";
                         } else {
                             classif = "Sistema Sob Pressão";
-                            desc = "o nível de eventos está muito acima do normal e há alta probabilidade de problemas persistentes ou falhas em cadeia";
+                            desc = "nível de eventos muito acima do normal, alta probabilidade de problemas persistentes";
                         }
 
                         if (els.compCargaOperacionalDesc) els.compCargaOperacionalDesc.textContent = `${classif} — ${desc}`;

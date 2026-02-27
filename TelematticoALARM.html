@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.0.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.1.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -179,15 +179,19 @@
                     </div>
 
                     <!-- Tile 2: Consistência dos Impactos -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Consistência dos Impactos</span>
-                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                        <strong id="compConsistenciaValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="compConsistenciaDesc" class="text-[10px] text-gray-500 font-medium leading-tight px-2">Aguardando dados...</span>
+                        <span class="text-sm text-accent font-medium">Últimos 7 dias</span>
                     </div>
 
                     <!-- Tile 3: Carga Operacional -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-center items-center text-center hover:border-accent transition-colors">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Carga Operacional</span>
-                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                        <strong id="compCargaOperacionalValue" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="compCargaOperacionalDesc" class="text-[10px] text-gray-500 font-medium leading-tight px-2">Aguardando dados...</span>
+                        <span class="text-sm text-accent font-medium">Últimos 30 dias</span>
                     </div>
 
                 </div>
@@ -330,6 +334,10 @@
                 tile8: document.getElementById('tile8Value'),
                 tile9Content: document.getElementById('tile9Content'),
                 compDropOffsRecentesValue: document.getElementById('compDropOffsRecentesValue'),
+                compConsistenciaValue: document.getElementById('compConsistenciaValue'),
+                compConsistenciaDesc: document.getElementById('compConsistenciaDesc'),
+                compCargaOperacionalValue: document.getElementById('compCargaOperacionalValue'),
+                compCargaOperacionalDesc: document.getElementById('compCargaOperacionalDesc'),
                 generalSummaryContent: document.getElementById('generalSummaryContent'),
                 btnMapCircle: document.getElementById('btnMapCircle'),
                 btnMapCluster: document.getElementById('btnMapCluster'),
@@ -600,12 +608,21 @@
             function updateUI(data) {
                 
                 const dataAtualNavegador = new Date();
-                
+                const todayRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate(), 23, 59, 59, 999);
                 const yesterdayStartRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 0, 0, 0, 0);
                 const yesterdayEndRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 23, 59, 59, 999);
+                const sevenDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 7, 0, 0, 0, 0);
+                const thirtyDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 30, 0, 0, 0, 0);
                 
                 let recentDropOffsCount = 0;
                 let hasSummaryData = false;
+                
+                let sumRecentSeverity = 0;
+                let sumLargestImpact = 0;
+                let validConsistenciaCount = 0;
+
+                let sumCargaEvents = 0;
+                let countCargaSites = 0;
 
                 const summary = [
                     { id: 'l1', name: 'Nível 1: Crítico', range: '(≥ 4500)', count: 0, peakDate: null, peakSeverity: -1 },
@@ -618,8 +635,10 @@
                     const isDropOffValid = item.dropOff !== null && !isNaN(item.dropOff);
                     const isSeverityValid = item.recentSeverity !== null && !isNaN(item.recentSeverity);
                     const isLargestImpactValid = item.largestImpact !== null && !isNaN(item.largestImpact);
+                    const isEventsValid = item.eventsSince !== null && !isNaN(item.eventsSince);
 
                     if (item.date) {
+                        // Resumo Geral e Drop Offs Recentes (Ontem)
                         if (item.date >= yesterdayStartRef && item.date <= yesterdayEndRef) {
                             if (isDropOffValid && item.dropOff >= 50) {
                                 recentDropOffsCount++;
@@ -650,6 +669,26 @@
                                 }
                             }
                         }
+
+                        // Consistência dos Impactos (Últimos 7 dias)
+                        if (item.date >= sevenDaysAgoRef && item.date <= todayRef) {
+                            if (
+                                item.recentSeverity !== null && !isNaN(item.recentSeverity) && item.recentSeverity > 0 &&
+                                item.largestImpact !== null && !isNaN(item.largestImpact) && item.largestImpact > 0
+                            ) {
+                                sumRecentSeverity += item.recentSeverity;
+                                sumLargestImpact += item.largestImpact;
+                                validConsistenciaCount++;
+                            }
+                        }
+
+                        // Carga Operacional (Últimos 30 dias)
+                        if (item.date >= thirtyDaysAgoRef && item.date <= todayRef) {
+                            if (isEventsValid && item.eventsSince > 0) {
+                                sumCargaEvents += item.eventsSince;
+                                countCargaSites++;
+                            }
+                        }
                     }
                 });
 
@@ -657,6 +696,74 @@
                     els.compDropOffsRecentesValue.textContent = (recentDropOffsCount === 0 && globalRawData.length === 0) ? "Sem dados" : recentDropOffsCount.toLocaleString('pt-BR');
                     els.compDropOffsRecentesValue.className = (recentDropOffsCount === 0 && globalRawData.length === 0) ? "text-lg font-bold text-gray-400 mb-1" : "text-3xl font-bold text-gray-800 mb-1";
                 }
+
+                // Renderização: Consistência dos Impactos
+                if (els.compConsistenciaValue) {
+                    if (validConsistenciaCount === 0 || sumLargestImpact === 0) {
+                        els.compConsistenciaValue.textContent = "Sem dados";
+                        els.compConsistenciaValue.className = "text-lg font-bold text-gray-400 mb-1";
+                        if (els.compConsistenciaDesc) els.compConsistenciaDesc.textContent = "Não há registros válidos no período";
+                    } else {
+                        const consistencia = (sumRecentSeverity / sumLargestImpact) * 100;
+                        els.compConsistenciaValue.textContent = consistencia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+                        els.compConsistenciaValue.className = "text-3xl font-bold text-gray-800 mb-1";
+
+                        let classif = "";
+                        let desc = "";
+
+                        if (consistencia >= 60) {
+                            classif = "Impacto Alto Recente";
+                            desc = "os impactos continuam relevantes e indicam pressão operacional atual significativa";
+                        } else if (consistencia >= 40) {
+                            classif = "Impacto em Redução";
+                            desc = "os eventos recentes estão menores que os picos registrados, sugerindo possível estabilização parcial";
+                        } else if (consistencia >= 20) {
+                            classif = "Impacto Residual";
+                            desc = "os picos aconteceram no período, mas a intensidade recente já caiu bastante";
+                        } else {
+                            classif = "Picos Isolados";
+                            desc = "os maiores impactos foram eventos pontuais e o sistema atualmente opera em nível bem menor de severidade";
+                        }
+
+                        if (els.compConsistenciaDesc) els.compConsistenciaDesc.textContent = `${classif} — ${desc}.`;
+                    }
+                }
+
+                // Renderização: Carga Operacional
+                if (els.compCargaOperacionalValue) {
+                    if (countCargaSites === 0 || sumCargaEvents === 0) {
+                        els.compCargaOperacionalValue.textContent = "Sem dados";
+                        els.compCargaOperacionalValue.className = "text-lg font-bold text-gray-400 mb-1";
+                        if (els.compCargaOperacionalDesc) els.compCargaOperacionalDesc.textContent = "Não há registros válidos no período";
+                    } else {
+                        const carga = Math.ceil(sumCargaEvents / countCargaSites);
+                        els.compCargaOperacionalValue.textContent = carga.toLocaleString('pt-BR');
+                        els.compCargaOperacionalValue.className = "text-3xl font-bold text-gray-800 mb-1";
+
+                        let classif = "";
+                        let desc = "";
+
+                        if (carga < 2) {
+                            classif = "Operação Estável";
+                            desc = "maioria dos sites está gerando poucos eventos e o sistema não apresenta pressão relevante";
+                        } else if (carga < 5) {
+                            classif = "Atividade Moderada";
+                            desc = "há geração consistente de alarmes, mas ainda dentro de um comportamento esperado para sistemas monitorados";
+                        } else if (carga < 10) {
+                            classif = "Alta Atividade";
+                            desc = "o volume de eventos começa a indicar degradação operacional ou condições recorrentes de falha";
+                        } else if (carga <= 20) {
+                            classif = "Sobrecarga Operacional";
+                            desc = "muitos sites estão gerando eventos repetidos e isso normalmente aponta instabilidade no sistema monitorado";
+                        } else {
+                            classif = "Sistema Sob Pressão";
+                            desc = "o nível de eventos está muito acima do normal e há alta probabilidade de problemas persistentes ou falhas em cadeia";
+                        }
+
+                        if (els.compCargaOperacionalDesc) els.compCargaOperacionalDesc.textContent = `${classif} — ${desc}`;
+                    }
+                }
+
 
                 if (els.generalSummaryContent) {
                     let rowsHtml = '';

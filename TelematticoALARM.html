@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.2.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">TelemátticoALARM 2.3.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -607,7 +607,9 @@
 
             function updateUI(data) {
                 
+                const impactMode = els.impactFilter.value;
                 const dataAtualNavegador = new Date();
+                
                 const todayRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate(), 23, 59, 59, 999);
                 const yesterdayStartRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 0, 0, 0, 0);
                 const yesterdayEndRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 23, 59, 59, 999);
@@ -637,10 +639,23 @@
                     const isLargestImpactValid = item.largestImpact !== null && !isNaN(item.largestImpact);
                     const isEventsValid = item.eventsSince !== null && !isNaN(item.eventsSince);
 
+                    let passesImpactFilter = true;
+                    if (impactMode !== 'all') {
+                        if (!isLargestImpactValid) {
+                            passesImpactFilter = false;
+                        } else {
+                            const s = item.largestImpact;
+                            if (impactMode === 'level1' && s < 4500) passesImpactFilter = false;
+                            else if (impactMode === 'level2' && (s < 2000 || s > 4499)) passesImpactFilter = false;
+                            else if (impactMode === 'level3' && (s < 1000 || s > 1999)) passesImpactFilter = false;
+                            else if (impactMode === 'level4' && (s < 500 || s > 999)) passesImpactFilter = false;
+                        }
+                    }
+
                     if (item.date) {
                         // Resumo Geral e Drop Offs Recentes (Ontem)
                         if (item.date >= yesterdayStartRef && item.date <= yesterdayEndRef) {
-                            if (isDropOffValid && item.dropOff >= 50) {
+                            if (isDropOffValid && item.dropOff >= 50 && passesImpactFilter) {
                                 recentDropOffsCount++;
                             }
                             
@@ -671,7 +686,7 @@
                         }
 
                         // Consistência dos Impactos (Últimos 7 dias)
-                        if (item.date >= sevenDaysAgoRef && item.date <= todayRef) {
+                        if (item.date >= sevenDaysAgoRef && item.date <= todayRef && passesImpactFilter) {
                             if (
                                 item.recentSeverity !== null && !isNaN(item.recentSeverity) && item.recentSeverity > 0 &&
                                 item.largestImpact !== null && !isNaN(item.largestImpact) && item.largestImpact > 0
@@ -683,7 +698,7 @@
                         }
 
                         // Carga Operacional (Últimos 30 dias)
-                        if (item.date >= thirtyDaysAgoRef && item.date <= todayRef) {
+                        if (item.date >= thirtyDaysAgoRef && item.date <= todayRef && passesImpactFilter) {
                             if (isEventsValid && item.eventsSince > 0) {
                                 sumCargaEvents += item.eventsSince;
                                 totalAlarms30Days++;
@@ -939,7 +954,6 @@
                     els.tile4Footer.textContent = `${noReviewCount}/${data.length} Sites Sem Revisão (${pct}%)`;
                 }
 
-                const impactMode = els.impactFilter.value;
                 let minImpact = 500;
                 let maxImpact = 500;
                 const maxInData = validImpacts.length > 0 ? Math.max(...validImpacts.map(d => d.largestImpact)) : 500;

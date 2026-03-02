@@ -78,6 +78,38 @@
             <p class="text-gray-500 mt-1 text-lg">Analise as condições operacionais de cada localidade onde houve um alarme</p>
         </header>
 
+        <!-- Stepper de Progresso -->
+        <nav aria-label="Progress" class="mb-10 w-full max-w-2xl mx-auto px-4">
+            <div class="relative flex justify-between items-center">
+                <!-- Linha de conexão (Totalmente preenchida pois estamos na última etapa) -->
+                <div class="absolute left-0 top-5 transform w-full h-1 bg-accent z-0 rounded-full transition-all duration-500"></div>
+
+                <!-- Etapa 1: ALARM (Concluída) -->
+                <a href="https://jonatascaldas.github.io/AuraALARM.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-white font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="mt-2 text-xs md:text-sm font-bold text-accent tracking-wide transition-colors duration-300 group-hover:text-accent-dark">ALARM</span>
+                </a>
+
+                <!-- Etapa 2: ROUTE (Concluída) -->
+                <a href="https://jonatascaldas.github.io/AuraROUTE.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-white font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="mt-2 text-xs md:text-sm font-bold text-accent tracking-wide transition-colors duration-300 group-hover:text-accent-dark">ROUTE</span>
+                </a>
+
+                <!-- Etapa 3: LOC (Atual) -->
+                <a href="https://jonatascaldas.github.io/AuraLOC.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-white font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110">
+                        3
+                    </div>
+                    <span class="mt-2 text-xs md:text-sm font-bold text-gray-900 tracking-wide">LOC</span>
+                </a>
+            </div>
+        </nav>
+
         <!-- Seção de Entrada -->
         <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6">
             <div class="flex items-end gap-6">
@@ -195,6 +227,7 @@
                         <strong id="card3Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
                         <span id="card3Label" class="text-sm text-accent font-medium">-</span>
                     </div>
+
                     <!-- Card 4 -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center">
                         <span id="card4Title" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Severidades Recentes</span>
@@ -203,10 +236,12 @@
                         </div>
                     </div>
                     
-                    <!-- Card 5 -->
+                    <!-- Card 5: Participação de Alarmes -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center h-full">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Participação de Alarmes</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Participação da Composição nos Alarmes</span>
                         <span class="text-[10px] font-bold text-accent uppercase tracking-wide mb-3">últimos 30 dias</span>
+                        
+                        <!-- Lista de Participação (com scroll se necessário) -->
                         <div id="card5Container" class="w-full flex flex-col items-center justify-start flex-grow overflow-hidden" style="max-height: 120px;">
                             <div id="card5List" class="w-full space-y-1 overflow-y-auto scrollbar-thin pr-1">
                                 <span class="text-gray-400 text-sm">-</span>
@@ -214,15 +249,38 @@
                         </div>
                     </div>
 
-                    <!-- Card 6 -->
+                    <!-- Card 6: Veículo com Maior Severidade Média -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center h-full">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Veículo com Maior Severidade Média</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Composição com Maior Severidade Média</span>
                         <span class="text-[10px] font-bold text-accent uppercase tracking-wide mb-3">últimos 30 dias</span>
+                        
+                        <!-- Lista de Média de Severidade -->
                         <div id="card6Container" class="w-full flex flex-col items-center justify-start flex-grow overflow-hidden" style="max-height: 120px;">
                             <div id="card6List" class="w-full space-y-1 overflow-y-auto scrollbar-thin pr-1">
                                 <span class="text-gray-400 text-sm">-</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Card 7: Maior Severidade em -->
+                    <div id="card7Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Maior Severidade em</span>
+                        <strong id="card7Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card7Label" class="text-sm text-gray-400 italic">Em breve</span>
+                    </div>
+
+                    <!-- Card 8: Total de Alarmes do Site -->
+                    <div id="card8Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes do Site</span>
+                        <strong id="card8Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card8Label" class="text-sm text-gray-400 italic">Em breve</span>
+                    </div>
+
+                    <!-- Card 9: Total de Alarmes (7 dias) -->
+                    <div id="card9Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes</span>
+                        <strong id="card9Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card9Label" class="text-sm text-gray-400 italic">Em breve</span>
                     </div>
                 </div>
             </section>
@@ -307,6 +365,7 @@
                             <div id="customDropOffChartContainer" class="chart-container">
                                 <canvas id="customChartDropOff"></canvas>
                             </div>
+                            <!-- Mensagem de erro para drop-off personalizado -->
                             <div id="customDropOffError" class="hidden py-10 bg-gray-50 rounded border border-gray-200 text-center">
                                 <p class="text-gray-400 text-sm">Nenhum evento de Drop-off detectado no período analisado.</p>
                             </div>
@@ -507,10 +566,22 @@
             // Card 5 & 6
             card5List: document.getElementById('card5List'),
             card6List: document.getElementById('card6List'),
+            // Card 7
+            card7Container: document.getElementById('card7Container'),
+            card7Value: document.getElementById('card7Value'),
+            card7Label: document.getElementById('card7Label'),
+            // Card 8
+            card8Container: document.getElementById('card8Container'),
+            card8Value: document.getElementById('card8Value'),
+            card8Label: document.getElementById('card8Label'),
+            // Card 9
+            card9Container: document.getElementById('card9Container'),
+            card9Value: document.getElementById('card9Value'),
+            card9Label: document.getElementById('card9Label'),
             // Charts Padrão
-            chartSpeedCtx: document.getElementById('chartSpeed').getContext('2d'),
-            chartSeverityCtx: document.getElementById('chartSeverity').getContext('2d'),
-            chartDropOffCtx: document.getElementById('chartDropOff').getContext('2d'),
+            chartSpeedCtx: document.getElementById('chartSpeed') ? document.getElementById('chartSpeed').getContext('2d') : null,
+            chartSeverityCtx: document.getElementById('chartSeverity') ? document.getElementById('chartSeverity').getContext('2d') : null,
+            chartDropOffCtx: document.getElementById('chartDropOff') ? document.getElementById('chartDropOff').getContext('2d') : null,
             dropOffChartContainer: document.getElementById('dropOffChartContainer'),
             dropOffError: document.getElementById('dropOffError'),
             // Custom Section
@@ -519,9 +590,10 @@
             customError: document.getElementById('customError'),
             customErrorText: document.getElementById('customErrorText'),
             customChartsWrapper: document.getElementById('customChartsWrapper'),
-            customChartSpeedCtx: document.getElementById('customChartSpeed').getContext('2d'),
-            customChartSeverityCtx: document.getElementById('customChartSeverity').getContext('2d'),
-            customChartDropOffCtx: document.getElementById('customChartDropOff').getContext('2d'),
+            customChartSpeedCtx: document.getElementById('customChartSpeed') ? document.getElementById('customChartSpeed').getContext('2d') : null,
+            customChartSeverityCtx: document.getElementById('customChartSeverity') ? document.getElementById('customChartSeverity').getContext('2d') : null,
+            customChartDropOffCtx: document.getElementById('customChartDropOff') ? document.getElementById('customChartDropOff').getContext('2d') : null,
+            // New Custom DropOff Elements
             customDropOffChartContainer: document.getElementById('customDropOffChartContainer'),
             customDropOffError: document.getElementById('customDropOffError'),
             // Severity Evolution Section
@@ -530,10 +602,10 @@
             sevError: document.getElementById('sevError'),
             sevErrorText: document.getElementById('sevErrorText'),
             sevChartsWrapper: document.getElementById('sevChartsWrapper'),
-            chartSevLevel1Ctx: document.getElementById('chartSevLevel1').getContext('2d'),
-            chartSevLevel2Ctx: document.getElementById('chartSevLevel2').getContext('2d'),
-            chartSevLevel3Ctx: document.getElementById('chartSevLevel3').getContext('2d'),
-            chartSevLevel4Ctx: document.getElementById('chartSevLevel4').getContext('2d'),
+            chartSevLevel1Ctx: document.getElementById('chartSevLevel1') ? document.getElementById('chartSevLevel1').getContext('2d') : null,
+            chartSevLevel2Ctx: document.getElementById('chartSevLevel2') ? document.getElementById('chartSevLevel2').getContext('2d') : null,
+            chartSevLevel3Ctx: document.getElementById('chartSevLevel3') ? document.getElementById('chartSevLevel3').getContext('2d') : null,
+            chartSevLevel4Ctx: document.getElementById('chartSevLevel4') ? document.getElementById('chartSevLevel4').getContext('2d') : null,
             // Correlations
             corrValue: document.getElementById('corrValue'),
             corrText: document.getElementById('corrText'),
@@ -552,24 +624,24 @@
             start.setDate(end.getDate() - 6);
             
             // Map
-            elements.mapEndDate.valueAsDate = end;
-            elements.mapStartDate.valueAsDate = start;
+            if (elements.mapEndDate) elements.mapEndDate.valueAsDate = end;
+            if (elements.mapStartDate) elements.mapStartDate.valueAsDate = start;
 
             // Custom Section
-            elements.endDateInput.valueAsDate = end;
-            elements.startDateInput.valueAsDate = start;
+            if (elements.endDateInput) elements.endDateInput.valueAsDate = end;
+            if (elements.startDateInput) elements.startDateInput.valueAsDate = start;
 
             // Severity Evolution Section
-            elements.sevEndDateInput.valueAsDate = end;
-            elements.sevStartDateInput.valueAsDate = start;
+            if (elements.sevEndDateInput) elements.sevEndDateInput.valueAsDate = end;
+            if (elements.sevStartDateInput) elements.sevStartDateInput.valueAsDate = start;
         }
         initDates();
 
         // --- Gerenciamento de UI ---
         function resetUI() {
-            elements.outputContainer.classList.add('hidden');
-            elements.errorMessage.classList.add('hidden');
-            elements.emptyState.classList.remove('hidden');
+            if (elements.outputContainer) elements.outputContainer.classList.add('hidden');
+            if (elements.errorMessage) elements.errorMessage.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.remove('hidden');
             
             // Map Reset
             mapData = [];
@@ -584,41 +656,70 @@
             ];
             allCharts.forEach(chart => { if(chart) chart.destroy(); });
 
-            // Reset Textos
-            elements.siteNameDisplay.textContent = 'Nome do Site';
-            elements.corrValue.textContent = '-'; elements.corrText.textContent = '-';
-            elements.zScoreValue.textContent = '-'; elements.zScoreText.textContent = '-';
-            elements.thermalValue.textContent = '-'; elements.thermalText.textContent = '-';
-            elements.geoValue.textContent = '-'; elements.geoText.textContent = '-';
-            elements.card4Title.textContent = 'Severidades Recentes';
-            elements.card4Container.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
-            elements.card5List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
-            elements.card6List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
-            elements.c3Value.textContent = '-';
-            elements.c3Label.textContent = '-';
+            // Reset Textos (with safety checks to prevent TypeError if DOM changes)
+            if (elements.siteNameDisplay) elements.siteNameDisplay.textContent = 'Nome do Site';
+            if (elements.corrValue) elements.corrValue.textContent = '-'; 
+            if (elements.corrText) elements.corrText.textContent = '-';
+            if (elements.zScoreValue) elements.zScoreValue.textContent = '-'; 
+            if (elements.zScoreText) elements.zScoreText.textContent = '-';
+            if (elements.thermalValue) elements.thermalValue.textContent = '-'; 
+            if (elements.thermalText) elements.thermalText.textContent = '-';
+            if (elements.geoValue) elements.geoValue.textContent = '-'; 
+            if (elements.geoText) elements.geoText.textContent = '-';
+            
+            if (elements.card4Title) elements.card4Title.textContent = 'Severidades Recentes';
+            if (elements.card4Container) elements.card4Container.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.card5List) elements.card5List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.card6List) elements.card6List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.c3Value) elements.c3Value.textContent = '-';
+            if (elements.c3Label) elements.c3Label.textContent = '-';
+            
+            if (elements.card7Value) elements.card7Value.textContent = '-';
+            if (elements.card7Label) {
+                elements.card7Label.textContent = 'Em breve';
+                elements.card7Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card7Container) elements.card7Container.classList.add('opacity-60');
+
+            if (elements.card8Value) elements.card8Value.textContent = '-';
+            if (elements.card8Label) {
+                elements.card8Label.textContent = 'Em breve';
+                elements.card8Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card8Container) elements.card8Container.classList.add('opacity-60');
+
+            if (elements.card9Value) elements.card9Value.textContent = '-';
+            if (elements.card9Label) {
+                elements.card9Label.textContent = 'Em breve';
+                elements.card9Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card9Container) elements.card9Container.classList.add('opacity-60');
 
             // Reset seções ocultas
-            elements.dropOffChartContainer.classList.add('hidden');
-            elements.dropOffError.classList.add('hidden');
-            elements.customError.classList.add('hidden');
-            elements.customChartsWrapper.classList.remove('hidden');
-            elements.customDropOffChartContainer.classList.add('hidden');
-            elements.customDropOffError.classList.add('hidden');
-            elements.sevError.classList.add('hidden');
-            elements.sevChartsWrapper.classList.remove('hidden');
+            if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.add('hidden');
+            if (elements.dropOffError) elements.dropOffError.classList.add('hidden');
+            if (elements.customError) elements.customError.classList.add('hidden');
+            if (elements.customChartsWrapper) elements.customChartsWrapper.classList.remove('hidden');
+            
+            // Reset Custom DropOff specific
+            if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.add('hidden');
+            if (elements.customDropOffError) elements.customDropOffError.classList.add('hidden');
+
+            if (elements.sevError) elements.sevError.classList.add('hidden');
+            if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.remove('hidden');
         }
 
         function showError(msg) {
-            elements.outputContainer.classList.add('hidden');
-            elements.emptyState.classList.add('hidden');
-            elements.errorMessage.classList.remove('hidden');
-            elements.errorText.textContent = msg;
+            if (elements.outputContainer) elements.outputContainer.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.add('hidden');
+            if (elements.errorMessage) elements.errorMessage.classList.remove('hidden');
+            if (elements.errorText) elements.errorText.textContent = msg;
         }
 
         function showResults() {
-            elements.errorMessage.classList.add('hidden');
-            elements.emptyState.classList.add('hidden');
-            elements.outputContainer.classList.remove('hidden');
+            if (elements.errorMessage) elements.errorMessage.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.add('hidden');
+            if (elements.outputContainer) elements.outputContainer.classList.remove('hidden');
             
             // Map needs invalidateSize when container becomes visible
             if(mapInstance) {
@@ -648,8 +749,8 @@
             // Clear previous layers
             mapLayerGroup.clearLayers();
 
-            const startStr = elements.mapStartDate.value;
-            const endStr = elements.mapEndDate.value;
+            const startStr = elements.mapStartDate ? elements.mapStartDate.value : null;
+            const endStr = elements.mapEndDate ? elements.mapEndDate.value : null;
             if (!startStr || !endStr) return;
 
             const startDate = new Date(startStr);
@@ -721,32 +822,27 @@
             }
         }
 
-        // --- Event Listeners for Map Controls ---
-        elements.mapStartDate.addEventListener('change', updateMap);
-        elements.mapEndDate.addEventListener('change', updateMap);
-
         function setMapMode(mode) {
             currentMapMode = mode;
             // Update button styles
             const btns = [elements.btnMapCircle, elements.btnMapCluster, elements.btnMapHeat];
             btns.forEach(b => {
-                b.classList.remove('bg-white', 'text-accent', 'shadow-sm');
-                b.classList.add('text-gray-500');
+                if (b) {
+                    b.classList.remove('bg-white', 'text-accent', 'shadow-sm');
+                    b.classList.add('text-gray-500');
+                }
             });
             
             const activeBtn = mode === 'circle' ? elements.btnMapCircle : 
                               mode === 'cluster' ? elements.btnMapCluster : elements.btnMapHeat;
             
-            activeBtn.classList.remove('text-gray-500');
-            activeBtn.classList.add('bg-white', 'text-accent', 'shadow-sm');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-500');
+                activeBtn.classList.add('bg-white', 'text-accent', 'shadow-sm');
+            }
 
             updateMap();
         }
-
-        elements.btnMapCircle.addEventListener('click', () => setMapMode('circle'));
-        elements.btnMapCluster.addEventListener('click', () => setMapMode('cluster'));
-        elements.btnMapHeat.addEventListener('click', () => setMapMode('heat'));
-
 
         // --- Funções Matemáticas e Parsers ---
         function calculatePearsonCorrelation(x, y) {
@@ -837,8 +933,8 @@
             if (!currentCSVContent) return;
 
             // Reset UI
-            elements.sevError.classList.add('hidden');
-            elements.sevChartsWrapper.classList.remove('hidden');
+            if (elements.sevError) elements.sevError.classList.add('hidden');
+            if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.remove('hidden');
             
             if (sevLevel1Chart) sevLevel1Chart.destroy();
             if (sevLevel2Chart) sevLevel2Chart.destroy();
@@ -846,8 +942,8 @@
             if (sevLevel4Chart) sevLevel4Chart.destroy();
 
             // Obter Datas
-            const startStr = elements.sevStartDateInput.value;
-            const endStr = elements.sevEndDateInput.value;
+            const startStr = elements.sevStartDateInput ? elements.sevStartDateInput.value : null;
+            const endStr = elements.sevEndDateInput ? elements.sevEndDateInput.value : null;
 
             if (!startStr || !endStr) return;
 
@@ -858,9 +954,9 @@
             startDate.setHours(0,0,0,0);
 
             if (startDate > endDate) {
-                elements.sevError.classList.remove('hidden');
-                elements.sevErrorText.textContent = "Data inicial não pode ser maior que data final.";
-                elements.sevChartsWrapper.classList.add('hidden');
+                if (elements.sevError) elements.sevError.classList.remove('hidden');
+                if (elements.sevErrorText) elements.sevErrorText.textContent = "Data inicial não pode ser maior que data final.";
+                if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.add('hidden');
                 return;
             }
 
@@ -938,11 +1034,11 @@
                         const b = sevBuckets.get(key);
                         
                         // Classificação de Níveis
-                        if (severity > 4499) {
+                        if (severity >= 4501) {
                             b.level1++;
-                        } else if (severity > 1999) {
+                        } else if (severity >= 2001) {
                             b.level2++;
-                        } else if (severity > 999) {
+                        } else if (severity >= 1001) {
                             b.level3++;
                         } else if (severity >= 500) {
                             b.level4++;
@@ -952,9 +1048,9 @@
             }
 
             if (validRecords === 0) {
-                elements.sevError.classList.remove('hidden');
-                elements.sevErrorText.textContent = "Não existem registros válidos (Severidade >= 500) dentro do intervalo selecionado.";
-                elements.sevChartsWrapper.classList.add('hidden');
+                if (elements.sevError) elements.sevError.classList.remove('hidden');
+                if (elements.sevErrorText) elements.sevErrorText.textContent = "Não existem registros válidos (Severidade >= 500) dentro do intervalo selecionado.";
+                if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.add('hidden');
                 return;
             }
 
@@ -970,25 +1066,25 @@
 
             const sevColor = '#6FE6FC';
             
-            sevLevel1Chart = renderChart(elements.chartSevLevel1Ctx, 'Nível 1', displayLabels, l1Data, '', sevColor);
-            sevLevel2Chart = renderChart(elements.chartSevLevel2Ctx, 'Nível 2', displayLabels, l2Data, '', sevColor);
-            sevLevel3Chart = renderChart(elements.chartSevLevel3Ctx, 'Nível 3', displayLabels, l3Data, '', sevColor);
-            sevLevel4Chart = renderChart(elements.chartSevLevel4Ctx, 'Nível 4', displayLabels, l4Data, '', sevColor);
+            if (elements.chartSevLevel1Ctx) sevLevel1Chart = renderChart(elements.chartSevLevel1Ctx, 'Nível 1', displayLabels, l1Data, '', sevColor);
+            if (elements.chartSevLevel2Ctx) sevLevel2Chart = renderChart(elements.chartSevLevel2Ctx, 'Nível 2', displayLabels, l2Data, '', sevColor);
+            if (elements.chartSevLevel3Ctx) sevLevel3Chart = renderChart(elements.chartSevLevel3Ctx, 'Nível 3', displayLabels, l3Data, '', sevColor);
+            if (elements.chartSevLevel4Ctx) sevLevel4Chart = renderChart(elements.chartSevLevel4Ctx, 'Nível 4', displayLabels, l4Data, '', sevColor);
         }
 
         // --- Processamento da Seção Customizada (Existente) ---
         function updateCustomSection() {
             if (!currentCSVContent) return;
 
-            elements.customError.classList.add('hidden');
-            elements.customChartsWrapper.classList.remove('hidden');
+            if (elements.customError) elements.customError.classList.add('hidden');
+            if (elements.customChartsWrapper) elements.customChartsWrapper.classList.remove('hidden');
             
             if (customSpeedChartInstance) customSpeedChartInstance.destroy();
             if (customSeverityChartInstance) customSeverityChartInstance.destroy();
             if (customDropOffChartInstance) customDropOffChartInstance.destroy();
 
-            const startStr = elements.startDateInput.value;
-            const endStr = elements.endDateInput.value;
+            const startStr = elements.startDateInput ? elements.startDateInput.value : null;
+            const endStr = elements.endDateInput ? elements.endDateInput.value : null;
 
             if (!startStr || !endStr) return;
 
@@ -999,9 +1095,9 @@
             startDate.setHours(0,0,0,0);
 
             if (startDate > endDate) {
-                elements.customError.classList.remove('hidden');
-                elements.customErrorText.textContent = "Data inicial não pode ser maior que data final.";
-                elements.customChartsWrapper.classList.add('hidden');
+                if (elements.customError) elements.customError.classList.remove('hidden');
+                if (elements.customErrorText) elements.customErrorText.textContent = "Data inicial não pode ser maior que data final.";
+                if (elements.customChartsWrapper) elements.customChartsWrapper.classList.add('hidden');
                 return;
             }
 
@@ -1090,9 +1186,9 @@
             }
 
             if (validRecordsInInterval === 0) {
-                elements.customError.classList.remove('hidden');
-                elements.customErrorText.textContent = "Não existem registros válidos dentro do intervalo selecionado.";
-                elements.customChartsWrapper.classList.add('hidden');
+                if (elements.customError) elements.customError.classList.remove('hidden');
+                if (elements.customErrorText) elements.customErrorText.textContent = "Não existem registros válidos dentro do intervalo selecionado.";
+                if (elements.customChartsWrapper) elements.customChartsWrapper.classList.add('hidden');
                 return;
             }
 
@@ -1108,17 +1204,17 @@
             });
 
             const customColor = '#86A8E7';
-            customSpeedChartInstance = renderChart(elements.customChartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', customColor);
-            customSeverityChartInstance = renderChart(elements.customChartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', customColor);
+            if (elements.customChartSpeedCtx) customSpeedChartInstance = renderChart(elements.customChartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', customColor);
+            if (elements.customChartSeverityCtx) customSeverityChartInstance = renderChart(elements.customChartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', customColor);
             
             // Custom Drop-off Logic
             if (totalDropOffsInInterval > 0) {
-                elements.customDropOffChartContainer.classList.remove('hidden');
-                elements.customDropOffError.classList.add('hidden');
-                customDropOffChartInstance = renderChart(elements.customChartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', customColor);
+                if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.remove('hidden');
+                if (elements.customDropOffError) elements.customDropOffError.classList.add('hidden');
+                if (elements.customChartDropOffCtx) customDropOffChartInstance = renderChart(elements.customChartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', customColor);
             } else {
-                elements.customDropOffChartContainer.classList.add('hidden');
-                elements.customDropOffError.classList.remove('hidden');
+                if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.add('hidden');
+                if (elements.customDropOffError) elements.customDropOffError.classList.remove('hidden');
             }
         }
 
@@ -1168,6 +1264,9 @@
             let maxSpeedGlobal = 0;
             let maxSpeedVehicle = "-";
 
+            let maxSeverityGlobalVal = -1;
+            let maxSeverityGlobalDate = null;
+
             let validRecordsInWindow = 0;
             const vehicleMap = new Map();
             const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
@@ -1194,6 +1293,15 @@
             // Card 6 Variables (Last 30 Days)
             const vehicleSeverityStats30d = {};
             
+            // Card 8 Variables
+            let totalSiteAlarms = 0;
+            
+            // Card 9 Variables (Last 7 Days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(now.getDate() - 7);
+            sevenDaysAgo.setHours(0,0,0,0);
+            let totalAlarms7d = 0;
+            
             // Map Data Accumulator
             const newMapData = [];
 
@@ -1206,13 +1314,28 @@
                 const rawDropOff = idxDropOff !== -1 ? row[idxDropOff] : null;
                 const rawLat = idxLat !== -1 ? row[idxLat] : null;
                 const rawLon = idxLon !== -1 ? row[idxLon] : null;
+                const rawSite = idxSite !== -1 ? row[idxSite] : null;
                 
-                if (!foundSiteName && idxSite !== -1 && row[idxSite]) foundSiteName = row[idxSite];
+                if (!foundSiteName && rawSite) foundSiteName = rawSite;
+                
+                // Count Card 8 (Total de alarmes válidos pela coluna 'site')
+                if (rawSite && rawSite.trim() !== '') {
+                    totalSiteAlarms++;
+                }
+
                 if (!rawTime) continue; // Time is essential
                 rawTime = rawTime.replace(/−/g, '-');
                 const dateObj = new Date(rawTime);
                 const timestamp = dateObj.getTime();
                 if (isNaN(timestamp)) continue;
+
+                // Count Card 8 & 9 (Total de alarmes válidos pela coluna 'site')
+                if (rawSite && rawSite.trim() !== '') {
+                    totalSiteAlarms++;
+                    if (dateObj >= sevenDaysAgo) {
+                        totalAlarms7d++;
+                    }
+                }
 
                 // Pre-parsing for Card 6 (Card 6 logic below needs to be robust)
                 let severity = null;
@@ -1260,6 +1383,14 @@
                 if (severity === null || isNaN(severity)) severity = parseInt(rawSeverity, 10);
 
                 if (isNaN(speed) || isNaN(severity)) continue;
+
+                // Track Max Severity Date globally
+                if (severity > maxSeverityGlobalVal) {
+                    maxSeverityGlobalVal = severity;
+                    maxSeverityGlobalDate = dateObj;
+                } else if (severity === maxSeverityGlobalVal && (!maxSeverityGlobalDate || dateObj > maxSeverityGlobalDate)) {
+                    maxSeverityGlobalDate = dateObj; // Tie-breaker: most recent event
+                }
 
                 // Global Stats (Card 1, 2, 3)
                 validRecords++;
@@ -1322,8 +1453,10 @@
             updateMap(); // Render Map immediately
 
             // UI Updates
-            if (foundSiteName) elements.siteNameDisplay.textContent = foundSiteName;
-            else elements.siteNameDisplay.textContent = 'Site (Nome não detectado)';
+            if (elements.siteNameDisplay) {
+                if (foundSiteName) elements.siteNameDisplay.textContent = foundSiteName;
+                else elements.siteNameDisplay.textContent = 'Site (Nome não detectado)';
+            }
 
             if (validRecords > 0) {
                 const vehicles = Array.from(vehicleMap.values());
@@ -1333,93 +1466,151 @@
                 };
                 const topDetection = [...vehicles].sort((a, b) => compareWinner(a, b, 'count'))[0];
                 const topSeverity = [...vehicles].sort((a, b) => compareWinner(a, b, 'maxSeverity'))[0];
-                const avgSpeedGlobal = totalSpeed / validRecords;
 
                 // Card 1
-                elements.c1Value.textContent = topDetection.id;
-                elements.c1Label.textContent = `${topDetection.count} detecções`;
+                if (elements.c1Value) elements.c1Value.textContent = topDetection.id;
+                if (elements.c1Label) elements.c1Label.textContent = `${topDetection.count} detecções`;
                 
                 // Card 2 (Inverted info)
-                elements.c2Value.textContent = topSeverity.maxSeverity; // Big text: Severity
-                elements.c2Label.textContent = topSeverity.id; // Small text: Vehicle ID
+                if (elements.c2Value) elements.c2Value.textContent = topSeverity.maxSeverity; 
+                if (elements.c2Label) elements.c2Label.textContent = topSeverity.id; 
 
                 // Card 3 (Now Max Speed)
-                elements.c3Value.textContent = maxSpeedGlobal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " km/h";
-                elements.c3Label.textContent = maxSpeedVehicle; // Show vehicle that achieved it
+                if (elements.c3Value) elements.c3Value.textContent = maxSpeedGlobal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " km/h";
+                if (elements.c3Label) elements.c3Label.textContent = maxSpeedVehicle; 
+                
+                // Card 7 (Date of Max Severity)
+                if (maxSeverityGlobalDate && elements.card7Value) {
+                    const day = String(maxSeverityGlobalDate.getDate()).padStart(2, '0');
+                    const month = String(maxSeverityGlobalDate.getMonth() + 1).padStart(2, '0');
+                    const year = maxSeverityGlobalDate.getFullYear();
+                    elements.card7Value.textContent = `${day}/${month}/${year}`;
+                    
+                    if (elements.card7Label) {
+                        elements.card7Label.textContent = "Data Local";
+                        elements.card7Label.className = "text-sm text-accent font-medium";
+                    }
+                    if (elements.card7Container) {
+                        elements.card7Container.classList.remove('opacity-60');
+                    }
+                }
+            }
+            
+            // UI Update Card 8: Total Site Alarms
+            if (elements.card8Container) {
+                if (totalSiteAlarms > 0) {
+                    elements.card8Value.textContent = totalSiteAlarms.toLocaleString('pt-BR');
+                    if (elements.card8Label) {
+                        elements.card8Label.textContent = 'Registros Históricos';
+                        elements.card8Label.className = 'text-sm text-accent font-medium';
+                    }
+                    elements.card8Container.classList.remove('opacity-60');
+                } else {
+                    elements.card8Value.textContent = '0';
+                    if (elements.card8Label) {
+                        elements.card8Label.textContent = 'Sem dados de site';
+                        elements.card8Label.className = 'text-sm text-gray-400 italic';
+                    }
+                }
+            }
+
+            // UI Update Card 9: Total Alarms (7 Days)
+            if (elements.card9Container) {
+                // Ativamos o card se houver dados no site, mesmo que os últimos 7 dias sejam zero
+                if (totalSiteAlarms > 0 || totalAlarms7d > 0) {
+                    elements.card9Value.textContent = totalAlarms7d.toLocaleString('pt-BR');
+                    if (elements.card9Label) {
+                        elements.card9Label.textContent = 'Últimos 7 dias';
+                        elements.card9Label.className = 'text-sm text-accent font-medium';
+                    }
+                    elements.card9Container.classList.remove('opacity-60');
+                } else {
+                    elements.card9Value.textContent = '0';
+                    if (elements.card9Label) {
+                        elements.card9Label.textContent = 'Sem dados de site';
+                        elements.card9Label.className = 'text-sm text-gray-400 italic';
+                    }
+                }
             }
 
             // Card 4 Logic
-            if (allValidSeverities.length === 0) {
-                elements.card4Container.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida encontrada.</p>';
-            } else {
-                allValidSeverities.sort((a, b) => b.date - a.date);
-                const mostRecentDate = allValidSeverities[0].date;
-                const mostRecentDateString = mostRecentDate.toDateString();
-                const mostRecentDateLabel = mostRecentDate.toLocaleDateString('pt-BR');
-                const recentSeverities = allValidSeverities.filter(item => item.date.toDateString() === mostRecentDateString);
-                recentSeverities.sort((a, b) => {
-                    if (b.severity !== a.severity) return b.severity - a.severity;
-                    return b.date - a.date;
-                });
-                const top3Recent = recentSeverities.slice(0, 3).sort((a, b) => b.date - a.date);
-                elements.card4Title.textContent = `Severidades Mais Recentes: ${mostRecentDateLabel}`;
-                let html = '<div class="w-full space-y-2 mt-1">';
-                top3Recent.forEach(item => {
-                    const timeStr = item.date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                    html += `<div class="flex justify-between items-center border-b border-gray-100 pb-1 last:border-0"><span class="text-lg font-bold text-gray-800">${item.severity}</span><div class="text-right leading-tight"><div class="text-[10px] text-gray-500">${mostRecentDateLabel}</div><div class="text-[10px] font-mono text-gray-400">${timeStr}</div></div></div>`;
-                });
-                html += '</div>';
-                elements.card4Container.innerHTML = html;
+            if (elements.card4Container) {
+                if (allValidSeverities.length === 0) {
+                    elements.card4Container.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida encontrada.</p>';
+                } else {
+                    allValidSeverities.sort((a, b) => b.date - a.date);
+                    const mostRecentDate = allValidSeverities[0].date;
+                    const mostRecentDateString = mostRecentDate.toDateString();
+                    const mostRecentDateLabel = mostRecentDate.toLocaleDateString('pt-BR');
+                    const recentSeverities = allValidSeverities.filter(item => item.date.toDateString() === mostRecentDateString);
+                    recentSeverities.sort((a, b) => {
+                        if (b.severity !== a.severity) return b.severity - a.severity;
+                        return b.date - a.date;
+                    });
+                    const top3Recent = recentSeverities.slice(0, 3).sort((a, b) => b.date - a.date);
+                    if (elements.card4Title) elements.card4Title.textContent = `Severidades Mais Recentes: ${mostRecentDateLabel}`;
+                    let html = '<div class="w-full space-y-2 mt-1">';
+                    top3Recent.forEach(item => {
+                        const timeStr = item.date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                        html += `<div class="flex justify-between items-center border-b border-gray-100 pb-1 last:border-0"><span class="text-lg font-bold text-gray-800">${item.severity}</span><div class="text-right leading-tight"><div class="text-[10px] text-gray-500">${mostRecentDateLabel}</div><div class="text-[10px] font-mono text-gray-400">${timeStr}</div></div></div>`;
+                    });
+                    html += '</div>';
+                    elements.card4Container.innerHTML = html;
+                }
             }
 
             // Update Card 5: Participation
-            if (totalAlarms30d === 0) {
-                elements.card5List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhum alarme nos últimos 30 dias.</p>';
-            } else {
-                const participationList = [];
-                for (const [vName, count] of Object.entries(vehicleCounts30d)) {
-                    const percent = (count / totalAlarms30d) * 100;
-                    participationList.push({ name: vName, percent: percent });
-                }
-                // Sort Alphabetically
-                participationList.sort((a, b) => a.name.localeCompare(b.name));
+            if (elements.card5List) {
+                if (totalAlarms30d === 0) {
+                    elements.card5List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhum alarme nos últimos 30 dias.</p>';
+                } else {
+                    const participationList = [];
+                    for (const [vName, count] of Object.entries(vehicleCounts30d)) {
+                        const percent = (count / totalAlarms30d) * 100;
+                        participationList.push({ name: vName, percent: percent });
+                    }
+                    // Sort Alphabetically
+                    participationList.sort((a, b) => a.name.localeCompare(b.name));
 
-                let html5 = '';
-                participationList.forEach(item => {
-                    const formattedPercent = item.percent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
-                    const displayName = item.name === "" ? "(Sem ID)" : item.name;
-                    html5 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
-                        <span class="font-bold text-gray-700">${displayName}:</span>
-                        <span class="text-gray-500">${formattedPercent}</span>
-                    </div>`;
-                });
-                elements.card5List.innerHTML = html5;
+                    let html5 = '';
+                    participationList.forEach(item => {
+                        const formattedPercent = item.percent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+                        const displayName = item.name === "" ? "(Sem ID)" : item.name;
+                        html5 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
+                            <span class="font-bold text-gray-700">${displayName}:</span>
+                            <span class="text-gray-500">${formattedPercent}</span>
+                        </div>`;
+                    });
+                    elements.card5List.innerHTML = html5;
+                }
             }
 
             // Update Card 6: Average Severity
-            if (Object.keys(vehicleSeverityStats30d).length === 0) {
-                elements.card6List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida nos últimos 30 dias.</p>';
-            } else {
-                const sevAvgList = [];
-                for (const [vName, stats] of Object.entries(vehicleSeverityStats30d)) {
-                    if (stats.count > 0) {
-                        const avg = stats.sum / stats.count;
-                        sevAvgList.push({ name: vName, average: avg });
+            if (elements.card6List) {
+                if (Object.keys(vehicleSeverityStats30d).length === 0) {
+                    elements.card6List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida nos últimos 30 dias.</p>';
+                } else {
+                    const sevAvgList = [];
+                    for (const [vName, stats] of Object.entries(vehicleSeverityStats30d)) {
+                        if (stats.count > 0) {
+                            const avg = stats.sum / stats.count;
+                            sevAvgList.push({ name: vName, average: avg });
+                        }
                     }
-                }
-                // Sort Alphabetically
-                sevAvgList.sort((a, b) => a.name.localeCompare(b.name));
+                    // Sort Alphabetically
+                    sevAvgList.sort((a, b) => a.name.localeCompare(b.name));
 
-                let html6 = '';
-                sevAvgList.forEach(item => {
-                    const formattedAvg = item.average.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const displayName = item.name === "" ? "(Sem ID)" : item.name;
-                    html6 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
-                        <span class="font-bold text-gray-700">${displayName}:</span>
-                        <span class="text-gray-500">${formattedAvg}</span>
-                    </div>`;
-                });
-                elements.card6List.innerHTML = html6;
+                    let html6 = '';
+                    sevAvgList.forEach(item => {
+                        const formattedAvg = item.average.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const displayName = item.name === "" ? "(Sem ID)" : item.name;
+                        html6 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
+                            <span class="font-bold text-gray-700">${displayName}:</span>
+                            <span class="text-gray-500">${formattedAvg}</span>
+                        </div>`;
+                    });
+                    elements.card6List.innerHTML = html6;
+                }
             }
 
             // Only update graphs if we have data in window
@@ -1434,16 +1625,16 @@
                 });
 
                 const defaultColor = '#66b2b2';
-                speedChartInstance = renderChart(elements.chartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', defaultColor);
-                severityChartInstance = renderChart(elements.chartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', defaultColor);
+                if (elements.chartSpeedCtx) speedChartInstance = renderChart(elements.chartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', defaultColor);
+                if (elements.chartSeverityCtx) severityChartInstance = renderChart(elements.chartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', defaultColor);
                 
                 if (totalDropOffsInWindow > 0) {
-                    elements.dropOffChartContainer.classList.remove('hidden');
-                    elements.dropOffError.classList.add('hidden');
-                    dropOffChartInstance = renderChart(elements.chartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', defaultColor);
+                    if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.remove('hidden');
+                    if (elements.dropOffError) elements.dropOffError.classList.add('hidden');
+                    if (elements.chartDropOffCtx) dropOffChartInstance = renderChart(elements.chartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', defaultColor);
                 } else {
-                    elements.dropOffChartContainer.classList.add('hidden');
-                    elements.dropOffError.classList.remove('hidden');
+                    if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.add('hidden');
+                    if (elements.dropOffError) elements.dropOffError.classList.remove('hidden');
                 }
 
                 updateCustomSection();
@@ -1452,50 +1643,58 @@
                 // 6 Months Stats Logic
                 if (windowSpeeds.length < 2) {
                     const na = "N/A", ins = "Dados insuficientes.";
-                    elements.corrValue.textContent = na; elements.corrText.innerHTML = ins;
-                    elements.zScoreValue.textContent = na; elements.zScoreText.innerHTML = ins;
-                    elements.thermalValue.textContent = na; elements.thermalText.innerHTML = ins;
-                    elements.geoValue.textContent = na; elements.geoText.innerHTML = ins;
+                    if(elements.corrValue) elements.corrValue.textContent = na; 
+                    if(elements.corrText) elements.corrText.innerHTML = ins;
+                    if(elements.zScoreValue) elements.zScoreValue.textContent = na; 
+                    if(elements.zScoreText) elements.zScoreText.innerHTML = ins;
+                    if(elements.thermalValue) elements.thermalValue.textContent = na; 
+                    if(elements.thermalText) elements.thermalText.innerHTML = ins;
+                    if(elements.geoValue) elements.geoValue.textContent = na; 
+                    if(elements.geoText) elements.geoText.innerHTML = ins;
                 } else {
                     let r = calculatePearsonCorrelation(windowSpeeds, windowSeverities);
                     if (r < 0) r = 0;
-                    elements.corrValue.textContent = r.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    if(elements.corrValue) elements.corrValue.textContent = r.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    
                     let corrHTML = "";
                     if (r >= 0.7) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">forte</span> com a severidade`;
                     else if (r >= 0.5) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">moderada</span> com a severidade`;
                     else if (r >= 0.1) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">fraca</span> com a severidade`;
                     else corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">desprezível</span> com a severidade`;
-                    elements.corrText.innerHTML = corrHTML;
+                    if(elements.corrText) elements.corrText.innerHTML = corrHTML;
 
                     const siteMean = windowSeverities.reduce((a, b) => a + b) / windowSeverities.length;
                     const siteStdDev = calculateStandardDeviation(windowSeverities);
                     const zScore = siteStdDev > 0 ? (maxSeverityInWindow - siteMean) / siteStdDev : 0;
-                    elements.zScoreValue.textContent = zScore.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    if(elements.zScoreValue) elements.zScoreValue.textContent = zScore.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    
                     const isAnomaly = maxSeverityInWindow > (siteMean + 2 * siteStdDev);
                     let zScoreHTML = isAnomaly ? `Severidade acima do padrão do site para o trem <span class="text-accent font-bold">${maxSeverityVehicle}</span>` : `<span class="text-accent font-bold">Múltiplos veículos afetados</span>`;
-                    elements.zScoreText.innerHTML = zScoreHTML;
+                    if(elements.zScoreText) elements.zScoreText.innerHTML = zScoreHTML;
 
                     if (!hasSevereImpacts) {
-                        elements.thermalValue.textContent = "-"; elements.thermalText.innerHTML = "Nenhum impacto severo (>2000) registrado.";
+                        if(elements.thermalValue) elements.thermalValue.textContent = "-"; 
+                        if(elements.thermalText) elements.thermalText.innerHTML = "Nenhum impacto severo (>2000) registrado.";
                     } else {
                         let maxHourCount = -1, maxHour = -1;
                         for (let h = 0; h < 24; h++) { if (thermalHourCounts[h] > maxHourCount) { maxHourCount = thermalHourCounts[h]; maxHour = h; } }
-                        elements.thermalValue.textContent = `${maxHour}h`;
+                        if(elements.thermalValue) elements.thermalValue.textContent = `${maxHour}h`;
                         let thermalHTML = "";
                         if (maxHour >= 10 && maxHour <= 16) thermalHTML = `Pico de impactos detectado no horário de <span class="text-accent font-bold">maior calor</span>.`;
                         else if (maxHour >= 22 || maxHour <= 5) thermalHTML = `Pico de impactos detectado no horário de <span class="text-accent font-bold">menor temperatura</span>.`;
                         else thermalHTML = `Pico de impactos em horário de temperatura neutra.`;
-                        elements.thermalText.innerHTML = thermalHTML;
+                        if(elements.thermalText) elements.thermalText.innerHTML = thermalHTML;
                     }
 
                     const occurrenceRate = totalEventsInWindow > 0 ? (uniqueVehiclesInWindow.size / totalEventsInWindow) : 0;
                     const occurrencePercent = (occurrenceRate * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
-                    elements.geoValue.textContent = occurrencePercent;
+                    if(elements.geoValue) elements.geoValue.textContent = occurrencePercent;
+                    
                     let geoHTML = "";
                     if (occurrenceRate >= 0.4) geoHTML = `<span class="text-accent font-bold">Persistência Crítica</span>: ${occurrencePercent} dos trens sofreram impacto neste site.`;
                     else if (occurrenceRate < 0.4 && maxSeverityInWindow >= 2000) geoHTML = `Impactos severos isolados. <span class="text-accent font-bold">Baixa repetibilidade</span>.`;
                     else geoHTML = "Repetibilidade moderada sem severidade crítica.";
-                    elements.geoText.innerHTML = geoHTML;
+                    if(elements.geoText) elements.geoText.innerHTML = geoHTML;
                 }
             }
             
@@ -1504,25 +1703,25 @@
 
         // Added back handleFile
         function handleFile() {
-            const file = elements.input.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) { processData(e.target.result); };
-            reader.onerror = function() { showError("Erro ao ler o arquivo."); };
-            reader.readAsText(file);
+            if (elements.input && elements.input.files.length > 0) {
+                const file = elements.input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) { processData(e.target.result); };
+                reader.onerror = function() { showError("Erro ao ler o arquivo."); };
+                reader.readAsText(file);
+            }
         }
 
         // Listeners
-        elements.input.addEventListener('change', resetUI);
-        elements.btn.addEventListener('click', handleFile);
-        elements.startDateInput.addEventListener('change', updateCustomSection);
-        elements.endDateInput.addEventListener('change', updateCustomSection);
+        if (elements.input) elements.input.addEventListener('change', resetUI);
+        if (elements.btn) elements.btn.addEventListener('click', handleFile);
+        if (elements.startDateInput) elements.startDateInput.addEventListener('change', updateCustomSection);
+        if (elements.endDateInput) elements.endDateInput.addEventListener('change', updateCustomSection);
+        
         // New Listeners for Severity Section
-        elements.sevStartDateInput.addEventListener('change', updateSeverityEvolutionSection);
-        elements.sevEndDateInput.addEventListener('change', updateSeverityEvolutionSection);
+        if (elements.sevStartDateInput) elements.sevStartDateInput.addEventListener('change', updateSeverityEvolutionSection);
+        if (elements.sevEndDateInput) elements.sevEndDateInput.addEventListener('change', updateSeverityEvolutionSection);
 
     </script>
 </body>
 </html>
-

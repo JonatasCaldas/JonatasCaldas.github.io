@@ -232,14 +232,14 @@
             <!-- Distribuição dos Alarmes -->
             <section id="generalSummarySection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mt-6">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Distribuição dos Alarmes</h2>
+                    <h2 class="text-xl font-semibold text-gray-800">Distribuição dos Alarmes do Dia Anterior</h2>
                 </div>
                 
                 <div id="generalSummaryContent">
                     <!-- Conteúdo gerado via JS -->
                 </div>
 
-                <!-- Novos Tiles Placeholder -->
+                <!-- Novos Tiles -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 transition-opacity duration-300">
                     <!-- Tile 1: Distribuição de Severidade Recente -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-start h-full hover:border-accent transition-colors text-left">
@@ -248,15 +248,19 @@
                             <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
                         </div>
                     </div>
-                    <!-- Tile 2: Placeholder -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
-                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    <!-- Tile 2: Site com Mais Eventos Pós Revisão -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-center items-center text-center hover:border-accent transition-colors h-full">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">Site Mais Recente com Mais Eventos Pós Revisão<br>Últimos 15 dias</span>
+                        <div id="tileMostEventsContent" class="flex flex-col items-center justify-center w-full flex-1">
+                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
+                        </div>
                     </div>
-                    <!-- Tile 3: Placeholder -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
-                        <strong class="text-2xl font-bold text-gray-300 mb-1">-</strong>
+                    <!-- Tile 3: Site Mais Recente com Mais Drop Offs Pós Revisão -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col justify-center items-center text-center hover:border-accent transition-colors h-full">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">Site Mais Recente com Mais Drop Offs<br>Últimos 15 dias</span>
+                        <div id="tileMostDropOffsContent" class="flex flex-col items-center justify-center w-full flex-1">
+                            <div class="flex items-center justify-center h-full text-gray-400 text-xs italic">Aguardando dados...</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -371,6 +375,8 @@
                 tile8: document.getElementById('tile8Value'),
                 tile9Content: document.getElementById('tile9Content'),
                 alarmDistContent: document.getElementById('alarmDistContent'),
+                tileMostEventsContent: document.getElementById('tileMostEventsContent'),
+                tileMostDropOffsContent: document.getElementById('tileMostDropOffsContent'),
                 compDropOffsRecentesValue: document.getElementById('compDropOffsRecentesValue'),
                 compConsistenciaValue: document.getElementById('compConsistenciaValue'),
                 compConsistenciaDesc: document.getElementById('compConsistenciaDesc'),
@@ -560,6 +566,7 @@
                 const idxRecentSeverity = headers.findIndex(h => h.includes('most recent event impact severity'));
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
                 const idxDrop = headers.findIndex(h => h.includes('drop off events'));
+                const idxDropDate = headers.findIndex(h => h.includes('most recent event with drop off'));
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
                 
@@ -579,6 +586,7 @@
                     const lon = idxLon !== -1 ? parseNumber(row[idxLon], isBR) : null;
                     const site = idxSite !== -1 ? row[idxSite] : "Unknown";
                     const drop = idxDrop !== -1 ? parseNumber(row[idxDrop], isBR) : 0;
+                    const dropDate = idxDropDate !== -1 && row[idxDropDate] ? parseDate(row[idxDropDate]) : null;
                     
                     const lastReviewDate = idxLastReview !== -1 ? parseDate(row[idxLastReview]) : null;
                     const url = idxUrl !== -1 ? row[idxUrl] : null;
@@ -592,6 +600,7 @@
                         lat: lat,
                         lon: lon,
                         dropOff: isNaN(drop) ? 0 : drop,
+                        dropOffDate: dropDate,
                         lastReviewDate: lastReviewDate,
                         url: url,
                         eventsSince: eventsSince
@@ -652,6 +661,7 @@
                 const yesterdayStartRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 0, 0, 0, 0);
                 const yesterdayEndRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 1, 23, 59, 59, 999);
                 const sevenDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 7, 0, 0, 0, 0);
+                const fifteenDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 15, 0, 0, 0, 0);
                 const thirtyDaysAgoRef = new Date(dataAtualNavegador.getFullYear(), dataAtualNavegador.getMonth(), dataAtualNavegador.getDate() - 30, 0, 0, 0, 0);
                 
                 let recentDropOffsCount = 0;
@@ -914,6 +924,90 @@
                     }
                 }
                 // ------------------------------------------
+
+                // --- Site com Mais Eventos Pós Revisão (Fixo 15 dias, ignora filtros UI) ---
+                let maxEventsSite = null;
+
+                globalRawData.forEach(item => {
+                    if (item.date && item.date >= fifteenDaysAgoRef && item.date <= todayRef) {
+                        if (item.eventsSince !== null && !isNaN(item.eventsSince) && item.eventsSince > 0) {
+                            if (!maxEventsSite) {
+                                maxEventsSite = item;
+                            } else if (item.eventsSince > maxEventsSite.eventsSince) {
+                                maxEventsSite = item;
+                            } else if (item.eventsSince === maxEventsSite.eventsSince) {
+                                if (item.date > maxEventsSite.date) {
+                                    maxEventsSite = item;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (els.tileMostEventsContent) {
+                    if (!maxEventsSite) {
+                        els.tileMostEventsContent.innerHTML = '<span class="text-lg font-bold text-gray-400 mb-1">Sem dados</span>';
+                    } else {
+                        let siteHtml = `<span class="font-semibold text-gray-700 truncate w-full px-2" title="${maxEventsSite.siteName}">${maxEventsSite.siteName}</span>`;
+                        if (maxEventsSite.url && maxEventsSite.url.length > 5) {
+                            siteHtml = `
+                                <a href="${maxEventsSite.url}" target="_blank" class="hover:text-accent hover:underline decoration-accent cursor-pointer flex items-center justify-center gap-1 w-full px-2">
+                                    <span class="truncate font-semibold text-gray-700" title="${maxEventsSite.siteName}">${maxEventsSite.siteName}</span>
+                                    <svg class="w-3 h-3 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
+                            `;
+                        }
+                        
+                        els.tileMostEventsContent.innerHTML = `
+                            ${siteHtml}
+                            <strong class="text-3xl font-bold text-accent mt-2">${maxEventsSite.eventsSince.toLocaleString('pt-BR')}</strong>
+                            <span class="text-xs text-gray-500 font-medium">Eventos</span>
+                        `;
+                    }
+                }
+                // -------------------------------------------------------------------------
+
+                // --- Site Mais Recente com Mais Drop Offs Pós Revisão (Fixo 15 dias, ignora filtros UI) ---
+                let maxDropOffsSite = null;
+
+                globalRawData.forEach(item => {
+                    if (item.dropOffDate && item.dropOffDate >= fifteenDaysAgoRef && item.dropOffDate <= todayRef) {
+                        if (item.dropOff !== null && !isNaN(item.dropOff) && item.dropOff > 0) {
+                            if (!maxDropOffsSite) {
+                                maxDropOffsSite = item;
+                            } else if (item.dropOff > maxDropOffsSite.dropOff) {
+                                maxDropOffsSite = item;
+                            } else if (item.dropOff === maxDropOffsSite.dropOff) {
+                                if (item.dropOffDate > maxDropOffsSite.dropOffDate) {
+                                    maxDropOffsSite = item;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (els.tileMostDropOffsContent) {
+                    if (!maxDropOffsSite) {
+                        els.tileMostDropOffsContent.innerHTML = '<span class="text-lg font-bold text-gray-400 mb-1">Sem dados</span>';
+                    } else {
+                        let siteHtml = `<span class="font-semibold text-gray-700 truncate w-full px-2" title="${maxDropOffsSite.siteName}">${maxDropOffsSite.siteName}</span>`;
+                        if (maxDropOffsSite.url && maxDropOffsSite.url.length > 5) {
+                            siteHtml = `
+                                <a href="${maxDropOffsSite.url}" target="_blank" class="hover:text-accent hover:underline decoration-accent cursor-pointer flex items-center justify-center gap-1 w-full px-2">
+                                    <span class="truncate font-semibold text-gray-700" title="${maxDropOffsSite.siteName}">${maxDropOffsSite.siteName}</span>
+                                    <svg class="w-3 h-3 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
+                            `;
+                        }
+                        
+                        els.tileMostDropOffsContent.innerHTML = `
+                            ${siteHtml}
+                            <strong class="text-3xl font-bold text-accent mt-2">${maxDropOffsSite.dropOff.toLocaleString('pt-BR')}</strong>
+                            <span class="text-xs text-gray-500 font-medium">Drop Offs</span>
+                        `;
+                    }
+                }
+                // -------------------------------------------------------------------------
 
                 if (data.length === 0) {
                     els.dashboardGrid.classList.add('hidden');

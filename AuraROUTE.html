@@ -11,6 +11,18 @@
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Leaflet CSS & JS (Mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Leaflet Heatmap -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
     <!-- Configuração do Tailwind -->
     <script>
         tailwind.config = {
@@ -31,6 +43,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
         .chart-container { position: relative; height: 350px; width: 100%; }
+        .leaflet-container { z-index: 0; }
     </style>
 </head>
 <body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col items-center pt-12 pb-12">
@@ -184,6 +197,51 @@
             </div>
         </section>
 
+        <!-- Nova Seção: Posicionamento Geográfico -->
+        <section id="mapSection" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-8 transition-all duration-300 animate-fade-in relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>
+            
+            <div class="pl-2">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-b border-gray-100 pb-4 gap-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Posicionamento Geográfico</h2>
+                        <p class="text-sm text-gray-500 mt-1">Análise espacial da criticidade baseada no arquivo principal.</p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                        <!-- Filtro Temporal Mapa -->
+                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            <div class="flex flex-col">
+                                <label for="mapStartDate" class="text-[10px] uppercase font-bold text-gray-400">Início</label>
+                                <input type="date" id="mapStartDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                            </div>
+                            <span class="text-gray-400">-</span>
+                            <div class="flex flex-col">
+                                <label for="mapEndDate" class="text-[10px] uppercase font-bold text-gray-400">Fim</label>
+                                <input type="date" id="mapEndDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Alternador de Visualização -->
+                        <div class="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
+                            <button id="btnMapCircle" class="px-3 py-1 text-xs font-semibold rounded shadow-sm bg-white text-yellow-600 transition-all">Círculos</button>
+                            <button id="btnMapCluster" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Cluster</button>
+                            <button id="btnMapHeat" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Heatmap</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container do Mapa -->
+                <div class="w-full relative border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                    <div id="routeMap" class="w-full h-[400px] md:h-[600px] z-0"></div>
+                </div>
+                
+                <div id="noDataMap" class="hidden text-center py-10 text-gray-500 border border-dashed border-gray-200 rounded bg-gray-50 mt-4">
+                    Nenhum registro válido encontrado para o período selecionado.
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -195,6 +253,12 @@
             let lowCritFiles = [];
             const MAX_FILES = 5;
             let healthChartInstance = null;
+
+            // Map State
+            let mapInstanceRoute = null;
+            let mapLayerGroupRoute = null;
+            let mapDataRoute = [];
+            let currentMapModeRoute = 'circle';
 
             // --- DOM ELEMENTS ---
             const els = {
@@ -222,7 +286,16 @@
                 healthSection: document.getElementById('healthSection'),
                 healthChartCtx: document.getElementById('healthChart').getContext('2d'),
                 siteTotalsGrid: document.getElementById('siteTotalsGrid'),
-                noDataHealth: document.getElementById('noDataHealth')
+                noDataHealth: document.getElementById('noDataHealth'),
+
+                // Map Elements
+                mapSection: document.getElementById('mapSection'),
+                mapStartDate: document.getElementById('mapStartDate'),
+                mapEndDate: document.getElementById('mapEndDate'),
+                btnMapCircle: document.getElementById('btnMapCircle'),
+                btnMapCluster: document.getElementById('btnMapCluster'),
+                btnMapHeat: document.getElementById('btnMapHeat'),
+                noDataMap: document.getElementById('noDataMap')
             };
 
             // --- FUNÇÕES DE FEEDBACK ---
@@ -275,6 +348,7 @@
                 els.mainStatusIndicator.classList.remove('bg-accent', 'bg-red-400');
                 els.mainStatusIndicator.classList.add('bg-gray-300');
                 els.healthSection.classList.add('hidden');
+                els.mapSection.classList.add('hidden');
             };
 
             els.removeMainFileBtn.addEventListener('click', clearMainFile);
@@ -358,6 +432,56 @@
 
             const parseCSVLine = (line) => line.split(',').map(item => item.trim().replace(/^"|"$/g, ''));
 
+            // --- FUNÇÕES AUXILIARES DE PARSE PARA O MAPA ---
+            const parseDateMap = (str) => {
+                if (!str || str === '-' || str === '0' || str.toLowerCase() === 'null') return null;
+                str = str.trim().replace(/"/g, ''); 
+                let d = null;
+                if (str.includes('T')) {
+                    const temp = new Date(str.endsWith('Z') ? str.slice(0, -1) : str);
+                    if (!isNaN(temp.getTime())) d = temp;
+                }
+                if (!d) {
+                    const dateMatch = str.match(/^(\d{4}|\d{1,2})[-/](\d{1,2})[-/](\d{4}|\d{1,2})(.*)/);
+                    if (dateMatch) {
+                        let p1 = parseInt(dateMatch[1]), p2 = parseInt(dateMatch[2]), p3 = parseInt(dateMatch[3]);
+                        let y, m, day;
+                        if (p1 > 1000) { y = p1; m = p2 - 1; day = p3; } 
+                        else if (p3 > 1000) { y = p3; if (p2 > 12) { m = p1 - 1; day = p2; } else { day = p1; m = p2 - 1; } }
+                        if (y !== undefined) {
+                            d = new Date(y, m, day);
+                            d.setHours(12, 0, 0); 
+                        }
+                    } else {
+                        const temp = new Date(str);
+                        if (!isNaN(temp.getTime())) d = temp;
+                    }
+                }
+                if (d && !isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    if (year >= 2000 && year <= 2100) return d; 
+                }
+                return null;
+            };
+
+            const parseNumberMap = (str) => {
+                if (!str) return NaN;
+                str = str.trim().replace(/"/g, '');
+                if (str.includes(',') && !str.includes('.')) str = str.replace(',', '.');
+                else if (str.includes(',') && str.includes('.')) str = str.replace(/\./g, '').replace(',', '.');
+                return parseFloat(str);
+            };
+
+            // Setup datas iniciais do mapa (30 dias)
+            const initMapDates = () => {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 29);
+                if (els.mapEndDate) els.mapEndDate.valueAsDate = end;
+                if (els.mapStartDate) els.mapStartDate.valueAsDate = start;
+            };
+            initMapDates();
+
             els.processBtn.addEventListener('click', async () => {
                 hideError();
                 els.successMsg.classList.add('hidden');
@@ -381,6 +505,11 @@
                 try {
                     const rawDataFiles = await Promise.all(allCritFiles.map(readFileAsText));
                     processOperationalHealth(rawDataFiles);
+                    
+                    // Extração do Arquivo Principal para o Mapa
+                    const mainFileData = await readFileAsText(mainFile);
+                    processMapData(mainFileData);
+
                 } catch (err) {
                     showError("Erro ao processar os arquivos CSV. Verifique a codificação e formato.");
                     console.error(err);
@@ -573,6 +702,172 @@
                 // Scroll até a nova seção
                 els.healthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+
+            // --- POSICIONAMENTO GEOGRÁFICO ---
+            function processMapData(fileObj) {
+                mapDataRoute = [];
+                const lines = fileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
+                if (lines.length < 2) return;
+
+                const sep = lines[0].includes(';') ? ';' : ',';
+                const headers = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/^"|"$/g, ''));
+                
+                // Mapeamento de colunas padrão do sistema
+                const idxLat = headers.findIndex(h => h.includes('latitude'));
+                const idxLon = headers.findIndex(h => h.includes('longitude'));
+                const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
+                const idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity') && !h.includes('drop'));
+                const idxLargestImpact = headers.findIndex(h => h.includes('largest impact since last review'));
+                const idxRecentSeverity = headers.findIndex(h => h.includes('most recent event impact severity'));
+                const idxEventsSince = headers.findIndex(h => h.includes('events since last review') && !h.includes('drop'));
+                const idxDropOff = headers.findIndex(h => h.includes('drop off events'));
+
+                // Validação de estrutura do CSV principal
+                if (idxLat === -1 || idxLon === -1 || idxDate === -1 || idxLargestImpact === -1 || idxRecentSeverity === -1 || idxEventsSince === -1 || idxDropOff === -1) {
+                    console.warn("O arquivo principal não possui as colunas necessárias para o Posicionamento Geográfico.");
+                    return; 
+                }
+
+                const dataAtualNavegador = new Date();
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split(sep).map(col => col.trim().replace(/^"|"$/g, ''));
+                    
+                    const lat = parseNumberMap(row[idxLat]);
+                    const lon = parseNumberMap(row[idxLon]);
+                    const dateObj = parseDateMap(row[idxDate]);
+                    const largestImpact = parseNumberMap(row[idxLargestImpact]);
+                    const recentSeverity = parseNumberMap(row[idxRecentSeverity]);
+                    const eventsSince = parseNumberMap(row[idxEventsSince]);
+                    const dropOff = parseNumberMap(row[idxDropOff]);
+                    const site = idxSite !== -1 ? row[idxSite] : "Desconhecido";
+
+                    // REGRA RIGOROSA: Descartar nulos, ausentes ou inválidos na leitura
+                    if (isNaN(lat) || isNaN(lon) || !dateObj || isNaN(largestImpact) || isNaN(recentSeverity) || isNaN(eventsSince) || isNaN(dropOff)) {
+                        continue;
+                    }
+
+                    // FÓRMULA DE CRITICIDADE
+                    const daysAgo = Math.max(0, (dataAtualNavegador - dateObj) / (1000 * 60 * 60 * 24));
+                    const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
+                    
+                    const criticidade = (largestImpact * 0.30) + 
+                                        (recentSeverity * 0.25) + 
+                                        (eventsSince * 0.15) + 
+                                        (recencyFactor * 0.15) + 
+                                        (dropOff * 0.15);
+
+                    mapDataRoute.push({
+                        siteName: site,
+                        lat: lat,
+                        lon: lon,
+                        date: dateObj,
+                        criticidade: criticidade
+                    });
+                }
+
+                els.mapSection.classList.remove('hidden');
+                updateMapRoute();
+            }
+
+            function initMapRoute() {
+                if (typeof L === 'undefined' || mapInstanceRoute) return;
+                mapInstanceRoute = L.map('routeMap').setView([-23.55, -46.63], 4);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceRoute);
+                mapLayerGroupRoute = L.layerGroup().addTo(mapInstanceRoute);
+            }
+
+            function updateMapRoute() {
+                if (!mapInstanceRoute) initMapRoute();
+                if (!mapInstanceRoute) return;
+
+                mapLayerGroupRoute.clearLayers();
+
+                const startStr = els.mapStartDate.value;
+                const endStr = els.mapEndDate.value;
+                
+                if (!startStr || !endStr) return;
+
+                const startDate = new Date(startStr);
+                startDate.setHours(0,0,0,0);
+                const endDate = new Date(endStr);
+                endDate.setHours(23,59,59,999);
+
+                // Filtro temporal dinâmico
+                const filtered = mapDataRoute.filter(pt => pt.date >= startDate && pt.date <= endDate);
+
+                if (filtered.length === 0) {
+                    els.noDataMap.classList.remove('hidden');
+                    return;
+                } else {
+                    els.noDataMap.classList.add('hidden');
+                }
+
+                // Gatilho visual necessário no Leaflet para re-renderização em container antes escondido
+                setTimeout(() => mapInstanceRoute.invalidateSize(), 100);
+
+                if (currentMapModeRoute === 'circle') {
+                    const renderer = L.canvas({ padding: 0.5 });
+                    filtered.forEach(pt => {
+                        L.circleMarker([pt.lat, pt.lon], {
+                            renderer: renderer, radius: 7,
+                            fillColor: '#F5D366', color: '#B45309', weight: 1, opacity: 0.8, fillOpacity: 0.8
+                        }).bindTooltip(`
+                            <div class="font-sans text-sm">
+                                <b>Site:</b> ${pt.siteName}<br>
+                                <b>Data:</b> ${pt.date.toLocaleDateString('pt-BR')}<br>
+                                <b>Criticidade:</b> ${pt.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 1})} pontos
+                            </div>
+                        `, { direction: 'top' }).addTo(mapLayerGroupRoute);
+                    });
+                } else if (currentMapModeRoute === 'cluster') {
+                    const markers = L.markerClusterGroup();
+                    filtered.forEach(pt => {
+                        const m = L.circleMarker([pt.lat, pt.lon], { radius: 7, fillColor: '#F5D366', color: '#B45309', weight: 1, fillOpacity: 0.8 });
+                        m.bindTooltip(`
+                            <div class="font-sans text-sm">
+                                <b>Site:</b> ${pt.siteName}<br>
+                                <b>Criticidade:</b> ${pt.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 1})} pontos
+                            </div>
+                        `);
+                        markers.addLayer(m);
+                    });
+                    mapLayerGroupRoute.addLayer(markers);
+                } else if (currentMapModeRoute === 'heat') {
+                    // Mapeia a intensidade do calor na relação com o maior impacto detectado
+                    const maxCrit = Math.max(...filtered.map(p => p.criticidade), 1);
+                    const points = filtered.map(pt => [pt.lat, pt.lon, pt.criticidade / maxCrit]);
+                    L.heatLayer(points, { radius: 25, blur: 15 }).addTo(mapLayerGroupRoute);
+                }
+
+                mapInstanceRoute.fitBounds(L.latLngBounds(filtered.map(p => [p.lat, p.lon])), { padding: [50,50] });
+            }
+
+            // --- EVENTOS DO MAPA ---
+            els.mapStartDate.addEventListener('change', updateMapRoute);
+            els.mapEndDate.addEventListener('change', updateMapRoute);
+
+            const setMapModeRoute = (mode) => {
+                currentMapModeRoute = mode;
+                ['btnMapCircle', 'btnMapCluster', 'btnMapHeat'].forEach(id => {
+                    const btn = document.getElementById(id);
+                    if(btn) {
+                        if (id.toLowerCase().includes(mode)) {
+                            btn.classList.add('bg-white', 'text-yellow-600', 'shadow-sm');
+                            btn.classList.remove('text-gray-500');
+                        } else {
+                            btn.classList.remove('bg-white', 'text-yellow-600', 'shadow-sm');
+                            btn.classList.add('text-gray-500');
+                        }
+                    }
+                });
+                updateMapRoute(); 
+            };
+
+            if(els.btnMapCircle) els.btnMapCircle.addEventListener('click', () => setMapModeRoute('circle'));
+            if(els.btnMapCluster) els.btnMapCluster.addEventListener('click', () => setMapModeRoute('cluster'));
+            if(els.btnMapHeat) els.btnMapHeat.addEventListener('click', () => setMapModeRoute('heat'));
+
         });
     </script>
 </body>

@@ -65,6 +65,9 @@
         .leaflet-container {
             z-index: 0; 
         }
+        /* Animações Auxiliares */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
     </style>
 </head>
 <body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col items-center pt-12 pb-12">
@@ -74,7 +77,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraLOC 1.6.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraLOC 1.6.1</h1>
             <p class="text-gray-500 mt-1 text-lg">Analise as condições operacionais de cada localidade onde houve um alarme</p>
         </header>
 
@@ -110,36 +113,51 @@
             </div>
         </nav>
 
-        <!-- Seção de Entrada -->
-        <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6">
-            <div class="flex items-end gap-6">
-                
-                <!-- Input de Arquivo -->
-                <div class="flex-grow">
-                    <label class="block text-sm font-medium text-gray-700 mb-2" for="csvInput">
-                        Selecione o arquivo CSV
-                    </label>
-                    <input 
-                        type="file" 
-                        id="csvInput" 
-                        accept=".csv"
-                        class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-gray-100 file:text-gray-700
-                            hover:file:bg-gray-200
-                            focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2"
-                    >
-                </div>
+        <!-- Seção de Entrada (Refatorada) -->
+        <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-300 relative overflow-hidden">
+            <!-- Indicador visual lateral -->
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-300 transition-colors duration-300" id="mainStatusIndicator"></div>
 
-                <!-- Botão de Ação -->
-                <button 
-                    id="analyzeBtn"
-                    class="bg-accent hover:bg-accent-dark text-white font-semibold py-2.5 px-8 rounded-md transition duration-200 shadow-sm flex-shrink-0"
-                >
-                    Analisar
-                </button>
+            <div class="flex flex-col w-full pl-2">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV</h2>
+                        <p class="text-xs text-gray-500 mt-1">Base central para a análise de localidade. Obrigatório (1 arquivo).</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3 flex flex-col md:flex-row gap-4 items-center w-full">
+                    <div class="flex-1 w-full relative" id="inputWrapper">
+                        <input 
+                            type="file" 
+                            id="csvInput" 
+                            accept=".csv" 
+                            class="block w-full text-sm text-gray-500 
+                                   file:mr-4 file:py-2.5 file:px-4 
+                                   file:rounded-md file:border-0 
+                                   file:text-sm file:font-semibold 
+                                   file:bg-gray-100 file:text-gray-700 
+                                   hover:file:bg-gray-200 
+                                   focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2 transition-colors focus:ring-2 focus:ring-accent focus:border-accent">
+                    </div>
+                    
+                    <!-- Feedback visual de arquivo selecionado -->
+                    <div id="mainFileStatus" class="hidden shrink-0 items-center gap-2 px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-md text-sm font-medium animate-fade-in">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="mainFileName" class="max-w-[150px] truncate">arquivo.csv</span>
+                        <button id="removeMainFileBtn" class="ml-2 text-green-600 hover:text-green-800 font-bold focus:outline-none" title="Remover" type="button">&times;</button>
+                    </div>
+                    
+                    <!-- Botão de Ação -->
+                    <div class="shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                        <button 
+                            id="analyzeBtn"
+                            class="bg-accent hover:bg-accent-dark text-gray-900 font-bold py-2.5 px-8 rounded-md transition duration-200 shadow-sm w-full md:w-auto focus:ring-4 focus:ring-opacity-50 focus:ring-accent focus:outline-none"
+                        >
+                            Analisar
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -542,6 +560,11 @@
         // --- Referências do DOM ---
         const elements = {
             input: document.getElementById('csvInput'),
+            inputWrapper: document.getElementById('inputWrapper'),
+            mainFileStatus: document.getElementById('mainFileStatus'),
+            mainFileName: document.getElementById('mainFileName'),
+            removeMainFileBtn: document.getElementById('removeMainFileBtn'),
+            mainStatusIndicator: document.getElementById('mainStatusIndicator'),
             btn: document.getElementById('analyzeBtn'),
             outputContainer: document.getElementById('outputContainer'),
             emptyState: document.getElementById('emptyState'),
@@ -1713,8 +1736,66 @@
         }
 
         // Listeners
-        if (elements.input) elements.input.addEventListener('change', resetUI);
-        if (elements.btn) elements.btn.addEventListener('click', handleFile);
+        if (elements.input) {
+            elements.input.addEventListener('change', (e) => {
+                resetUI();
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Atualiza interface visual do arquivo carregado
+                if (elements.mainFileName) {
+                    elements.mainFileName.textContent = file.name;
+                    elements.mainFileName.title = file.name;
+                }
+                
+                if (elements.inputWrapper) elements.inputWrapper.classList.add('hidden');
+                
+                if (elements.mainFileStatus) {
+                    elements.mainFileStatus.classList.remove('hidden');
+                    elements.mainFileStatus.classList.add('flex');
+                }
+                
+                if (elements.mainStatusIndicator) {
+                    elements.mainStatusIndicator.classList.remove('bg-gray-300', 'bg-red-400');
+                    elements.mainStatusIndicator.classList.add('bg-accent');
+                }
+            });
+        }
+
+        if (elements.removeMainFileBtn) {
+            elements.removeMainFileBtn.addEventListener('click', () => {
+                if (elements.input) elements.input.value = '';
+                
+                if (elements.inputWrapper) elements.inputWrapper.classList.remove('hidden');
+                
+                if (elements.mainFileStatus) {
+                    elements.mainFileStatus.classList.add('hidden');
+                    elements.mainFileStatus.classList.remove('flex');
+                }
+                
+                if (elements.mainStatusIndicator) {
+                    elements.mainStatusIndicator.classList.remove('bg-accent', 'bg-red-400');
+                    elements.mainStatusIndicator.classList.add('bg-gray-300');
+                }
+                
+                resetUI();
+            });
+        }
+
+        if (elements.btn) {
+            elements.btn.addEventListener('click', () => {
+                if (elements.input && !elements.input.files.length) {
+                    if (elements.mainStatusIndicator) {
+                        elements.mainStatusIndicator.classList.remove('bg-gray-300');
+                        elements.mainStatusIndicator.classList.add('bg-red-400');
+                    }
+                    showError("O arquivo CSV é obrigatório para continuar. Por favor, selecione-o.");
+                    return;
+                }
+                handleFile();
+            });
+        }
+        
         if (elements.startDateInput) elements.startDateInput.addEventListener('change', updateCustomSection);
         if (elements.endDateInput) elements.endDateInput.addEventListener('change', updateCustomSection);
         
@@ -1722,7 +1803,14 @@
         if (elements.sevStartDateInput) elements.sevStartDateInput.addEventListener('change', updateSeverityEvolutionSection);
         if (elements.sevEndDateInput) elements.sevEndDateInput.addEventListener('change', updateSeverityEvolutionSection);
 
+        // Listeners do Mapa (Estavam faltando)
+        if (elements.btnMapCircle) elements.btnMapCircle.addEventListener('click', () => setMapMode('circle'));
+        if (elements.btnMapCluster) elements.btnMapCluster.addEventListener('click', () => setMapMode('cluster'));
+        if (elements.btnMapHeat) elements.btnMapHeat.addEventListener('click', () => setMapMode('heat'));
+        
+        if (elements.mapStartDate) elements.mapStartDate.addEventListener('change', updateMap);
+        if (elements.mapEndDate) elements.mapEndDate.addEventListener('change', updateMap);
+
     </script>
 </body>
 </html>
-

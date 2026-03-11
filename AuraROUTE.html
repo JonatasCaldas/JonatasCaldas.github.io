@@ -52,7 +52,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 1.0.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.1.1</h1>
             <p class="text-gray-500 mt-1 text-lg">Centralize e prepare os dados de criticidade e eventos principais para a análise de roteamento</p>
         </header>
 
@@ -93,7 +93,7 @@
 
         <div id="successMsg" class="hidden mb-6 p-4 bg-green-50 text-green-700 text-sm rounded-md border border-green-200 animate-fade-in flex items-center gap-3">
             <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span class="font-medium">Validação concluída. Processando dados de saúde operacional...</span>
+            <span class="font-medium">Validação concluída. Processando dados...</span>
         </div>
 
         <!-- Seção de Entrada Principal -->
@@ -163,6 +163,95 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </button>
         </div>
+
+        <!-- Nova Seção: Indicadores -->
+        <section id="indicadoresSection" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-8 transition-all duration-300 animate-fade-in relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>
+            <div class="pl-2">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-b border-gray-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Indicadores</h2>
+                        <p class="text-sm text-gray-500 mt-1">Filtre os dados espacialmente e analise os principais indicadores do trecho.</p>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="flex flex-wrap gap-4 items-end bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+                    <!-- Datas -->
+                    <div class="flex flex-col">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 mb-1">Período de Análise</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="indStartDate" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border bg-white">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="date" id="indEndDate" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Linha -->
+                    <div class="flex flex-col flex-1 min-w-[150px]">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 mb-1">Linha</label>
+                        <select id="indLinha" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border bg-white cursor-pointer">
+                            <option value="ALL">Todas as Linhas</option>
+                        </select>
+                    </div>
+
+                    <!-- Ref Inicial -->
+                    <div class="flex flex-col flex-1 min-w-[150px]">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 mb-1">Referência Inicial</label>
+                        <select id="indRefIni" disabled class="text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border bg-gray-100 disabled:opacity-60 cursor-pointer">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <!-- Ref Final -->
+                    <div class="flex flex-col flex-1 min-w-[150px]">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 mb-1">Referência Final</label>
+                        <select id="indRefFim" disabled class="text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border bg-gray-100 disabled:opacity-60 cursor-pointer">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Placeholders / Tiles -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Registros no Trecho</span>
+                        <strong id="tileTrechoCount" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded">Após filtros espaciais</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-red-200 transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Fora de Rota</span>
+                        <strong id="tileForaRota" class="text-3xl font-bold text-red-600 mb-1">-</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-red-50 text-red-600 px-2 py-1 rounded">Anomalias Geográficas</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Trecho Analisado</span>
+                        <strong id="tileTrechoNome" class="text-lg font-bold text-gray-800 mb-1 truncate w-full px-2">Todas as Linhas</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded">Extensão Aplicada</span>
+                    </div>
+                </div>
+
+                <!-- Novos Placeholders / Tiles -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Severidade Média do Trecho</span>
+                        <strong id="tileSevMedia" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded">Média dos Registros Filtrados</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Criticidade do Trecho</span>
+                        <strong id="tileCritTrecho" class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded">Pontuação Acumulada</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">Sites com Maior Criticidade</span>
+                        <div id="tileTopSites" class="flex flex-col gap-2 w-full text-xs text-gray-700 flex-1 justify-center">
+                            <!-- JS irá popular esta lista -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Nova Seção: Saúde Operacional dos Sites -->
         <section id="healthSection" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-8 transition-all duration-300 animate-fade-in relative overflow-hidden">
@@ -253,6 +342,7 @@
             let lowCritFiles = [];
             const MAX_FILES = 5;
             let healthChartInstance = null;
+            let healthDataStore = [];
 
             // Map State
             let mapInstanceRoute = null;
@@ -295,8 +385,84 @@
                 btnMapCircle: document.getElementById('btnMapCircle'),
                 btnMapCluster: document.getElementById('btnMapCluster'),
                 btnMapHeat: document.getElementById('btnMapHeat'),
-                noDataMap: document.getElementById('noDataMap')
+                noDataMap: document.getElementById('noDataMap'),
+
+                // Indicadores Elements
+                indicadoresSection: document.getElementById('indicadoresSection'),
+                indStartDate: document.getElementById('indStartDate'),
+                indEndDate: document.getElementById('indEndDate'),
+                indLinha: document.getElementById('indLinha'),
+                indRefIni: document.getElementById('indRefIni'),
+                indRefFim: document.getElementById('indRefFim'),
+                tileTrechoCount: document.getElementById('tileTrechoCount'),
+                tileForaRota: document.getElementById('tileForaRota'),
+                tileTrechoNome: document.getElementById('tileTrechoNome'),
+                
+                // Novos Tiles
+                tileSevMedia: document.getElementById('tileSevMedia'),
+                tileCritTrecho: document.getElementById('tileCritTrecho'),
+                tileTopSites: document.getElementById('tileTopSites')
             };
+
+            // --- TABELA INTERNA DE REFERÊNCIAS EXPANDIDA E CORRIGIDA ---
+            const REF_DATA = [
+                // Linha 10
+                { linha: "L10", ref: "LUZ", km: 0, lat: -23.535721, lon: -46.635685 },
+                { linha: "L10", ref: "BAS", km: 2, lat: -23.544992, lon: -46.616655 },
+                { linha: "L10", ref: "BFU", km: 3, lat: -23.525382, lon: -46.677465 },
+                { linha: "L10", ref: "MOC", km: 4, lat: -23.558033, lon: -46.609110 },
+                { linha: "L10", ref: "IPG", km: 6, lat: -23.582479, lon: -46.597045 },
+                { linha: "L10", ref: "TMD", km: 8, lat: -23.593224, lon: -46.590665 },
+                { linha: "L10", ref: "SCT", km: 11, lat: -23.610145, lon: -46.570000 },
+                { linha: "L10", ref: "UTI", km: 13, lat: -23.615500, lon: -46.543300 },
+                { linha: "L10", ref: "PSA", km: 15, lat: -23.633300, lon: -46.520000 },
+                { linha: "L10", ref: "SAN", km: 18, lat: -23.650000, lon: -46.470000 },
+                { linha: "L10", ref: "CPV", km: 21, lat: -23.683300, lon: -46.450000 },
+                { linha: "L10", ref: "MAU", km: 24, lat: -23.695500, lon: -46.430000 },
+                { linha: "L10", ref: "GPT", km: 27, lat: -23.708800, lon: -46.415500 },
+                { linha: "L10", ref: "RPI", km: 30, lat: -23.714400, lon: -46.401100 },
+                { linha: "L10", ref: "RGS", km: 34, lat: -23.743100, lon: -46.390000 },
+
+                // Linha 11
+                { linha: "L11", ref: "LUZ", km: 0, lat: -23.535721, lon: -46.635685 },
+                { linha: "L11", ref: "BAS", km: 2, lat: -23.544992, lon: -46.616655 },
+                { linha: "L11", ref: "TAT", km: 6, lat: -23.540272, lon: -46.570000 },
+                { linha: "L11", ref: "ITQ", km: 18, lat: -23.539400, lon: -46.463300 },
+                { linha: "L11", ref: "DBO", km: 20, lat: -23.542200, lon: -46.438300 },
+                { linha: "L11", ref: "JBO", km: 22, lat: -23.542200, lon: -46.402200 },
+                { linha: "L11", ref: "GUA", km: 24, lat: -23.538800, lon: -46.367700 },
+                { linha: "L11", ref: "AGN", km: 27, lat: -23.531100, lon: -46.338800 },
+                { linha: "L11", ref: "FVC", km: 29, lat: -23.531100, lon: -46.338800 },
+                { linha: "L11", ref: "POA", km: 31, lat: -23.531100, lon: -46.338800 },
+                { linha: "L11", ref: "CVN", km: 33, lat: -23.531100, lon: -46.338800 },
+                { linha: "L11", ref: "SUZ", km: 37, lat: -23.534134, lon: -46.308053 },
+                { linha: "L11", ref: "JPB", km: 42, lat: -23.542801, lon: -46.258303 },
+                { linha: "L11", ref: "BCB", km: 45, lat: -23.536335, lon: -46.225387 },
+                { linha: "L11", ref: "MDC", km: 49, lat: -23.521278, lon: -46.197010 },
+                { linha: "L11", ref: "EST", km: 50, lat: -23.515340, lon: -46.184193 },
+
+                // Linha 12
+                { linha: "L12", ref: "BAS", km: 2, lat: -23.544992, lon: -46.616655 },
+                { linha: "L12", ref: "TAT", km: 6, lat: -23.540272, lon: -46.570000 },
+                { linha: "L12", ref: "EGO", km: 12, lat: -23.497500, lon: -46.520000 },
+                { linha: "L12", ref: "USL", km: 14, lat: -23.484400, lon: -46.485500 },
+                { linha: "L12", ref: "ERM", km: 17, lat: -23.495500, lon: -46.444400 },
+                { linha: "L12", ref: "SMP", km: 21, lat: -23.493300, lon: -46.398800 },
+                { linha: "L12", ref: "JHL", km: 23, lat: -23.486600, lon: -46.381100 },
+                { linha: "L12", ref: "ITI", km: 28, lat: -23.498800, lon: -46.388800 },
+                { linha: "L12", ref: "JRM", km: 30, lat: -23.484400, lon: -46.334400 },
+                { linha: "L12", ref: "EMF", km: 33, lat: -23.482200, lon: -46.321100 },
+                { linha: "L12", ref: "IQA", km: 35, lat: -23.482200, lon: -46.321100 },
+                { linha: "L12", ref: "ARC", km: 37, lat: -23.482200, lon: -46.321100 },
+                { linha: "L12", ref: "CVN", km: 40, lat: -23.531100, lon: -46.338800 },
+
+                // Linha 13
+                { linha: "L13", ref: "EGO", km: 12, lat: -23.497500, lon: -46.520000 },
+                { linha: "L13", ref: "GCE", km: 19, lat: -23.435000, lon: -46.495500 },
+                { linha: "L13", ref: "AGU", km: 21, lat: -23.431100, lon: -46.485500 }
+            ];
+
+            let indicadoresDataStore = [];
 
             // --- FUNÇÕES DE FEEDBACK ---
             const showError = (msg) => {
@@ -349,6 +515,8 @@
                 els.mainStatusIndicator.classList.add('bg-gray-300');
                 els.healthSection.classList.add('hidden');
                 els.mapSection.classList.add('hidden');
+                els.indicadoresSection.classList.add('hidden');
+                healthDataStore = [];
             };
 
             els.removeMainFileBtn.addEventListener('click', clearMainFile);
@@ -430,7 +598,24 @@
                 });
             };
 
-            const parseCSVLine = (line) => line.split(',').map(item => item.trim().replace(/^"|"$/g, ''));
+            const parseCSVRow = (line, sep) => {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === sep && !inQuotes) {
+                        result.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current);
+                return result.map(col => col.trim().replace(/^"|"$/g, ''));
+            };
 
             // --- FUNÇÕES AUXILIARES DE PARSE PARA O MAPA ---
             const parseDateMap = (str) => {
@@ -497,18 +682,21 @@
                 
                 // Consolidação de arquivos para análise
                 const allCritFiles = [...highCritFiles, ...lowCritFiles];
-                if (allCritFiles.length === 0) {
-                    els.healthSection.classList.add('hidden');
-                    return; // Sem dados para saúde operacional
-                }
 
                 try {
+                    // Sempre processa Saúde Operacional para revelar a seção na ordem (mesmo se vazia)
                     const rawDataFiles = await Promise.all(allCritFiles.map(readFileAsText));
                     processOperationalHealth(rawDataFiles);
                     
-                    // Extração do Arquivo Principal para o Mapa
+                    // Extração do Arquivo Principal para Mapa e Indicadores
                     const mainFileData = await readFileAsText(mainFile);
                     processMapData(mainFileData);
+                    processIndicadores(mainFileData);
+
+                    // Rola a tela suavemente para a nova primeira seção (Indicadores)
+                    setTimeout(() => {
+                        els.indicadoresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
 
                 } catch (err) {
                     showError("Erro ao processar os arquivos CSV. Verifique a codificação e formato.");
@@ -516,8 +704,428 @@
                 }
             });
 
+            // --- SEÇÃO INDICADORES (MAP MATCHING E FILTROS) ---
+            function processIndicadores(mainFileObj) {
+                indicadoresDataStore = [];
+                const lines = mainFileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
+                if (lines.length < 2) return;
+
+                const sep = lines[0].includes(';') ? ';' : ',';
+                const headers = parseCSVRow(lines[0].toLowerCase(), sep);
+                
+                const idxLat = headers.findIndex(h => h.includes('latitude'));
+                const idxLon = headers.findIndex(h => h.includes('longitude'));
+                const idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity') && !h.includes('drop'));
+                const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
+                const idxUrl = headers.findIndex(h => h === 'url');
+                
+                // Busca resiliente pela coluna de Severidade
+                let idxSeverity = headers.findIndex(h => h === 'severity');
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h === 'impact severity');
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity') && !h.includes('event'));
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity'));
+                
+                // Campos p/ Criticidade
+                const idxLargestImpact = headers.findIndex(h => h.includes('largest impact'));
+                const idxRecentSeverity = headers.findIndex(h => h.includes('impact severity') || h.includes('most recent event impact severity'));
+                const idxEventsSince = headers.findIndex(h => h.includes('events since') && !h.includes('drop'));
+                const idxDropOff = headers.findIndex(h => h.includes('drop off'));
+
+                if (idxLat === -1 || idxLon === -1 || idxDate === -1) return;
+
+                let maxDate = null;
+                const dataAtualNavegador = new Date();
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = parseCSVRow(lines[i], sep);
+                    const lat = parseNumberMap(row[idxLat]);
+                    const lon = parseNumberMap(row[idxLon]);
+                    const dateObj = parseDateMap(row[idxDate]);
+                    const siteName = idxSite !== -1 && row[idxSite] ? row[idxSite] : "Desconhecido";
+                    const siteUrl = idxUrl !== -1 && row[idxUrl] ? row[idxUrl] : "#";
+                    
+                    // Tratamento robusto para severidade (suporta texto: Alta=3, Med=2, Baixa=1)
+                    let severity = 0;
+                    if (idxSeverity !== -1) {
+                        const rawSev = row[idxSeverity];
+                        severity = parseNumberMap(rawSev);
+                        if (isNaN(severity) && rawSev) {
+                            const s = rawSev.toLowerCase();
+                            if (s.includes('high') || s.includes('alt') || s.includes('crit')) severity = 3;
+                            else if (s.includes('med') || s.includes('méd')) severity = 2;
+                            else if (s.includes('low') || s.includes('baix')) severity = 1;
+                        }
+                        if (isNaN(severity)) severity = 0;
+                    }
+
+                    // Extração p/ Fórmula Criticidade
+                    const largestImpact = idxLargestImpact !== -1 ? parseNumberMap(row[idxLargestImpact]) : 0;
+                    const recentSeverity = idxRecentSeverity !== -1 ? parseNumberMap(row[idxRecentSeverity]) : 0;
+                    const eventsSince = idxEventsSince !== -1 ? parseNumberMap(row[idxEventsSince]) : 0;
+                    const dropOff = idxDropOff !== -1 ? parseNumberMap(row[idxDropOff]) : 0;
+
+                    if (isNaN(lat) || isNaN(lon) || !dateObj) continue;
+
+                    if (!maxDate || dateObj > maxDate) maxDate = dateObj;
+
+                    // Map Matching Simples (Mais Próximo) - Agnóstico de Linha no momento do parsing
+                    let bestDist = Infinity;
+                    let bestRef = null;
+                    for (let r of REF_DATA) {
+                        // Distância Euclidiana base.
+                        let d = Math.sqrt(Math.pow(lat - r.lat, 2) + Math.pow(lon - r.lon, 2));
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestRef = r;
+                        }
+                    }
+
+                    // FÓRMULA DE CRITICIDADE
+                    let criticidade = 0;
+                    if (!isNaN(largestImpact) && !isNaN(recentSeverity) && !isNaN(eventsSince) && !isNaN(dropOff)) {
+                        const daysAgo = Math.max(0, (dataAtualNavegador - dateObj) / (1000 * 60 * 60 * 24));
+                        const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
+                        criticidade = (largestImpact * 0.30) + 
+                                      (recentSeverity * 0.25) + 
+                                      (eventsSince * 0.15) + 
+                                      (recencyFactor * 0.15) + 
+                                      (dropOff * 0.15);
+                    }
+
+                    // Limiar de tolerância espacial: 0.05 graus (Aprox. 5.5km)
+                    const isForaDeRota = bestDist > 0.05;
+
+                    indicadoresDataStore.push({
+                        date: dateObj,
+                        lat: lat,
+                        lon: lon,
+                        site: siteName,
+                        url: siteUrl,
+                        status: isForaDeRota ? "fora_de_rota" : "ok",
+                        linha: bestRef.linha,
+                        ref: bestRef.ref,
+                        km: bestRef.km,
+                        severity: isNaN(severity) ? 0 : severity,
+                        criticidade: isNaN(criticidade) ? 0 : criticidade
+                    });
+                }
+
+                // Configurar Datas
+                if (maxDate) {
+                    const endStr = maxDate.toISOString().split('T')[0];
+                    const startD = new Date(maxDate);
+                    startD.setDate(startD.getDate() - 29); // Inclusivo, total 30 dias retroativos
+                    const startStr = startD.toISOString().split('T')[0];
+                    
+                    els.indStartDate.value = startStr;
+                    els.indEndDate.value = endStr;
+                }
+
+                // Configurar Linhas Dinâmicas
+                const linhasAtivas = new Set(REF_DATA.map(r => r.linha));
+                els.indLinha.innerHTML = '<option value="ALL">Todas as Linhas</option>';
+                Array.from(linhasAtivas).sort().forEach(linha => {
+                    els.indLinha.innerHTML += `<option value="${linha}">${linha}</option>`;
+                });
+
+                els.indicadoresSection.classList.remove('hidden');
+                updateIndicadoresTiles();
+            }
+
+            // Lógica Encadeada de Dropdowns
+            els.indLinha.addEventListener('change', () => {
+                const linha = els.indLinha.value;
+                if (linha === "ALL") {
+                    els.indRefIni.innerHTML = '<option value="">Selecione...</option>';
+                    els.indRefFim.innerHTML = '<option value="">Selecione...</option>';
+                    els.indRefIni.disabled = true;
+                    els.indRefFim.disabled = true;
+                    els.indRefIni.classList.add('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefIni.classList.remove('bg-white');
+                    els.indRefFim.classList.add('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefFim.classList.remove('bg-white');
+                } else {
+                    const refs = REF_DATA.filter(r => r.linha === linha).sort((a, b) => a.km - b.km);
+                    els.indRefIni.innerHTML = '<option value="ALL">Toda a Extensão</option>';
+                    refs.forEach(r => {
+                        els.indRefIni.innerHTML += `<option value="${r.km}">${r.ref} (Km ${r.km})</option>`;
+                    });
+                    els.indRefIni.disabled = false;
+                    els.indRefIni.classList.remove('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefIni.classList.add('bg-white');
+                    
+                    els.indRefFim.innerHTML = '<option value="ALL">Toda a Extensão</option>';
+                    els.indRefFim.disabled = true;
+                    els.indRefFim.classList.add('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefFim.classList.remove('bg-white');
+                }
+                updateIndicadoresTiles();
+            });
+
+            els.indRefIni.addEventListener('change', () => {
+                const linha = els.indLinha.value;
+                const kmIni = els.indRefIni.value;
+                
+                if (kmIni === "ALL" || kmIni === "") {
+                    els.indRefFim.innerHTML = '<option value="ALL">Toda a Extensão</option>';
+                    els.indRefFim.disabled = true;
+                    els.indRefFim.classList.add('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefFim.classList.remove('bg-white');
+                } else {
+                    const km = parseFloat(kmIni);
+                    const refs = REF_DATA.filter(r => r.linha === linha && r.km > km).sort((a, b) => a.km - b.km);
+                    els.indRefFim.innerHTML = '<option value="ALL">Até o final</option>';
+                    refs.forEach(r => {
+                        els.indRefFim.innerHTML += `<option value="${r.km}">${r.ref} (Km ${r.km})</option>`;
+                    });
+                    els.indRefFim.disabled = false;
+                    els.indRefFim.classList.remove('bg-gray-100', 'disabled:opacity-60');
+                    els.indRefFim.classList.add('bg-white');
+                }
+                updateIndicadoresTiles();
+            });
+
+            els.indRefFim.addEventListener('change', updateIndicadoresTiles);
+            els.indStartDate.addEventListener('change', updateIndicadoresTiles);
+            els.indEndDate.addEventListener('change', updateIndicadoresTiles);
+
+            function updateIndicadoresTiles() {
+                const startStr = els.indStartDate.value;
+                const endStr = els.indEndDate.value;
+                
+                if(!startStr || !endStr) return;
+
+                const startDate = new Date(startStr + 'T00:00:00');
+                const endDate = new Date(endStr + 'T23:59:59');
+                const linha = els.indLinha.value;
+                const kmIni = els.indRefIni.value === "ALL" || els.indRefIni.value === "" ? -Infinity : parseFloat(els.indRefIni.value);
+                const kmFim = els.indRefFim.value === "ALL" || els.indRefFim.value === "" ? Infinity : parseFloat(els.indRefFim.value);
+
+                let countTrecho = 0;
+                let countFora = 0;
+                let sumSeverity = 0;
+                let sumCriticidade = 0;
+                const siteAgg = {};
+
+                for (let record of indicadoresDataStore) {
+                    if (record.date < startDate || record.date > endDate) continue;
+
+                    // FIX DE ESTAÇÕES COMPARTILHADAS
+                    let kmNaLinha = record.km;
+                    let linhaDoContexto = record.linha;
+                    let isLinhaMatch = false;
+
+                    if (linha === "ALL") {
+                        isLinhaMatch = true;
+                    } else {
+                        if (record.linha === linha) {
+                            isLinhaMatch = true;
+                        } else if (record.ref) {
+                            // Tenta encontrar a mesma referência na linha atualmente selecionada no filtro
+                            const refShared = REF_DATA.find(r => r.linha === linha && r.ref === record.ref);
+                            if (refShared) {
+                                isLinhaMatch = true;
+                                kmNaLinha = refShared.km;     // Atualiza pro Km correto da linha em foco
+                                linhaDoContexto = linha;      // Adota a linha selecionada
+                            }
+                        }
+                    }
+
+                    if (!isLinhaMatch) continue;
+
+                    if (linha !== "ALL") {
+                        if (kmNaLinha < kmIni || kmNaLinha > kmFim) continue;
+                    }
+
+                    // Agregação de Ranking de Sites com o Contexto Corrigido
+                    if (!siteAgg[record.site]) {
+                        siteAgg[record.site] = { 
+                            criticidade: 0, lat: record.lat, lon: record.lon, 
+                            url: record.url, status: record.status, linha: linhaDoContexto 
+                        };
+                    }
+                    siteAgg[record.site].criticidade += record.criticidade;
+
+                    if (record.status === "fora_de_rota") {
+                        countFora++;
+                        continue;
+                    }
+
+                    countTrecho++;
+                    sumSeverity += record.severity;
+                    sumCriticidade += record.criticidade;
+                }
+
+                els.tileTrechoCount.textContent = countTrecho.toLocaleString('pt-BR');
+                els.tileForaRota.textContent = countFora.toLocaleString('pt-BR');
+                
+                // Cálculo da Severidade Média
+                els.tileSevMedia.textContent = countTrecho > 0 ? (sumSeverity / countTrecho).toLocaleString('pt-BR', {maximumFractionDigits: 2}) : '-';
+                
+                // Cálculo da Criticidade Acumulada (Ajustado para 0 casas decimais)
+                els.tileCritTrecho.textContent = countTrecho > 0 ? sumCriticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0}) : '-';
+                
+                // Renderização do Ranking de Sites
+                const sortedSites = Object.entries(siteAgg)
+                    .map(([name, data]) => ({ name, ...data }))
+                    .sort((a, b) => b.criticidade - a.criticidade);
+
+                els.tileTopSites.innerHTML = '';
+
+                for (let i = 0; i < 5; i++) {
+                    if (i < sortedSites.length) {
+                        const s = sortedSites[i];
+                        let trechoStr = "Fora de trecho";
+
+                        if (s.status !== "fora_de_rota" && s.linha) {
+                            const refsLinha = REF_DATA.filter(r => r.linha === s.linha);
+                            if (refsLinha.length > 1) {
+                                // Encontra os dois pontos mais próximos para definir o trecho
+                                const withDist = refsLinha.map(r => ({
+                                    ...r, 
+                                    d: Math.sqrt(Math.pow(s.lat - r.lat, 2) + Math.pow(s.lon - r.lon, 2))
+                                })).sort((a, b) => a.d - b.d);
+                                
+                                const r1 = withDist[0];
+                                const r2 = withDist[1];
+                                
+                                trechoStr = r1.km < r2.km ? `${r1.ref} - ${r2.ref}` : `${r2.ref} - ${r1.ref}`;
+                            } else if (refsLinha.length === 1) {
+                                trechoStr = refsLinha[0].ref;
+                            }
+                        }
+
+                        const critStr = s.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0});
+                        
+                        const linkHTML = s.url !== "#" 
+                            ? `<a href="${s.url}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors font-semibold">${s.name}</a>`
+                            : `<span class="font-semibold text-gray-800">${s.name}</span>`;
+
+                        els.tileTopSites.innerHTML += `
+                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1">
+                                <div class="truncate w-full text-[12px]" title="${s.name}">${linkHTML}</div>
+                                <div class="truncate w-full text-[11px] text-gray-600 mt-0.5">Criticidade ${critStr} / <span class="text-gray-500 font-medium">${trechoStr}</span></div>
+                            </div>
+                        `;
+                    } else {
+                        els.tileTopSites.innerHTML += `
+                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1 text-gray-400">
+                                <div class="truncate w-full text-[11px] italic mt-0.5">sem dados</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                if (linha === "ALL") {
+                    els.tileTrechoNome.textContent = "Todas as Linhas";
+                } else {
+                    let textI = els.indRefIni.options[els.indRefIni.selectedIndex]?.text.split(' (')[0];
+                    let textF = els.indRefFim.options[els.indRefFim.selectedIndex]?.text.split(' (')[0];
+                    
+                    if (textI === "Toda a Extensão" || !textI) {
+                        els.tileTrechoNome.textContent = `${linha} - Completa`;
+                    } else if (textF === "Até o final" || !textF) {
+                        els.tileTrechoNome.textContent = `${linha} - ${textI} em diante`;
+                    } else {
+                        els.tileTrechoNome.textContent = `${linha} - ${textI} a ${textF}`;
+                    }
+                }
+
+                // Dispara a re-renderização dinâmica do Gráfico de Saúde Operacional baseado nos filtros ativos
+                if (typeof updateHealthChart === 'function') updateHealthChart();
+            }
+
             function processOperationalHealth(rawDataFiles) {
-                // Configuração das 5 semanas calendário
+                healthDataStore = [];
+
+                rawDataFiles.forEach(fileObj => {
+                    const lines = fileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
+                    if (lines.length < 2) return;
+
+                    const sep = lines[0].includes(';') ? ';' : ',';
+                    const headers = parseCSVRow(lines[0].toLowerCase(), sep);
+                    const idxTime = headers.findIndex(h => h.includes('time (utc)') || h.includes('time (local)'));
+                    const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
+                    const idxLat = headers.findIndex(h => h.includes('latitude'));
+                    const idxLon = headers.findIndex(h => h.includes('longitude'));
+                    
+                    // Severidade
+                    let idxSeverity = headers.findIndex(h => h === 'severity');
+                    if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h === 'impact severity');
+                    if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity') && !h.includes('event'));
+                    if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity'));
+                    
+                    // Drop Offs
+                    const idxDropOff = headers.findIndex(h => h.includes('drop off') || h.includes('drop_off'));
+
+                    if (idxTime === -1) return;
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = parseCSVRow(lines[i], sep);
+                        const rawTime = row[idxTime];
+                        if (!rawTime) continue;
+
+                        const dateObj = parseDateMap(rawTime);
+                        if (!dateObj) continue;
+
+                        const siteName = idxSite !== -1 && row[idxSite] ? row[idxSite] : fileObj.fileName.replace('.csv', '');
+                        const lat = idxLat !== -1 ? parseNumberMap(row[idxLat]) : NaN;
+                        const lon = idxLon !== -1 ? parseNumberMap(row[idxLon]) : NaN;
+
+                        let severity = 0;
+                        if (idxSeverity !== -1) {
+                            const rawSev = row[idxSeverity];
+                            severity = parseNumberMap(rawSev);
+                            if (isNaN(severity) && rawSev) {
+                                const s = rawSev.toLowerCase();
+                                if (s.includes('high') || s.includes('alt') || s.includes('crit')) severity = 3;
+                                else if (s.includes('med') || s.includes('méd')) severity = 2;
+                                else if (s.includes('low') || s.includes('baix')) severity = 1;
+                            }
+                            if (isNaN(severity)) severity = 0;
+                        }
+
+                        let dropOff = false;
+                        if (idxDropOff !== -1) {
+                            const rawDrop = row[idxDropOff].toLowerCase();
+                            if (rawDrop === 'true' || rawDrop === '1' || parseNumberMap(rawDrop) > 0) dropOff = true;
+                        }
+
+                        // Map Matching Espacial
+                        let bestDist = Infinity;
+                        let bestRef = null;
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            for (let r of REF_DATA) {
+                                let d = Math.sqrt(Math.pow(lat - r.lat, 2) + Math.pow(lon - r.lon, 2));
+                                if (d < bestDist) {
+                                    bestDist = d;
+                                    bestRef = r;
+                                }
+                            }
+                        }
+
+                        const isForaDeRota = bestDist > 0.05 || isNaN(lat) || isNaN(lon);
+
+                        healthDataStore.push({
+                            date: dateObj,
+                            lat: lat,
+                            lon: lon,
+                            site: siteName,
+                            severity: severity,
+                            dropOff: dropOff,
+                            status: isForaDeRota ? "fora_de_rota" : "ok",
+                            linha: bestRef ? bestRef.linha : null,
+                            ref: bestRef ? bestRef.ref : null,
+                            km: bestRef ? bestRef.km : null
+                        });
+                    }
+                });
+            }
+
+            function updateHealthChart() {
+                els.healthSection.classList.remove('hidden');
+                
+                // Configuração das 5 semanas calendário (retroativas a partir de hoje)
                 const now = new Date();
                 now.setHours(23, 59, 59, 999);
                 
@@ -531,126 +1139,133 @@
                     start.setDate(end.getDate() - 6);
                     start.setHours(0, 0, 0, 0);
                     
-                    weeks.push({ start, end });
+                    weeks.push({ start, end, sumSev: 0, totalAlarms: 0, dropOffs: 0 });
                     
-                    // Label ex: 05/03 a 11/03
                     const fmt = (d) => `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
                     weekLabels.push(`${fmt(start)} a ${fmt(end)}`);
                 }
 
-                // Estrutura de dados por Site
-                // siteData = { "Nome do Site": [wk1Count, wk2Count, wk3Count, wk4Count, wk5Count] }
+                // Puxando os filtros ativos da seção Indicadores
+                const startStr = els.indStartDate.value;
+                const endStr = els.indEndDate.value;
+                const startDate = startStr ? new Date(startStr + 'T00:00:00') : new Date(0);
+                const endDate = endStr ? new Date(endStr + 'T23:59:59') : new Date('2100-01-01');
+                const linha = els.indLinha.value;
+                const kmIni = els.indRefIni.value === "ALL" || els.indRefIni.value === "" ? -Infinity : parseFloat(els.indRefIni.value);
+                const kmFim = els.indRefFim.value === "ALL" || els.indRefFim.value === "" ? Infinity : parseFloat(els.indRefFim.value);
+
                 const siteData = {};
 
-                // Processar cada arquivo
-                rawDataFiles.forEach(fileObj => {
-                    const lines = fileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
-                    if (lines.length < 2) return;
+                healthDataStore.forEach(record => {
+                    // Filtro Temporal Global
+                    if (record.date < startDate || record.date > endDate) return;
 
-                    const headers = parseCSVLine(lines[0].toLowerCase());
-                    const idxTime = headers.indexOf('time (utc)') !== -1 ? headers.indexOf('time (utc)') : headers.indexOf('time (local)');
-                    const idxSite = headers.indexOf('site') !== -1 ? headers.indexOf('site') : headers.indexOf('site name');
+                    // FIX DE ESTAÇÕES COMPARTILHADAS (Gráfico)
+                    let kmNaLinha = record.km;
+                    let isLinhaMatch = false;
 
-                    if (idxTime === -1) return; // Se não tem tempo, ignora o arquivo para o gráfico
-
-                    for (let i = 1; i < lines.length; i++) {
-                        const row = parseCSVLine(lines[i]);
-                        const rawTime = row[idxTime];
-                        if (!rawTime) continue;
-
-                        const dateObj = new Date(rawTime.replace(/−/g, '-'));
-                        if (isNaN(dateObj.getTime())) continue;
-
-                        // Determinar o Site (Fallback para nome do arquivo se a coluna não existir)
-                        let siteName = (idxSite !== -1 && row[idxSite]) ? row[idxSite] : fileObj.fileName.replace('.csv', '');
+                    if (linha === "ALL") {
+                        if (record.status === "fora_de_rota") return; // Ignora fora de rota na visão global do gráfico
+                        isLinhaMatch = true;
+                    } else {
+                        if (record.status === "fora_de_rota") return;
                         
-                        // Inicializa a estrutura garantindo 0s para que a linha não quebre
-                        if (!siteData[siteName]) {
-                            siteData[siteName] = [0, 0, 0, 0, 0];
-                        }
-
-                        // Verificar em qual semana cai
-                        for (let w = 0; w < 5; w++) {
-                            if (dateObj >= weeks[w].start && dateObj <= weeks[w].end) {
-                                siteData[siteName][w] += 1;
-                                break;
+                        if (record.linha === linha) {
+                            isLinhaMatch = true;
+                        } else if (record.ref) {
+                            const refShared = REF_DATA.find(r => r.linha === linha && r.ref === record.ref);
+                            if (refShared) {
+                                isLinhaMatch = true;
+                                kmNaLinha = refShared.km;
                             }
                         }
                     }
+
+                    if (!isLinhaMatch) return;
+                    if (linha !== "ALL" && (kmNaLinha < kmIni || kmNaLinha > kmFim)) return;
+
+                    // Encaixe nas 5 semanas e Agregação
+                    for (let w = 0; w < 5; w++) {
+                        if (record.date >= weeks[w].start && record.date <= weeks[w].end) {
+                            weeks[w].totalAlarms++;
+                            weeks[w].sumSev += record.severity;
+                            if (record.dropOff) weeks[w].dropOffs++;
+
+                            if (!siteData[record.site]) siteData[record.site] = 0;
+                            siteData[record.site]++;
+                            break;
+                        }
+                    }
                 });
 
-                renderHealthSection(siteData, weekLabels);
-            }
+                // Calcula a Severidade Média por Semana
+                weeks.forEach(w => {
+                    w.avgSev = w.totalAlarms > 0 ? (w.sumSev / w.totalAlarms) : 0;
+                });
 
-            function renderHealthSection(siteData, weekLabels) {
-                els.healthSection.classList.remove('hidden');
+                // Atualiza os Cards Auxiliares Dinamicamente
                 els.siteTotalsGrid.innerHTML = '';
+                const siteNames = Object.keys(siteData).sort((a,b) => siteData[b] - siteData[a]);
                 
-                const siteNames = Object.keys(siteData);
                 if (siteNames.length === 0) {
                     els.noDataHealth.classList.remove('hidden');
                     els.siteTotalsGrid.parentElement.classList.add('hidden');
-                    if(healthChartInstance) healthChartInstance.destroy();
-                    return;
+                } else {
+                    els.noDataHealth.classList.add('hidden');
+                    els.siteTotalsGrid.parentElement.classList.remove('hidden');
+
+                    siteNames.forEach(site => {
+                        els.siteTotalsGrid.innerHTML += `
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-accent transition-colors">
+                                <span class="text-xs font-semibold text-gray-500 truncate w-full" title="${site}">${site}</span>
+                                <strong class="text-xl font-bold text-gray-800 mt-1">${siteData[site]}</strong>
+                                <span class="text-[10px] text-gray-400">alarmes</span>
+                            </div>
+                        `;
+                    });
                 }
 
-                els.noDataHealth.classList.add('hidden');
-                els.siteTotalsGrid.parentElement.classList.remove('hidden');
-
-                // Array para calcular a soma total de todas as semanas
-                const totalGeralSemanas = [0, 0, 0, 0, 0];
-
-                const datasets = siteNames.map((site, idx) => {
-                    const counts = siteData[site];
-                    const total = counts.reduce((a, b) => a + b, 0);
-
-                    // Soma os valores dessa linha ao total geral
-                    for (let w = 0; w < 5; w++) {
-                        totalGeralSemanas[w] += counts[w];
-                    }
-
-                    // Criação dos Cards de Acumulado
-                    const card = document.createElement('div');
-                    card.className = 'bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:border-accent transition-colors';
-                    card.innerHTML = `
-                        <span class="text-xs font-semibold text-gray-500 truncate w-full" title="${site}">${site}</span>
-                        <strong class="text-xl font-bold text-gray-800 mt-1">${total}</strong>
-                        <span class="text-[10px] text-gray-400">alarmes</span>
-                    `;
-                    els.siteTotalsGrid.appendChild(card);
-
-                    const isDashed = idx % 2 !== 0; 
-                    
-                    return {
-                        label: site,
-                        data: counts,
-                        borderColor: '#D1D5DB', // Cinza suave para os sites individuais
-                        backgroundColor: 'transparent', 
-                        borderWidth: 2,
-                        borderDash: isDashed ? [5, 5] : [],
+                const datasets = [
+                    {
+                        label: 'Severidade Média',
+                        data: weeks.map(w => w.avgSev),
+                        borderColor: '#F5D366', // Accent Dark
+                        backgroundColor: '#FFE599', // Accent
+                        borderWidth: 3,
                         pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#D1D5DB',
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
+                        pointBorderColor: '#F5D366',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         tension: 0.3,
-                        fill: false
-                    };
-                });
-
-                // Adiciona a linha de Soma Total destacada
-                datasets.push({
-                    label: 'Total Geral do Sistema',
-                    data: totalGeralSemanas,
-                    borderColor: '#F5D366', // Cor de ênfase (Accent Dark)
-                    backgroundColor: '#FFE599', // Accent
-                    borderWidth: 4, // Linha mais grossa para destacar
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#F5D366',
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    tension: 0.3,
-                    fill: false
-                });
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Total de Alarmes',
+                        data: weeks.map(w => w.totalAlarms),
+                        borderColor: '#14b8a6', // Teal
+                        backgroundColor: '#14b8a6', 
+                        borderWidth: 2,
+                        borderDash: [4, 4],
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#14b8a6',
+                        pointRadius: 4,
+                        tension: 0.3,
+                        yAxisID: 'y2'
+                    },
+                    {
+                        label: 'Drop Offs',
+                        data: weeks.map(w => w.dropOffs),
+                        borderColor: '#6b7280', // Gray
+                        backgroundColor: '#9ca3af', 
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#6b7280',
+                        pointStyle: 'rect',
+                        pointRadius: 5,
+                        tension: 0.3,
+                        yAxisID: 'y2'
+                    }
+                ];
 
                 if (healthChartInstance) healthChartInstance.destroy();
 
@@ -665,7 +1280,9 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                display: false // Legenda removida conforme solicitado
+                                display: true,
+                                position: 'top',
+                                labels: { font: { size: 11 }, usePointStyle: true, boxWidth: 8 }
                             },
                             tooltip: {
                                 mode: 'index',
@@ -676,19 +1293,41 @@
                                 borderColor: '#E5E7EB',
                                 borderWidth: 1,
                                 callbacks: {
-                                    label: (context) => ` ${context.dataset.label}: ${context.parsed.y} ocorrências`
+                                    label: (context) => {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        if (context.parsed.y !== null) {
+                                            label += context.dataset.yAxisID === 'y1' 
+                                                ? context.parsed.y.toLocaleString('pt-BR', {maximumFractionDigits: 2})
+                                                : context.parsed.y.toLocaleString('pt-BR');
+                                        }
+                                        return label;
+                                    }
                                 }
                             }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { borderDash: [2, 4], color: '#f3f4f6' },
-                                ticks: { font: { size: 11 }, color: '#9ca3af', precision: 0 }
-                            },
                             x: {
                                 grid: { display: false },
                                 ticks: { font: { size: 10 }, color: '#9ca3af' }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Severidade Média', color: '#b45309', font: {size: 10} },
+                                grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                                ticks: { font: { size: 11 }, color: '#9ca3af' },
+                                beginAtZero: true
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Volume de Ocorrências', color: '#14b8a6', font: {size: 10} },
+                                grid: { drawOnChartArea: false },
+                                ticks: { font: { size: 11 }, color: '#9ca3af', precision: 0 },
+                                beginAtZero: true
                             }
                         },
                         interaction: {
@@ -698,9 +1337,6 @@
                         }
                     }
                 });
-
-                // Scroll até a nova seção
-                els.healthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
             // --- POSICIONAMENTO GEOGRÁFICO ---
@@ -710,17 +1346,17 @@
                 if (lines.length < 2) return;
 
                 const sep = lines[0].includes(';') ? ';' : ',';
-                const headers = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/^"|"$/g, ''));
+                const headers = parseCSVRow(lines[0].toLowerCase(), sep);
                 
                 // Mapeamento de colunas padrão do sistema
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
                 const idxDate = headers.findIndex(h => h.includes('most recent event') && !h.includes('impact') && !h.includes('severity') && !h.includes('drop'));
-                const idxLargestImpact = headers.findIndex(h => h.includes('largest impact since last review'));
-                const idxRecentSeverity = headers.findIndex(h => h.includes('most recent event impact severity'));
-                const idxEventsSince = headers.findIndex(h => h.includes('events since last review') && !h.includes('drop'));
-                const idxDropOff = headers.findIndex(h => h.includes('drop off events'));
+                const idxLargestImpact = headers.findIndex(h => h.includes('largest impact'));
+                const idxRecentSeverity = headers.findIndex(h => h.includes('impact severity') || h.includes('most recent event impact severity'));
+                const idxEventsSince = headers.findIndex(h => h.includes('events since') && !h.includes('drop'));
+                const idxDropOff = headers.findIndex(h => h.includes('drop off'));
 
                 // Validação de estrutura do CSV principal
                 if (idxLat === -1 || idxLon === -1 || idxDate === -1 || idxLargestImpact === -1 || idxRecentSeverity === -1 || idxEventsSince === -1 || idxDropOff === -1) {
@@ -731,7 +1367,7 @@
                 const dataAtualNavegador = new Date();
 
                 for (let i = 1; i < lines.length; i++) {
-                    const row = lines[i].split(sep).map(col => col.trim().replace(/^"|"$/g, ''));
+                    const row = parseCSVRow(lines[i], sep);
                     
                     const lat = parseNumberMap(row[idxLat]);
                     const lon = parseNumberMap(row[idxLon]);

@@ -61,19 +61,29 @@
   <!-- ==========================================
        FASE 01: HEADER GLOBAL
        ========================================== -->
-  <header class="sticky-header bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2">
+  <header class="sticky-header bg-white border-b border-slate-200 px-8 py-4 flex items-start md:items-center justify-between shadow-sm flex-col md:flex-row gap-4 md:gap-0">
+    <div class="flex items-center gap-4 flex-1 min-w-0 w-full flex-wrap lg:flex-nowrap">
+      <div class="flex items-center gap-2 shrink-0">
         <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">F</div>
-        <h1 class="text-xl font-semibold tracking-tight outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 hover:bg-slate-100 cursor-text transition-colors" contenteditable="true" id="app-title" title="Clique para editar">Fluxo da Contratação</h1>
+        <h1 class="text-xl font-semibold tracking-tight outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 hover:bg-slate-100 cursor-text transition-colors whitespace-nowrap" contenteditable="true" id="app-title" title="Clique para editar">fluxo de contratação</h1>
       </div>
-      <div class="h-6 w-px bg-slate-200 mx-2"></div>
-      <div class="flex flex-col">
-        <label for="input-data-ref" class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-0.5 cursor-pointer">Data de Referência</label>
-        <input type="date" id="input-data-ref" class="text-sm font-medium text-slate-800 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded px-2 py-0.5 transition-colors cursor-pointer -ml-2" title="Selecione a data">
+      
+      <div class="hidden lg:block h-6 w-px bg-slate-200 mx-2 shrink-0"></div>
+      
+      <div class="flex flex-col shrink-0">
+        <label for="input-lider" class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-0.5 cursor-pointer">Líder do projeto</label>
+        <input type="text" id="input-lider" value="Nome" placeholder="Nome" class="text-sm font-medium text-slate-800 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded px-2 py-0.5 transition-colors cursor-text -ml-2 w-32 md:w-48">
+      </div>
+
+      <div class="hidden lg:block h-6 w-px bg-slate-200 mx-2 shrink-0"></div>
+
+      <div class="flex flex-col flex-1 min-w-[200px]">
+        <label for="input-membros" class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-0.5 cursor-pointer">Membros do Projeto</label>
+        <textarea id="input-membros" rows="1" placeholder="nome" class="text-sm font-medium text-slate-800 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded px-2 py-0.5 transition-colors cursor-text -ml-2 resize-none overflow-hidden w-full leading-tight">nome</textarea>
       </div>
     </div>
-    <div class="flex items-center gap-3">
+    
+    <div class="flex items-center gap-3 shrink-0">
       <!-- Input de arquivo oculto para a importação -->
       <input type="file" id="file-import" accept=".json" class="hidden">
       
@@ -105,14 +115,14 @@
         <p class="text-sm text-slate-500 font-medium mb-1">Próximo Gate</p>
         <h3 class="text-xl font-bold" id="card-next-gate">Gate 3: Validar TUDO</h3>
       </div>
-      <!-- Card: Pendências Totais -->
+      <!-- Card: Documentos Pendentes -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-sm text-slate-500 font-medium mb-1">Pendências Totais</p>
+        <p class="text-sm text-slate-500 font-medium mb-1">Documentos Pendentes</p>
         <h3 class="text-2xl font-bold text-amber-600" id="card-pendencies">08 Docs</h3>
       </div>
-      <!-- Card: Prazo Restante -->
+      <!-- Card: Prazo Próximo Marco -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-sm text-slate-500 font-medium mb-1">Prazo Restante</p>
+        <p class="text-sm text-slate-500 font-medium mb-1">Prazo Próximo Marco</p>
         <h3 class="text-2xl font-bold" id="card-deadline">-- Dias</h3>
       </div>
     </section>
@@ -128,39 +138,52 @@
       <div class="relative flex justify-between" id="stepper-container">
         
         <!-- Marco 0 -->
-        <label class="flex flex-col items-center z-10 cursor-pointer group w-24">
-          <input type="checkbox" id="check-marco-0" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(0, this)">
-          <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco "Zero"</span>
-          <span class="text-xs text-slate-500 text-center mt-1">Início</span>
-        </label>
+        <div class="flex flex-col items-center z-10 w-24">
+          <label class="flex flex-col items-center cursor-pointer group w-full">
+            <input type="checkbox" id="check-marco-0" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(0, this)">
+            <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco Inicial</span>
+            <span class="text-xs text-slate-500 text-center mt-1">Início</span>
+          </label>
+        </div>
 
         <!-- Marco 1 -->
-        <label class="flex flex-col items-center z-10 cursor-pointer group w-24">
-          <input type="checkbox" id="check-marco-1" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(1, this)">
-          <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 1</span>
-          <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 1: CPU</span>
-        </label>
+        <div class="flex flex-col items-center z-10 w-24">
+          <label class="flex flex-col items-center cursor-pointer group w-full">
+            <input type="checkbox" id="check-marco-1" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(1, this)">
+            <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 1</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 1: CPU</span>
+          </label>
+          <input type="date" id="date-marco-1" class="text-[10px] font-medium text-slate-600 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-200 rounded px-0.5 py-0.5 mt-2 transition-colors cursor-pointer w-full text-center tracking-tighter" title="Data Marco 1">
+        </div>
 
         <!-- Marco 2 -->
-        <label class="flex flex-col items-center z-10 cursor-pointer group w-24">
-          <input type="checkbox" id="check-marco-2" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(2, this)">
-          <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 2</span>
-          <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 2: SIEC</span>
-        </label>
+        <div class="flex flex-col items-center z-10 w-24">
+          <label class="flex flex-col items-center cursor-pointer group w-full">
+            <input type="checkbox" id="check-marco-2" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(2, this)">
+            <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 2</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 2: SIEC</span>
+          </label>
+          <input type="date" id="date-marco-2" class="text-[10px] font-medium text-slate-600 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-200 rounded px-0.5 py-0.5 mt-2 transition-colors cursor-pointer w-full text-center tracking-tighter" title="Data Marco 2">
+        </div>
 
         <!-- Marco 3 -->
-        <label class="flex flex-col items-center z-10 cursor-pointer group w-24">
-          <input type="checkbox" id="check-marco-3" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(3, this)">
-          <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 3</span>
-          <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 3: Tudo</span>
-        </label>
+        <div class="flex flex-col items-center z-10 w-24">
+          <label class="flex flex-col items-center cursor-pointer group w-full">
+            <input type="checkbox" id="check-marco-3" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(3, this)">
+            <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco 3</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase text-center mt-1">Gate 3: Tudo</span>
+          </label>
+          <input type="date" id="date-marco-3" class="text-[10px] font-medium text-slate-600 bg-transparent border border-transparent hover:bg-slate-100 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-200 rounded px-0.5 py-0.5 mt-2 transition-colors cursor-pointer w-full text-center tracking-tighter" title="Data Marco 3">
+        </div>
 
-        <!-- ECS Completa -->
-        <label class="flex flex-col items-center z-10 cursor-pointer group w-24">
-          <input type="checkbox" id="check-marco-4" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(4, this)">
-          <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">ECS Completa</span>
-          <span class="text-xs text-slate-500 text-center mt-1">Finalizado</span>
-        </label>
+        <!-- Marco 4 -->
+        <div class="flex flex-col items-center z-10 w-24">
+          <label class="flex flex-col items-center cursor-pointer group w-full">
+            <input type="checkbox" id="check-marco-4" class="w-12 h-12 rounded-full border-4 border-slate-300 text-green-500 focus:ring-green-500 mb-3 shadow-sm transition-all cursor-pointer hover:border-green-400 bg-white" onchange="activateTimeline(4, this)">
+            <span class="font-bold text-slate-900 mt-1 text-center leading-tight transition-colors duration-300">Marco Final</span>
+            <span class="text-xs text-slate-500 text-center mt-1">Finalizado</span>
+          </label>
+        </div>
       </div>
     </section>
 
@@ -648,26 +671,61 @@
       }
     });
 
-    // Lógica e Persistência do Seletor de Data nativo
-    const inputDataRef = document.getElementById('input-data-ref');
-    const savedDataRef = localStorage.getItem('dashboardDataRef');
+    // Lógica e Persistência de Líder e Membros
+    const inputLider = document.getElementById('input-lider');
+    const savedLider = localStorage.getItem('dashboardLider');
+    if (savedLider) inputLider.value = savedLider;
+    
+    inputLider.addEventListener('input', (e) => {
+      localStorage.setItem('dashboardLider', e.target.value);
+    });
 
-    if (savedDataRef) {
-      inputDataRef.value = savedDataRef;
+    const inputMembros = document.getElementById('input-membros');
+    const savedMembros = localStorage.getItem('dashboardMembros');
+    
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight) + 'px';
     }
 
-    inputDataRef.addEventListener('change', (e) => {
-      localStorage.setItem('dashboardDataRef', e.target.value);
-      updatePrazoRestante();
+    if (savedMembros) {
+      inputMembros.value = savedMembros;
+      // Pequeno delay para garantir que o DOM renderizou antes de redimensionar
+      setTimeout(() => autoResizeTextarea(inputMembros), 0);
+    }
+
+    inputMembros.addEventListener('input', (e) => {
+      localStorage.setItem('dashboardMembros', e.target.value);
+      autoResizeTextarea(e.target);
+    });
+
+    // Persistência das Datas dos Marcos
+    [1, 2, 3].forEach(i => {
+      const dateInput = document.getElementById(`date-marco-${i}`);
+      if (dateInput) {
+        const savedDate = localStorage.getItem(`date-marco-${i}`);
+        if (savedDate) dateInput.value = savedDate;
+        
+        dateInput.addEventListener('change', (e) => {
+          localStorage.setItem(`date-marco-${i}`, e.target.value);
+          updatePrazoRestante();
+        });
+      }
     });
 
     // --- LÓGICA DE EXPORTAÇÃO ---
     document.getElementById('btn-exportar').addEventListener('click', () => {
       const exportData = {
         title: document.getElementById('app-title').textContent.trim(),
-        dataRef: document.getElementById('input-data-ref').value,
+        lider: document.getElementById('input-lider').value,
+        membros: document.getElementById('input-membros').value,
         timeline: [],
-        docs: {}
+        docs: {},
+        marcoDates: {
+          1: document.getElementById('date-marco-1')?.value || '',
+          2: document.getElementById('date-marco-2')?.value || '',
+          3: document.getElementById('date-marco-3')?.value || ''
+        }
       };
 
       // Captura o estado dos Marcos (Timeline)
@@ -726,15 +784,28 @@
             if (cb) cb.checked = false;
           }
 
+          [1, 2, 3].forEach(i => {
+            const dateInput = document.getElementById(`date-marco-${i}`);
+            if (dateInput) {
+              dateInput.value = '';
+              localStorage.removeItem(`date-marco-${i}`);
+            }
+          });
+
           // 2. Aplica as Configurações Globais
           if (importedData.title) {
             document.getElementById('app-title').textContent = importedData.title;
             localStorage.setItem('dashboardTitle', importedData.title);
           }
-          if (importedData.dataRef !== undefined) {
-            document.getElementById('input-data-ref').value = importedData.dataRef;
-            localStorage.setItem('dashboardDataRef', importedData.dataRef);
-            updatePrazoRestante();
+          if (importedData.lider !== undefined) {
+            document.getElementById('input-lider').value = importedData.lider;
+            localStorage.setItem('dashboardLider', importedData.lider);
+          }
+          if (importedData.membros !== undefined) {
+            const m = document.getElementById('input-membros');
+            m.value = importedData.membros;
+            localStorage.setItem('dashboardMembros', importedData.membros);
+            autoResizeTextarea(m);
           }
 
           // 3. Aplica o estado da Timeline e atualiza o visual
@@ -744,6 +815,16 @@
               if (cb) cb.checked = isChecked;
             });
             updateTimelineState();
+          }
+
+          if (importedData.marcoDates) {
+            [1, 2, 3].forEach(i => {
+              const dateInput = document.getElementById(`date-marco-${i}`);
+              if (dateInput && importedData.marcoDates[i]) {
+                dateInput.value = importedData.marcoDates[i];
+                localStorage.setItem(`date-marco-${i}`, importedData.marcoDates[i]);
+              }
+            });
           }
 
           // 4. Aplica o estado dos Documentos
@@ -1074,6 +1155,9 @@
 
         // Reflete a alteração no Card de Status Geral
         updateStatusGeral(highestCheckedIndex);
+        
+        // Recalcula o prazo do próximo marco sempre que a timeline muda
+        updatePrazoRestante();
     }
 
     function updateStatusGeral(highestIndex) {
@@ -1089,10 +1173,10 @@
 
         // Mapeia o estado visual do card baseado no índice mais avançado
         if (highestIndex === -1) {
-            marcoEl.textContent = 'Marco "Zero"';
+            marcoEl.textContent = 'Marco Inicial';
             badgeEl.textContent = 'INÍCIO';
             badgeEl.classList.add('bg-slate-100', 'text-slate-700');
-            nextGateEl.textContent = 'Marco Zero';
+            nextGateEl.textContent = 'Marco Inicial';
         } else if (highestIndex === 0) {
             marcoEl.textContent = 'Marco 1';
             badgeEl.textContent = 'EM ANDAMENTO';
@@ -1114,7 +1198,7 @@
             badgeEl.classList.add('bg-amber-100', 'text-amber-700');
             nextGateEl.textContent = 'Finalização ECS';
         } else if (highestIndex >= 4) {
-            marcoEl.textContent = 'ECS Completa';
+            marcoEl.textContent = 'Marco Final';
             badgeEl.textContent = 'FINALIZADO';
             badgeEl.classList.add('bg-green-100', 'text-green-700');
             nextGateEl.textContent = 'Finalizado';
@@ -1123,12 +1207,26 @@
     }
 
     function updatePrazoRestante() {
-      const inputDataRef = document.getElementById('input-data-ref');
       const deadlineCard = document.getElementById('card-deadline');
+      if (!deadlineCard) return;
 
-      if (!inputDataRef || !deadlineCard) return;
+      let targetDateInput = null;
+      
+      const chk1 = document.getElementById('check-marco-1');
+      const chk2 = document.getElementById('check-marco-2');
+      const chk3 = document.getElementById('check-marco-3');
 
-      if (!inputDataRef.value) {
+      // Regra de negócio: Identifica qual é o próximo marco pendente e pega sua data
+      if (chk1 && !chk1.checked) {
+        targetDateInput = document.getElementById('date-marco-1');
+      } else if (chk2 && !chk2.checked) {
+        targetDateInput = document.getElementById('date-marco-2');
+      } else if (chk3 && !chk3.checked) {
+        targetDateInput = document.getElementById('date-marco-3');
+      }
+
+      // Se não houver data preenchida para o próximo marco (ou todos estiverem concluídos)
+      if (!targetDateInput || !targetDateInput.value) {
         deadlineCard.textContent = '-- Dias';
         deadlineCard.className = 'text-2xl font-bold text-slate-800 transition-colors duration-300';
         return;
@@ -1139,7 +1237,7 @@
       today.setHours(0, 0, 0, 0);
 
       // Desmembra a data do input (YYYY-MM-DD) para forçar o timezone local 
-      const refParts = inputDataRef.value.split('-');
+      const refParts = targetDateInput.value.split('-');
       const refDate = new Date(refParts[0], refParts[1] - 1, refParts[2]);
       refDate.setHours(0, 0, 0, 0);
 

@@ -654,6 +654,25 @@
               </div>
             </li>
 
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-10mp" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('10mp')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">10. MP</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">MAPA DE PRODUTOS</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-10mp" data-phase="3" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('10mp')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-10mp" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
           </ul>
         </div>
       </div>

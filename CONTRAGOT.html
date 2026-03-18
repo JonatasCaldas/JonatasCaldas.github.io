@@ -204,14 +204,13 @@
           </div>
           <ul class="divide-y divide-slate-100" id="list-fase-1">
             
-            <!-- Item 01 -->
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-01" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('01')">
                   <div class="flex flex-col">
                     <span class="text-sm font-medium leading-tight">01. CFE</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO DE EXECUÇÃO</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO DE EXECUÇÃO - Qtdes</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -224,47 +223,25 @@
               </div>
             </li>
 
-            <!-- Item 04b -->
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-04b" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04b')">
+                  <input type="checkbox" id="chk-04c" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04c')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">04b. CGE</span>
+                    <span class="text-sm font-medium leading-tight">04c. CGE</span>
                     <span class="text-[10px] text-slate-400 mt-0.5">CONDIÇÕES GERAIS DE EXECUÇÃO</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="pct-04b" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('04b')">
+                  <input type="number" id="pct-04c" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('04c')">
                   <span class="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-04b" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div id="bar-04c" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </li>
 
-            <!-- Item 05 -->
-            <li class="p-4 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-05" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('05')">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">05. PPE</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">PLANILHA DE PREÇOS ESTIMADOS</span>
-                  </div>
-                </label>
-                <div class="flex items-center gap-1">
-                  <input type="number" id="pct-05" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('05')">
-                  <span class="text-xs font-bold text-slate-500">%</span>
-                </div>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-05" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </li>
-
-            <!-- Item 04d -->
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
@@ -284,23 +261,79 @@
               </div>
             </li>
 
-            <!-- Item 07 -->
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-07" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('07')">
+                  <input type="checkbox" id="chk-05a" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('05a')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">07. CPU</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">COMPOSIÇÃO DE PREÇOS UNITÁRIOS</span>
+                    <span class="text-sm font-medium leading-tight">05a. PPE</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">PLANILHA DE PREÇOS ESTIMADOS</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="pct-07" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('07')">
+                  <input type="number" id="pct-05a" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('05a')">
                   <span class="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-07" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div id="bar-05a" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-07a" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('07a')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">07a. CPU</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">COMPOSIÇÃO DE PREÇOS UNITÁRIOS (PLANILHA GRC)</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-07a" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('07a')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-07a" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-07b" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('07b')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">07b. CPU</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">COMPOSIÇÃO DE PREÇOS UNITÁRIOS (DESCRIÇÃO)</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-07b" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('07b')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-07b" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-11" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('11')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">11. LA</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">LIÇÕES APRENDIDAS</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-11" data-phase="1" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('11')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-11" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </li>
 
@@ -344,8 +377,8 @@
                 <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-04f" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04f')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">04f. ET</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">ESPECIFICAÇÃO TÉCNICA</span>
+                    <span class="text-sm font-medium leading-tight">04f. ET/DE</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">ESPECIFICAÇÃO TÉCNICA/DESENHOS</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -380,19 +413,19 @@
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-05a" checked class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('05a')">
+                  <input type="checkbox" id="chk-05b" checked class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('05b')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">05a. PPP</span>
+                    <span class="text-sm font-medium leading-tight">05b. PPP</span>
                     <span class="text-[10px] text-slate-400 mt-0.5">PLANILHA DE PREÇOS PROPOSTOS</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="pct-05a" data-phase="2" min="0" max="100" value="100" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('05a')">
+                  <input type="number" id="pct-05b" data-phase="2" min="0" max="100" value="100" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('05b')">
                   <span class="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-05a" class="bg-green-500 h-1.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                <div id="bar-05b" class="bg-green-500 h-1.5 rounded-full transition-all duration-300" style="width: 100%"></div>
               </div>
             </li>
 
@@ -401,8 +434,8 @@
                 <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-08" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('08')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">08. RV</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">ROTEIRO DE VISITA (casos específicos)</span>
+                    <span class="text-sm font-medium leading-tight">08. AC</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">APRESENTAÇÃO DO CONTRATO</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -418,38 +451,38 @@
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-09" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('09')">
+                  <input type="checkbox" id="chk-09a" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('09a')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">09. DV</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">DOCUMENTOS TÉCNICOS A SEREM MOSTRADOS NA VISITA</span>
+                    <span class="text-sm font-medium leading-tight">09a. RV</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">ROTEIRO DE VISITA</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="pct-09" data-phase="2" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('09')">
+                  <input type="number" id="pct-09a" data-phase="2" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('09a')">
                   <span class="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-09" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div id="bar-09a" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </li>
 
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-10" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('10')">
+                  <input type="checkbox" id="chk-09b" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('09b')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">10. AC</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">APRESENTAÇÃO DO CONTRATO</span>
+                    <span class="text-sm font-medium leading-tight">09b. DV</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">DOCUMENTOS MOSTRADOS NA VISITA</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="pct-10" data-phase="2" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('10')">
+                  <input type="number" id="pct-09b" data-phase="2" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('09b')">
                   <span class="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-10" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div id="bar-09b" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </li>
 
@@ -491,29 +524,10 @@
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-02" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('02')">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">02. CFF $</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO- FINANCEIRO - Valores</span>
-                  </div>
-                </label>
-                <div class="flex items-center gap-1">
-                  <input type="number" id="pct-02" data-phase="3" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('02')">
-                  <span class="text-xs font-bold text-slate-500">%</span>
-                </div>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-02" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </li>
-
-            <li class="p-4 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-02a" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('02a')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">02a. CFF %</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO- FINANCEIRO - Percentuais</span>
+                    <span class="text-sm font-medium leading-tight">02a. CFF</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO- FINANCEIRO - Valores</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -523,6 +537,25 @@
               </div>
               <div class="w-full bg-slate-100 rounded-full h-1.5">
                 <div id="bar-02a" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-02b" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('02b')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">02b. CFF</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">CRONOGRAMA FÍSICO- FINANCEIRO - Percentuais</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-02b" data-phase="3" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('02b')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-02b" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
             </li>
 
@@ -567,29 +600,10 @@
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" id="chk-04c" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04c')">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">04c. NTLGPD</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">PROTEÇÃO DE DADOS</span>
-                  </div>
-                </label>
-                <div class="flex items-center gap-1">
-                  <input type="number" id="pct-04c" data-phase="3" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('04c')">
-                  <span class="text-xs font-bold text-slate-500">%</span>
-                </div>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-1.5">
-                <div id="bar-04c" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </li>
-
-            <li class="p-4 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-04a" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04a')">
                   <div class="flex flex-col">
-                    <span class="text-sm font-medium leading-tight">04a. CEC</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">CONDIÇÕES ESPECÍFICAS DA CONTRATAÇÃO</span>
+                    <span class="text-sm font-medium leading-tight">04a. NTLGPD</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">LEI DE PROTEÇÃO DE DADOS</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -605,10 +619,29 @@
             <li class="p-4 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" id="chk-04b" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04b')">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium leading-tight">04b. CEC</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">CONDIÇÕES ESPECÍFICAS DA CONTRATAÇÃO</span>
+                  </div>
+                </label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pct-04b" data-phase="3" min="0" max="100" value="0" class="w-16 h-7 text-xs border border-slate-200 rounded px-1 text-right focus:ring-blue-500" oninput="syncCheckbox('04b')">
+                  <span class="text-xs font-bold text-slate-500">%</span>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div id="bar-04b" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </li>
+
+            <li class="p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="chk-04h" class="w-5 h-5 mt-0.5 rounded-full border-slate-300 text-green-500 focus:ring-green-500 cursor-pointer transition-colors" onchange="syncProgress('04h')">
                   <div class="flex flex-col">
                     <span class="text-sm font-medium leading-tight">04h. MR</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">MATRIZ DE RISCOS (casos específicos)</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">MATRIZ DE RISCOS</span>
                   </div>
                 </label>
                 <div class="flex items-center gap-1">
@@ -745,11 +778,15 @@
         };
       });
 
+      // Trata o nome do arquivo para ser seguro para o sistema operacional
+      const rawTitle = document.getElementById('app-title').textContent.trim();
+      const safeTitle = rawTitle.toLowerCase().replace(/[^a-z0-9ãáâéêíóôõúç]+/gi, '-').replace(/(^-|-$)+/g, '') || 'fluxo';
+
       // Gera o arquivo e força o download
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", `fluxo-contratacao-${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchorNode.setAttribute("download", `${safeTitle}-${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
@@ -848,66 +885,6 @@
       };
       reader.readAsText(file);
       this.value = ''; // Reseta o input para permitir importar o mesmo arquivo consecutivamente
-    });
-
-    /**
-     * MOCK DATA
-     * Estrutura de dados preparada para a Fase 05.
-     * Na próxima fase, construiremos as funções que vão iterar sobre 
-     * este objeto e popular as `ul` (list-fase-1, list-fase-2) dinamicamente.
-     */
-    const dashboardData = {
-      global: {
-        mesReferencia: "Outubro 2023",
-        statusAtual: "Marco 2",
-        badge: "EM ANDAMENTO",
-        proximoGate: "Gate 3: Validar TUDO",
-        pendenciasTotais: 8,
-        prazoEstimado: 12,
-        progressoGeralPercent: 66
-      },
-      fases: [
-        {
-          id: 1,
-          nome: "Marco 1",
-          subtitulo: "Validar Cadastro CPU",
-          status: "concluido",
-          progresso: 100,
-          documentos: [
-            { id: "01", nome: "CFE", status: "concluido" },
-            { id: "04b", nome: "CGE", status: "concluido" },
-            { id: "05", nome: "PPE", status: "concluido" },
-            { id: "04d", nome: "CM", status: "concluido" },
-            { id: "07", nome: "CPUs", status: "concluido" }
-          ]
-        },
-        {
-          id: 2,
-          nome: "Marco 2",
-          subtitulo: "Validar SIEC",
-          status: "ativo",
-          progresso: 45,
-          documentos: [
-            { id: "04e", nome: "DR", status: "em_desenvolvimento", percentual: 80 },
-            { id: "04f", nome: "ET", status: "em_desenvolvimento", percentual: 25 },
-            { id: "04g", nome: "NC", status: "aguardando" },
-            { id: "05a", nome: "PPP", status: "concluido" },
-            { id: "08", nome: "RV", status: "pendente" },
-            { id: "09", nome: "DV", status: "pendente" },
-            { id: "10", nome: "AC", status: "pendente" }
-          ]
-        }
-        // Demais fases seguirão a mesma estrutura
-      ]
-    };
-
-    // Event Listeners Básicos (Placeholder de botões)
-    document.getElementById('btn-importar').addEventListener('click', () => {
-      console.log('Ação: Importar Dados acionada.');
-    });
-
-    document.getElementById('btn-exportar').addEventListener('click', () => {
-      console.log('Ação: Exportar Relatório acionada.');
     });
 
     // Lógica Bidirecional de Checkbox e Percentual

@@ -135,6 +135,10 @@
       <!-- A largura desta barra é controlada pela variável --timeline-progress -->
       <div class="timeline-progress"></div>
       
+      <!-- Indicadores de Diferença de Dias -->
+      <div id="diff-m1-m2" class="absolute top-[2px] left-[37.5%] transform -translate-x-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full z-10 border border-slate-200 whitespace-nowrap">—</div>
+      <div id="diff-m2-m3" class="absolute top-[2px] left-[62.5%] transform -translate-x-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full z-10 border border-slate-200 whitespace-nowrap">—</div>
+
       <div class="relative flex justify-between" id="stepper-container">
         
         <!-- Marco 0 -->
@@ -761,6 +765,7 @@
         dateInput.addEventListener('change', (e) => {
           localStorage.setItem(`date-marco-${i}`, e.target.value);
           updatePrazoRestante();
+          updateTimelineDiffs();
         });
       }
     });
@@ -881,6 +886,7 @@
                 localStorage.setItem(`date-marco-${i}`, importedData.marcoDates[i]);
               }
             });
+            updateTimelineDiffs();
           }
 
           // 4. Aplica o estado dos Documentos
@@ -1022,6 +1028,7 @@
       updatePhaseBadges();
       updatePendenciesCount();
       updatePrazoRestante();
+      updateTimelineDiffs();
       
       // Avalia o estado atual dos checks da timeline no carregamento inicial
       let highestCheckedIndex = -1;
@@ -1252,6 +1259,55 @@
         const absDays = Math.abs(diffDays);
         deadlineCard.textContent = `${absDays} ${absDays === 1 ? 'Dia' : 'Dias'} (Atrasado)`;
         deadlineCard.classList.add('text-red-600');
+      }
+    }
+
+    function updateTimelineDiffs() {
+      const d1 = document.getElementById('date-marco-1')?.value;
+      const d2 = document.getElementById('date-marco-2')?.value;
+      const d3 = document.getElementById('date-marco-3')?.value;
+
+      const diff12El = document.getElementById('diff-m1-m2');
+      const diff23El = document.getElementById('diff-m2-m3');
+
+      // Lógica de cálculo (M1 -> M2)
+      if (diff12El) {
+        if (!d1 || !d2) {
+          diff12El.textContent = '—';
+          diff12El.className = 'absolute top-[2px] left-[37.5%] transform -translate-x-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full z-10 border border-slate-200 whitespace-nowrap transition-colors duration-300';
+        } else {
+          const date1 = new Date(d1 + 'T00:00:00');
+          const date2 = new Date(d2 + 'T00:00:00');
+          const diffDays = Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24)) + 1;
+
+          if (diffDays < 1) {
+            diff12El.textContent = 'Data inválida';
+            diff12El.className = 'absolute top-[2px] left-[37.5%] transform -translate-x-1/2 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full z-10 border border-red-200 whitespace-nowrap transition-colors duration-300';
+          } else {
+            diff12El.textContent = `${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`;
+            diff12El.className = 'absolute top-[2px] left-[37.5%] transform -translate-x-1/2 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full z-10 border border-blue-200 whitespace-nowrap transition-colors duration-300';
+          }
+        }
+      }
+
+      // Lógica de cálculo (M2 -> M3)
+      if (diff23El) {
+        if (!d2 || !d3) {
+          diff23El.textContent = '—';
+          diff23El.className = 'absolute top-[2px] left-[62.5%] transform -translate-x-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full z-10 border border-slate-200 whitespace-nowrap transition-colors duration-300';
+        } else {
+          const date2 = new Date(d2 + 'T00:00:00');
+          const date3 = new Date(d3 + 'T00:00:00');
+          const diffDays = Math.ceil((date3 - date2) / (1000 * 60 * 60 * 24)) + 1;
+
+          if (diffDays < 1) {
+            diff23El.textContent = 'Data inválida';
+            diff23El.className = 'absolute top-[2px] left-[62.5%] transform -translate-x-1/2 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full z-10 border border-red-200 whitespace-nowrap transition-colors duration-300';
+          } else {
+            diff23El.textContent = `${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`;
+            diff23El.className = 'absolute top-[2px] left-[62.5%] transform -translate-x-1/2 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full z-10 border border-blue-200 whitespace-nowrap transition-colors duration-300';
+          }
+        }
       }
     }
   </script>

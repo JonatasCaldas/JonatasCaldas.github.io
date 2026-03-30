@@ -52,7 +52,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.1.1</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.1.2</h1>
             <p class="text-gray-500 mt-1 text-lg">Centralize e prepare os dados de criticidade e eventos principais para a análise de roteamento</p>
         </header>
 
@@ -331,6 +331,47 @@
             </div>
         </section>
 
+        <!-- Nova Seção: Análise de Faixa Georreferenciada (±2 km) -->
+        <section id="faixaSection" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-8 transition-all duration-300 animate-fade-in relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>
+            
+            <div class="pl-2">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-gray-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Faixa Georreferenciada (±2 km)</h2>
+                        <p class="text-sm text-gray-500 mt-1">Avalia os alarmes em um raio linear de 2 km antes e depois de um ponto GPS de referência.</p>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Erro Condicional -->
+                <div id="faixaError" class="hidden mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-md border border-red-200 animate-fade-in flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="font-medium">A Análise de Faixa Georreferenciada funciona apenas com 1 arquivo CSV de Maiores Criticidades. Por favor, remova os demais arquivos.</span>
+                </div>
+                
+                <!-- Container dos Tiles de Resultados -->
+                <div id="faixaTiles" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">Sites com Maior Criticidade à Frente</span>
+                        <div id="tileTopSitesFrente" class="flex flex-col gap-2 w-full text-xs text-gray-700 flex-1 justify-center">
+                            <!-- JS irá popular esta lista -->
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">Sites com Maior Criticidade Atrás</span>
+                        <div id="tileTopSitesAtras" class="flex flex-col gap-2 w-full text-xs text-gray-700 flex-1 justify-center">
+                            <!-- JS irá popular esta lista -->
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-center items-center text-center shadow-sm hover:border-accent transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Métrica Reservada</span>
+                        <strong class="text-3xl font-bold text-gray-800 mb-1">-</strong>
+                        <span class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded">Métrica Futura</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -343,12 +384,17 @@
             const MAX_FILES = 5;
             let healthChartInstance = null;
             let healthDataStore = [];
+            let isMainProcessed = false;
 
             // Map State
             let mapInstanceRoute = null;
             let mapLayerGroupRoute = null;
             let mapDataRoute = [];
             let currentMapModeRoute = 'circle';
+
+            // Faixa State
+            let globalFaixaRefLat = null;
+            let globalFaixaRefLon = null;
 
             // --- DOM ELEMENTS ---
             const els = {
@@ -386,6 +432,13 @@
                 btnMapCluster: document.getElementById('btnMapCluster'),
                 btnMapHeat: document.getElementById('btnMapHeat'),
                 noDataMap: document.getElementById('noDataMap'),
+
+                // Faixa Elements
+                faixaSection: document.getElementById('faixaSection'),
+                faixaError: document.getElementById('faixaError'),
+                faixaTiles: document.getElementById('faixaTiles'),
+                tileTopSitesFrente: document.getElementById('tileTopSitesFrente'),
+                tileTopSitesAtras: document.getElementById('tileTopSitesAtras'),
 
                 // Indicadores Elements
                 indicadoresSection: document.getElementById('indicadoresSection'),
@@ -515,8 +568,10 @@
                 els.mainStatusIndicator.classList.add('bg-gray-300');
                 els.healthSection.classList.add('hidden');
                 els.mapSection.classList.add('hidden');
+                if (els.faixaSection) els.faixaSection.classList.add('hidden');
                 els.indicadoresSection.classList.add('hidden');
                 healthDataStore = [];
+                isMainProcessed = false;
             };
 
             els.removeMainFileBtn.addEventListener('click', clearMainFile);
@@ -560,6 +615,11 @@
                 } else {
                     counterElement.classList.remove('text-red-600', 'bg-red-50');
                     counterElement.classList.add('text-gray-600', 'bg-gray-100');
+                }
+
+                // Reatividade: Se os dados base já foram processados, valida dinamicamente a faixa ao alterar arquivos.
+                if (isMainProcessed && typeof updateFaixaSectionState === 'function') {
+                    updateFaixaSectionState(true);
                 }
             };
 
@@ -667,6 +727,79 @@
             };
             initMapDates();
 
+            // Haversine formula (em metros)
+            function getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3;
+                const f1 = lat1 * Math.PI/180;
+                const f2 = lat2 * Math.PI/180;
+                const df = (lat2-lat1) * Math.PI/180;
+                const dl = (lon2-lon1) * Math.PI/180;
+                const a = Math.sin(df/2) * Math.sin(df/2) +
+                          Math.cos(f1) * Math.cos(f2) *
+                          Math.sin(dl/2) * Math.sin(dl/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            // Gerenciador de Estado Exclusivo da Seção de Faixa
+            async function updateFaixaSectionState(forceUpdateTiles = true) {
+                if (!isMainProcessed) return;
+
+                if (!mainFile || highCritFiles.length === 0) {
+                    if (els.faixaSection) els.faixaSection.classList.add('hidden');
+                    return;
+                }
+
+                if (highCritFiles.length > 1) {
+                    if (els.faixaSection) {
+                        els.faixaSection.classList.remove('hidden');
+                        if (els.faixaError) els.faixaError.classList.remove('hidden');
+                        if (els.faixaTiles) els.faixaTiles.classList.add('hidden');
+                    }
+                    globalFaixaRefLat = null;
+                    globalFaixaRefLon = null;
+                    if (forceUpdateTiles && typeof updateIndicadoresTiles === 'function') updateIndicadoresTiles();
+                    return;
+                }
+
+                if (highCritFiles.length === 1) {
+                    if (els.faixaSection) {
+                        els.faixaSection.classList.remove('hidden');
+                        if (els.faixaError) els.faixaError.classList.add('hidden');
+                        if (els.faixaTiles) els.faixaTiles.classList.remove('hidden');
+                    }
+
+                    globalFaixaRefLat = null;
+                    globalFaixaRefLon = null;
+                    try {
+                        const auxData = await readFileAsText(highCritFiles[0]);
+                        const lines = auxData.text.split(/\r?\n/).filter(l => l.trim() !== '');
+                        if (lines.length >= 2) {
+                            const sep = lines[0].includes(';') ? ';' : ',';
+                            const headers = parseCSVRow(lines[0].toLowerCase(), sep);
+                            const idxLat = headers.findIndex(h => h.includes('latitude'));
+                            const idxLon = headers.findIndex(h => h.includes('longitude'));
+                            if (idxLat !== -1 && idxLon !== -1) {
+                                for (let i = 1; i < lines.length; i++) {
+                                    const row = parseCSVRow(lines[i], sep);
+                                    const lat = parseNumberMap(row[idxLat]);
+                                    const lon = parseNumberMap(row[idxLon]);
+                                    if (!isNaN(lat) && !isNaN(lon)) {
+                                        globalFaixaRefLat = lat;
+                                        globalFaixaRefLon = lon;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Erro ao ler GPS do arquivo de criticidade para a Faixa", e);
+                    }
+                    
+                    if (forceUpdateTiles && typeof updateIndicadoresTiles === 'function') updateIndicadoresTiles();
+                }
+            }
+
             els.processBtn.addEventListener('click', async () => {
                 hideError();
                 els.successMsg.classList.add('hidden');
@@ -691,6 +824,10 @@
                     // Extração do Arquivo Principal para Mapa e Indicadores
                     const mainFileData = await readFileAsText(mainFile);
                     processMapData(mainFileData);
+                    
+                    isMainProcessed = true;
+                    await updateFaixaSectionState(false);
+
                     processIndicadores(mainFileData);
 
                     // Rola a tela suavemente para a nova primeira seção (Indicadores)
@@ -889,6 +1026,64 @@
             els.indStartDate.addEventListener('change', updateIndicadoresTiles);
             els.indEndDate.addEventListener('change', updateIndicadoresTiles);
 
+            // Componente base centralizado para renderizar as listas de Criticidade de Site
+            function renderTopSitesRanking(aggData, containerElement) {
+                const sortedSites = Object.entries(aggData)
+                    .map(([name, data]) => ({ name, ...data }))
+                    .sort((a, b) => {
+                        // Em caso de empate na criticidade, utilizar ordenação alfabética pelo nome do site
+                        if (b.criticidade === a.criticidade) {
+                            return a.name.localeCompare(b.name);
+                        }
+                        return b.criticidade - a.criticidade;
+                    });
+
+                containerElement.innerHTML = '';
+
+                for (let i = 0; i < 5; i++) {
+                    if (i < sortedSites.length) {
+                        const s = sortedSites[i];
+                        let trechoStr = "Fora de trecho";
+
+                        if (s.status !== "fora_de_rota" && s.linha) {
+                            const refsLinha = REF_DATA.filter(r => r.linha === s.linha);
+                            if (refsLinha.length > 1) {
+                                const withDist = refsLinha.map(r => ({
+                                    ...r, 
+                                    d: Math.sqrt(Math.pow(s.lat - r.lat, 2) + Math.pow(s.lon - r.lon, 2))
+                                })).sort((a, b) => a.d - b.d);
+                                
+                                const r1 = withDist[0];
+                                const r2 = withDist[1];
+                                
+                                trechoStr = r1.km < r2.km ? `${r1.ref} - ${r2.ref}` : `${r2.ref} - ${r1.ref}`;
+                            } else if (refsLinha.length === 1) {
+                                trechoStr = refsLinha[0].ref;
+                            }
+                        }
+
+                        const critStr = s.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0});
+                        
+                        const linkHTML = s.url !== "#" 
+                            ? `<a href="${s.url}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors font-semibold">${s.name}</a>`
+                            : `<span class="font-semibold text-gray-800">${s.name}</span>`;
+
+                        containerElement.innerHTML += `
+                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1">
+                                <div class="truncate w-full text-[12px]" title="${s.name}">${linkHTML}</div>
+                                <div class="truncate w-full text-[11px] text-gray-600 mt-0.5">Criticidade ${critStr} / <span class="text-gray-500 font-medium">${trechoStr}</span></div>
+                            </div>
+                        `;
+                    } else {
+                        containerElement.innerHTML += `
+                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1 text-gray-400">
+                                <div class="truncate w-full text-[11px] italic mt-0.5">sem dados</div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
             function updateIndicadoresTiles() {
                 const startStr = els.indStartDate.value;
                 const endStr = els.indEndDate.value;
@@ -906,6 +1101,8 @@
                 let sumSeverity = 0;
                 let sumCriticidade = 0;
                 const siteAgg = {};
+                const siteAggFrente = {};
+                const siteAggAtras = {};
 
                 for (let record of indicadoresDataStore) {
                     if (record.date < startDate || record.date > endDate) continue;
@@ -937,7 +1134,7 @@
                         if (kmNaLinha < kmIni || kmNaLinha > kmFim) continue;
                     }
 
-                    // Agregação de Ranking de Sites com o Contexto Corrigido
+                    // Agregação de Ranking de Sites Global
                     if (!siteAgg[record.site]) {
                         siteAgg[record.site] = { 
                             criticidade: 0, lat: record.lat, lon: record.lon, 
@@ -945,6 +1142,30 @@
                         };
                     }
                     siteAgg[record.site].criticidade += record.criticidade;
+
+                    // Agregação para Faixa (±2 km) com base em Haversine
+                    if (globalFaixaRefLat !== null && globalFaixaRefLon !== null && !isNaN(record.lat) && !isNaN(record.lon)) {
+                        const dist = getDistance(record.lat, record.lon, globalFaixaRefLat, globalFaixaRefLon);
+                        if (dist <= 2000) {
+                            if (record.lon >= globalFaixaRefLon) {
+                                if (!siteAggFrente[record.site]) {
+                                    siteAggFrente[record.site] = { 
+                                        criticidade: 0, lat: record.lat, lon: record.lon, 
+                                        url: record.url, status: record.status, linha: linhaDoContexto 
+                                    };
+                                }
+                                siteAggFrente[record.site].criticidade += record.criticidade;
+                            } else {
+                                if (!siteAggAtras[record.site]) {
+                                    siteAggAtras[record.site] = { 
+                                        criticidade: 0, lat: record.lat, lon: record.lon, 
+                                        url: record.url, status: record.status, linha: linhaDoContexto 
+                                    };
+                                }
+                                siteAggAtras[record.site].criticidade += record.criticidade;
+                            }
+                        }
+                    }
 
                     if (record.status === "fora_de_rota") {
                         countFora++;
@@ -965,56 +1186,10 @@
                 // Cálculo da Criticidade Acumulada (Ajustado para 0 casas decimais)
                 els.tileCritTrecho.textContent = countTrecho > 0 ? sumCriticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0}) : '-';
                 
-                // Renderização do Ranking de Sites
-                const sortedSites = Object.entries(siteAgg)
-                    .map(([name, data]) => ({ name, ...data }))
-                    .sort((a, b) => b.criticidade - a.criticidade);
-
-                els.tileTopSites.innerHTML = '';
-
-                for (let i = 0; i < 5; i++) {
-                    if (i < sortedSites.length) {
-                        const s = sortedSites[i];
-                        let trechoStr = "Fora de trecho";
-
-                        if (s.status !== "fora_de_rota" && s.linha) {
-                            const refsLinha = REF_DATA.filter(r => r.linha === s.linha);
-                            if (refsLinha.length > 1) {
-                                // Encontra os dois pontos mais próximos para definir o trecho
-                                const withDist = refsLinha.map(r => ({
-                                    ...r, 
-                                    d: Math.sqrt(Math.pow(s.lat - r.lat, 2) + Math.pow(s.lon - r.lon, 2))
-                                })).sort((a, b) => a.d - b.d);
-                                
-                                const r1 = withDist[0];
-                                const r2 = withDist[1];
-                                
-                                trechoStr = r1.km < r2.km ? `${r1.ref} - ${r2.ref}` : `${r2.ref} - ${r1.ref}`;
-                            } else if (refsLinha.length === 1) {
-                                trechoStr = refsLinha[0].ref;
-                            }
-                        }
-
-                        const critStr = s.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0});
-                        
-                        const linkHTML = s.url !== "#" 
-                            ? `<a href="${s.url}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors font-semibold">${s.name}</a>`
-                            : `<span class="font-semibold text-gray-800">${s.name}</span>`;
-
-                        els.tileTopSites.innerHTML += `
-                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1">
-                                <div class="truncate w-full text-[12px]" title="${s.name}">${linkHTML}</div>
-                                <div class="truncate w-full text-[11px] text-gray-600 mt-0.5">Criticidade ${critStr} / <span class="text-gray-500 font-medium">${trechoStr}</span></div>
-                            </div>
-                        `;
-                    } else {
-                        els.tileTopSites.innerHTML += `
-                            <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1 text-gray-400">
-                                <div class="truncate w-full text-[11px] italic mt-0.5">sem dados</div>
-                            </div>
-                        `;
-                    }
-                }
+                // Renderização do Ranking de Sites (Reutilizando a função base unificada)
+                renderTopSitesRanking(siteAgg, els.tileTopSites);
+                renderTopSitesRanking(siteAggFrente, els.tileTopSitesFrente);
+                renderTopSitesRanking(siteAggAtras, els.tileTopSitesAtras);
 
                 if (linha === "ALL") {
                     els.tileTrechoNome.textContent = "Todas as Linhas";

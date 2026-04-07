@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Minhas Coleções - Pokémon TCG Curator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Configuração de Tema -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#e2e2e5",
+                        "on-primary-container": "#ffcc15",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#dce1ff",
+                        "inverse-on-surface": "#2f3133",
+                        "primary-container": "#6f5700",
+                        "primary": "#f2c000",
+                        "surface-variant": "#333537",
+                        "outline": "#8e909f",
+                        "outline-variant": "#434653",
+                        "on-secondary-fixed": "#00164d",
+                        "primary-fixed": "#ffe08d",
+                        "tertiary": "#ffb3ae",
+                        "surface-container-lowest": "#0c0e10",
+                        "on-primary": "#3d2f00",
+                        "on-primary-fixed-variant": "#584400",
+                        "on-secondary-fixed-variant": "#073daa",
+                        "secondary-fixed-dim": "#b5c4ff",
+                        "on-primary-fixed": "#241a00",
+                        "on-surface-variant": "#c4c5d5",
+                        "on-error-container": "#ffdad6",
+                        "surface-container": "#1e2022",
+                        "on-tertiary-fixed-variant": "#910816",
+                        "on-error": "#690005",
+                        "surface-tint": "#f2c000",
+                        "background": "#121416",
+                        "primary-fixed-dim": "#f2c000",
+                        "surface-container-highest": "#333537",
+                        "on-secondary": "#00287b",
+                        "surface": "#121416",
+                        "on-tertiary": "#68000b",
+                        "tertiary-fixed-dim": "#ffb3ae",
+                        "inverse-primary": "#745b00",
+                        "surface-bright": "#37393b",
+                        "on-surface": "#e2e2e5",
+                        "tertiary-container": "#ad2327",
+                        "on-tertiary-container": "#ffc4bf",
+                        "secondary": "#b5c4ff",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#9cb2ff",
+                        "surface-container-low": "#1a1c1e",
+                        "on-tertiary-fixed": "#410004",
+                        "surface-container-high": "#282a2c",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary-container": "#073daa",
+                        "surface-dim": "#121416",
+                        "inverse-surface": "#e2e2e5"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            min-height: max(100vh, 100dvh);
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .lucide-filled { fill: currentColor; }
+
+        .card-pocket-effect {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.02) 100%);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+        .card-sheen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 55%, transparent 60%);
+            pointer-events: none;
+        }
+        
+        .view-transition { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        .view-hidden { opacity: 0; pointer-events: none; position: absolute; width: 100%; transform: translateY(10px); }
+        .view-visible { opacity: 1; pointer-events: auto; position: relative; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32 selection:bg-primary/30 overflow-x-hidden relative">
+
+    <!-- ========================================== -->
+    <!-- TELA 1: HOME (VISÃO GERAL)                 -->
+    <!-- ========================================== -->
+    <div id="home-view" class="view-transition view-visible">
+        <main class="px-6 pt-8 pb-12 max-w-5xl mx-auto w-full">
+            <section class="mb-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                    <div>
+                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Visão Geral</h2>
+                        <p class="text-on-surface-variant font-medium text-sm md:text-base">
+                            Você possui <span id="total-general-cards" class="text-primary font-bold">0</span> cartas catalogadas.
+                        </p>
+                    </div>
+                    <button id="btn-new-collection" class="w-full md:w-auto bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-lg shadow-primary/10">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        Nova Coleção
+                    </button>
+                </div>
+
+                <!-- Grid Dinâmico de Coleções -->
+                <div id="collections-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA 2: DETALHES DA COLEÇÃO (FICHÁRIO)     -->
+    <!-- ========================================== -->
+    <div id="details-view" class="view-transition view-hidden">
+        <header class="w-full top-0 sticky z-40 bg-[#121416]/95 backdrop-blur-sm flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div class="flex items-center gap-4">
+                <button id="btn-back-home" class="text-primary hover:opacity-80 hover:-translate-x-1 transition-all focus:outline-none" aria-label="Voltar">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="font-headline text-lg font-bold tracking-tight text-on-background">Meu Fichário</h1>
+            </div>
+        </header>
+
+        <main class="px-6 py-8 max-w-5xl mx-auto w-full">
+            <div class="mb-10 flex flex-col gap-2">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70 mb-1">Status da Coleção</p>
+                        <h2 id="detail-title" class="font-headline text-3xl font-extrabold text-on-surface">Nome da Coleção</h2>
+                    </div>
+                    <div class="text-right">
+                        <p id="detail-progress-percent" class="font-headline text-2xl font-bold text-primary">0%</p>
+                        <p id="detail-progress-ratio" class="font-label text-[10px] font-medium uppercase tracking-tighter text-on-surface-variant">0/0 CARTAS</p>
+                    </div>
+                </div>
+                <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                    <div id="detail-progress-bar" class="h-full bg-gradient-to-r from-primary to-primary-container transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Filtros da Coleção -->
+            <div class="flex items-center gap-3 mb-6">
+                <label class="relative flex items-center cursor-pointer group">
+                    <input type="checkbox" id="filter-collected" class="sr-only peer">
+                    <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-primary/10 peer-checked:text-primary peer-checked:border-primary/50 hover:bg-surface-container transition-all shadow-sm">
+                        Coletado
+                    </div>
+                </label>
+                <label class="relative flex items-center cursor-pointer group">
+                    <input type="checkbox" id="filter-uncollected" class="sr-only peer">
+                    <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-surface-container-highest peer-checked:text-on-surface peer-checked:border-outline-variant hover:bg-surface-container transition-all shadow-sm">
+                        Não Coletado
+                    </div>
+                </label>
+            </div>
+
+            <!-- Grid Dinâmico de Cartas do Fichário -->
+            <div id="details-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- Slot Fixo para Adicionar Nova Carta -->
+                <div id="btn-add-card-slot" class="relative group order-first">
+                    <div class="aspect-[2.5/3.5] rounded-xl bg-surface-container-low border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center card-pocket-effect cursor-pointer hover:bg-surface-container hover:border-primary/50 transition-all active:scale-95 shadow-sm">
+                        <div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary transition-colors shadow-lg">
+                            <i data-lucide="plus" class="w-7 h-7 text-outline group-hover:text-on-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Cartas serão injetadas aqui pelo JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- NAVEGAÇÃO INFERIOR E MODAIS GLOBAIS        -->
+    <!-- ========================================== -->
+    <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-8 pb-8 pt-4 bg-[#1a1c1e]/80 backdrop-blur-xl border-t border-white/5 shadow-[0px_-10px_30px_rgba(0,0,0,0.5)] z-50">
+        <button id="nav-home" class="flex flex-col items-center justify-center text-primary transition-transform active:scale-95 focus:outline-none">
+            <div class="relative mb-1">
+                <i data-lucide="archive" id="icon-home" class="w-6 h-6 lucide-filled transition-all"></i>
+            </div>
+            <span class="font-inter text-[10px] font-bold uppercase tracking-wider">Início</span>
+        </button>
+        <button id="nav-binder" class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none">
+            <i data-lucide="book-open" id="icon-binder" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
+            <span class="font-inter text-[10px] font-medium uppercase tracking-wider">Fichário</span>
+        </button>
+    </nav>
+
+    <!-- Modal Nova Coleção (Home) -->
+    <div id="modal-new-collection" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div id="modal-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"></div>
+        <div id="modal-panel" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-2xl font-bold text-on-surface">Nova Coleção</h3>
+                <button id="btn-close-modal" class="text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <form id="form-new-collection" class="flex flex-col gap-5">
+                <div>
+                    <label for="input-col-name" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Nome da Coleção</label>
+                    <input type="text" id="input-col-name" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface transition-colors">
+                </div>
+                <div>
+                    <label for="input-col-category" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Categoria / Era</label>
+                    <input type="text" id="input-col-category" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface transition-colors">
+                </div>
+                <div>
+                    <label for="input-col-image" class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL da Capa</label>
+                    <input type="url" id="input-col-image" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface transition-colors">
+                </div>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" id="btn-cancel-modal" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-3 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-fixed active:scale-95 transition-all flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span id="btn-submit-text">Adicionar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nova/Editar Carta -->
+    <div id="modal-new-card" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div id="modal-card-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"></div>
+        <div id="modal-card-panel" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-card-title" class="text-2xl font-bold text-on-surface">Adicionar Carta</h3>
+                <button id="btn-close-card-modal" class="text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <form id="form-new-card" class="flex flex-col gap-4">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-1">
+                        <label for="input-card-num" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Número</label>
+                        <input type="text" id="input-card-num" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                    </div>
+                    <div class="col-span-2">
+                        <label for="input-card-name" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Pokémon</label>
+                        <input type="text" id="input-card-name" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                    </div>
+                </div>
+                <div>
+                    <label for="input-card-image" class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL da Imagem</label>
+                    <input type="url" id="input-card-image" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                </div>
+                <div>
+                    <label for="input-card-rarity" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Raridade</label>
+                    <input type="text" id="input-card-rarity" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface uppercase">
+                </div>
+                <div class="flex items-center mt-2">
+                    <label class="relative flex items-center cursor-pointer group">
+                        <input type="checkbox" id="input-card-collected" class="sr-only peer">
+                        <div class="w-7 h-7 bg-surface-container-highest border border-outline-variant/50 rounded-full peer-checked:bg-primary peer-checked:border-primary flex items-center justify-center transition-all shadow-sm">
+                            <i data-lucide="check" class="w-4 h-4 text-on-primary opacity-0 peer-checked:opacity-100 transition-opacity scale-50 peer-checked:scale-100"></i>
+                        </div>
+                        <span class="ml-3 text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Coletado</span>
+                    </label>
+                </div>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" id="btn-cancel-card-modal" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-3 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-fixed active:scale-95 transition-all flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span id="btn-card-submit-text">Salvar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Exclusão -->
+    <div id="modal-delete" class="fixed inset-0 z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div id="backdrop-delete" class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"></div>
+        <div id="panel-delete" class="relative bg-surface-container border border-error/20 rounded-2xl w-[90%] max-w-sm p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex items-center gap-3 mb-4 text-error">
+                <div class="bg-error/10 p-3 rounded-full"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                <h3 id="delete-modal-title" class="text-xl font-bold">Excluir</h3>
+            </div>
+            <p id="delete-modal-desc" class="text-on-surface-variant text-sm mb-6">Ação irreversível.</p>
+            <div class="flex justify-end gap-3">
+                <button id="btn-cancel-delete" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors focus:outline-none">Cancelar</button>
+                <button id="btn-confirm-delete" class="px-5 py-3 rounded-xl font-bold bg-error text-on-error hover:opacity-90 active:scale-95 transition-all focus:outline-none">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT: LÓGICA DE ESTADO (STATE) E UI  -->
+    <!-- ========================================== -->
+    <script>
+        lucide.createIcons();
+
+        // --- ESTADO GLOBAL DA APLICAÇÃO ---
+        const appState = {
+            currentCollectionId: null,
+            collections: [
+                {
+                    id: 'col-1',
+                    name: '151 Special Set',
+                    category: 'ESCARLATE E VIOLETA',
+                    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAPM7wDUrmdUanPv86q-FVT-cnParzqiRSXs-L6mBsjCbeZMbUfmDnR7bP5w2nDiBxwRPGgWOnlErbl1b3EjAMYpI_AM1-bGNTARLAU6aoOhXcajiPL_oGZ1AiaIaaLIhE7RmaP07EQaJH7-RfoSg7gzLvCUNUmdENw7XEvfQ_VdXFvPdwn5pYZvdRnF3mIO91fpdgV1GVEIPl0d1NOVQ5X0CbE_LWQJM8Sq0uQ6-bAljB5lz37DsmW2a1FNDwRf3SgBAdY9q4K-vQ',
+                    cards: [
+                        { id: 'c-1', num: '006', name: 'Charizard', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHsYHcnn2MbqQo3LaNt-b4SI6VFPb1fGm42ExrzEPjGlnSbLbxkMibL8k19282bQEIdMjLj7DusG5QWxRkMD3wWaqndAY4CW7YqY7XwddI_qMlWcITPnnU5-lyx_uuE7iHMKkI5Ez3pCpGlmUKUzTHDRuc_OwKKbS656uJe01QEqhwckYMMc9yL3Rl7Uc7eJJ48cbA4FxiqRkijvVeCuk5OVezKBtknd_KdWb-wevVIBcmaMvkF6M7Xo9cUxzKIjJylrTPtsoxAt0', rarity: 'RARE', collected: true },
+                        { id: 'c-2', num: '009', name: 'Blastoise', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSk6sqAbUir8nsnF_kJWdMsfLc3o7fUdJ1zOe_r9PsI0zQU5HeHnze0JCQrbu_acBwcVK22rdP9HHc6Hi96rG5RVE6s3rHWCm7vL190C54iZTWq7yBsX0SG11DmlefFgKX3Q5lm5TSOf8cY7i8yGiNnl9oTB3k41DKXA1g5IOJiCy-VA1SNj1BTNi4vJ48FWfwHTStZZCDB_GEF70PNhxcaYgdoglsuxFM2vBOEUdVtupcyE94Y50T_eSlVM_zQ3BgmphHc1E4NOM', rarity: 'RARE', collected: true },
+                        { id: 'c-3', num: '150', name: 'Mewtwo', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2ShG8AQLSvuQCGuo-3syyjIvKUn0E6ttypWX_23mhsNrQTAVqmsIPLlZhBcK_M6B1qJy2hE0TFCbdb8h7CPIqkM0A2ScBtLN1pzrlwMzdzwDnKLsmvoyXnhSgsJlRcUgj_go7Di7qvUtXAPfqpsH3soz0_UevSt2nq5EG7iCPojVuRN7GONjkuQHqJSerfj2rmYMMzbLTBxmaUCGxeoZVkGZdB-btzWzTE_w5Er1ybx7kkK0MAqdtv55eUlAo8Ih35WA5q0VP4Qk', rarity: 'LEGEND', collected: false }
+                    ]
+                },
+                {
+                    id: 'col-2',
+                    name: 'Lost Origin',
+                    category: 'ESPADA E ESCUDO',
+                    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDF1ZkFrsJEo1fCE5pJ8KKvc0W87SRYLn1Enlj29LwGAO15BeJx0nc6vj-Hz1RxGPl0J7gaKNYS5L4xGr5_LfKtN-mERHbd-9idRVuXUT2ohwP-t8H7FBLuoRMHhCK5gGlweEfmW6XnBkXdXS3kxklhsdiHc4gJwEWTDkrMIbTT9a5Wq9zOuSB9nI48Pt4v419y9aZufOForcGzgRPp2CnDuRngw9aKQPk0g_CxjTCudGFsmL7TvjwUnw2IDPJpyKHiwTGlO9riWfQ',
+                    cards: []
+                }
+            ]
+        };
+
+        let editingCollectionId = null;
+        let editingCardId = null;
+        let deleteContext = { type: null, id: null }; 
+
+        // Elementos UI
+        const gridHome = document.getElementById('collections-grid');
+        const gridDetails = document.getElementById('details-grid');
+        const viewHome = document.getElementById('home-view');
+        const viewDetails = document.getElementById('details-view');
+
+        // Elementos de Filtro
+        const filterCollected = document.getElementById('filter-collected');
+        const filterUncollected = document.getElementById('filter-uncollected');
+
+        // FUNÇÃO AUXILIAR DE PROGRESSO
+        const calcProgress = (cards) => {
+            const total = cards.length;
+            const collected = cards.filter(c => c.collected).length;
+            const percent = total > 0 ? Math.round((collected / total) * 100) : 0;
+            return { total, collected, percent };
+        };
+
+        // --- RENDERIZAÇÃO DA HOME (COLEÇÕES) ---
+        const renderHome = () => {
+            gridHome.innerHTML = '';
+            let totalGeneralCards = 0;
+
+            appState.collections.forEach(col => {
+                const prog = calcProgress(col.cards);
+                totalGeneralCards += prog.collected; 
+
+                const cardHTML = `
+                    <div class="bg-surface-container-low rounded-2xl overflow-hidden group hover:bg-surface-container transition-all duration-300 border border-white/5 hover:border-white/10 cursor-pointer" onclick="openDetails('${col.id}')">
+                        <div class="relative h-48 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="${col.name}" src="${col.image}" onerror="this.src='https://placehold.co/400x300/121416/f2c000?text=Indisponível'"/>
+                            <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/20 to-transparent z-0"></div>
+                            
+                            <!-- Botões de Ação na Home -->
+                            <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                <button onclick="event.stopPropagation(); openCollectionModal('${col.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg" title="Editar"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); openDeleteModal('collection', '${col.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+
+                            <div class="absolute bottom-4 left-5 z-10">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary-container/40 backdrop-blur-md px-2.5 py-1 rounded border border-primary/20">${col.category}</span>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-4">
+                            <h3 class="text-xl font-bold text-on-surface mb-5">${col.name}</h3>
+                            <div class="flex justify-between items-end mb-2.5">
+                                <span class="text-xs font-medium text-on-surface-variant">Progresso</span>
+                                <span class="text-sm font-bold text-primary">${prog.collected}/${prog.total} <span class="text-[10px] font-semibold text-on-surface-variant ml-0.5">CARTAS</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-secondary to-secondary-fixed-dim rounded-full transition-all duration-1000" style="width: ${prog.percent}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridHome.insertAdjacentHTML('beforeend', cardHTML);
+            });
+            
+            document.getElementById('total-general-cards').textContent = totalGeneralCards;
+            lucide.createIcons();
+        };
+
+        // --- LÓGICA DE FILTROS ---
+        const applyFilters = () => {
+            const showCollectedOnly = filterCollected.checked;
+            const showUncollectedOnly = filterUncollected.checked;
+            
+            const cards = gridDetails.querySelectorAll('.inner-card');
+            
+            cards.forEach(card => {
+                const isCollected = card.dataset.collected === 'true'; // Resgata do dataset de forma correta
+                let shouldShow = true;
+                
+                if (showCollectedOnly && !isCollected) shouldShow = false;
+                if (showUncollectedOnly && isCollected) shouldShow = false;
+                
+                if (shouldShow) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        };
+
+        filterCollected.addEventListener('change', (e) => {
+            if (e.target.checked) filterUncollected.checked = false;
+            applyFilters();
+        });
+
+        filterUncollected.addEventListener('change', (e) => {
+            if (e.target.checked) filterCollected.checked = false;
+            applyFilters();
+        });
+
+        // --- RENDERIZAÇÃO DE DETALHES (FICHÁRIO E SUAS CARTAS) ---
+        const openDetails = (collectionId) => {
+            const collection = appState.collections.find(c => c.id === collectionId);
+            if(!collection) return;
+            
+            appState.currentCollectionId = collection.id;
+            document.getElementById('detail-title').textContent = collection.name;
+            
+            filterCollected.checked = false;
+            filterUncollected.checked = false;
+
+            renderDetailsCards(collection);
+
+            viewHome.classList.replace('view-visible', 'view-hidden');
+            viewDetails.classList.replace('view-hidden', 'view-visible');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            document.getElementById('icon-home').classList.remove('lucide-filled');
+            document.getElementById('icon-binder').classList.add('lucide-filled', 'text-primary');
+        };
+
+        const renderDetailsCards = (collection) => {
+            const prog = calcProgress(collection.cards);
+            document.getElementById('detail-progress-percent').textContent = `${prog.percent}%`;
+            document.getElementById('detail-progress-ratio').textContent = `${prog.collected}/${prog.total} CARTAS`;
+            document.getElementById('detail-progress-bar').style.width = `${prog.percent}%`;
+
+            gridDetails.innerHTML = `
+                <div id="btn-add-card-slot" onclick="openCardModal()" class="relative group order-first">
+                    <div class="aspect-[2.5/3.5] rounded-xl bg-surface-container-low border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center card-pocket-effect cursor-pointer hover:bg-surface-container hover:border-primary/50 transition-all active:scale-95 shadow-sm">
+                        <div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary transition-colors shadow-lg">
+                            <i data-lucide="plus" class="w-7 h-7 text-outline group-hover:text-on-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            collection.cards.forEach(card => {
+                const imgClasses = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
+                
+                // ADICIONADO AQUI: classe ".inner-card" e "data-collected" para o JS identificar durante a filtragem
+                const cardHTML = `
+                    <div class="relative group inner-card" data-collected="${card.collected}">
+                        <div class="aspect-[2.5/3.5] rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect transition-transform duration-300 hover:scale-[1.02] active:scale-95 border border-white/5">
+                            <img alt="${card.name}" class="${imgClasses}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
+                            <div class="card-sheen z-0"></div>
+                            
+                            <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg" title="Editar"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                            
+                            <div class="absolute bottom-2 right-2 px-2 py-1 bg-surface-container-lowest/80 backdrop-blur-md rounded text-[10px] font-bold text-primary border border-primary/20 uppercase z-10">${card.rarity || 'COMUM'}</div>
+                        </div>
+                        <p class="mt-3 font-label text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">#${card.num} ${card.name}</p>
+                    </div>
+                `;
+                gridDetails.insertAdjacentHTML('beforeend', cardHTML);
+            });
+            lucide.createIcons();
+            applyFilters();
+        };
+
+        const goToHome = () => {
+            viewDetails.classList.replace('view-visible', 'view-hidden');
+            viewHome.classList.replace('view-hidden', 'view-visible');
+            appState.currentCollectionId = null;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            document.getElementById('icon-home').classList.add('lucide-filled');
+            document.getElementById('icon-binder').classList.remove('lucide-filled', 'text-primary');
+            renderHome();
+        };
+
+        // --- GESTÃO DE MODAIS E CRUD ---
+        
+        // 1. Modal Coleção
+        const modalCol = document.getElementById('modal-new-collection');
+        const formCol = document.getElementById('form-new-collection');
+        const openCollectionModal = (colId = null) => {
+            editingCollectionId = colId;
+            document.getElementById('modal-title').textContent = colId ? 'Editar Coleção' : 'Nova Coleção';
+            document.getElementById('btn-submit-text').textContent = colId ? 'Salvar' : 'Adicionar';
+            
+            if(colId) {
+                const col = appState.collections.find(c => c.id === colId);
+                document.getElementById('input-col-name').value = col.name;
+                document.getElementById('input-col-category').value = col.category;
+                document.getElementById('input-col-image').value = col.image;
+            } else {
+                formCol.reset();
+            }
+
+            modalCol.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modalCol.classList.remove('opacity-0');
+                document.getElementById('modal-panel').classList.remove('scale-95');
+            });
+        };
+        const closeColModal = () => {
+            modalCol.classList.add('opacity-0');
+            document.getElementById('modal-panel').classList.add('scale-95');
+            setTimeout(() => { modalCol.classList.add('hidden'); }, 300);
+        };
+        formCol.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('input-col-name').value.trim();
+            const category = document.getElementById('input-col-category').value.trim();
+            const image = document.getElementById('input-col-image').value.trim();
+
+            if (editingCollectionId) {
+                const col = appState.collections.find(c => c.id === editingCollectionId);
+                col.name = name; col.category = category; col.image = image;
+            } else {
+                appState.collections.unshift({
+                    id: 'col-' + Date.now(),
+                    name, category, image, cards: []
+                });
+            }
+            renderHome();
+            closeColModal();
+        });
+
+        // 2. Modal Carta
+        const modalCar = document.getElementById('modal-new-card');
+        const formCar = document.getElementById('form-new-card');
+        const openCardModal = (cardId = null) => {
+            editingCardId = cardId;
+            document.getElementById('modal-card-title').textContent = cardId ? 'Editar Carta' : 'Adicionar Carta';
+            document.getElementById('btn-card-submit-text').textContent = cardId ? 'Salvar' : 'Adicionar';
+            
+            const col = appState.collections.find(c => c.id === appState.currentCollectionId);
+            
+            if(cardId) {
+                const card = col.cards.find(c => c.id === cardId);
+                document.getElementById('input-card-num').value = card.num;
+                document.getElementById('input-card-name').value = card.name;
+                document.getElementById('input-card-image').value = card.image;
+                document.getElementById('input-card-rarity').value = card.rarity;
+                document.getElementById('input-card-collected').checked = card.collected;
+            } else {
+                formCar.reset();
+                document.getElementById('input-card-collected').checked = false; // Default False
+            }
+
+            modalCar.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modalCar.classList.remove('opacity-0');
+                document.getElementById('modal-card-panel').classList.remove('scale-95');
+            });
+        };
+        const closeCarModal = () => {
+            modalCar.classList.add('opacity-0');
+            document.getElementById('modal-card-panel').classList.add('scale-95');
+            setTimeout(() => { modalCar.classList.add('hidden'); }, 300);
+        };
+        formCar.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const col = appState.collections.find(c => c.id === appState.currentCollectionId);
+            const num = document.getElementById('input-card-num').value.trim();
+            const name = document.getElementById('input-card-name').value.trim();
+            const image = document.getElementById('input-card-image').value.trim();
+            const rarity = document.getElementById('input-card-rarity').value.trim();
+            const collected = document.getElementById('input-card-collected').checked;
+
+            if (editingCardId) {
+                const card = col.cards.find(c => c.id === editingCardId);
+                card.num = num; card.name = name; card.image = image; card.rarity = rarity; card.collected = collected;
+            } else {
+                col.cards.push({ id: 'card-' + Date.now(), num, name, image, rarity, collected });
+            }
+            renderDetailsCards(col);
+            closeCarModal();
+        });
+
+        // 3. Modal Exclusão
+        const modalDel = document.getElementById('modal-delete');
+        const openDeleteModal = (type, id) => {
+            deleteContext = { type, id };
+            document.getElementById('delete-modal-title').textContent = type === 'collection' ? 'Excluir Coleção' : 'Excluir Carta';
+            document.getElementById('delete-modal-desc').textContent = 'Tem certeza? Esta ação não pode ser desfeita.';
+            modalDel.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modalDel.classList.remove('opacity-0');
+                document.getElementById('panel-delete').classList.remove('scale-95');
+            });
+        };
+        const closeDelModal = () => {
+            modalDel.classList.add('opacity-0');
+            document.getElementById('panel-delete').classList.add('scale-95');
+            setTimeout(() => { modalDel.classList.add('hidden'); }, 300);
+        };
+        document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+            if (deleteContext.type === 'collection') {
+                appState.collections = appState.collections.filter(c => c.id !== deleteContext.id);
+                renderHome();
+            } else if (deleteContext.type === 'card') {
+                const col = appState.collections.find(c => c.id === appState.currentCollectionId);
+                col.cards = col.cards.filter(c => c.id !== deleteContext.id);
+                renderDetailsCards(col);
+            }
+            closeDelModal();
+        });
+
+        // Listeners de fechar Modais
+        document.getElementById('btn-close-modal').addEventListener('click', closeColModal);
+        document.getElementById('btn-cancel-modal').addEventListener('click', closeColModal);
+        document.getElementById('modal-backdrop').addEventListener('click', closeColModal);
+        
+        document.getElementById('btn-close-card-modal').addEventListener('click', closeCarModal);
+        document.getElementById('btn-cancel-card-modal').addEventListener('click', closeCarModal);
+        document.getElementById('modal-card-backdrop').addEventListener('click', closeCarModal);
+        
+        document.getElementById('btn-cancel-delete').addEventListener('click', closeDelModal);
+        document.getElementById('backdrop-delete').addEventListener('click', closeDelModal);
+
+        // Listeners de Navegação
+        document.getElementById('btn-new-collection').addEventListener('click', () => openCollectionModal());
+        document.getElementById('btn-back-home').addEventListener('click', goToHome);
+        document.getElementById('nav-home').addEventListener('click', goToHome);
+        document.getElementById('nav-binder').addEventListener('click', () => {
+            if(viewHome.classList.contains('view-visible') && appState.collections.length > 0) {
+                openDetails(appState.collections[0].id); // Abre a 1ª coleção de exemplo
+            }
+        });
+
+        // Inicializa App
+        renderHome();
+    </script>
+</body>
+</html>

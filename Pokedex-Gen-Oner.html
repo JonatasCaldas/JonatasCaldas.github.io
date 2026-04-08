@@ -118,7 +118,7 @@
 </head>
 <body class="bg-background text-on-background min-h-screen pb-32 selection:bg-primary/30 overflow-x-hidden relative">
 
-    <!-- Toast Notificação Corrigido -->
+    <!-- Toast Notificação -->
     <div id="toast" class="fixed top-6 right-1/2 translate-x-1/2 md:translate-x-0 md:right-6 z-[100] bg-surface-container-high border border-white/10 text-on-surface px-5 py-3.5 rounded-xl shadow-2xl transform transition-all duration-300 -translate-y-[150%] opacity-0 flex items-center gap-3 w-[90%] md:w-auto max-w-sm pointer-events-none">
         <div id="toast-icon-container" class="flex shrink-0 items-center justify-center">
             <i data-lucide="info" class="w-5 h-5 text-primary"></i>
@@ -399,7 +399,7 @@
         </div>
     </div>
 
-    <!-- Modal Exclusão -->
+    <!-- Modal Exclusão (Corrigido com onclick explícito) -->
     <div id="modal-delete" class="fixed inset-0 z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeDeleteModal()"></div>
         <div id="panel-delete" class="relative bg-surface-container border border-error/20 rounded-2xl w-[90%] max-w-sm p-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -410,7 +410,7 @@
             <p id="delete-modal-desc" class="text-on-surface-variant text-sm mb-6">Ação irreversível no banco de dados.</p>
             <div class="flex justify-end gap-3">
                 <button onclick="closeDeleteModal()" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors focus:outline-none">Cancelar</button>
-                <button id="btn-confirm-delete" class="px-5 py-3 rounded-xl font-bold bg-error text-on-error hover:opacity-90 active:scale-95 transition-all focus:outline-none">Excluir na Nuvem</button>
+                <button onclick="confirmDelete()" id="btn-confirm-delete" class="px-5 py-3 rounded-xl font-bold bg-error text-on-error hover:opacity-90 active:scale-95 transition-all focus:outline-none">Excluir na Nuvem</button>
             </div>
         </div>
     </div>
@@ -447,7 +447,7 @@
         let deleteContext = { type: null, id: null };
 
         // ----------------------------------------------------
-        // 2. SISTEMA DE NOTIFICAÇÕES (TOAST) E BACKUP LOCAL
+        // 2. SISTEMA DE NOTIFICAÇÕES E BACKUP
         // ----------------------------------------------------
         const showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
@@ -492,13 +492,11 @@
             showToast('Sincronizando com a nuvem...');
             
             try {
-                // Ao usar o Supabase (PostgREST), selecionamos as tabelas e também os relacionamentos "child"
                 const { data: cols, error: errCols } = await db.from('collections').select('*, collection_cards(*)').order('created_at', { ascending: false });
                 const { data: bnds, error: errBnds } = await db.from('binders').select('*, binder_cards(*)').order('created_at', { ascending: false });
 
                 if (errCols || errBnds) throw new Error('Erro ao buscar dados.');
 
-                // Mapear os relacionamentos de volta para o formato de array "cards" esperado pelo frontend
                 appState.collections = (cols || []).map(c => ({ ...c, cards: c.collection_cards || [] }));
                 appState.binders = (bnds || []).map(b => ({ ...b, cards: b.binder_cards || [] }));
                 
@@ -509,7 +507,6 @@
             } finally {
                 document.getElementById('loading-cols').classList.add('hidden');
                 
-                // Atualiza a vista ativa
                 if(appState.activeView === 'home-view') renderEntityGrid('collection');
                 if(appState.activeView === 'binders-view') renderEntityGrid('binder');
                 if(appState.activeView === 'collection-details-view') renderCollectionDetails();
@@ -561,7 +558,6 @@
             const entity = list.find(en => en.id === appState.currentEntityId);
             const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
             
-            // Definição da Chave Estrangeira baseada no contexto
             const fKey = appState.activeContext === 'collection' ? { collection_id: entity.id } : { binder_id: entity.id };
             
             const num = document.getElementById('input-card-num').value.trim();
@@ -602,9 +598,15 @@
             }
         });
 
-        document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+        // ----------------------------------------------------
+        // LOGICA DE EXCLUSÃO (CORRIGIDA)
+        // ----------------------------------------------------
+        const confirmDelete = async () => {
             const btn = document.getElementById('btn-confirm-delete');
+            const originalText = btn.textContent;
             btn.textContent = 'Apagando...';
+            btn.disabled = true;
+
             try {
                 if (deleteContext.type === 'collection' || deleteContext.type === 'binder') {
                     const listName = deleteContext.type === 'collection' ? 'collections' : 'binders';
@@ -623,19 +625,21 @@
                     const { error } = await db.from(table).delete().eq('id', deleteContext.id);
                     if (error) throw error;
                     
-                    entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
+                    if(entity) {
+                        entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
+                    }
                     appState.activeContext === 'collection' ? renderCollectionDetails() : renderBinderDetails();
                 }
                 showToast('Excluído permanentemente da nuvem.');
                 closeDeleteModal();
             } catch(err) {
-                console.error(err);
+                console.error("Erro completo na exclusão:", err);
                 showToast('Falha ao excluir no banco de dados.', true);
             } finally {
-                btn.textContent = 'Excluir na Nuvem';
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
-        });
-
+        };
 
         // ----------------------------------------------------
         // 4. LÓGICA DE INTERFACE & UI DO APLICATIVO
@@ -673,24 +677,18 @@
             const grid = document.getElementById(type === 'collection' ? 'collections-grid' : 'binders-grid');
             const dataList = type === 'collection' ? appState.collections : appState.binders;
             
-            // Cria uma cópia da lista para manipularmos a ordem de exibição sem perder os dados originais
             let displayList = [...dataList];
             
-            // Regra de ordenação: Ordem Decrescente da Categoria / Era para a visualização Home (Coleções)
             if (type === 'collection') {
                 displayList.sort((a, b) => {
                     const catA = (a.category || '').trim().toLowerCase();
                     const catB = (b.category || '').trim().toLowerCase();
-                    
-                    if (catA > catB) return -1; // Z para A
+                    if (catA > catB) return -1;
                     if (catA < catB) return 1;
-                    
-                    // Desempate: Se as categorias forem iguais, ordena pelo nome da coleção (A para Z)
                     const nameA = (a.name || '').trim().toLowerCase();
                     const nameB = (b.name || '').trim().toLowerCase();
                     if (nameA < nameB) return -1;
                     if (nameA > nameB) return 1;
-                    
                     return 0;
                 });
             }
@@ -753,6 +751,8 @@
 
         const renderCollectionDetails = () => {
             const collection = appState.collections.find(c => c.id === appState.currentEntityId);
+            if (!collection) return;
+
             document.getElementById('col-detail-title').textContent = collection.name;
             
             const prog = calcProgress(collection.cards || []);
@@ -780,8 +780,8 @@
                             <div class="card-sheen z-0"></div>
                             
                             <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                             <div class="absolute bottom-2 right-2 px-2 py-1 bg-surface-container-lowest/80 backdrop-blur-md rounded text-[10px] font-bold text-primary border border-primary/20 uppercase z-10">${card.rarity || 'COMUM'}</div>
                         </div>
@@ -807,6 +807,8 @@
 
         const renderBinderDetails = () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+
             document.getElementById('binder-detail-title').textContent = binder.name;
             document.getElementById('binder-detail-category').textContent = binder.category;
             
@@ -936,6 +938,19 @@
             modalDel.classList.add('opacity-0');
             document.getElementById('panel-delete').classList.add('scale-95');
             setTimeout(() => modalDel.classList.add('hidden'), 300);
+        };
+
+        const openDeleteModal = (type, id) => {
+            deleteContext = { type, id };
+            const isEntity = type === 'collection' || type === 'binder';
+            document.getElementById('delete-modal-title').textContent = isEntity ? `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}` : 'Excluir Carta';
+            
+            const modalDel = document.getElementById('modal-delete');
+            modalDel.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modalDel.classList.remove('opacity-0');
+                document.getElementById('panel-delete').classList.remove('scale-95');
+            });
         };
 
         // Carregar a App

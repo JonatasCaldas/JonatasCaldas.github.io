@@ -211,7 +211,10 @@
                 <div class="flex justify-between items-end">
                     <div>
                         <p class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70 mb-1">Status da Coleção</p>
-                        <h2 id="col-detail-title" class="font-headline text-3xl font-extrabold text-on-surface">Nome</h2>
+                        <div class="flex items-center gap-4">
+                            <img id="col-detail-logo" src="" class="h-12 md:h-16 w-auto max-w-[200px] object-contain hidden drop-shadow-lg transition-all" alt="Logo da Coleção" onerror="this.classList.add('hidden')">
+                            <h2 id="col-detail-title" class="font-headline text-3xl md:text-4xl font-extrabold text-on-surface">Nome</h2>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p id="col-detail-progress-percent" class="font-headline text-2xl font-bold text-primary">0%</p>
@@ -333,6 +336,10 @@
                     <label for="input-entity-image" class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL da Capa</label>
                     <input type="url" id="input-entity-image" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
                 </div>
+                <div id="field-entity-logo">
+                    <label for="input-entity-logo" class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL do Logo (Opcional)</label>
+                    <input type="url" id="input-entity-logo" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface" placeholder="Link para imagem transparente (PNG)">
+                </div>
                 <div class="flex justify-end gap-3 mt-4">
                     <button type="button" onclick="closeEntityModal()" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors">Cancelar</button>
                     <button type="submit" class="px-5 py-3 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-fixed active:scale-95 transition-all flex items-center gap-2">
@@ -399,7 +406,7 @@
         </div>
     </div>
 
-    <!-- Modal Exclusão (Corrigido com onclick explícito) -->
+    <!-- Modal Exclusão -->
     <div id="modal-delete" class="fixed inset-0 z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeDeleteModal()"></div>
         <div id="panel-delete" class="relative bg-surface-container border border-error/20 rounded-2xl w-[90%] max-w-sm p-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -522,20 +529,32 @@
             const name = document.getElementById('input-entity-name').value.trim();
             const category = document.getElementById('input-entity-category').value.trim();
             const image = document.getElementById('input-entity-image').value.trim();
-            const btn = document.getElementById('btn-entity-submit-text');
             
+            // Monta o payload de dados
+            const payload = { name, category, image };
+            
+            // Só envia logo_url se estiver criando/editando coleção
+            if (editingEntityType === 'collection') {
+                payload.logo_url = document.getElementById('input-entity-logo').value.trim();
+            }
+            
+            const btn = document.getElementById('btn-entity-submit-text');
             btn.textContent = 'Enviando...';
 
             try {
                 if (editingEntityId) {
-                    const { error } = await db.from(table).update({ name, category, image }).eq('id', editingEntityId);
+                    const { error } = await db.from(table).update(payload).eq('id', editingEntityId);
                     if (error) throw error;
                     
                     const entity = list.find(en => en.id === editingEntityId);
-                    entity.name = name; entity.category = category; entity.image = image;
+                    entity.name = payload.name; 
+                    entity.category = payload.category; 
+                    entity.image = payload.image;
+                    if (editingEntityType === 'collection') entity.logo_url = payload.logo_url;
+                    
                     showToast('Alteração salva na nuvem!');
                 } else {
-                    const { data, error } = await db.from(table).insert({ name, category, image }).select().single();
+                    const { data, error } = await db.from(table).insert(payload).select().single();
                     if (error) throw error;
                     
                     data.cards = [];
@@ -759,6 +778,16 @@
 
             document.getElementById('col-detail-title').textContent = collection.name;
             
+            // Renderiza o Logo se existir
+            const logoEl = document.getElementById('col-detail-logo');
+            if (collection.logo_url && collection.logo_url.trim() !== '') {
+                logoEl.src = collection.logo_url;
+                logoEl.classList.remove('hidden');
+            } else {
+                logoEl.classList.add('hidden');
+                logoEl.src = '';
+            }
+            
             const prog = calcProgress(collection.cards || []);
             const isComplete = prog.percent === 100 && prog.total > 0;
             const textPrimaryClass = isComplete ? 'text-green-500' : 'text-primary';
@@ -788,7 +817,15 @@
                 </div>
             `;
 
-            (collection.cards || []).forEach(card => {
+            // Criamos uma cópia das cartas e ordenamos pelo campo "Nº" de forma crescente
+            let sortedCards = [...(collection.cards || [])];
+            sortedCards.sort((a, b) => {
+                const numA = String(a.num || '');
+                const numB = String(b.num || '');
+                return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            sortedCards.forEach(card => {
                 const imgClass = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="relative group col-card-item" data-collected="${card.collected}">
@@ -797,8 +834,8 @@
                             <div class="card-sheen z-0"></div>
                             
                             <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                <button onclick="event.stopPropagation(); openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                <button onclick="event.stopPropagation(); openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                             <div class="absolute bottom-2 right-2 px-2 py-1 bg-surface-container-lowest/80 backdrop-blur-md rounded text-[10px] font-bold text-primary border border-primary/20 uppercase z-10">${card.rarity || 'COMUM'}</div>
                         </div>
@@ -897,14 +934,23 @@
             const titleType = type === 'collection' ? 'Coleção' : 'Fichário';
             document.getElementById('modal-entity-title').textContent = id ? `Editar ${titleType}` : `Novo ${titleType}`;
             
+            const logoFieldContainer = document.getElementById('field-entity-logo');
+            if (type === 'collection') {
+                logoFieldContainer.classList.remove('hidden');
+            } else {
+                logoFieldContainer.classList.add('hidden');
+            }
+            
             if(id) {
                 const list = type === 'collection' ? appState.collections : appState.binders;
                 const entity = list.find(e => e.id === id);
                 document.getElementById('input-entity-name').value = entity.name;
                 document.getElementById('input-entity-category').value = entity.category;
                 document.getElementById('input-entity-image').value = entity.image;
+                document.getElementById('input-entity-logo').value = entity.logo_url || '';
             } else {
                 document.getElementById('form-entity').reset();
+                document.getElementById('input-entity-logo').value = '';
             }
 
             const modalEntity = document.getElementById('modal-entity');

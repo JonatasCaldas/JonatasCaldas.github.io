@@ -703,6 +703,10 @@
                 const prog = calcProgress(item.cards || []);
                 totalCardsCollected += prog.collected;
 
+                const isComplete = prog.percent === 100 && prog.total > 0;
+                const textColor = isComplete ? 'text-green-500' : 'text-primary';
+                const barColor = isComplete ? 'from-green-500 to-green-700' : 'from-secondary to-secondary-fixed-dim';
+
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="bg-surface-container-low rounded-2xl overflow-hidden group hover:bg-surface-container transition-all duration-300 border border-white/5 hover:border-white/10 cursor-pointer" onclick="openDetails('${type}', '${item.id}')">
                         <div class="relative h-48 overflow-hidden">
@@ -721,10 +725,10 @@
                             <h3 class="text-xl font-bold text-on-surface mb-5">${item.name}</h3>
                             <div class="flex justify-between items-end mb-2.5">
                                 <span class="text-xs font-medium text-on-surface-variant">Progresso</span>
-                                <span class="text-sm font-bold text-primary">${prog.collected}/${prog.total} <span class="text-[10px] font-semibold text-on-surface-variant ml-0.5">CARTAS</span></span>
+                                <span class="text-sm font-bold ${textColor}">${prog.collected}/${prog.total} <span class="text-[10px] font-semibold text-on-surface-variant ml-0.5">CARTAS</span></span>
                             </div>
                             <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-secondary to-secondary-fixed-dim rounded-full transition-all duration-1000" style="width: ${prog.percent}%"></div>
+                                <div class="h-full bg-gradient-to-r ${barColor} rounded-full transition-all duration-1000" style="width: ${prog.percent}%"></div>
                             </div>
                         </div>
                     </div>
@@ -756,9 +760,22 @@
             document.getElementById('col-detail-title').textContent = collection.name;
             
             const prog = calcProgress(collection.cards || []);
-            document.getElementById('col-detail-progress-percent').textContent = `${prog.percent}%`;
-            document.getElementById('col-detail-progress-ratio').textContent = `${prog.collected}/${prog.total} CARTAS`;
-            document.getElementById('col-detail-progress-bar').style.width = `${prog.percent}%`;
+            const isComplete = prog.percent === 100 && prog.total > 0;
+            const textPrimaryClass = isComplete ? 'text-green-500' : 'text-primary';
+            const textSecondaryClass = isComplete ? 'text-green-500' : 'text-on-surface-variant';
+            const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
+
+            const percentEl = document.getElementById('col-detail-progress-percent');
+            percentEl.textContent = `${prog.percent}%`;
+            percentEl.className = `font-headline text-2xl font-bold ${textPrimaryClass}`;
+
+            const ratioEl = document.getElementById('col-detail-progress-ratio');
+            ratioEl.textContent = `${prog.collected}/${prog.total} CARTAS`;
+            ratioEl.className = `font-label text-[10px] font-medium uppercase tracking-tighter ${textSecondaryClass}`;
+
+            const barEl = document.getElementById('col-detail-progress-bar');
+            barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
+            barEl.style.width = `${prog.percent}%`;
 
             const grid = document.getElementById('collection-details-grid');
             grid.innerHTML = `
@@ -813,8 +830,17 @@
             document.getElementById('binder-detail-category').textContent = binder.category;
             
             const prog = calcProgress(binder.cards || []);
-            document.getElementById('binder-progress-ratio').textContent = `${prog.collected} / ${prog.total} CARTAS`;
-            document.getElementById('binder-progress-bar').style.width = `${prog.percent}%`;
+            const isComplete = prog.percent === 100 && prog.total > 0;
+            const textClass = isComplete ? 'text-green-500' : 'text-primary';
+            const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
+
+            const ratioEl = document.getElementById('binder-progress-ratio');
+            ratioEl.textContent = `${prog.collected} / ${prog.total} Cartas`;
+            ratioEl.className = `text-sm font-bold font-headline ${textClass}`;
+
+            const barEl = document.getElementById('binder-progress-bar');
+            barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
+            barEl.style.width = `${prog.percent}%`;
 
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });

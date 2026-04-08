@@ -208,20 +208,20 @@
         </header>
         <main class="px-6 py-8 max-w-5xl mx-auto w-full">
             <div class="mb-10 flex flex-col gap-2">
-                <div class="flex justify-between items-end">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-4">
                     <div>
-                        <p class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70 mb-1">Status da Coleção</p>
-                        <div class="flex items-center gap-4">
-                            <img id="col-detail-logo" src="" class="h-12 md:h-16 w-auto max-w-[200px] object-contain hidden drop-shadow-lg transition-all" alt="Logo da Coleção" onerror="this.classList.add('hidden')">
-                            <h2 id="col-detail-title" class="font-headline text-3xl md:text-4xl font-extrabold text-on-surface">Nome</h2>
+                        <p class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70 mb-2 md:mb-1">Status da Coleção</p>
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+                            <img id="col-detail-logo" src="" class="h-16 w-auto max-w-[200px] object-contain hidden drop-shadow-lg transition-all" alt="Logo da Coleção" onerror="this.classList.add('hidden')">
+                            <h2 id="col-detail-title" class="font-headline text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">Nome</h2>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p id="col-detail-progress-percent" class="font-headline text-2xl font-bold text-primary">0%</p>
-                        <p id="col-detail-progress-ratio" class="font-label text-[10px] font-medium uppercase tracking-tighter text-on-surface-variant">0/0 CARTAS</p>
+                    <div class="text-left md:text-right">
+                        <p id="col-detail-progress-percent" class="font-headline text-3xl md:text-2xl font-bold text-primary">0%</p>
+                        <p id="col-detail-progress-ratio" class="font-label text-[11px] md:text-[10px] font-medium uppercase tracking-tighter text-on-surface-variant mt-1 md:mt-0">0/0 CARTAS</p>
                     </div>
                 </div>
-                <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-4 md:mt-2">
                     <div id="col-detail-progress-bar" class="h-full bg-gradient-to-r from-primary to-primary-container transition-all duration-1000" style="width: 0%"></div>
                 </div>
             </div>

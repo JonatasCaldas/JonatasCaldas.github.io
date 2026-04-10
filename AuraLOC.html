@@ -77,7 +77,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraLOC 1.6.1</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraLOC 2.6.1</h1>
             <p class="text-gray-500 mt-1 text-lg">Analise as condições operacionais de cada localidade onde houve um alarme</p>
         </header>
 
@@ -308,22 +308,14 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-6 border-l-4 border-accent pl-3">
                     Evolução Temporal (Últimos 12 Meses)
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="flex flex-col">
-                        <div class="flex justify-between items-baseline mb-4">
-                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de Velocidade</h3>
-                            <span class="text-xs text-gray-400">km/h</span>
-                        </div>
-                        <div class="chart-container"><canvas id="chartSpeed"></canvas></div>
+                
+                <div class="flex flex-col mb-8 w-full">
+                    <div class="flex justify-between items-baseline mb-4">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de velocidade e severidade</h3>
                     </div>
-                    <div class="flex flex-col">
-                        <div class="flex justify-between items-baseline mb-4">
-                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de Severidade</h3>
-                            <span class="text-xs text-gray-400">Pontos</span>
-                        </div>
-                        <div class="chart-container"><canvas id="chartSeverity"></canvas></div>
-                    </div>
+                    <div class="chart-container"><canvas id="chartCombined"></canvas></div>
                 </div>
+
                 <div class="mt-8 pt-8 border-t border-gray-100">
                     <div class="flex flex-col" id="dropOffSection">
                         <div class="flex justify-between items-baseline mb-4">
@@ -358,22 +350,14 @@
                     <p id="customErrorText" class="text-red-400 text-sm font-medium">-</p>
                 </div>
                 <div id="customChartsWrapper">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="flex flex-col">
-                            <div class="flex justify-between items-baseline mb-4">
-                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de Velocidade</h3>
-                                <span class="text-xs text-gray-400">km/h</span>
-                            </div>
-                            <div class="chart-container"><canvas id="customChartSpeed"></canvas></div>
+                    
+                    <div class="flex flex-col mb-8 w-full">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de velocidade e severidade</h3>
                         </div>
-                        <div class="flex flex-col">
-                            <div class="flex justify-between items-baseline mb-4">
-                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de Severidade</h3>
-                                <span class="text-xs text-gray-400">Pontos</span>
-                            </div>
-                            <div class="chart-container"><canvas id="customChartSeverity"></canvas></div>
-                        </div>
+                        <div class="chart-container"><canvas id="customChartCombined"></canvas></div>
                     </div>
+
                     <div class="mt-8 pt-8 border-t border-gray-100">
                         <div class="flex flex-col">
                             <div class="flex justify-between items-baseline mb-4">
@@ -527,12 +511,10 @@
         let mapData = []; // Store parsed geo data for the map
         let currentMapMode = 'circle'; // 'circle', 'cluster', 'heat'
 
-        let speedChartInstance = null;
-        let severityChartInstance = null;
+        let combinedChartInstance = null;
         let dropOffChartInstance = null;
         
-        let customSpeedChartInstance = null;
-        let customSeverityChartInstance = null;
+        let customCombinedChartInstance = null;
         let customDropOffChartInstance = null;
 
         // Instâncias da Seção Severidades
@@ -602,8 +584,7 @@
             card9Value: document.getElementById('card9Value'),
             card9Label: document.getElementById('card9Label'),
             // Charts Padrão
-            chartSpeedCtx: document.getElementById('chartSpeed') ? document.getElementById('chartSpeed').getContext('2d') : null,
-            chartSeverityCtx: document.getElementById('chartSeverity') ? document.getElementById('chartSeverity').getContext('2d') : null,
+            chartCombinedCtx: document.getElementById('chartCombined') ? document.getElementById('chartCombined').getContext('2d') : null,
             chartDropOffCtx: document.getElementById('chartDropOff') ? document.getElementById('chartDropOff').getContext('2d') : null,
             dropOffChartContainer: document.getElementById('dropOffChartContainer'),
             dropOffError: document.getElementById('dropOffError'),
@@ -613,8 +594,7 @@
             customError: document.getElementById('customError'),
             customErrorText: document.getElementById('customErrorText'),
             customChartsWrapper: document.getElementById('customChartsWrapper'),
-            customChartSpeedCtx: document.getElementById('customChartSpeed') ? document.getElementById('customChartSpeed').getContext('2d') : null,
-            customChartSeverityCtx: document.getElementById('customChartSeverity') ? document.getElementById('customChartSeverity').getContext('2d') : null,
+            customChartCombinedCtx: document.getElementById('customChartCombined') ? document.getElementById('customChartCombined').getContext('2d') : null,
             customChartDropOffCtx: document.getElementById('customChartDropOff') ? document.getElementById('customChartDropOff').getContext('2d') : null,
             // New Custom DropOff Elements
             customDropOffChartContainer: document.getElementById('customDropOffChartContainer'),
@@ -673,8 +653,8 @@
 
             // Destruir gráficos anteriores
             const allCharts = [
-                speedChartInstance, severityChartInstance, dropOffChartInstance,
-                customSpeedChartInstance, customSeverityChartInstance, customDropOffChartInstance,
+                combinedChartInstance, dropOffChartInstance,
+                customCombinedChartInstance, customDropOffChartInstance,
                 sevLevel1Chart, sevLevel2Chart, sevLevel3Chart, sevLevel4Chart
             ];
             allCharts.forEach(chart => { if(chart) chart.destroy(); });
@@ -893,6 +873,106 @@
             return line.split(',').map(item => item.trim());
         }
 
+        function renderCombinedChart(ctx, labels, speedData, sevData, speedColor, sevColor) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Velocidade Média (km/h)',
+                            data: speedData,
+                            borderColor: speedColor,
+                            backgroundColor: speedColor + '1A',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: speedColor,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'ySpeed'
+                        },
+                        {
+                            label: 'Severidade Média (Pontos)',
+                            data: sevData,
+                            borderColor: sevColor,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: sevColor,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'ySeverity'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                font: { size: 11 },
+                                color: '#6b7280'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        if (context.datasetIndex === 0) { 
+                                            label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        } else { 
+                                            label += Math.round(context.parsed.y);
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 }, color: '#9ca3af' }
+                        },
+                        ySpeed: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' },
+                            title: { display: true, text: 'km/h', color: '#9ca3af', font: { size: 10 } }
+                        },
+                        ySeverity: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' },
+                            title: { display: true, text: 'Pontos', color: '#9ca3af', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
         function renderChart(ctx, label, labels, data, unitSuffix, colorHex) {
             return new Chart(ctx, {
                 type: 'line',
@@ -1102,8 +1182,7 @@
             if (elements.customError) elements.customError.classList.add('hidden');
             if (elements.customChartsWrapper) elements.customChartsWrapper.classList.remove('hidden');
             
-            if (customSpeedChartInstance) customSpeedChartInstance.destroy();
-            if (customSeverityChartInstance) customSeverityChartInstance.destroy();
+            if (customCombinedChartInstance) customCombinedChartInstance.destroy();
             if (customDropOffChartInstance) customDropOffChartInstance.destroy();
 
             const startStr = elements.startDateInput ? elements.startDateInput.value : null;
@@ -1227,8 +1306,9 @@
             });
 
             const customColor = '#86A8E7';
-            if (elements.customChartSpeedCtx) customSpeedChartInstance = renderChart(elements.customChartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', customColor);
-            if (elements.customChartSeverityCtx) customSeverityChartInstance = renderChart(elements.customChartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', customColor);
+            const customSevColor = '#559595'; // Contraste para severidade
+            
+            if (elements.customChartCombinedCtx) customCombinedChartInstance = renderCombinedChart(elements.customChartCombinedCtx, displayLabels, speedData, sevData, customColor, customSevColor);
             
             // Custom Drop-off Logic
             if (totalDropOffsInInterval > 0) {
@@ -1647,14 +1727,15 @@
                     dropOffData.push(b.dropOffCount);
                 });
 
-                const defaultColor = '#66b2b2';
-                if (elements.chartSpeedCtx) speedChartInstance = renderChart(elements.chartSpeedCtx, 'Velocidade Média', displayLabels, speedData, 'km/h', defaultColor);
-                if (elements.chartSeverityCtx) severityChartInstance = renderChart(elements.chartSeverityCtx, 'Severidade Média', displayLabels, sevData, '', defaultColor);
+                const defaultSpeedColor = '#66b2b2';
+                const defaultSevColor = '#374151'; // Contraste para severidade
+                
+                if (elements.chartCombinedCtx) combinedChartInstance = renderCombinedChart(elements.chartCombinedCtx, displayLabels, speedData, sevData, defaultSpeedColor, defaultSevColor);
                 
                 if (totalDropOffsInWindow > 0) {
                     if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.remove('hidden');
                     if (elements.dropOffError) elements.dropOffError.classList.add('hidden');
-                    if (elements.chartDropOffCtx) dropOffChartInstance = renderChart(elements.chartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', defaultColor);
+                    if (elements.chartDropOffCtx) dropOffChartInstance = renderChart(elements.chartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', defaultSpeedColor);
                 } else {
                     if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.add('hidden');
                     if (elements.dropOffError) elements.dropOffError.classList.remove('hidden');

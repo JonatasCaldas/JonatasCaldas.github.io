@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraALARM 2.6.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraALARM 2.7.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -87,17 +87,34 @@
         </nav>
 
         <!-- Seção de Entrada -->
-        <section id="inputSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-300">
-            <div class="flex flex-col md:flex-row gap-4 md:items-end w-full">
-                <div class="flex-1 w-full">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Selecione o arquivo CSV Principal</label>
-                    <input type="file" id="csvMain" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2">
+        <section id="inputSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-300 relative overflow-hidden">
+            <!-- Indicador visual lateral -->
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-300" id="mainStatusIndicator"></div>
+
+            <div class="flex flex-col w-full pl-2">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV Principal</h2>
+                        <p class="text-xs text-gray-500 mt-1">Base central da análise. Obrigatório (1 arquivo).</p>
+                    </div>
                 </div>
-                <div class="shrink-0 w-full md:w-auto mt-2 md:mt-0">
-                    <button id="analyzeBtn" class="bg-accent hover:bg-accent-dark text-gray-900 font-bold py-2.5 px-8 rounded-md transition duration-200 shadow-sm w-full md:w-auto">Analisar</button>
+                
+                <div class="mt-3 flex flex-col md:flex-row gap-4 items-center w-full">
+                    <div class="flex-1 w-full relative" id="inputContainer">
+                        <input type="file" id="csvMain" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2 transition-colors focus:ring-2 focus:ring-accent focus:border-accent">
+                    </div>
+                    <!-- Feedback visual de arquivo selecionado -->
+                    <div id="mainFileStatus" class="hidden flex-1 items-center gap-2 px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-md text-sm font-medium animate-fade-in w-full md:w-auto h-full min-h-[42px]">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="mainFileName" class="truncate">arquivo.csv</span>
+                        <button id="removeMainFileBtn" class="ml-auto text-green-600 hover:text-green-800 font-bold focus:outline-none text-lg leading-none" title="Remover" type="button">&times;</button>
+                    </div>
+                    <div class="shrink-0 w-full md:w-auto">
+                        <button id="analyzeBtn" class="bg-accent hover:bg-accent-dark text-gray-900 font-bold py-2.5 px-8 rounded-md transition duration-200 shadow-sm w-full md:w-auto h-full">Analisar</button>
+                    </div>
                 </div>
             </div>
-            <div id="errorMsg" class="hidden mt-4 p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 animate-fade-in"></div>
+            <div id="errorMsg" class="hidden mt-4 p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200 animate-fade-in ml-2"></div>
         </section>
 
         <!-- Seção de Saída -->
@@ -350,6 +367,11 @@
             const els = {
                 analyzeBtn: document.getElementById('analyzeBtn'),
                 csvMain: document.getElementById('csvMain'),
+                inputContainer: document.getElementById('inputContainer'),
+                mainFileStatus: document.getElementById('mainFileStatus'),
+                mainFileName: document.getElementById('mainFileName'),
+                removeMainFileBtn: document.getElementById('removeMainFileBtn'),
+                mainStatusIndicator: document.getElementById('mainStatusIndicator'),
                 outputContainer: document.getElementById('outputContainer'),
                 emptyState: document.getElementById('emptyState'),
                 errorMsg: document.getElementById('errorMsg'),
@@ -1212,13 +1234,23 @@
                     
                     const dropOffFactor = item.dropOff !== null && !isNaN(item.dropOff) ? item.dropOff : 0;
 
+                    // --- Novo Modelo de Criticidade (Baseado no AuraROUTE) ---
+                    const getImpactLvl = (v) => v >= 4500 ? 1 : v >= 2000 ? 2 : v >= 1000 ? 3 : 4;
+                    const getFreqLvl = (v) => v >= 800 ? 1 : v >= 600 ? 2 : v >= 400 ? 3 : 4;
+                    const getScore = (lvl) => lvl === 1 ? 100 : lvl === 2 ? 75 : lvl === 3 ? 50 : 25;
+
+                    const scoreLI = getScore(getImpactLvl(item.largestImpact));
+                    const scoreMRIS = getScore(getImpactLvl(item.recentSeverity));
+                    const scoreESLR = getScore(getFreqLvl(item.eventsSince));
+                    const scoreRF = getScore(getFreqLvl(recencyFactor));
+                    const scoreDO = getScore(getFreqLvl(dropOffFactor));
+
+                    const finalScore = (scoreLI * 0.30) + (scoreMRIS * 0.25) + (scoreESLR * 0.15) + (scoreRF * 0.15) + (scoreDO * 0.15);
+                    // ---------------------------------------------------------
+
                     return {
                         ...item,
-                        score: (item.largestImpact * 0.30) + 
-                               (item.recentSeverity * 0.25) + 
-                               (item.eventsSince * 0.15) + 
-                               (recencyFactor * 0.15) + 
-                               (dropOffFactor * 0.15)
+                        score: finalScore
                     };
                 });
 
@@ -1344,10 +1376,54 @@
                 updateMap(data);
             }
 
+            const isValidCSV = (file) => {
+                return file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv');
+            };
+
+            els.csvMain.addEventListener('change', (e) => {
+                hideError();
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!isValidCSV(file)) {
+                    showError("O arquivo principal deve ser obrigatoriamente no formato CSV.");
+                    e.target.value = '';
+                    clearMainFile();
+                    return;
+                }
+
+                els.mainFileName.textContent = file.name;
+                els.mainFileName.title = file.name;
+
+                els.inputContainer.classList.add('hidden');
+                els.mainFileStatus.classList.remove('hidden');
+                els.mainFileStatus.classList.add('flex');
+
+                els.mainStatusIndicator.classList.remove('bg-gray-300', 'bg-red-400');
+                els.mainStatusIndicator.classList.add('bg-accent');
+            });
+
+            const clearMainFile = () => {
+                els.csvMain.value = '';
+                els.inputContainer.classList.remove('hidden');
+                els.mainFileStatus.classList.add('hidden');
+                els.mainFileStatus.classList.remove('flex');
+                els.mainStatusIndicator.classList.remove('bg-accent', 'bg-red-400');
+                els.mainStatusIndicator.classList.add('bg-gray-300');
+            };
+
+            if(els.removeMainFileBtn) els.removeMainFileBtn.addEventListener('click', clearMainFile);
+
             if(els.analyzeBtn) {
                 els.analyzeBtn.addEventListener('click', () => {
                     hideError();
-                    if (!els.csvMain.files.length) return showError("Selecione o CSV Principal.");
+                    if (!els.csvMain.files.length) {
+                        if(els.mainStatusIndicator) {
+                            els.mainStatusIndicator.classList.remove('bg-gray-300');
+                            els.mainStatusIndicator.classList.add('bg-red-400');
+                        }
+                        return showError("Selecione o CSV Principal.");
+                    }
                     
                     const readerMain = new FileReader();
                     readerMain.onload = (e) => processMainCSV(e.target.result);
@@ -1383,4 +1459,3 @@
     </script>
 </body>
 </html>
-

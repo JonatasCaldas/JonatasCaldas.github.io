@@ -517,6 +517,29 @@
 
             let indicadoresDataStore = [];
 
+            // --- LÓGICA CENTRAL DE CÁLCULO DE CRITICIDADE (NOVO MOTOR) ---
+            function calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador) {
+                // Cálculo de fator temporal
+                const daysAgo = Math.max(0, (dataAtualNavegador - dateObj) / (1000 * 60 * 60 * 24));
+                const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
+
+                // Classificadores de Faixa
+                const getImpactLvl = (v) => v >= 4500 ? 1 : v >= 2000 ? 2 : v >= 1000 ? 3 : 4;
+                const getFreqLvl = (v) => v >= 800 ? 1 : v >= 600 ? 2 : v >= 400 ? 3 : 4;
+                
+                // Conversão Nível -> Pontuação
+                const getScore = (lvl) => lvl === 1 ? 100 : lvl === 2 ? 75 : lvl === 3 ? 50 : 25;
+
+                const scoreLI = getScore(getImpactLvl(largestImpact));
+                const scoreMRIS = getScore(getImpactLvl(recentSeverity));
+                const scoreESLR = getScore(getFreqLvl(eventsSince));
+                const scoreRF = getScore(getFreqLvl(recencyFactor));
+                const scoreDO = getScore(getFreqLvl(dropOff));
+
+                // Fórmula base de ponderação
+                return (scoreLI * 0.30) + (scoreMRIS * 0.25) + (scoreESLR * 0.15) + (scoreRF * 0.15) + (scoreDO * 0.15);
+            }
+
             // --- FUNÇÕES DE FEEDBACK ---
             const showError = (msg) => {
                 els.successMsg.classList.add('hidden');
@@ -917,16 +940,10 @@
                         }
                     }
 
-                    // FÓRMULA DE CRITICIDADE
+                    // Nova Estrutura de Classificação e Cálculo de Criticidade por Quartil (25-100)
                     let criticidade = 0;
                     if (!isNaN(largestImpact) && !isNaN(recentSeverity) && !isNaN(eventsSince) && !isNaN(dropOff)) {
-                        const daysAgo = Math.max(0, (dataAtualNavegador - dateObj) / (1000 * 60 * 60 * 24));
-                        const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
-                        criticidade = (largestImpact * 0.30) + 
-                                      (recentSeverity * 0.25) + 
-                                      (eventsSince * 0.15) + 
-                                      (recencyFactor * 0.15) + 
-                                      (dropOff * 0.15);
+                        criticidade = calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador);
                     }
 
                     // Limiar de tolerância espacial: 0.05 graus (Aprox. 5.5km)
@@ -1062,6 +1079,12 @@
                             }
                         }
 
+                        // Determinação de Categoria (25 a 100)
+                        let category = "Baixa";
+                        if (s.criticidade >= 80) category = "Crítica";
+                        else if (s.criticidade >= 60) category = "Alta";
+                        else if (s.criticidade >= 40) category = "Média";
+
                         const critStr = s.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0});
                         
                         const linkHTML = s.url !== "#" 
@@ -1071,7 +1094,7 @@
                         containerElement.innerHTML += `
                             <div class="flex flex-col border-b border-gray-100 last:border-0 pb-2 last:pb-0 pt-1">
                                 <div class="truncate w-full text-[12px]" title="${s.name}">${linkHTML}</div>
-                                <div class="truncate w-full text-[11px] text-gray-600 mt-0.5">Criticidade ${critStr} / <span class="text-gray-500 font-medium">${trechoStr}</span></div>
+                                <div class="truncate w-full text-[11px] text-gray-600 mt-0.5">Criticidade ${category} (${critStr}) / <span class="text-gray-500 font-medium">${trechoStr}</span></div>
                             </div>
                         `;
                     } else {
@@ -1141,7 +1164,7 @@
                             url: record.url, status: record.status, linha: linhaDoContexto 
                         };
                     }
-                    siteAgg[record.site].criticidade += record.criticidade;
+                    siteAgg[record.site].criticidade = Math.max(siteAgg[record.site].criticidade, record.criticidade);
 
                     // Agregação para Faixa (±2 km) com base em Haversine
                     if (globalFaixaRefLat !== null && globalFaixaRefLon !== null && !isNaN(record.lat) && !isNaN(record.lon)) {
@@ -1154,7 +1177,7 @@
                                         url: record.url, status: record.status, linha: linhaDoContexto 
                                     };
                                 }
-                                siteAggFrente[record.site].criticidade += record.criticidade;
+                                siteAggFrente[record.site].criticidade = Math.max(siteAggFrente[record.site].criticidade, record.criticidade);
                             } else {
                                 if (!siteAggAtras[record.site]) {
                                     siteAggAtras[record.site] = { 
@@ -1162,7 +1185,7 @@
                                         url: record.url, status: record.status, linha: linhaDoContexto 
                                     };
                                 }
-                                siteAggAtras[record.site].criticidade += record.criticidade;
+                                siteAggAtras[record.site].criticidade = Math.max(siteAggAtras[record.site].criticidade, record.criticidade);
                             }
                         }
                     }
@@ -1558,15 +1581,8 @@
                         continue;
                     }
 
-                    // FÓRMULA DE CRITICIDADE
-                    const daysAgo = Math.max(0, (dataAtualNavegador - dateObj) / (1000 * 60 * 60 * 24));
-                    const recencyFactor = Math.max(0, 1000 - (daysAgo * 10));
-                    
-                    const criticidade = (largestImpact * 0.30) + 
-                                        (recentSeverity * 0.25) + 
-                                        (eventsSince * 0.15) + 
-                                        (recencyFactor * 0.15) + 
-                                        (dropOff * 0.15);
+                    // Nova Estrutura de Classificação e Cálculo de Criticidade por Quartil (25-100)
+                    const criticidade = calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador);
 
                     mapDataRoute.push({
                         siteName: site,

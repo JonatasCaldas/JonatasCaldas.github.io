@@ -147,7 +147,7 @@
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             Sincronizar
                         </button>
-                        <button onclick="saveBackup()" class="flex-1 md:flex-none bg-surface-container text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm" title="Baixar cópia de segurança (JSON)">
+                        <button onclick="saveBackup()" class="flex-1 md:flex-none bg-surface-container text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm" title="Baixar cópia de segurança (JSON) de toda a conta">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             Backup
                         </button>
@@ -312,10 +312,10 @@
                         <i data-lucide="chevron-left" class="w-5 h-5"></i>
                         <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">Anterior</span>
                     </button>
-                    <!-- Indicador centralizado em 2 linhas -->
-                    <div id="binder-page-indicator" class="bg-surface-container-highest px-4 py-2 rounded-xl flex flex-col items-center justify-center text-center text-[10px] md:text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant border border-white/5">
-                        <span class="text-[8px] md:text-[9px] opacity-70 leading-none mb-1">Página</span>
-                        <span class="leading-none">01 de 01</span>
+                    <!-- Indicador centralizado -->
+                    <div id="binder-page-indicator" class="bg-surface-container-highest px-4 py-1.5 rounded-xl flex flex-col items-center justify-center text-center font-label uppercase tracking-widest text-on-surface-variant border border-white/5 min-w-[120px]">
+                        <span class="text-[9px] font-bold text-primary truncate max-w-[100px] mb-0.5">Página</span>
+                        <span class="text-[10px] md:text-xs leading-none">01 de 01</span>
                     </div>
                     <button id="btn-next-binder-page" onclick="nextBinderPage()" class="text-secondary hover:text-primary transition-colors flex items-center gap-1 group focus:outline-none">
                         <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">Próxima</span>
@@ -710,8 +710,12 @@
                     
                     binder.page_count = Math.max(1, (binder.page_count || 1) - 1);
                     
+                    if (binder.page_names && binder.page_names.length > pageIndex) {
+                        binder.page_names.splice(pageIndex, 1);
+                    }
+
                     try {
-                        await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+                        await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
                     } catch(err) {}
                     
                     renderBinderPages();
@@ -927,6 +931,25 @@
         // ----------------------------------------------------
         // LÓGICA DE FICHÁRIOS E PÁGINAS INDIVIDUAIS
         // ----------------------------------------------------
+        const savePageName = async (pageIndex, newName) => {
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+
+            const name = newName.trim();
+            if (!binder.page_names) {
+                binder.page_names = Array.from({length: binder.page_count}, (_, i) => `Página ${i + 1}`);
+            }
+
+            binder.page_names[pageIndex] = name || `Página ${pageIndex + 1}`;
+
+            try {
+                await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id);
+            } catch (e) {
+                console.error("Erro ao renomear página", e);
+            }
+            renderBinderPages();
+        };
+
         const renderBinderPages = () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
@@ -965,6 +988,8 @@
                 const pageCards = (binder.cards || []).filter(c => c.slot_index >= i * 9 && c.slot_index < (i + 1) * 9);
                 const pageCollected = pageCards.filter(c => c.collected).length;
                 const pagePercent = Math.round((pageCollected / 9) * 100);
+                
+                const pageName = (binder.page_names && binder.page_names[i]) ? binder.page_names[i] : `Página ${i + 1}`;
 
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="bg-surface-container-low rounded-2xl p-5 relative group border border-white/5 hover:border-primary/50 cursor-grab active:cursor-grabbing transition-all active:scale-95" onclick="openBinderPage(${i})">
@@ -974,7 +999,17 @@
                         <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 text-primary shadow-sm border border-white/5">
                             <i data-lucide="layers" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-on-surface mb-1">Página ${i + 1}</h3>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-lg font-bold text-on-surface outline-none focus:border-b-2 focus:border-primary border-b-2 border-transparent transition-colors max-w-full truncate"
+                                contenteditable="true"
+                                onclick="event.stopPropagation()"
+                                onblur="savePageName(${i}, this.innerText)"
+                                onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}"
+                                title="Clique para renomear">
+                                ${pageName}
+                            </h3>
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></i>
+                        </div>
                         <p class="text-xs font-medium text-on-surface-variant">${pageCollected}/9 Cartas</p>
                         <div class="w-full h-1 bg-surface-container-highest rounded-full mt-3 overflow-hidden">
                             <div class="h-full bg-primary transition-all duration-1000" style="width: ${pagePercent}%"></div>
@@ -1000,16 +1035,15 @@
             }
             window.binderSortable = new Sortable(grid, {
                 animation: 250,
-                filter: '.ignore-drag', // O botão "Nova Página" não será arrastável
-                delay: 200, // Delay de 200ms para toque (evita arrastar ao tentar rolar a página para baixo em smartphones)
+                filter: '.ignore-drag, h3', // Impede o arrasto clicando direto no título editável
+                preventOnFilter: false, // Permite clicar no título sem travar
+                delay: 200, 
                 delayOnTouchOnly: true,
                 ghostClass: 'opacity-40',
                 onMove: function (evt) {
-                    // Impede o usuário de arrastar uma página para depois do botão de "Nova Página"
                     return !evt.related.classList.contains('ignore-drag');
                 },
                 onEnd: async function (evt) {
-                    // Se soltar na mesma posição, ignora
                     if (evt.oldIndex === evt.newIndex) return;
                     await moveBinderPage(evt.oldIndex, evt.newIndex);
                 }
@@ -1021,6 +1055,19 @@
             if (!binder) return;
 
             let cardsToUpdate = [];
+
+            // Lida com o reordenamento do array de nomes de páginas
+            if (binder.page_names) {
+                for(let i=0; i<binder.page_count; i++) {
+                    if(!binder.page_names[i]) binder.page_names[i] = `Página ${i + 1}`;
+                }
+                const movedName = binder.page_names.splice(oldPage, 1)[0];
+                binder.page_names.splice(newPage, 0, movedName);
+                
+                try {
+                    await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id);
+                } catch (e) {}
+            }
 
             // Recalcula os slots matematicamente
             binder.cards.forEach(card => {
@@ -1074,8 +1121,12 @@
             
             binder.page_count = Math.max(binder.page_count || 1, derivedPages) + 1;
             
+            if (binder.page_names) {
+                binder.page_names.push(`Página ${binder.page_count}`);
+            }
+            
             try {
-                await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+                await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
             } catch (e) {
                 // Falha silenciosa
             }
@@ -1111,12 +1162,14 @@
             const nextBtnText = isLastPage ? 'Nova Página' : 'Próxima';
             const nextBtnIcon = isLastPage ? 'plus' : 'chevron-right';
 
+            const pageName = (binder.page_names && binder.page_names[appState.binderPage]) ? binder.page_names[appState.binderPage] : `Página ${appState.binderPage + 1}`;
+
             // Atualiza os componentes do Header de paginação sem os remover da árvore DOM
             const indicatorEl = document.getElementById('binder-page-indicator');
             if (indicatorEl) {
                 indicatorEl.innerHTML = `
-                    <span class="text-[8px] md:text-[9px] opacity-70 leading-none mb-1">Página</span>
-                    <span class="leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
+                    <span class="text-[9px] font-bold text-primary truncate max-w-[100px] mb-0.5">${pageName}</span>
+                    <span class="text-[10px] md:text-xs leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
                 `;
             }
 
@@ -1238,10 +1291,15 @@
             } else {
                 appState.binderPage++;
                 binder.page_count = appState.binderPage + 1;
+                
+                if (binder.page_names) {
+                    binder.page_names.push(`Página ${binder.page_count}`);
+                }
+
                 renderBinderDetails(); 
 
                 try {
-                    await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+                    await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
                 } catch (e) {
                     console.error("Erro ao adicionar nova página na nuvem", e);
                 }

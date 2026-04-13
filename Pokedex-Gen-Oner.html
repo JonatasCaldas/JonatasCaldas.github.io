@@ -1121,9 +1121,46 @@
                 <span class="leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
             `;
 
+            const isLastPage = appState.binderPage >= totalPages - 1;
+            const nextBtnText = isLastPage ? 'Nova Página' : 'Próxima';
+            const nextBtnIcon = isLastPage ? 'plus' : 'chevron-right';
+
             const grid = document.getElementById('binder-page-grid');
             grid.innerHTML = '';
             
+            // Atualiza os botões de paginação no cabeçalho do Grid do Fichário
+            grid.insertAdjacentHTML('beforebegin', `
+                <div class="flex justify-between items-center mb-6" id="binder-pagination-header">
+                    <button onclick="prevBinderPage()" class="text-secondary hover:text-primary transition-colors flex items-center gap-1 group focus:outline-none">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">Anterior</span>
+                    </button>
+                    <div class="bg-surface-container-highest px-4 py-2 rounded-xl flex flex-col items-center justify-center text-center text-[10px] md:text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant border border-white/5">
+                        <span class="text-[8px] md:text-[9px] opacity-70 leading-none mb-1">Página</span>
+                        <span class="leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
+                    </div>
+                    <button onclick="nextBinderPage()" class="text-secondary hover:text-primary transition-colors flex items-center gap-1 group focus:outline-none">
+                        <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">${nextBtnText}</span>
+                        <i data-lucide="${nextBtnIcon}" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            `);
+
+            // Remove o cabeçalho estático antigo antes de renderizar para não duplicar
+            const oldHeader = grid.previousElementSibling?.previousElementSibling;
+            if (oldHeader && oldHeader.id !== 'binder-pagination-header') {
+                oldHeader.remove();
+            }
+            const oldHeaderDuplicated = grid.previousElementSibling;
+            if (oldHeaderDuplicated && oldHeaderDuplicated.id === 'binder-pagination-header' && oldHeaderDuplicated !== grid.previousElementSibling) {
+                 grid.previousElementSibling.remove();
+            }
+
+            // Remove antigos botões estáticos para substituir pelo dinâmico acima (Limpeza do DOM manual)
+            const parentRelative = grid.parentElement;
+            const staticControls = parentRelative.querySelector('.flex.justify-between.items-center.mb-6:not(#binder-pagination-header)');
+            if(staticControls) staticControls.remove();
+
             for(let i = 0; i < 9; i++) {
                 const slotIndex = (appState.binderPage * 9) + i;
                 const card = (binder.cards || []).find(c => c.slot_index === slotIndex);
@@ -1162,12 +1199,29 @@
         };
 
         const prevBinderPage = () => { if(appState.binderPage > 0) { appState.binderPage--; renderBinderDetails(); } };
-        const nextBinderPage = () => { 
+        const nextBinderPage = async () => { 
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
             const totalPages = Math.max(Math.max(1, Math.ceil((maxSlot + 1) / 9)), binder.page_count || 1);
-            if(appState.binderPage < totalPages - 1) { appState.binderPage++; renderBinderDetails(); } 
+            
+            if(appState.binderPage < totalPages - 1) { 
+                appState.binderPage++; 
+                renderBinderDetails(); 
+            } else {
+                // Se estiver na última página, cria uma nova e salva no Supabase
+                appState.binderPage++;
+                binder.page_count = appState.binderPage + 1;
+                renderBinderDetails(); // Renderiza imediatamente para a UI ficar fluida
+
+                try {
+                    await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+                } catch (e) {
+                    console.error("Erro ao adicionar nova página na nuvem", e);
+                }
+            }
         };
 
         const openEntityModal = (id = null, type = 'collection') => {

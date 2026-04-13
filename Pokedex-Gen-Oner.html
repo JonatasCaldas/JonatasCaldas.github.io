@@ -18,6 +18,9 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- SortableJS para Drag and Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <!-- Tailwind Configuração de Tema -->
     <script id="tailwind-config">
@@ -243,12 +246,47 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TELA 4: DETALHES DO FICHÁRIO               -->
+    <!-- TELA 4: PÁGINAS DO FICHÁRIO (GERENCIAR)    -->
+    <!-- ========================================== -->
+    <div id="binder-pages-view" class="view-transition view-hidden">
+        <header class="w-full top-0 sticky z-40 bg-[#121416]/95 backdrop-blur-sm flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div class="flex items-center gap-4">
+                <button onclick="goToView('binders-view', 'binder')" class="text-primary hover:opacity-80 hover:-translate-x-1 transition-all focus:outline-none">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="font-headline text-lg font-bold tracking-tight text-on-background">Gerenciar Páginas</h1>
+            </div>
+        </header>
+        <main class="px-6 py-8 max-w-5xl mx-auto w-full">
+            <div class="mb-10 flex flex-col gap-2">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-4">
+                    <div>
+                        <p class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70 mb-2 md:mb-1" id="binder-pages-category">Categoria</p>
+                        <h2 id="binder-pages-title" class="font-headline text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">Nome</h2>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <p id="binder-pages-progress-percent" class="font-headline text-3xl md:text-2xl font-bold text-primary">0%</p>
+                        <p id="binder-pages-progress-ratio" class="font-label text-[11px] md:text-[10px] font-medium uppercase tracking-tighter text-on-surface-variant mt-1 md:mt-0">0 / 0 CARTAS</p>
+                    </div>
+                </div>
+                <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-4 md:mt-2">
+                    <div id="binder-pages-progress-bar" class="h-full bg-gradient-to-r from-primary to-primary-container transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="binder-pages-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <!-- Páginas geradas dinamicamente aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA 5: DETALHES DO FICHÁRIO (3X3 GRID)    -->
     <!-- ========================================== -->
     <div id="binder-details-view" class="view-transition view-hidden">
         <header class="w-full top-0 sticky z-40 bg-[#121416]/95 backdrop-blur-sm flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div class="flex items-center gap-4">
-                <button onclick="goToView('binders-view', 'binder')" class="text-primary hover:opacity-80 hover:-translate-x-1 transition-all focus:outline-none">
+                <button onclick="goToView('binder-pages-view', 'binder')" class="text-primary hover:opacity-80 hover:-translate-x-1 transition-all focus:outline-none">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </button>
                 <h1 class="font-headline text-lg font-bold tracking-tight text-on-background">Página do Fichário</h1>
@@ -278,7 +316,7 @@
                         <i data-lucide="chevron-left" class="w-5 h-5"></i>
                         <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">Anterior</span>
                     </button>
-                    <!-- Ajuste: Indicador centralizado em 2 linhas -->
+                    <!-- Indicador centralizado em 2 linhas -->
                     <div id="binder-page-indicator" class="bg-surface-container-highest px-4 py-2 rounded-xl flex flex-col items-center justify-center text-center text-[10px] md:text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant border border-white/5">
                         <span class="text-[8px] md:text-[9px] opacity-70 leading-none mb-1">Página</span>
                         <span class="leading-none">01 de 01</span>
@@ -519,6 +557,7 @@
                 if(appState.activeView === 'home-view') renderEntityGrid('collection');
                 if(appState.activeView === 'binders-view') renderEntityGrid('binder');
                 if(appState.activeView === 'collection-details-view') renderCollectionDetails();
+                if(appState.activeView === 'binder-pages-view') renderBinderPages();
                 if(appState.activeView === 'binder-details-view') renderBinderDetails();
             }
         };
@@ -532,10 +571,8 @@
             const category = document.getElementById('input-entity-category').value.trim();
             const image = document.getElementById('input-entity-image').value.trim();
             
-            // Monta o payload de dados
             const payload = { name, category, image };
             
-            // Só envia logo_url se estiver criando/editando coleção
             if (editingEntityType === 'collection') {
                 payload.logo_url = document.getElementById('input-entity-logo').value.trim();
             }
@@ -609,7 +646,9 @@
                     showToast('Carta salva na nuvem!');
                 }
                 
-                appState.activeContext === 'collection' ? renderCollectionDetails() : renderBinderDetails();
+                if (appState.activeContext === 'collection') renderCollectionDetails();
+                else renderBinderDetails();
+                
                 closeCardModal();
             } catch(err) {
                 console.error(err);
@@ -620,7 +659,7 @@
         });
 
         // ----------------------------------------------------
-        // LOGICA DE EXCLUSÃO (CORRIGIDA)
+        // LÓGICA DE EXCLUSÃO
         // ----------------------------------------------------
         const confirmDelete = async () => {
             const btn = document.getElementById('btn-confirm-delete');
@@ -649,8 +688,39 @@
                     if(entity) {
                         entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
                     }
-                    appState.activeContext === 'collection' ? renderCollectionDetails() : renderBinderDetails();
+                    if (appState.activeContext === 'collection') renderCollectionDetails();
+                    else renderBinderDetails();
+                } else if (deleteContext.type === 'page') {
+                    const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+                    const pageIndex = deleteContext.id;
+                    const minSlot = pageIndex * 9;
+                    const maxSlot = minSlot + 8;
+                    
+                    const cardsToDelete = binder.cards.filter(c => c.slot_index >= minSlot && c.slot_index <= maxSlot);
+                    const cardsToShift = binder.cards.filter(c => c.slot_index > maxSlot);
+                    
+                    if (cardsToDelete.length > 0) {
+                        const { error } = await db.from('binder_cards').delete().in('id', cardsToDelete.map(c => c.id));
+                        if (error) throw error;
+                    }
+                    
+                    const shiftPromises = cardsToShift.map(c => 
+                        db.from('binder_cards').update({ slot_index: c.slot_index - 9 }).eq('id', c.id)
+                    );
+                    await Promise.all(shiftPromises);
+                    
+                    cardsToShift.forEach(c => c.slot_index -= 9);
+                    binder.cards = binder.cards.filter(c => !cardsToDelete.includes(c));
+                    
+                    binder.page_count = Math.max(1, (binder.page_count || 1) - 1);
+                    
+                    try {
+                        await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+                    } catch(err) {}
+                    
+                    renderBinderPages();
                 }
+                
                 showToast('Excluído permanentemente da nuvem.');
                 closeDeleteModal();
             } catch(err) {
@@ -666,7 +736,7 @@
         // 4. LÓGICA DE INTERFACE & UI DO APLICATIVO
         // ----------------------------------------------------
         const goToView = (viewId, navIcon) => {
-            ['home-view', 'binders-view', 'collection-details-view', 'binder-details-view'].forEach(v => {
+            ['home-view', 'binders-view', 'collection-details-view', 'binder-pages-view', 'binder-details-view'].forEach(v => {
                 document.getElementById(v).classList.replace('view-visible', 'view-hidden');
             });
             document.getElementById(viewId).classList.replace('view-hidden', 'view-visible');
@@ -768,9 +838,8 @@
                 renderCollectionDetails();
                 goToView('collection-details-view', 'home');
             } else {
-                appState.binderPage = 0;
-                renderBinderDetails();
-                goToView('binder-details-view', 'binder');
+                renderBinderPages();
+                goToView('binder-pages-view', 'binder');
             }
         };
 
@@ -780,7 +849,6 @@
 
             document.getElementById('col-detail-title').textContent = collection.name;
             
-            // Renderiza o Logo se existir
             const logoEl = document.getElementById('col-detail-logo');
             if (collection.logo_url && collection.logo_url.trim() !== '') {
                 logoEl.src = collection.logo_url;
@@ -819,7 +887,6 @@
                 </div>
             `;
 
-            // Criamos uma cópia das cartas e ordenamos pelo campo "Nº" de forma crescente
             let sortedCards = [...(collection.cards || [])];
             sortedCards.sort((a, b) => {
                 const numA = String(a.num || '');
@@ -861,6 +928,170 @@
         filterCollTrue.addEventListener('change', (e) => { if (e.target.checked) filterCollFalse.checked = false; applyColFilters(); });
         filterCollFalse.addEventListener('change', (e) => { if (e.target.checked) filterCollTrue.checked = false; applyColFilters(); });
 
+        // ----------------------------------------------------
+        // LÓGICA DE FICHÁRIOS E PÁGINAS INDIVIDUAIS
+        // ----------------------------------------------------
+        const renderBinderPages = () => {
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+
+            document.getElementById('binder-pages-title').textContent = binder.name;
+            document.getElementById('binder-pages-category').textContent = binder.category;
+            
+            const prog = calcProgress(binder.cards || []);
+            const isComplete = prog.percent === 100 && prog.total > 0;
+            const textPrimaryClass = isComplete ? 'text-green-500' : 'text-primary';
+            const textSecondaryClass = isComplete ? 'text-green-500' : 'text-on-surface-variant';
+            const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
+
+            const percentEl = document.getElementById('binder-pages-progress-percent');
+            percentEl.textContent = `${prog.percent}%`;
+            percentEl.className = `font-headline text-3xl md:text-2xl font-bold ${textPrimaryClass}`;
+
+            const ratioEl = document.getElementById('binder-pages-progress-ratio');
+            ratioEl.textContent = `${prog.collected} / ${prog.total} CARTAS`;
+            ratioEl.className = `font-label text-[11px] md:text-[10px] font-medium uppercase tracking-tighter mt-1 md:mt-0 ${textSecondaryClass}`;
+
+            const barEl = document.getElementById('binder-pages-progress-bar');
+            barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
+            barEl.style.width = `${prog.percent}%`;
+
+            let maxSlot = -1;
+            (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
+            const derivedPages = Math.max(1, Math.ceil((maxSlot + 1) / 9));
+            const totalPages = Math.max(derivedPages, binder.page_count || 1);
+            binder.page_count = totalPages; 
+
+            const grid = document.getElementById('binder-pages-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < totalPages; i++) {
+                const pageCards = (binder.cards || []).filter(c => c.slot_index >= i * 9 && c.slot_index < (i + 1) * 9);
+                const pageCollected = pageCards.filter(c => c.collected).length;
+                const pagePercent = Math.round((pageCollected / 9) * 100);
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="bg-surface-container-low rounded-2xl p-5 relative group border border-white/5 hover:border-primary/50 cursor-grab active:cursor-grabbing transition-all active:scale-95" onclick="openBinderPage(${i})">
+                        <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <button onclick="event.stopPropagation(); openDeleteModal('page', ${i})" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg" title="Excluir Página"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 text-primary shadow-sm border border-white/5">
+                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-on-surface mb-1">Página ${i + 1}</h3>
+                        <p class="text-xs font-medium text-on-surface-variant">${pageCollected}/9 Cartas</p>
+                        <div class="w-full h-1 bg-surface-container-highest rounded-full mt-3 overflow-hidden">
+                            <div class="h-full bg-primary transition-all duration-1000" style="width: ${pagePercent}%"></div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            grid.insertAdjacentHTML('beforeend', `
+                <div onclick="addBinderPage()" class="ignore-drag min-h-[140px] rounded-2xl bg-surface-container-low border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container hover:border-primary/50 transition-all active:scale-95 shadow-sm group">
+                    <div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary transition-colors mb-3 shadow-sm border border-white/5">
+                        <i data-lucide="plus" class="w-6 h-6 text-outline group-hover:text-on-primary"></i>
+                    </div>
+                    <span class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Nova Página</span>
+                </div>
+            `);
+
+            lucide.createIcons();
+
+            // Inicializa a funcionalidade de arrastar e soltar (Drag and Drop)
+            if (window.binderSortable) {
+                window.binderSortable.destroy();
+            }
+            window.binderSortable = new Sortable(grid, {
+                animation: 250,
+                filter: '.ignore-drag', // O botão "Nova Página" não será arrastável
+                delay: 200, // Delay de 200ms para toque (evita arrastar ao tentar rolar a página para baixo em smartphones)
+                delayOnTouchOnly: true,
+                ghostClass: 'opacity-40',
+                onMove: function (evt) {
+                    // Impede o usuário de arrastar uma página para depois do botão de "Nova Página"
+                    return !evt.related.classList.contains('ignore-drag');
+                },
+                onEnd: async function (evt) {
+                    // Se soltar na mesma posição, ignora
+                    if (evt.oldIndex === evt.newIndex) return;
+                    await moveBinderPage(evt.oldIndex, evt.newIndex);
+                }
+            });
+        };
+
+        const moveBinderPage = async (oldPage, newPage) => {
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+
+            let cardsToUpdate = [];
+
+            // Recalcula os slots matematicamente
+            binder.cards.forEach(card => {
+                const currentSlot = card.slot_index;
+                const currentPage = Math.floor(currentSlot / 9);
+                const positionInPage = currentSlot % 9;
+
+                if (currentPage === oldPage) {
+                    // A página arrastada assume o novo slot base
+                    card.slot_index = (newPage * 9) + positionInPage;
+                    cardsToUpdate.push(card);
+                } else if (oldPage < newPage && currentPage > oldPage && currentPage <= newPage) {
+                    // Shift para a esquerda (páginas sobem)
+                    card.slot_index = ((currentPage - 1) * 9) + positionInPage;
+                    cardsToUpdate.push(card);
+                } else if (oldPage > newPage && currentPage >= newPage && currentPage < oldPage) {
+                    // Shift para a direita (páginas descem)
+                    card.slot_index = ((currentPage + 1) * 9) + positionInPage;
+                    cardsToUpdate.push(card);
+                }
+            });
+
+            // Renderiza imediatamente para que o usuário sinta fluidez
+            renderBinderPages();
+
+            if (cardsToUpdate.length > 0) {
+                showToast('Salvando nova ordem...');
+                try {
+                    // Executa um lote (batch) de Promises de Update na base de dados para garantir que nada se perca
+                    const updatePromises = cardsToUpdate.map(c => 
+                        db.from('binder_cards').update({ slot_index: c.slot_index }).eq('id', c.id)
+                    );
+                    await Promise.all(updatePromises);
+                    showToast('Ordem das páginas salva!');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Erro ao atualizar ordem. Sincronizando...', true);
+                    loadDataFromCloud(); // Rollback em caso de erro no servidor Supabase
+                }
+            }
+        };
+
+        const openBinderPage = (pageIndex) => {
+            appState.binderPage = pageIndex;
+            renderBinderDetails();
+            goToView('binder-details-view', 'binder');
+        };
+
+        const addBinderPage = async () => {
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+            
+            let maxSlot = -1;
+            (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
+            const derivedPages = Math.max(1, Math.ceil((maxSlot + 1) / 9));
+            
+            binder.page_count = Math.max(binder.page_count || 1, derivedPages) + 1;
+            
+            try {
+                await db.from('binders').update({ page_count: binder.page_count }).eq('id', binder.id);
+            } catch (e) {
+                // Falha silenciosa para caso a coluna page_count não tenha sido criada no banco
+            }
+            
+            renderBinderPages();
+        };
+
         const renderBinderDetails = () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
@@ -883,9 +1114,8 @@
 
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
-            const totalPages = Math.max(1, Math.ceil((maxSlot + 1) / 9) + 1);
+            const totalPages = Math.max(Math.max(1, Math.ceil((maxSlot + 1) / 9)), binder.page_count || 1);
             
-            // Atualização no Javascript injetando HTML no indicador centralizado
             document.getElementById('binder-page-indicator').innerHTML = `
                 <span class="text-[8px] md:text-[9px] opacity-70 leading-none mb-1">Página</span>
                 <span class="leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
@@ -932,7 +1162,13 @@
         };
 
         const prevBinderPage = () => { if(appState.binderPage > 0) { appState.binderPage--; renderBinderDetails(); } };
-        const nextBinderPage = () => { appState.binderPage++; renderBinderDetails(); };
+        const nextBinderPage = () => { 
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            let maxSlot = -1;
+            (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
+            const totalPages = Math.max(Math.max(1, Math.ceil((maxSlot + 1) / 9)), binder.page_count || 1);
+            if(appState.binderPage < totalPages - 1) { appState.binderPage++; renderBinderDetails(); } 
+        };
 
         const openEntityModal = (id = null, type = 'collection') => {
             editingEntityId = id;
@@ -1021,7 +1257,20 @@
         const openDeleteModal = (type, id) => {
             deleteContext = { type, id };
             const isEntity = type === 'collection' || type === 'binder';
-            document.getElementById('delete-modal-title').textContent = isEntity ? `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}` : 'Excluir Carta';
+            
+            let title = 'Excluir';
+            if (isEntity) title = `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}`;
+            else if (type === 'page') title = 'Excluir Página';
+            else title = 'Excluir Carta';
+            
+            document.getElementById('delete-modal-title').textContent = title;
+            
+            const desc = document.getElementById('delete-modal-desc');
+            if (type === 'page') {
+                desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
+            } else {
+                desc.textContent = 'Ação irreversível no banco de dados.';
+            }
             
             const modalDel = document.getElementById('modal-delete');
             modalDel.classList.remove('hidden');

@@ -50,7 +50,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraALARM 2.7.0</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraALARM 2.8.0</h1>
             <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
         </header>
 
@@ -1285,9 +1285,14 @@
                         sevLabel.textContent = `Maior Severidade ${sevValue}`;
                         div.appendChild(sevLabel);
 
+                        let category = "Baixa";
+                        if (item.score >= 80) category = "Crítica";
+                        else if (item.score >= 60) category = "Alta";
+                        else if (item.score >= 40) category = "Média";
+
                         const scoreSpan = document.createElement('span');
                         scoreSpan.className = 'text-xs text-gray-500';
-                        scoreSpan.textContent = `${Math.round(item.score)} pontos`;
+                        scoreSpan.textContent = `Criticidade: ${Math.round(item.score)} pontos (${category})`;
                         div.appendChild(scoreSpan);
 
                         els.tile6Content.appendChild(div);
@@ -1320,9 +1325,14 @@
                         sevLabel.textContent = `Maior Severidade ${sevValue}`;
                         div.appendChild(sevLabel);
 
+                        let category = "Baixa";
+                        if (item.score >= 80) category = "Crítica";
+                        else if (item.score >= 60) category = "Alta";
+                        else if (item.score >= 40) category = "Média";
+
                         const scoreSpan = document.createElement('span');
                         scoreSpan.className = 'text-xs text-gray-500';
-                        scoreSpan.textContent = `${Math.round(item.score)} pontos`;
+                        scoreSpan.textContent = `Criticidade: ${Math.round(item.score)} pontos (${category})`;
                         div.appendChild(scoreSpan);
 
                         els.tile9Content.appendChild(div);

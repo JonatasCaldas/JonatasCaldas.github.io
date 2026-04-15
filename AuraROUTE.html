@@ -52,7 +52,7 @@
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.1.2</h1>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.2.2</h1>
             <p class="text-gray-500 mt-1 text-lg">Centralize e prepare os dados de criticidade e eventos principais para a análise de roteamento</p>
         </header>
 
@@ -372,6 +372,53 @@
             </div>
         </section>
 
+        <!-- Nova Seção: Análise Comparativa -->
+        <section id="comparativaSection" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-8 transition-all duration-300 animate-fade-in relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent"></div>
+            
+            <div class="pl-2">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-gray-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Análise Comparativa</h2>
+                        <p class="text-sm text-gray-500 mt-1">Comparativo de velocidade e severidade entre duas bases de dados.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200 mt-4 lg:mt-0">
+                        <div class="flex flex-col">
+                            <label for="compStartDate" class="text-[10px] uppercase font-bold text-gray-400">Início</label>
+                            <input type="date" id="compStartDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                        <span class="text-gray-400">-</span>
+                        <div class="flex flex-col">
+                            <label for="compEndDate" class="text-[10px] uppercase font-bold text-gray-400">Fim</label>
+                            <input type="date" id="compEndDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Erro Condicional -->
+                <div id="comparativaError" class="hidden mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-md border border-red-200 animate-fade-in flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="font-medium">A Análise Comparativa funciona apenas com 1 arquivo CSV no campo 'Selecione os arquivos CSV de Maiores Criticidades' e 1 arquivo CSV no campo 'Selecione os arquivos CSV de Menores Criticidades'. Por favor, ajuste.</span>
+                </div>
+                
+                <!-- Container dos Gráficos Comparativos -->
+                <div id="comparativaContent" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div class="w-full border border-gray-200 rounded-lg bg-gray-50 p-4">
+                        <h3 class="text-sm font-bold text-gray-700 mb-2">Velocidade</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="compSpeedChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="w-full border border-gray-200 rounded-lg bg-gray-50 p-4">
+                        <h3 class="text-sm font-bold text-gray-700 mb-2">Severidade</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="compSeverityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -395,6 +442,12 @@
             // Faixa State
             let globalFaixaRefLat = null;
             let globalFaixaRefLon = null;
+
+            // Comparativa State
+            let compChartSpeedInstance = null;
+            let compChartSeverityInstance = null;
+            let compData1 = { siteName: "", data: {} };
+            let compData2 = { siteName: "", data: {} };
 
             // --- DOM ELEMENTS ---
             const els = {
@@ -439,6 +492,15 @@
                 faixaTiles: document.getElementById('faixaTiles'),
                 tileTopSitesFrente: document.getElementById('tileTopSitesFrente'),
                 tileTopSitesAtras: document.getElementById('tileTopSitesAtras'),
+
+                // Comparativa Elements
+                comparativaSection: document.getElementById('comparativaSection'),
+                comparativaError: document.getElementById('comparativaError'),
+                comparativaContent: document.getElementById('comparativaContent'),
+                compStartDate: document.getElementById('compStartDate'),
+                compEndDate: document.getElementById('compEndDate'),
+                compSpeedChartCtx: document.getElementById('compSpeedChart') ? document.getElementById('compSpeedChart').getContext('2d') : null,
+                compSeverityChartCtx: document.getElementById('compSeverityChart') ? document.getElementById('compSeverityChart').getContext('2d') : null,
 
                 // Indicadores Elements
                 indicadoresSection: document.getElementById('indicadoresSection'),
@@ -592,6 +654,7 @@
                 els.healthSection.classList.add('hidden');
                 els.mapSection.classList.add('hidden');
                 if (els.faixaSection) els.faixaSection.classList.add('hidden');
+                if (els.comparativaSection) els.comparativaSection.classList.add('hidden');
                 els.indicadoresSection.classList.add('hidden');
                 healthDataStore = [];
                 isMainProcessed = false;
@@ -640,9 +703,10 @@
                     counterElement.classList.add('text-gray-600', 'bg-gray-100');
                 }
 
-                // Reatividade: Se os dados base já foram processados, valida dinamicamente a faixa ao alterar arquivos.
-                if (isMainProcessed && typeof updateFaixaSectionState === 'function') {
-                    updateFaixaSectionState(true);
+                // Reatividade global de estado para seções condicionais
+                if (isMainProcessed) {
+                    if (typeof updateFaixaSectionState === 'function') updateFaixaSectionState(true);
+                    if (typeof updateComparativaSectionState === 'function') updateComparativaSectionState();
                 }
             };
 
@@ -671,7 +735,7 @@
             els.csvHighInput.addEventListener('change', (e) => handleAuxFileInput(e, highCritFiles, els.highList, els.highEmpty, els.highCounter));
             els.csvLowInput.addEventListener('change', (e) => handleAuxFileInput(e, lowCritFiles, els.lowList, els.lowEmpty, els.lowCounter));
 
-            // --- PROCESSAMENTO E SAÚDE OPERACIONAL ---
+            // --- PROCESSAMENTO E LÓGICA DE DADOS ---
             const readFileAsText = (file) => {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -700,7 +764,7 @@
                 return result.map(col => col.trim().replace(/^"|"$/g, ''));
             };
 
-            // --- FUNÇÕES AUXILIARES DE PARSE PARA O MAPA ---
+            // --- FUNÇÕES AUXILIARES DE PARSE PARA O MAPA E GRÁFICOS ---
             const parseDateMap = (str) => {
                 if (!str || str === '-' || str === '0' || str.toLowerCase() === 'null') return null;
                 str = str.trim().replace(/"/g, ''); 
@@ -740,15 +804,19 @@
                 return parseFloat(str);
             };
 
-            // Setup datas iniciais do mapa (30 dias)
-            const initMapDates = () => {
+            // Setup datas iniciais unificado
+            const initDates = () => {
                 const end = new Date();
                 const start = new Date();
                 start.setDate(end.getDate() - 29);
+                
                 if (els.mapEndDate) els.mapEndDate.valueAsDate = end;
                 if (els.mapStartDate) els.mapStartDate.valueAsDate = start;
+
+                if (els.compEndDate) els.compEndDate.valueAsDate = end;
+                if (els.compStartDate) els.compStartDate.valueAsDate = start;
             };
-            initMapDates();
+            initDates();
 
             // Haversine formula (em metros)
             function getDistance(lat1, lon1, lat2, lon2) {
@@ -764,7 +832,7 @@
                 return R * c;
             }
 
-            // Gerenciador de Estado Exclusivo da Seção de Faixa
+            // --- GERENCIADOR DE ESTADO: FAIXA ---
             async function updateFaixaSectionState(forceUpdateTiles = true) {
                 if (!isMainProcessed) return;
 
@@ -816,13 +884,234 @@
                             }
                         }
                     } catch (e) {
-                        console.error("Erro ao ler GPS do arquivo de criticidade para a Faixa", e);
+                        console.error("Erro ao ler GPS para a Faixa", e);
                     }
                     
                     if (forceUpdateTiles && typeof updateIndicadoresTiles === 'function') updateIndicadoresTiles();
                 }
             }
 
+            // --- GERENCIADOR DE ESTADO: COMPARATIVA ---
+            function updateComparativaSectionState() {
+                if (!isMainProcessed || !els.comparativaSection) return;
+
+                if (highCritFiles.length === 0 && lowCritFiles.length === 0) {
+                    els.comparativaSection.classList.add('hidden');
+                    return;
+                }
+
+                els.comparativaSection.classList.remove('hidden');
+
+                if (highCritFiles.length !== 1 || lowCritFiles.length !== 1) {
+                    els.comparativaError.classList.remove('hidden');
+                    els.comparativaContent.classList.add('hidden');
+                } else {
+                    els.comparativaError.classList.add('hidden');
+                    els.comparativaContent.classList.remove('hidden');
+                    processComparativaDataAsync();
+                }
+            }
+
+            // Processamento isolado da seção Comparativa
+            async function processComparativaDataAsync() {
+                if (highCritFiles.length !== 1 || lowCritFiles.length !== 1) return;
+                try {
+                    const f1 = await readFileAsText(highCritFiles[0]);
+                    const f2 = await readFileAsText(lowCritFiles[0]);
+
+                    compData1 = parseComparativaFile(f1);
+                    compData2 = parseComparativaFile(f2);
+
+                    compSiteName1 = compData1.siteName || highCritFiles[0].name.replace('.csv', '');
+                    compSiteName2 = compData2.siteName || lowCritFiles[0].name.replace('.csv', '');
+
+                    updateComparativaCharts();
+                } catch (e) {
+                    console.error("Erro ao processar dados Comparativos", e);
+                }
+            }
+
+            function parseComparativaFile(fileObj) {
+                const lines = fileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
+                const data = {};
+                let siteName = "";
+
+                if (lines.length < 2) return { siteName, data };
+
+                const sep = lines[0].includes(';') ? ';' : ',';
+                const headers = parseCSVRow(lines[0].toLowerCase(), sep);
+                
+                const idxTime = headers.findIndex(h => h.includes('time (utc)') || h.includes('time (local)'));
+                const idxSpeed = headers.findIndex(h => h.includes('speed (km/hr)') || h.includes('speed'));
+                const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
+
+                let idxSeverity = headers.findIndex(h => h === 'severity');
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h === 'impact severity');
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity') && !h.includes('event'));
+                if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity'));
+
+                if (idxTime === -1) return { siteName, data };
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = parseCSVRow(lines[i], sep);
+                    const rawTime = row[idxTime];
+                    if (!rawTime) continue;
+
+                    const dateObj = parseDateMap(rawTime);
+                    if (!dateObj) continue;
+
+                    if (!siteName && idxSite !== -1 && row[idxSite]) {
+                        siteName = row[idxSite];
+                    }
+
+                    let speed = idxSpeed !== -1 ? parseNumberMap(row[idxSpeed]) : 0;
+                    if (isNaN(speed)) speed = 0;
+
+                    let severity = 0;
+                    if (idxSeverity !== -1) {
+                        const rawSev = row[idxSeverity];
+                        severity = parseNumberMap(rawSev);
+                        if (isNaN(severity) && rawSev) {
+                            const s = rawSev.toLowerCase();
+                            if (s.includes('high') || s.includes('alt') || s.includes('crit')) severity = 3;
+                            else if (s.includes('med') || s.includes('méd')) severity = 2;
+                            else if (s.includes('low') || s.includes('baix')) severity = 1;
+                        }
+                        if (isNaN(severity)) severity = 0;
+                    }
+
+                    const dStr = dateObj.toISOString().split('T')[0];
+                    if (!data[dStr]) {
+                        data[dStr] = { speed: [], severity: [] };
+                    }
+                    data[dStr].speed.push(speed);
+                    data[dStr].severity.push(severity);
+                }
+
+                // Agregação Diária (Max)
+                const aggregated = {};
+                for (let d in data) {
+                    aggregated[d] = {
+                        speed: Math.max(...data[d].speed),
+                        severity: Math.max(...data[d].severity)
+                    };
+                }
+
+                return { siteName, data: aggregated };
+            }
+
+            function updateComparativaCharts() {
+                if (!els.compStartDate || !els.compEndDate) return;
+
+                const startStr = els.compStartDate.value;
+                const endStr = els.compEndDate.value;
+                if (!startStr || !endStr) return;
+
+                const startDate = new Date(startStr + 'T00:00:00');
+                const endDate = new Date(endStr + 'T23:59:59');
+
+                const labels = [];
+                const speed1 = [];
+                const speed2 = [];
+                const sev1 = [];
+                const sev2 = [];
+
+                let current = new Date(startDate);
+                while (current <= endDate) {
+                    const dStr = current.toISOString().split('T')[0];
+                    const displayStr = `${current.getDate().toString().padStart(2,'0')}/${(current.getMonth()+1).toString().padStart(2,'0')}`;
+                    labels.push(displayStr);
+
+                    speed1.push(compData1.data[dStr] ? compData1.data[dStr].speed : 0);
+                    speed2.push(compData2.data[dStr] ? compData2.data[dStr].speed : 0);
+
+                    sev1.push(compData1.data[dStr] ? compData1.data[dStr].severity : 0);
+                    sev2.push(compData2.data[dStr] ? compData2.data[dStr].severity : 0);
+
+                    current.setDate(current.getDate() + 1);
+                }
+
+                const commonOptions = (yTitle) => ({
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { size: 11 }, usePointStyle: true, boxWidth: 8 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#374151',
+                            bodyColor: '#4B5563',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: (context) => `Data: ${context[0].label}`,
+                                label: (context) => ` ${yTitle.split(' ')[0]}: ${context.parsed.y}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#9ca3af' } },
+                        y: {
+                            title: { display: true, text: yTitle, color: '#6b7280', font: {size: 10} },
+                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' },
+                            beginAtZero: true
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                });
+
+                if (compChartSpeedInstance) compChartSpeedInstance.destroy();
+                compChartSpeedInstance = new Chart(els.compSpeedChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: compSiteName1, data: speed1,
+                                borderColor: '#b45309', backgroundColor: '#b45309',
+                                borderWidth: 2, pointRadius: 3, tension: 0.3
+                            },
+                            {
+                                label: compSiteName2, data: speed2,
+                                borderColor: '#14b8a6', backgroundColor: '#14b8a6',
+                                borderWidth: 2, pointRadius: 3, tension: 0.3
+                            }
+                        ]
+                    },
+                    options: commonOptions('Velocidade (km/h)')
+                });
+
+                if (compChartSeverityInstance) compChartSeverityInstance.destroy();
+                compChartSeverityInstance = new Chart(els.compSeverityChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: compSiteName1, data: sev1,
+                                borderColor: '#b45309', backgroundColor: '#b45309',
+                                borderWidth: 2, pointRadius: 3, tension: 0.3
+                            },
+                            {
+                                label: compSiteName2, data: sev2,
+                                borderColor: '#14b8a6', backgroundColor: '#14b8a6',
+                                borderWidth: 2, pointRadius: 3, tension: 0.3
+                            }
+                        ]
+                    },
+                    options: commonOptions('Severidade')
+                });
+            }
+
+            if (els.compStartDate) els.compStartDate.addEventListener('change', updateComparativaCharts);
+            if (els.compEndDate) els.compEndDate.addEventListener('change', updateComparativaCharts);
+
+            // --- FLUXO PRINCIPAL (BOTÃO PROCESSAR) ---
             els.processBtn.addEventListener('click', async () => {
                 hideError();
                 els.successMsg.classList.add('hidden');
@@ -836,24 +1125,21 @@
 
                 els.successMsg.classList.remove('hidden');
                 
-                // Consolidação de arquivos para análise
                 const allCritFiles = [...highCritFiles, ...lowCritFiles];
 
                 try {
-                    // Sempre processa Saúde Operacional para revelar a seção na ordem (mesmo se vazia)
                     const rawDataFiles = await Promise.all(allCritFiles.map(readFileAsText));
                     processOperationalHealth(rawDataFiles);
                     
-                    // Extração do Arquivo Principal para Mapa e Indicadores
                     const mainFileData = await readFileAsText(mainFile);
                     processMapData(mainFileData);
                     
                     isMainProcessed = true;
                     await updateFaixaSectionState(false);
+                    updateComparativaSectionState();
 
                     processIndicadores(mainFileData);
 
-                    // Rola a tela suavemente para a nova primeira seção (Indicadores)
                     setTimeout(() => {
                         els.indicadoresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 100);
@@ -879,13 +1165,11 @@
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
                 const idxUrl = headers.findIndex(h => h === 'url');
                 
-                // Busca resiliente pela coluna de Severidade
                 let idxSeverity = headers.findIndex(h => h === 'severity');
                 if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h === 'impact severity');
                 if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity') && !h.includes('event'));
                 if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity'));
                 
-                // Campos p/ Criticidade
                 const idxLargestImpact = headers.findIndex(h => h.includes('largest impact'));
                 const idxRecentSeverity = headers.findIndex(h => h.includes('impact severity') || h.includes('most recent event impact severity'));
                 const idxEventsSince = headers.findIndex(h => h.includes('events since') && !h.includes('drop'));
@@ -904,7 +1188,6 @@
                     const siteName = idxSite !== -1 && row[idxSite] ? row[idxSite] : "Desconhecido";
                     const siteUrl = idxUrl !== -1 && row[idxUrl] ? row[idxUrl] : "#";
                     
-                    // Tratamento robusto para severidade (suporta texto: Alta=3, Med=2, Baixa=1)
                     let severity = 0;
                     if (idxSeverity !== -1) {
                         const rawSev = row[idxSeverity];
@@ -918,7 +1201,6 @@
                         if (isNaN(severity)) severity = 0;
                     }
 
-                    // Extração p/ Fórmula Criticidade
                     const largestImpact = idxLargestImpact !== -1 ? parseNumberMap(row[idxLargestImpact]) : 0;
                     const recentSeverity = idxRecentSeverity !== -1 ? parseNumberMap(row[idxRecentSeverity]) : 0;
                     const eventsSince = idxEventsSince !== -1 ? parseNumberMap(row[idxEventsSince]) : 0;
@@ -928,11 +1210,9 @@
 
                     if (!maxDate || dateObj > maxDate) maxDate = dateObj;
 
-                    // Map Matching Simples (Mais Próximo) - Agnóstico de Linha no momento do parsing
                     let bestDist = Infinity;
                     let bestRef = null;
                     for (let r of REF_DATA) {
-                        // Distância Euclidiana base.
                         let d = Math.sqrt(Math.pow(lat - r.lat, 2) + Math.pow(lon - r.lon, 2));
                         if (d < bestDist) {
                             bestDist = d;
@@ -940,13 +1220,11 @@
                         }
                     }
 
-                    // Nova Estrutura de Classificação e Cálculo de Criticidade por Quartil (25-100)
                     let criticidade = 0;
                     if (!isNaN(largestImpact) && !isNaN(recentSeverity) && !isNaN(eventsSince) && !isNaN(dropOff)) {
                         criticidade = calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador);
                     }
 
-                    // Limiar de tolerância espacial: 0.05 graus (Aprox. 5.5km)
                     const isForaDeRota = bestDist > 0.05;
 
                     indicadoresDataStore.push({
@@ -964,18 +1242,16 @@
                     });
                 }
 
-                // Configurar Datas
                 if (maxDate) {
                     const endStr = maxDate.toISOString().split('T')[0];
                     const startD = new Date(maxDate);
-                    startD.setDate(startD.getDate() - 29); // Inclusivo, total 30 dias retroativos
+                    startD.setDate(startD.getDate() - 29); 
                     const startStr = startD.toISOString().split('T')[0];
                     
                     els.indStartDate.value = startStr;
                     els.indEndDate.value = endStr;
                 }
 
-                // Configurar Linhas Dinâmicas
                 const linhasAtivas = new Set(REF_DATA.map(r => r.linha));
                 els.indLinha.innerHTML = '<option value="ALL">Todas as Linhas</option>';
                 Array.from(linhasAtivas).sort().forEach(linha => {
@@ -986,7 +1262,6 @@
                 updateIndicadoresTiles();
             }
 
-            // Lógica Encadeada de Dropdowns
             els.indLinha.addEventListener('change', () => {
                 const linha = els.indLinha.value;
                 if (linha === "ALL") {
@@ -1043,12 +1318,10 @@
             els.indStartDate.addEventListener('change', updateIndicadoresTiles);
             els.indEndDate.addEventListener('change', updateIndicadoresTiles);
 
-            // Componente base centralizado para renderizar as listas de Criticidade de Site
             function renderTopSitesRanking(aggData, containerElement) {
                 const sortedSites = Object.entries(aggData)
                     .map(([name, data]) => ({ name, ...data }))
                     .sort((a, b) => {
-                        // Em caso de empate na criticidade, utilizar ordenação alfabética pelo nome do site
                         if (b.criticidade === a.criticidade) {
                             return a.name.localeCompare(b.name);
                         }
@@ -1079,7 +1352,6 @@
                             }
                         }
 
-                        // Determinação de Categoria (25 a 100)
                         let category = "Baixa";
                         if (s.criticidade >= 80) category = "Crítica";
                         else if (s.criticidade >= 60) category = "Alta";
@@ -1130,7 +1402,6 @@
                 for (let record of indicadoresDataStore) {
                     if (record.date < startDate || record.date > endDate) continue;
 
-                    // FIX DE ESTAÇÕES COMPARTILHADAS
                     let kmNaLinha = record.km;
                     let linhaDoContexto = record.linha;
                     let isLinhaMatch = false;
@@ -1141,12 +1412,11 @@
                         if (record.linha === linha) {
                             isLinhaMatch = true;
                         } else if (record.ref) {
-                            // Tenta encontrar a mesma referência na linha atualmente selecionada no filtro
                             const refShared = REF_DATA.find(r => r.linha === linha && r.ref === record.ref);
                             if (refShared) {
                                 isLinhaMatch = true;
-                                kmNaLinha = refShared.km;     // Atualiza pro Km correto da linha em foco
-                                linhaDoContexto = linha;      // Adota a linha selecionada
+                                kmNaLinha = refShared.km;     
+                                linhaDoContexto = linha;      
                             }
                         }
                     }
@@ -1157,7 +1427,6 @@
                         if (kmNaLinha < kmIni || kmNaLinha > kmFim) continue;
                     }
 
-                    // Agregação de Ranking de Sites Global
                     if (!siteAgg[record.site]) {
                         siteAgg[record.site] = { 
                             criticidade: 0, lat: record.lat, lon: record.lon, 
@@ -1166,7 +1435,6 @@
                     }
                     siteAgg[record.site].criticidade = Math.max(siteAgg[record.site].criticidade, record.criticidade);
 
-                    // Agregação para Faixa (±2 km) com base em Haversine
                     if (globalFaixaRefLat !== null && globalFaixaRefLon !== null && !isNaN(record.lat) && !isNaN(record.lon)) {
                         const dist = getDistance(record.lat, record.lon, globalFaixaRefLat, globalFaixaRefLon);
                         if (dist <= 2000) {
@@ -1203,13 +1471,9 @@
                 els.tileTrechoCount.textContent = countTrecho.toLocaleString('pt-BR');
                 els.tileForaRota.textContent = countFora.toLocaleString('pt-BR');
                 
-                // Cálculo da Severidade Média
                 els.tileSevMedia.textContent = countTrecho > 0 ? (sumSeverity / countTrecho).toLocaleString('pt-BR', {maximumFractionDigits: 2}) : '-';
-                
-                // Cálculo da Criticidade Acumulada (Ajustado para 0 casas decimais)
                 els.tileCritTrecho.textContent = countTrecho > 0 ? sumCriticidade.toLocaleString('pt-BR', {maximumFractionDigits: 0}) : '-';
                 
-                // Renderização do Ranking de Sites (Reutilizando a função base unificada)
                 renderTopSitesRanking(siteAgg, els.tileTopSites);
                 renderTopSitesRanking(siteAggFrente, els.tileTopSitesFrente);
                 renderTopSitesRanking(siteAggAtras, els.tileTopSitesAtras);
@@ -1229,7 +1493,6 @@
                     }
                 }
 
-                // Dispara a re-renderização dinâmica do Gráfico de Saúde Operacional baseado nos filtros ativos
                 if (typeof updateHealthChart === 'function') updateHealthChart();
             }
 
@@ -1247,13 +1510,11 @@
                     const idxLat = headers.findIndex(h => h.includes('latitude'));
                     const idxLon = headers.findIndex(h => h.includes('longitude'));
                     
-                    // Severidade
                     let idxSeverity = headers.findIndex(h => h === 'severity');
                     if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h === 'impact severity');
                     if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity') && !h.includes('event'));
                     if (idxSeverity === -1) idxSeverity = headers.findIndex(h => h.includes('severity'));
                     
-                    // Drop Offs
                     const idxDropOff = headers.findIndex(h => h.includes('drop off') || h.includes('drop_off'));
 
                     if (idxTime === -1) return;
@@ -1289,7 +1550,6 @@
                             if (rawDrop === 'true' || rawDrop === '1' || parseNumberMap(rawDrop) > 0) dropOff = true;
                         }
 
-                        // Map Matching Espacial
                         let bestDist = Infinity;
                         let bestRef = null;
                         if (!isNaN(lat) && !isNaN(lon)) {
@@ -1323,7 +1583,6 @@
             function updateHealthChart() {
                 els.healthSection.classList.remove('hidden');
                 
-                // Configuração das 5 semanas calendário (retroativas a partir de hoje)
                 const now = new Date();
                 now.setHours(23, 59, 59, 999);
                 
@@ -1343,7 +1602,6 @@
                     weekLabels.push(`${fmt(start)} a ${fmt(end)}`);
                 }
 
-                // Puxando os filtros ativos da seção Indicadores
                 const startStr = els.indStartDate.value;
                 const endStr = els.indEndDate.value;
                 const startDate = startStr ? new Date(startStr + 'T00:00:00') : new Date(0);
@@ -1355,15 +1613,13 @@
                 const siteData = {};
 
                 healthDataStore.forEach(record => {
-                    // Filtro Temporal Global
                     if (record.date < startDate || record.date > endDate) return;
 
-                    // FIX DE ESTAÇÕES COMPARTILHADAS (Gráfico)
                     let kmNaLinha = record.km;
                     let isLinhaMatch = false;
 
                     if (linha === "ALL") {
-                        if (record.status === "fora_de_rota") return; // Ignora fora de rota na visão global do gráfico
+                        if (record.status === "fora_de_rota") return; 
                         isLinhaMatch = true;
                     } else {
                         if (record.status === "fora_de_rota") return;
@@ -1382,7 +1638,6 @@
                     if (!isLinhaMatch) return;
                     if (linha !== "ALL" && (kmNaLinha < kmIni || kmNaLinha > kmFim)) return;
 
-                    // Encaixe nas 5 semanas e Agregação
                     for (let w = 0; w < 5; w++) {
                         if (record.date >= weeks[w].start && record.date <= weeks[w].end) {
                             weeks[w].totalAlarms++;
@@ -1396,12 +1651,10 @@
                     }
                 });
 
-                // Calcula a Severidade Média por Semana
                 weeks.forEach(w => {
                     w.avgSev = w.totalAlarms > 0 ? (w.sumSev / w.totalAlarms) : 0;
                 });
 
-                // Atualiza os Cards Auxiliares Dinamicamente
                 els.siteTotalsGrid.innerHTML = '';
                 const siteNames = Object.keys(siteData).sort((a,b) => siteData[b] - siteData[a]);
                 
@@ -1427,8 +1680,8 @@
                     {
                         label: 'Severidade Média',
                         data: weeks.map(w => w.avgSev),
-                        borderColor: '#F5D366', // Accent Dark
-                        backgroundColor: '#FFE599', // Accent
+                        borderColor: '#F5D366', 
+                        backgroundColor: '#FFE599', 
                         borderWidth: 3,
                         pointBackgroundColor: '#ffffff',
                         pointBorderColor: '#F5D366',
@@ -1440,7 +1693,7 @@
                     {
                         label: 'Total de Alarmes',
                         data: weeks.map(w => w.totalAlarms),
-                        borderColor: '#14b8a6', // Teal
+                        borderColor: '#14b8a6', 
                         backgroundColor: '#14b8a6', 
                         borderWidth: 2,
                         borderDash: [4, 4],
@@ -1453,7 +1706,7 @@
                     {
                         label: 'Drop Offs',
                         data: weeks.map(w => w.dropOffs),
-                        borderColor: '#6b7280', // Gray
+                        borderColor: '#6b7280', 
                         backgroundColor: '#9ca3af', 
                         borderWidth: 2,
                         pointBackgroundColor: '#ffffff',
@@ -1546,7 +1799,6 @@
                 const sep = lines[0].includes(';') ? ';' : ',';
                 const headers = parseCSVRow(lines[0].toLowerCase(), sep);
                 
-                // Mapeamento de colunas padrão do sistema
                 const idxLat = headers.findIndex(h => h.includes('latitude'));
                 const idxLon = headers.findIndex(h => h.includes('longitude'));
                 const idxSite = headers.findIndex(h => h === 'site name' || h === 'site');
@@ -1556,7 +1808,6 @@
                 const idxEventsSince = headers.findIndex(h => h.includes('events since') && !h.includes('drop'));
                 const idxDropOff = headers.findIndex(h => h.includes('drop off'));
 
-                // Validação de estrutura do CSV principal
                 if (idxLat === -1 || idxLon === -1 || idxDate === -1 || idxLargestImpact === -1 || idxRecentSeverity === -1 || idxEventsSince === -1 || idxDropOff === -1) {
                     console.warn("O arquivo principal não possui as colunas necessárias para o Posicionamento Geográfico.");
                     return; 
@@ -1576,12 +1827,10 @@
                     const dropOff = parseNumberMap(row[idxDropOff]);
                     const site = idxSite !== -1 ? row[idxSite] : "Desconhecido";
 
-                    // REGRA RIGOROSA: Descartar nulos, ausentes ou inválidos na leitura
                     if (isNaN(lat) || isNaN(lon) || !dateObj || isNaN(largestImpact) || isNaN(recentSeverity) || isNaN(eventsSince) || isNaN(dropOff)) {
                         continue;
                     }
 
-                    // Nova Estrutura de Classificação e Cálculo de Criticidade por Quartil (25-100)
                     const criticidade = calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador);
 
                     mapDataRoute.push({
@@ -1620,7 +1869,6 @@
                 const endDate = new Date(endStr);
                 endDate.setHours(23,59,59,999);
 
-                // Filtro temporal dinâmico
                 const filtered = mapDataRoute.filter(pt => pt.date >= startDate && pt.date <= endDate);
 
                 if (filtered.length === 0) {
@@ -1630,7 +1878,6 @@
                     els.noDataMap.classList.add('hidden');
                 }
 
-                // Gatilho visual necessário no Leaflet para re-renderização em container antes escondido
                 setTimeout(() => mapInstanceRoute.invalidateSize(), 100);
 
                 if (currentMapModeRoute === 'circle') {
@@ -1661,7 +1908,6 @@
                     });
                     mapLayerGroupRoute.addLayer(markers);
                 } else if (currentMapModeRoute === 'heat') {
-                    // Mapeia a intensidade do calor na relação com o maior impacto detectado
                     const maxCrit = Math.max(...filtered.map(p => p.criticidade), 1);
                     const points = filtered.map(pt => [pt.lat, pt.lon, pt.criticidade / maxCrit]);
                     L.heatLayer(points, { radius: 25, blur: 15 }).addTo(mapLayerGroupRoute);
@@ -1670,7 +1916,6 @@
                 mapInstanceRoute.fitBounds(L.latLngBounds(filtered.map(p => [p.lat, p.lon])), { padding: [50,50] });
             }
 
-            // --- EVENTOS DO MAPA ---
             els.mapStartDate.addEventListener('change', updateMapRoute);
             els.mapEndDate.addEventListener('change', updateMapRoute);
 

@@ -991,12 +991,17 @@
                 
                 const pageName = (binder.page_names && binder.page_names[i]) ? binder.page_names[i] : `Página ${i + 1}`;
 
+                // Lógica de feedback visual de completude (9 de 9)
+                const isPageComplete = pageCollected === 9;
+                const iconColorClass = isPageComplete ? 'text-green-500' : 'text-primary';
+                const barColorClass = isPageComplete ? 'bg-green-500' : 'bg-primary';
+
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="bg-surface-container-low rounded-2xl p-5 relative group border border-white/5 hover:border-primary/50 cursor-grab active:cursor-grabbing transition-all active:scale-95" onclick="openBinderPage(${i})">
                         <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                             <button onclick="event.stopPropagation(); openDeleteModal('page', ${i})" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg" title="Excluir Página"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                        <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 text-primary shadow-sm border border-white/5">
+                        <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 ${iconColorClass} shadow-sm border border-white/5">
                             <i data-lucide="layers" class="w-6 h-6"></i>
                         </div>
                         <div class="flex items-center gap-2 mb-1">
@@ -1012,7 +1017,7 @@
                         </div>
                         <p class="text-xs font-medium text-on-surface-variant">${pageCollected}/9 Cartas</p>
                         <div class="w-full h-1 bg-surface-container-highest rounded-full mt-3 overflow-hidden">
-                            <div class="h-full bg-primary transition-all duration-1000" style="width: ${pagePercent}%"></div>
+                            <div class="h-full ${barColorClass} transition-all duration-1000" style="width: ${pagePercent}%"></div>
                         </div>
                     </div>
                 `);

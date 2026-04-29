@@ -16,6 +16,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Chart.js (Para o Tracker) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -117,6 +120,12 @@
         .view-transition { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .view-hidden { opacity: 0; pointer-events: none; position: absolute; width: 100%; transform: translateY(10px); }
         .view-visible { opacity: 1; pointer-events: auto; position: relative; transform: translateY(0); }
+
+        /* Estilos do Tracker */
+        .fade-in { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-background text-on-background min-h-screen pb-32 selection:bg-primary/30 overflow-x-hidden relative">
@@ -336,6 +345,155 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- TELA 6: TRACKER (INÍCIO/PORTFÓLIO)         -->
+    <!-- ========================================== -->
+    <div id="tracker-home-view" class="view-transition view-hidden flex-col">
+        <header class="sticky top-0 z-30 bg-[#121416]/95 backdrop-blur-sm border-b border-white/5 px-6 md:px-8 h-16 flex justify-between items-center w-full">
+            <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
+                <h1 class="font-headline text-[20px] md:text-[22px] font-black text-on-background tracking-tight">PokéTracker</h1>
+                <nav class="flex gap-6 font-label text-xs uppercase tracking-widest font-bold">
+                    <button onclick="goToView('tracker-home-view', 'tracker')" class="text-primary flex items-center gap-2 transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Portfólio
+                    </button>
+                    <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2">
+                        <i data-lucide="star" class="w-4 h-4"></i> Wishlist
+                    </button>
+                </nav>
+            </div>
+        </header>
+        <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full flex flex-col gap-10">
+            <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
+                <div class="flex flex-col gap-2">
+                    <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Valor do Portfólio</span>
+                    <h2 id="tracker-total-portfolio" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
+                    <div class="flex items-center gap-1.5 mt-2 text-primary">
+                        <i data-lucide="trending-up" class="w-4 h-4 md:w-5 md:h-5"></i>
+                        <span id="tracker-total-variance" class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Calculando...</span>
+                    </div>
+                </div>
+                <button onclick="tOpenModalCard()" class="bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10 w-full md:w-auto mt-2 md:mt-0">
+                    <i data-lucide="plus" class="w-5 h-5"></i> Nova Carta
+                </button>
+            </section>
+            <section class="flex flex-col gap-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Sua Coleção</h3>
+                </div>
+                <div id="tracker-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="text-on-surface-variant text-sm col-span-full text-center py-10">Conectando ao banco de dados Tracker...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA 7: TRACKER (WISHLIST)                 -->
+    <!-- ========================================== -->
+    <div id="tracker-wishlist-view" class="view-transition view-hidden flex-col">
+        <header class="sticky top-0 z-30 bg-[#121416]/95 backdrop-blur-sm border-b border-white/5 px-6 md:px-8 h-16 flex justify-between items-center w-full">
+            <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
+                <h1 class="font-headline text-[20px] md:text-[22px] font-black text-on-background tracking-tight">PokéTracker</h1>
+                <nav class="flex gap-6 font-label text-xs uppercase tracking-widest font-bold">
+                    <button onclick="goToView('tracker-home-view', 'tracker')" class="text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Portfólio
+                    </button>
+                    <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="text-primary flex items-center gap-2 transition-colors">
+                        <i data-lucide="star" class="w-4 h-4"></i> Wishlist
+                    </button>
+                </nav>
+            </div>
+        </header>
+        <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full flex flex-col gap-10">
+            <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
+                <div class="flex flex-col gap-2">
+                    <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Custo Estimado</span>
+                    <h2 id="tracker-total-wishlist" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
+                    <div class="flex items-center gap-1.5 mt-2 text-on-surface-variant">
+                        <i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i>
+                        <span class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Radar de mercado</span>
+                    </div>
+                </div>
+                <button onclick="tOpenModalCard(true)" class="bg-surface-container text-on-surface font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm w-full md:w-auto mt-2 md:mt-0">
+                    <i data-lucide="star" class="w-5 h-5"></i> Adicionar Alvo
+                </button>
+            </section>
+            <section class="flex flex-col gap-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Na Mira</h3>
+                </div>
+                <div id="tracker-wishlist-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA 8: TRACKER (DETALHES DA CARTA)        -->
+    <!-- ========================================== -->
+    <div id="tracker-details-view" class="view-transition view-hidden flex-col bg-background">
+        <header class="w-full top-0 sticky z-40 bg-[#121416]/95 backdrop-blur-sm flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div class="flex items-center gap-4 max-w-5xl mx-auto w-full">
+                <button onclick="goToView('tracker-home-view', 'tracker')" class="text-primary hover:opacity-80 hover:-translate-x-1 transition-all focus:outline-none">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <div class="flex flex-col overflow-hidden">
+                    <span id="tracker-detail-subtitle" class="font-label text-[10px] font-medium uppercase tracking-widest text-secondary opacity-70">Carta</span>
+                    <h1 id="tracker-detail-title" class="font-headline text-lg font-bold tracking-tight text-on-background truncate">...</h1>
+                </div>
+            </div>
+        </header>
+        <main class="px-6 py-8 max-w-5xl mx-auto w-full h-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+                    <section class="bg-surface-container-low rounded-2xl border border-white/5 p-8 flex items-center justify-center aspect-square md:aspect-auto md:h-80 lg:h-auto lg:aspect-[4/5] relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent z-0"></div>
+                        <img id="tracker-detail-image" src="" alt="Card" class="max-h-full max-w-full object-contain relative z-10 drop-shadow-2xl rounded-lg">
+                        <div id="tracker-detail-badge-container" class="absolute top-4 right-4 z-20 bg-surface-container/90 backdrop-blur rounded-full px-3 py-1.5 border border-white/10 flex items-center gap-2 shadow-sm">
+                            <span id="tracker-detail-badge-color" class="w-2 h-2 rounded-full bg-primary"></span>
+                            <span id="tracker-detail-badge-text" class="font-label text-[10px] uppercase tracking-widest text-on-surface font-bold">Ativo</span>
+                        </div>
+                    </section>
+                    <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full">
+                        <button onclick="tOpenModalPrice()" class="flex-1 bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10">
+                            <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i> Novo Preço
+                        </button>
+                        <button onclick="tRepeatLastPrice()" class="flex-1 bg-surface-container text-on-surface font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i> Repetir Preço
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-8 flex flex-col gap-8">
+                    <section class="bg-surface-container-low w-full rounded-2xl border border-white/5 p-6 flex flex-col">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                            <div>
+                                <h2 class="font-headline text-2xl font-extrabold text-on-surface">Histórico</h2>
+                                <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant mt-1">Evolução do valor</p>
+                            </div>
+                            <div class="bg-surface-container rounded-xl p-1 flex text-[11px] font-label uppercase font-bold tracking-wider shrink-0 border border-white/5" id="tracker-chart-period-selector">
+                                <button onclick="tSetChartPeriod('dia', this)" class="px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors">Dia</button>
+                                <button onclick="tSetChartPeriod('semana', this)" class="px-4 py-2 rounded-lg bg-surface-container-highest shadow-sm text-on-surface transition-colors border border-white/5">Semana</button>
+                                <button onclick="tSetChartPeriod('mes', this)" class="px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors">Mês</button>
+                            </div>
+                        </div>
+                        <div class="w-full h-56 md:h-72 relative mt-2 -ml-1">
+                            <canvas id="tracker-priceChart" class="w-full h-full"></canvas>
+                            <div id="tracker-chart-empty-state" class="hidden absolute inset-0 flex items-center justify-center text-sm font-label uppercase tracking-widest text-on-surface-variant bg-surface-container-low/80 backdrop-blur-sm z-10 rounded-lg">Dados insuficientes</div>
+                        </div>
+                    </section>
+                    <section class="bg-surface-container-low w-full rounded-2xl border border-white/5 p-6 flex flex-col">
+                        <div class="flex justify-between items-center pb-4 border-b border-white/10 font-label text-[10px] text-secondary opacity-70 uppercase tracking-widest w-full">
+                            <span>Valor Registrado</span>
+                            <span>Atualização</span>
+                        </div>
+                        <div id="tracker-detail-history-list" class="flex flex-col w-full mt-2"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- ========================================== -->
     <!-- NAVEGAÇÃO INFERIOR E MODAIS GLOBAIS        -->
     <!-- ========================================== -->
     <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-8 pb-6 pt-3 bg-[#121416]/80 backdrop-blur-xl border-t border-white/5 shadow-[0px_-10px_30px_rgba(0,0,0,0.5)] z-50">
@@ -349,13 +507,13 @@
             <i data-lucide="book-open" id="icon-binder" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
             <span class="font-inter text-[10px] font-medium uppercase tracking-wider">Fichários</span>
         </button>
-        <a href="https://jonatascaldas.github.io/PokeTracker.html" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none">
-            <i data-lucide="radar" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
+        <button id="nav-tracker" onclick="goToView('tracker-home-view', 'tracker')" class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none">
+            <i data-lucide="radar" id="icon-tracker" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
             <span class="font-inter text-[10px] font-medium uppercase tracking-wider">Tracker</span>
-        </a>
+        </button>
     </nav>
 
-    <!-- Modal Entidade -->
+    <!-- Modais Principais (Coleções e Fichários) -->
     <div id="modal-entity" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeEntityModal()"></div>
         <div id="modal-entity-panel" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -391,7 +549,6 @@
         </div>
     </div>
 
-    <!-- Modal Carta -->
     <div id="modal-card" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeCardModal()"></div>
         <div id="modal-card-panel" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -446,7 +603,6 @@
         </div>
     </div>
 
-    <!-- Modal Exclusão -->
     <div id="modal-delete" class="fixed inset-0 z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeDeleteModal()"></div>
         <div id="panel-delete" class="relative bg-surface-container border border-error/20 rounded-2xl w-[90%] max-w-sm p-6 shadow-2xl transform scale-95 transition-transform duration-300">
@@ -462,14 +618,100 @@
         </div>
     </div>
 
+    <!-- Modais do Tracker -->
+    <div id="tracker-modal-card" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="tCloseModal('tracker-modal-card')"></div>
+        <div id="tracker-modal-card-content" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="tracker-modal-card-title" class="text-2xl font-headline font-extrabold text-on-surface">Nova Carta</h3>
+                <button onclick="tCloseModal('tracker-modal-card')" class="text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <form id="tracker-form-card" class="flex flex-col gap-5" onsubmit="tSaveCard(event)">
+                <input type="hidden" id="tracker-input-card-id">
+                <div>
+                    <label class="block font-label text-[11px] font-bold uppercase tracking-widest mb-1.5 text-on-surface-variant">Nome da Carta</label>
+                    <input required type="text" id="tracker-input-card-name" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface" placeholder="Ex: Charizard 1st Edition">
+                </div>
+                <div>
+                    <label class="block font-label text-[11px] font-bold uppercase tracking-widest mb-1.5 text-on-surface-variant">Raridade / Detalhes</label>
+                    <div class="relative w-full">
+                        <select required id="tracker-input-card-subtitle" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-primary text-on-surface appearance-none cursor-pointer">
+                            <option value="" disabled selected>Selecione a raridade</option>
+                            <option value="Dupla Rara">Dupla Rara</option>
+                            <option value="Ilustração Rara">Ilustração Rara</option>
+                            <option value="Ultra Rara">Ultra Rara</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-on-surface-variant"></i>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-label text-[11px] font-bold uppercase tracking-widest mb-1.5 text-on-surface-variant">URL da Imagem</label>
+                    <input required type="url" id="tracker-input-card-image" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface" placeholder="https://...">
+                </div>
+                <div id="tracker-initial-price-container">
+                    <label class="block font-label text-[11px] font-bold uppercase tracking-widest mb-1.5 text-on-surface-variant">Preço Atual (R$)</label>
+                    <input required type="number" step="0.01" id="tracker-input-card-price" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface" placeholder="0.00">
+                </div>
+                <div class="flex items-center gap-3 p-4 border border-white/5 rounded-xl bg-background mt-1 cursor-pointer" onclick="document.getElementById('tracker-input-card-wishlist').click()">
+                    <input type="checkbox" id="tracker-input-card-wishlist" class="w-5 h-5 accent-primary rounded bg-surface-container border-outline cursor-pointer" onclick="event.stopPropagation()">
+                    <label for="tracker-input-card-wishlist" class="font-body text-sm text-on-surface cursor-pointer select-none">
+                        Salvar na Wishlist <br>
+                        <span class="text-xs text-on-surface-variant font-medium">Ainda não possuo esta carta</span>
+                    </label>
+                </div>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="tCloseModal('tracker-modal-card')" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors focus:outline-none">Cancelar</button>
+                    <button type="submit" id="tracker-btn-save-card" class="px-5 py-3 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-fixed active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-primary/10">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar Carta</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tracker-modal-price" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="tCloseModal('tracker-modal-price')"></div>
+        <div id="tracker-modal-price-content" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-sm p-6 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-headline text-2xl font-extrabold text-on-surface">Atualizar Valor</h3>
+                <button onclick="tCloseModal('tracker-modal-price')" class="text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="bg-background border border-white/10 rounded-xl p-5 flex flex-col items-end justify-center mb-6 h-24">
+                <span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Novo valor (R$)</span>
+                <span id="tracker-calc-display" class="font-headline text-4xl text-primary font-extrabold">0,00</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-on-surface mb-6">
+                <button onclick="tCalcInput('1')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">1</button>
+                <button onclick="tCalcInput('2')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">2</button>
+                <button onclick="tCalcInput('3')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">3</button>
+                <button onclick="tCalcInput('4')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">4</button>
+                <button onclick="tCalcInput('5')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">5</button>
+                <button onclick="tCalcInput('6')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">6</button>
+                <button onclick="tCalcInput('7')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">7</button>
+                <button onclick="tCalcInput('8')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">8</button>
+                <button onclick="tCalcInput('9')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">9</button>
+                <button onclick="tCalcClear()" class="bg-error/20 hover:bg-error/30 text-error py-4 rounded-xl font-label font-bold text-lg active:scale-95 transition-all border border-error/20">C</button>
+                <button onclick="tCalcInput('0')" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl font-headline font-bold text-xl active:scale-95 transition-all border border-white/5">0</button>
+                <button onclick="tCalcBackspace()" class="bg-surface-container-highest hover:bg-white/10 py-4 rounded-xl flex justify-center items-center active:scale-95 transition-all text-on-surface-variant border border-white/5"><i data-lucide="delete" class="w-6 h-6"></i></button>
+            </div>
+            <button onclick="tSaveNewPrice()" class="w-full bg-primary text-on-primary font-bold px-6 py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed active:scale-95 transition-all shadow-lg shadow-primary/10">
+                <i data-lucide="check" class="w-5 h-5"></i> Confirmar
+            </button>
+        </div>
+    </div>
+
+
     <!-- ========================================== -->
-    <!-- JAVASCRIPT: SUPABASE & LÓGICA CORE         -->
+    <!-- JAVASCRIPT GERAL                           -->
     <!-- ========================================== -->
     <script>
         lucide.createIcons();
 
         // ----------------------------------------------------
-        // 1. CONFIGURAÇÃO SUPABASE
+        // LÓGICA PRINCIPAL: COLEÇÕES E FICHÁRIOS
         // ----------------------------------------------------
         const supabaseUrl = 'https://zhyhdlespsxkctmujbit.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoeWhkbGVzcHN4a2N0bXVqYml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTMwNTYsImV4cCI6MjA5MTIyOTA1Nn0.0hkvelKn_dI-RiEuoUTaGHr5cRQPt9SJnQiZQUQmlcY';      
@@ -477,7 +719,6 @@
         const { createClient } = supabase;
         const db = createClient(supabaseUrl, supabaseKey);
 
-        // --- ESTADO GLOBAL ---
         const appState = {
             activeView: 'home-view',
             activeContext: 'collection',
@@ -493,17 +734,12 @@
         let editingCardId = null;
         let deleteContext = { type: null, id: null };
 
-        // ----------------------------------------------------
-        // 2. SISTEMA DE NOTIFICAÇÕES E BACKUP
-        // ----------------------------------------------------
         const showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = msg;
-            
             const iconContainer = document.getElementById('toast-icon-container');
             iconContainer.innerHTML = `<i data-lucide="${isError ? 'alert-circle' : 'check-circle'}" class="w-5 h-5 ${isError ? 'text-error' : 'text-primary'}"></i>`;
             lucide.createIcons({ root: iconContainer });
-            
             toast.classList.remove('-translate-y-[150%]', 'opacity-0');
             setTimeout(() => toast.classList.add('-translate-y-[150%]', 'opacity-0'), 3500);
         };
@@ -514,7 +750,6 @@
                 const dd = String(today.getDate()).padStart(2, '0');
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const filename = `update-${dd}-${mm}-${today.getFullYear()}.json`;
-
                 const dataStr = JSON.stringify(appState, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -531,29 +766,21 @@
             }
         };
 
-        // ----------------------------------------------------
-        // 3. COMUNICAÇÃO COM O SUPABASE (LOAD & CRUD)
-        // ----------------------------------------------------
         const loadDataFromCloud = async () => {
             document.getElementById('loading-cols').classList.remove('hidden');
             showToast('Sincronizando com a nuvem...');
-            
             try {
                 const { data: cols, error: errCols } = await db.from('collections').select('*, collection_cards(*)').order('created_at', { ascending: false });
                 const { data: bnds, error: errBnds } = await db.from('binders').select('*, binder_cards(*)').order('created_at', { ascending: false });
-
                 if (errCols || errBnds) throw new Error('Erro ao buscar dados.');
-
                 appState.collections = (cols || []).map(c => ({ ...c, cards: c.collection_cards || [] }));
                 appState.binders = (bnds || []).map(b => ({ ...b, cards: b.binder_cards || [] }));
-                
                 showToast('Dados sincronizados!');
             } catch (err) {
                 console.error(err);
                 showToast('Falha na conexão com a nuvem.', true);
             } finally {
                 document.getElementById('loading-cols').classList.add('hidden');
-                
                 if(appState.activeView === 'home-view') renderEntityGrid('collection');
                 if(appState.activeView === 'binders-view') renderEntityGrid('binder');
                 if(appState.activeView === 'collection-details-view') renderCollectionDetails();
@@ -566,36 +793,27 @@
             e.preventDefault();
             const list = editingEntityType === 'collection' ? appState.collections : appState.binders;
             const table = editingEntityType === 'collection' ? 'collections' : 'binders';
-            
             const name = document.getElementById('input-entity-name').value.trim();
             const category = document.getElementById('input-entity-category').value.trim();
             const image = document.getElementById('input-entity-image').value.trim();
-            
             const payload = { name, category, image };
             
             if (editingEntityType === 'collection') {
                 payload.logo_url = document.getElementById('input-entity-logo').value.trim();
             }
-            
             const btn = document.getElementById('btn-entity-submit-text');
             btn.textContent = 'Enviando...';
-
             try {
                 if (editingEntityId) {
                     const { error } = await db.from(table).update(payload).eq('id', editingEntityId);
                     if (error) throw error;
-                    
                     const entity = list.find(en => en.id === editingEntityId);
-                    entity.name = payload.name; 
-                    entity.category = payload.category; 
-                    entity.image = payload.image;
+                    entity.name = payload.name; entity.category = payload.category; entity.image = payload.image;
                     if (editingEntityType === 'collection') entity.logo_url = payload.logo_url;
-                    
                     showToast('Alteração salva na nuvem!');
                 } else {
                     const { data, error } = await db.from(table).insert(payload).select().single();
                     if (error) throw error;
-                    
                     data.cards = [];
                     list.unshift(data);
                     showToast('Criado e salvo na nuvem!');
@@ -615,40 +833,31 @@
             const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
             const entity = list.find(en => en.id === appState.currentEntityId);
             const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
-            
             const fKey = appState.activeContext === 'collection' ? { collection_id: entity.id } : { binder_id: entity.id };
-            
             const num = document.getElementById('input-card-num').value.trim();
             const name = document.getElementById('input-card-name').value.trim();
             const image = document.getElementById('input-card-image').value.trim();
             const rarity = document.getElementById('input-card-rarity').value.trim();
             const collected = document.getElementById('input-card-collected').checked;
             const btn = document.getElementById('btn-card-submit-text');
-            
             btn.textContent = 'Enviando...';
-
             try {
                 if (editingCardId) {
                     const { error } = await db.from(table).update({ num, name, image, rarity, collected }).eq('id', editingCardId);
                     if (error) throw error;
-
                     const card = entity.cards.find(c => c.id === editingCardId);
                     card.num = num; card.name = name; card.image = image; card.rarity = rarity; card.collected = collected;
                     showToast('Carta atualizada na nuvem!');
                 } else {
                     const insertData = { ...fKey, num, name, image, rarity, collected };
                     if (appState.activeContext === 'binder') insertData.slot_index = appState.targetSlotIndex;
-                    
                     const { data, error } = await db.from(table).insert(insertData).select().single();
                     if (error) throw error;
-                    
                     entity.cards.push(data);
                     showToast('Carta salva na nuvem!');
                 }
-                
                 if (appState.activeContext === 'collection') renderCollectionDetails();
                 else renderBinderDetails();
-                
                 closeCardModal();
             } catch(err) {
                 console.error(err);
@@ -658,36 +867,26 @@
             }
         });
 
-        // ----------------------------------------------------
-        // LÓGICA DE EXCLUSÃO
-        // ----------------------------------------------------
         const confirmDelete = async () => {
             const btn = document.getElementById('btn-confirm-delete');
             const originalText = btn.textContent;
             btn.textContent = 'Apagando...';
             btn.disabled = true;
-
             try {
                 if (deleteContext.type === 'collection' || deleteContext.type === 'binder') {
                     const listName = deleteContext.type === 'collection' ? 'collections' : 'binders';
                     const table = deleteContext.type === 'collection' ? 'collections' : 'binders';
-                    
                     const { error } = await db.from(table).delete().eq('id', deleteContext.id);
                     if (error) throw error;
-                    
                     appState[listName] = appState[listName].filter(c => c.id !== deleteContext.id);
                     renderEntityGrid(deleteContext.type);
                 } else if (deleteContext.type === 'card') {
                     const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
                     const entity = list.find(en => en.id === appState.currentEntityId);
                     const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
-                    
                     const { error } = await db.from(table).delete().eq('id', deleteContext.id);
                     if (error) throw error;
-                    
-                    if(entity) {
-                        entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
-                    }
+                    if(entity) entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
                     if (appState.activeContext === 'collection') renderCollectionDetails();
                     else renderBinderDetails();
                 } else if (deleteContext.type === 'page') {
@@ -695,36 +894,21 @@
                     const pageIndex = deleteContext.id;
                     const minSlot = pageIndex * 9;
                     const maxSlot = minSlot + 8;
-                    
                     const cardsToDelete = binder.cards.filter(c => c.slot_index >= minSlot && c.slot_index <= maxSlot);
                     const cardsToShift = binder.cards.filter(c => c.slot_index > maxSlot);
-                    
                     if (cardsToDelete.length > 0) {
                         const { error } = await db.from('binder_cards').delete().in('id', cardsToDelete.map(c => c.id));
                         if (error) throw error;
                     }
-                    
-                    const shiftPromises = cardsToShift.map(c => 
-                        db.from('binder_cards').update({ slot_index: c.slot_index - 9 }).eq('id', c.id)
-                    );
+                    const shiftPromises = cardsToShift.map(c => db.from('binder_cards').update({ slot_index: c.slot_index - 9 }).eq('id', c.id));
                     await Promise.all(shiftPromises);
-                    
                     cardsToShift.forEach(c => c.slot_index -= 9);
                     binder.cards = binder.cards.filter(c => !cardsToDelete.includes(c));
-                    
                     binder.page_count = Math.max(1, (binder.page_count || 1) - 1);
-                    
-                    if (binder.page_names && binder.page_names.length > pageIndex) {
-                        binder.page_names.splice(pageIndex, 1);
-                    }
-
-                    try {
-                        await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
-                    } catch(err) {}
-                    
+                    if (binder.page_names && binder.page_names.length > pageIndex) binder.page_names.splice(pageIndex, 1);
+                    try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch(err) {}
                     renderBinderPages();
                 }
-                
                 showToast('Excluído permanentemente da nuvem.');
                 closeDeleteModal();
             } catch(err) {
@@ -736,29 +920,35 @@
             }
         };
 
-        // ----------------------------------------------------
-        // 4. LÓGICA DE INTERFACE & UI DO APLICATIVO
-        // ----------------------------------------------------
         const goToView = (viewId, navIcon) => {
-            ['home-view', 'binders-view', 'collection-details-view', 'binder-pages-view', 'binder-details-view'].forEach(v => {
-                document.getElementById(v).classList.replace('view-visible', 'view-hidden');
+            ['home-view', 'binders-view', 'collection-details-view', 'binder-pages-view', 'binder-details-view', 'tracker-home-view', 'tracker-wishlist-view', 'tracker-details-view'].forEach(v => {
+                const el = document.getElementById(v);
+                if(el) el.classList.replace('view-visible', 'view-hidden');
             });
-            document.getElementById(viewId).classList.replace('view-hidden', 'view-visible');
+            const target = document.getElementById(viewId);
+            if(target) target.classList.replace('view-hidden', 'view-visible');
             appState.activeView = viewId;
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            document.getElementById('nav-home').className = navIcon === 'home' 
-                ? "flex flex-col items-center justify-center text-primary transition-transform active:scale-95 focus:outline-none" 
-                : "flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none";
-            document.getElementById('icon-home').className = navIcon === 'home' ? "w-6 h-6 lucide-filled transition-all" : "w-6 h-6 mb-1 group-hover:scale-110 transition-transform";
-
-            document.getElementById('nav-binder').className = navIcon === 'binder' 
-                ? "flex flex-col items-center justify-center text-primary transition-transform active:scale-95 focus:outline-none" 
-                : "flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none";
-            document.getElementById('icon-binder').className = navIcon === 'binder' ? "w-6 h-6 lucide-filled transition-all" : "w-6 h-6 mb-1 group-hover:scale-110 transition-transform";
+            const icons = ['home', 'binder', 'tracker'];
+            icons.forEach(icon => {
+                const btn = document.getElementById(`nav-${icon}`);
+                const icn = document.getElementById(`icon-${icon}`);
+                if(!btn || !icn) return;
+                
+                if (icon === navIcon) {
+                    btn.className = "flex flex-col items-center justify-center text-primary transition-transform active:scale-95 focus:outline-none";
+                    icn.className = "w-6 h-6 lucide-filled transition-all";
+                } else {
+                    btn.className = "flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none";
+                    icn.className = "w-6 h-6 mb-1 group-hover:scale-110 transition-transform";
+                }
+            });
 
             if (viewId === 'home-view') renderEntityGrid('collection');
             if (viewId === 'binders-view') renderEntityGrid('binder');
+            if (viewId === 'tracker-home-view') tRenderHome();
+            if (viewId === 'tracker-wishlist-view') tRenderWishlist();
         };
 
         const calcProgress = (cards) => {
@@ -771,9 +961,7 @@
         const renderEntityGrid = (type) => {
             const grid = document.getElementById(type === 'collection' ? 'collections-grid' : 'binders-grid');
             const dataList = type === 'collection' ? appState.collections : appState.binders;
-            
             let displayList = [...dataList];
-            
             if (type === 'collection') {
                 displayList.sort((a, b) => {
                     const catA = (a.category || '').trim().toLowerCase();
@@ -787,27 +975,19 @@
                     return 0;
                 });
             }
-
-            if(displayList.length > 0 || grid.querySelector('#loading-cols') === null) {
-                grid.innerHTML = '';
-            }
-
+            if(displayList.length > 0 || grid.querySelector('#loading-cols') === null) grid.innerHTML = '';
             let totalCardsCollected = 0;
-
             displayList.forEach(item => {
                 const prog = calcProgress(item.cards || []);
                 totalCardsCollected += prog.collected;
-
                 const isComplete = prog.percent === 100 && prog.total > 0;
                 const textColor = isComplete ? 'text-green-500' : 'text-primary';
                 const barColor = isComplete ? 'from-green-500 to-green-700' : 'from-secondary to-secondary-fixed-dim';
-
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="bg-surface-container-low rounded-2xl overflow-hidden group hover:bg-surface-container transition-all duration-300 border border-white/5 hover:border-white/10 cursor-pointer" onclick="openDetails('${type}', '${item.id}')">
                         <div class="relative h-48 overflow-hidden">
                             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="${item.name}" src="${item.image}" onerror="this.src='https://placehold.co/400x300/121416/f2c000?text=Indisponível'"/>
                             <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/20 to-transparent z-0"></div>
-                            
                             <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <button onclick="event.stopPropagation(); openEntityModal('${item.id}', '${type}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                 <button onclick="event.stopPropagation(); openDeleteModal('${type}', '${item.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -829,7 +1009,6 @@
                     </div>
                 `);
             });
-            
             if(type === 'collection') document.getElementById('total-collections-cards').textContent = totalCardsCollected;
             lucide.createIcons();
         };
@@ -837,7 +1016,6 @@
         const openDetails = (type, id) => {
             appState.activeContext = type;
             appState.currentEntityId = id;
-            
             if (type === 'collection') {
                 renderCollectionDetails();
                 goToView('collection-details-view', 'home');
@@ -850,36 +1028,27 @@
         const renderCollectionDetails = () => {
             const collection = appState.collections.find(c => c.id === appState.currentEntityId);
             if (!collection) return;
-
             document.getElementById('col-detail-title').textContent = collection.name;
-            
             const logoEl = document.getElementById('col-detail-logo');
             if (collection.logo_url && collection.logo_url.trim() !== '') {
-                logoEl.src = collection.logo_url;
-                logoEl.classList.remove('hidden');
+                logoEl.src = collection.logo_url; logoEl.classList.remove('hidden');
             } else {
-                logoEl.classList.add('hidden');
-                logoEl.src = '';
+                logoEl.classList.add('hidden'); logoEl.src = '';
             }
-            
             const prog = calcProgress(collection.cards || []);
             const isComplete = prog.percent === 100 && prog.total > 0;
             const textPrimaryClass = isComplete ? 'text-green-500' : 'text-primary';
             const textSecondaryClass = isComplete ? 'text-green-500' : 'text-on-surface-variant';
             const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
-
             const percentEl = document.getElementById('col-detail-progress-percent');
             percentEl.textContent = `${prog.percent}%`;
             percentEl.className = `font-headline text-3xl md:text-2xl font-bold ${textPrimaryClass}`;
-
             const ratioEl = document.getElementById('col-detail-progress-ratio');
             ratioEl.textContent = `${prog.collected}/${prog.total} CARTAS`;
             ratioEl.className = `font-label text-[11px] md:text-[10px] font-medium uppercase tracking-tighter mt-1 md:mt-0 ${textSecondaryClass}`;
-
             const barEl = document.getElementById('col-detail-progress-bar');
             barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
             barEl.style.width = `${prog.percent}%`;
-
             const grid = document.getElementById('collection-details-grid');
             grid.innerHTML = `
                 <div onclick="openCardModal()" class="relative group order-first">
@@ -890,14 +1059,12 @@
                     </div>
                 </div>
             `;
-
             let sortedCards = [...(collection.cards || [])];
             sortedCards.sort((a, b) => {
                 const numA = String(a.num || '');
                 const numB = String(b.num || '');
                 return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
             });
-
             sortedCards.forEach(card => {
                 const imgClass = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
                 grid.insertAdjacentHTML('beforeend', `
@@ -905,7 +1072,6 @@
                         <div class="aspect-[2.5/3.5] rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect transition-transform duration-300 hover:scale-[1.02] active:scale-95 border border-white/5">
                             <img alt="${card.name}" class="${imgClass}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
                             <div class="card-sheen z-0"></div>
-                            
                             <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                 <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -922,7 +1088,6 @@
 
         const filterCollTrue = document.getElementById('col-filter-collected');
         const filterCollFalse = document.getElementById('col-filter-uncollected');
-        
         const applyColFilters = () => {
             document.querySelectorAll('.col-card-item').forEach(card => {
                 const isCol = card.dataset.collected === 'true';
@@ -932,49 +1097,32 @@
         filterCollTrue.addEventListener('change', (e) => { if (e.target.checked) filterCollFalse.checked = false; applyColFilters(); });
         filterCollFalse.addEventListener('change', (e) => { if (e.target.checked) filterCollTrue.checked = false; applyColFilters(); });
 
-        // ----------------------------------------------------
-        // LÓGICA DE FICHÁRIOS E PÁGINAS INDIVIDUAIS
-        // ----------------------------------------------------
         const savePageName = async (pageIndex, newName) => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             const name = newName.trim();
-            if (!binder.page_names) {
-                binder.page_names = Array.from({length: binder.page_count}, (_, i) => `Página ${i + 1}`);
-            }
-
+            if (!binder.page_names) binder.page_names = Array.from({length: binder.page_count}, (_, i) => `Página ${i + 1}`);
             binder.page_names[pageIndex] = name || `Página ${pageIndex + 1}`;
-
-            try {
-                await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id);
-            } catch (e) {
-                console.error("Erro ao renomear página", e);
-            }
+            try { await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
             renderBinderPages();
         };
 
         const renderBinderPages = () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             document.getElementById('binder-pages-title').textContent = binder.name;
             document.getElementById('binder-pages-category').textContent = binder.category;
-            
             const prog = calcProgress(binder.cards || []);
             const isComplete = prog.percent === 100 && prog.total > 0;
             const textPrimaryClass = isComplete ? 'text-green-500' : 'text-primary';
             const textSecondaryClass = isComplete ? 'text-green-500' : 'text-on-surface-variant';
             const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
-
             const percentEl = document.getElementById('binder-pages-progress-percent');
             percentEl.textContent = `${prog.percent}%`;
             percentEl.className = `font-headline text-3xl md:text-2xl font-bold ${textPrimaryClass}`;
-
             const ratioEl = document.getElementById('binder-pages-progress-ratio');
             ratioEl.textContent = `${prog.collected} / ${prog.total} CARTAS`;
             ratioEl.className = `font-label text-[11px] md:text-[10px] font-medium uppercase tracking-tighter mt-1 md:mt-0 ${textSecondaryClass}`;
-
             const barEl = document.getElementById('binder-pages-progress-bar');
             barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
             barEl.style.width = `${prog.percent}%`;
@@ -987,15 +1135,11 @@
 
             const grid = document.getElementById('binder-pages-grid');
             grid.innerHTML = '';
-
             for (let i = 0; i < totalPages; i++) {
                 const pageCards = (binder.cards || []).filter(c => c.slot_index >= i * 9 && c.slot_index < (i + 1) * 9);
                 const pageCollected = pageCards.filter(c => c.collected).length;
                 const pagePercent = Math.round((pageCollected / 9) * 100);
-                
                 const pageName = (binder.page_names && binder.page_names[i]) ? binder.page_names[i] : `Página ${i + 1}`;
-
-                // Lógica de feedback visual de completude (9 de 9)
                 const isPageComplete = pageCollected === 9;
                 const iconColorClass = isPageComplete ? 'text-green-500' : 'text-primary';
                 const barColorClass = isPageComplete ? 'bg-green-500' : 'bg-primary';
@@ -1026,7 +1170,6 @@
                     </div>
                 `);
             }
-
             grid.insertAdjacentHTML('beforeend', `
                 <div onclick="addBinderPage()" class="ignore-drag min-h-[140px] rounded-2xl bg-surface-container-low border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container hover:border-primary/50 transition-all active:scale-95 shadow-sm group">
                     <div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:bg-primary transition-colors mb-3 shadow-sm border border-white/5">
@@ -1035,79 +1178,45 @@
                     <span class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Nova Página</span>
                 </div>
             `);
-
             lucide.createIcons();
-
-            // Inicializa a funcionalidade de arrastar e soltar (Drag and Drop)
-            if (window.binderSortable) {
-                window.binderSortable.destroy();
-            }
+            if (window.binderSortable) window.binderSortable.destroy();
             window.binderSortable = new Sortable(grid, {
                 animation: 250,
-                filter: '.ignore-drag, h3', // Impede o arrasto clicando direto no título editável
-                preventOnFilter: false, // Permite clicar no título sem travar
-                delay: 200, 
-                delayOnTouchOnly: true,
+                filter: '.ignore-drag, h3',
+                preventOnFilter: false,
+                delay: 200, delayOnTouchOnly: true,
                 ghostClass: 'opacity-40',
-                onMove: function (evt) {
-                    return !evt.related.classList.contains('ignore-drag');
-                },
-                onEnd: async function (evt) {
-                    if (evt.oldIndex === evt.newIndex) return;
-                    await moveBinderPage(evt.oldIndex, evt.newIndex);
-                }
+                onMove: function (evt) { return !evt.related.classList.contains('ignore-drag'); },
+                onEnd: async function (evt) { if (evt.oldIndex !== evt.newIndex) await moveBinderPage(evt.oldIndex, evt.newIndex); }
             });
         };
 
         const moveBinderPage = async (oldPage, newPage) => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             let cardsToUpdate = [];
-
-            // Lida com o reordenamento do array de nomes de páginas
             if (binder.page_names) {
-                for(let i=0; i<binder.page_count; i++) {
-                    if(!binder.page_names[i]) binder.page_names[i] = `Página ${i + 1}`;
-                }
+                for(let i=0; i<binder.page_count; i++) { if(!binder.page_names[i]) binder.page_names[i] = `Página ${i + 1}`; }
                 const movedName = binder.page_names.splice(oldPage, 1)[0];
                 binder.page_names.splice(newPage, 0, movedName);
-                
-                try {
-                    await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id);
-                } catch (e) {}
+                try { await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
             }
-
-            // Recalcula os slots matematicamente
             binder.cards.forEach(card => {
                 const currentSlot = card.slot_index;
                 const currentPage = Math.floor(currentSlot / 9);
                 const positionInPage = currentSlot % 9;
-
-                if (currentPage === oldPage) {
-                    card.slot_index = (newPage * 9) + positionInPage;
-                    cardsToUpdate.push(card);
-                } else if (oldPage < newPage && currentPage > oldPage && currentPage <= newPage) {
-                    card.slot_index = ((currentPage - 1) * 9) + positionInPage;
-                    cardsToUpdate.push(card);
-                } else if (oldPage > newPage && currentPage >= newPage && currentPage < oldPage) {
-                    card.slot_index = ((currentPage + 1) * 9) + positionInPage;
-                    cardsToUpdate.push(card);
-                }
+                if (currentPage === oldPage) { card.slot_index = (newPage * 9) + positionInPage; cardsToUpdate.push(card); }
+                else if (oldPage < newPage && currentPage > oldPage && currentPage <= newPage) { card.slot_index = ((currentPage - 1) * 9) + positionInPage; cardsToUpdate.push(card); }
+                else if (oldPage > newPage && currentPage >= newPage && currentPage < oldPage) { card.slot_index = ((currentPage + 1) * 9) + positionInPage; cardsToUpdate.push(card); }
             });
-
             renderBinderPages();
-
             if (cardsToUpdate.length > 0) {
                 showToast('Salvando nova ordem...');
                 try {
-                    const updatePromises = cardsToUpdate.map(c => 
-                        db.from('binder_cards').update({ slot_index: c.slot_index }).eq('id', c.id)
-                    );
+                    const updatePromises = cardsToUpdate.map(c => db.from('binder_cards').update({ slot_index: c.slot_index }).eq('id', c.id));
                     await Promise.all(updatePromises);
                     showToast('Ordem das páginas salva!');
                 } catch (err) {
-                    console.error(err);
                     showToast('Erro ao atualizar ordem. Sincronizando...', true);
                     loadDataFromCloud(); 
                 }
@@ -1123,42 +1232,27 @@
         const addBinderPage = async () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-            
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
             const derivedPages = Math.max(1, Math.ceil((maxSlot + 1) / 9));
-            
             binder.page_count = Math.max(binder.page_count || 1, derivedPages) + 1;
-            
-            if (binder.page_names) {
-                binder.page_names.push(`Página ${binder.page_count}`);
-            }
-            
-            try {
-                await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
-            } catch (e) {
-                // Falha silenciosa
-            }
-            
+            if (binder.page_names) binder.page_names.push(`Página ${binder.page_count}`);
+            try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
             renderBinderPages();
         };
 
         const renderBinderDetails = () => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             document.getElementById('binder-detail-title').textContent = binder.name;
             document.getElementById('binder-detail-category').textContent = binder.category;
-            
             const prog = calcProgress(binder.cards || []);
             const isComplete = prog.percent === 100 && prog.total > 0;
             const textClass = isComplete ? 'text-green-500' : 'text-primary';
             const barClass = isComplete ? 'from-green-500 to-green-700' : 'from-primary to-primary-container';
-
             const ratioEl = document.getElementById('binder-progress-ratio');
             ratioEl.textContent = `${prog.collected} / ${prog.total} Cartas`;
             ratioEl.className = `text-sm font-bold font-headline ${textClass}`;
-
             const barEl = document.getElementById('binder-progress-bar');
             barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
             barEl.style.width = `${prog.percent}%`;
@@ -1166,14 +1260,11 @@
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
             const totalPages = Math.max(Math.max(1, Math.ceil((maxSlot + 1) / 9)), binder.page_count || 1);
-            
             const isLastPage = appState.binderPage >= totalPages - 1;
             const nextBtnText = isLastPage ? 'Nova Página' : 'Próxima';
             const nextBtnIcon = isLastPage ? 'plus' : 'chevron-right';
-
             const pageName = (binder.page_names && binder.page_names[appState.binderPage]) ? binder.page_names[appState.binderPage] : `Página ${appState.binderPage + 1}`;
 
-            // Atualiza os componentes do Header de paginação sem os remover da árvore DOM
             const indicatorEl = document.getElementById('binder-page-indicator');
             if (indicatorEl) {
                 indicatorEl.innerHTML = `
@@ -1181,7 +1272,6 @@
                     <span class="text-[10px] md:text-xs leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
                 `;
             }
-
             const nextBtnEl = document.getElementById('btn-next-binder-page');
             if (nextBtnEl) {
                 nextBtnEl.innerHTML = `
@@ -1192,16 +1282,13 @@
 
             const grid = document.getElementById('binder-page-grid');
             grid.innerHTML = '';
-            
             for(let i = 0; i < 9; i++) {
                 const slotIndex = (appState.binderPage * 9) + i;
                 const card = (binder.cards || []).find(c => c.slot_index === slotIndex);
-                
                 if (card) {
                     const isMissing = !card.collected;
                     const imgClass = isMissing ? 'w-full h-full object-cover missing-card' : 'w-full h-full object-cover';
                     const missingRibbon = isMissing ? `<div class="absolute inset-0 flex items-center justify-center rotate-[-12deg] z-30 pointer-events-none"><span class="bg-tertiary-container text-on-tertiary-container font-headline font-black text-[10px] md:text-xs px-3 py-1 rounded-sm uppercase tracking-[0.2em] shadow-xl">Faltando</span></div>` : '';
-                    
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="relative group aspect-[2.5/3.5] cursor-grab active:cursor-grabbing">
                             <div class="absolute inset-0 bg-surface-container-highest rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] border border-white/5">
@@ -1228,57 +1315,29 @@
                 }
             }
             lucide.createIcons();
-
-            // Inicializa Drag and Drop com comportamento de Swap (Troca de posições) para as cartas
-            if (window.binderCardsSortable) {
-                window.binderCardsSortable.destroy();
-            }
+            if (window.binderCardsSortable) window.binderCardsSortable.destroy();
             window.binderCardsSortable = new Sortable(grid, {
-                swap: true, // Ativa a troca de posições
-                swapClass: 'opacity-40', // Estilo do alvo ao passar por cima
-                animation: 250,
-                delay: 200, 
-                delayOnTouchOnly: true,
-                ghostClass: 'scale-105',
-                onEnd: async function (evt) {
-                    if (evt.oldIndex === evt.newIndex) return;
-                    await swapBinderCards(evt.oldIndex, evt.newIndex);
-                }
+                swap: true, swapClass: 'opacity-40', animation: 250, delay: 200, delayOnTouchOnly: true, ghostClass: 'scale-105',
+                onEnd: async function (evt) { if (evt.oldIndex !== evt.newIndex) await swapBinderCards(evt.oldIndex, evt.newIndex); }
             });
         };
 
         const swapBinderCards = async (oldIndex, newIndex) => {
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             const oldSlotIndex = (appState.binderPage * 9) + oldIndex;
             const newSlotIndex = (appState.binderPage * 9) + newIndex;
-
             const cardA = binder.cards.find(c => c.slot_index === oldSlotIndex);
             const cardB = binder.cards.find(c => c.slot_index === newSlotIndex);
-
             let cardsToUpdate = [];
-
-            if (cardA) {
-                cardA.slot_index = newSlotIndex;
-                cardsToUpdate.push(cardA);
-            }
-            if (cardB) {
-                cardB.slot_index = oldSlotIndex;
-                cardsToUpdate.push(cardB);
-            }
-
-            // Atualiza a tela instantaneamente para refletir o estado
+            if (cardA) { cardA.slot_index = newSlotIndex; cardsToUpdate.push(cardA); }
+            if (cardB) { cardB.slot_index = oldSlotIndex; cardsToUpdate.push(cardB); }
             renderBinderDetails();
-
             if (cardsToUpdate.length > 0) {
                 try {
-                    const updatePromises = cardsToUpdate.map(c => 
-                        db.from('binder_cards').update({ slot_index: c.slot_index }).eq('id', c.id)
-                    );
+                    const updatePromises = cardsToUpdate.map(c => db.from('binder_cards').update({ slot_index: c.slot_index }).eq('id', c.id));
                     await Promise.all(updatePromises);
                 } catch (err) {
-                    console.error(err);
                     showToast('Erro ao salvar nova posição. Sincronizando...', true);
                     loadDataFromCloud(); 
                 }
@@ -1289,45 +1348,27 @@
         const nextBinderPage = async () => { 
             const binder = appState.binders.find(b => b.id === appState.currentEntityId);
             if (!binder) return;
-
             let maxSlot = -1;
             (binder.cards || []).forEach(c => { if(c.slot_index > maxSlot) maxSlot = c.slot_index; });
             const totalPages = Math.max(Math.max(1, Math.ceil((maxSlot + 1) / 9)), binder.page_count || 1);
-            
             if(appState.binderPage < totalPages - 1) { 
-                appState.binderPage++; 
-                renderBinderDetails(); 
+                appState.binderPage++; renderBinderDetails(); 
             } else {
                 appState.binderPage++;
                 binder.page_count = appState.binderPage + 1;
-                
-                if (binder.page_names) {
-                    binder.page_names.push(`Página ${binder.page_count}`);
-                }
-
+                if (binder.page_names) binder.page_names.push(`Página ${binder.page_count}`);
                 renderBinderDetails(); 
-
-                try {
-                    await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id);
-                } catch (e) {
-                    console.error("Erro ao adicionar nova página na nuvem", e);
-                }
+                try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
             }
         };
 
         const openEntityModal = (id = null, type = 'collection') => {
-            editingEntityId = id;
-            editingEntityType = type;
+            editingEntityId = id; editingEntityType = type;
             const titleType = type === 'collection' ? 'Coleção' : 'Fichário';
             document.getElementById('modal-entity-title').textContent = id ? `Editar ${titleType}` : `Novo ${titleType}`;
-            
             const logoFieldContainer = document.getElementById('field-entity-logo');
-            if (type === 'collection') {
-                logoFieldContainer.classList.remove('hidden');
-            } else {
-                logoFieldContainer.classList.add('hidden');
-            }
-            
+            if (type === 'collection') logoFieldContainer.classList.remove('hidden');
+            else logoFieldContainer.classList.add('hidden');
             if(id) {
                 const list = type === 'collection' ? appState.collections : appState.binders;
                 const entity = list.find(e => e.id === id);
@@ -1339,7 +1380,6 @@
                 document.getElementById('form-entity').reset();
                 document.getElementById('input-entity-logo').value = '';
             }
-
             const modalEntity = document.getElementById('modal-entity');
             modalEntity.classList.remove('hidden');
             requestAnimationFrame(() => {
@@ -1358,12 +1398,9 @@
         const openCardModal = (cardId = null, slotIndex = null) => {
             editingCardId = cardId;
             appState.targetSlotIndex = slotIndex;
-            
             document.getElementById('modal-card-title').textContent = cardId ? 'Editar Carta' : 'Adicionar Carta';
-            
             const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
             const entity = list.find(e => e.id === appState.currentEntityId);
-            
             if(cardId) {
                 const card = entity.cards.find(c => c.id === cardId);
                 document.getElementById('input-card-num').value = card.num;
@@ -1376,7 +1413,6 @@
                 document.getElementById('form-card').reset();
                 document.getElementById('input-card-collected').checked = false; 
             }
-
             const modalCar = document.getElementById('modal-card');
             modalCar.classList.remove('hidden');
             requestAnimationFrame(() => {
@@ -1402,21 +1438,14 @@
         const openDeleteModal = (type, id) => {
             deleteContext = { type, id };
             const isEntity = type === 'collection' || type === 'binder';
-            
             let title = 'Excluir';
             if (isEntity) title = `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}`;
             else if (type === 'page') title = 'Excluir Página';
             else title = 'Excluir Carta';
-            
             document.getElementById('delete-modal-title').textContent = title;
-            
             const desc = document.getElementById('delete-modal-desc');
-            if (type === 'page') {
-                desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
-            } else {
-                desc.textContent = 'Ação irreversível no banco de dados.';
-            }
-            
+            if (type === 'page') desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
+            else desc.textContent = 'Ação irreversível no banco de dados.';
             const modalDel = document.getElementById('modal-delete');
             modalDel.classList.remove('hidden');
             requestAnimationFrame(() => {
@@ -1425,8 +1454,399 @@
             });
         };
 
-        // Carregar a App
-        loadDataFromCloud();
+        // ----------------------------------------------------
+        // LÓGICA DO POKETRACKER (ISOLADA / ASSIMILADA)
+        // ----------------------------------------------------
+        const trackerSupabaseUrl = 'https://oqptciabsasultpatcrr.supabase.co';
+        const trackerSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcHRjaWFic2FzdWx0cGF0Y3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDAzOTcsImV4cCI6MjA5MzAxNjM5N30.CqCY22aOwdbsFDPXbD9dVe0gCf2yeF9TFebvMTfwMcQ';
+        const trackerDb = supabase.createClient(trackerSupabaseUrl, trackerSupabaseKey);
+
+        let tCards = [];
+        let tActiveCardId = null;
+        let tCalcValueStr = "0";
+        let tChartInstance = null;
+
+        const tFormatBRL = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        const tFormatDate = (isoString) => {
+            const d = new Date(isoString);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+        const tGetLatestPrice = (card) => card.history && card.history.length > 0 ? card.history[card.history.length - 1].value : 0;
+        const tGetPreviousPrice = (card) => card.history && card.history.length > 1 ? card.history[card.history.length - 2].value : tGetLatestPrice(card);
+        const tGetVariance = (current, previous) => {
+            if (previous === 0) return 0;
+            return ((current - previous) / previous) * 100;
+        };
+
+        async function tLoadData() {
+            try {
+                const { data, error } = await trackerDb
+                    .from('cards')
+                    .select(`id, name, subtitle, image_url, is_wishlist, price_history ( id, value, recorded_at )`);
+                if (error) throw error;
+
+                tCards = data.map(card => {
+                    const sortedHistory = card.price_history.sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+                    return {
+                        id: card.id, name: card.name, subtitle: card.subtitle, image: card.image_url, is_wishlist: card.is_wishlist,
+                        history: sortedHistory.map(h => ({ id: h.id, date: h.recorded_at, value: parseFloat(h.value) }))
+                    };
+                });
+                tRenderHome();
+                tRenderWishlist();
+                if(tActiveCardId) {
+                    const updatedCard = tCards.find(c => c.id === tActiveCardId);
+                    if(updatedCard) {
+                        tRenderHistoryList(updatedCard.history);
+                        tRenderChart(updatedCard.history);
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao buscar dados do Tracker:", err.message);
+                document.getElementById('tracker-card-list').innerHTML = `<div class="text-error col-span-full font-medium">Erro ao conectar com o Tracker DB.</div>`;
+            }
+        }
+
+        function tGenerateCardHtml(card, currentP, prevP) {
+            const variance = tGetVariance(currentP, prevP);
+            const isPositive = variance >= 0;
+            const varColor = variance === 0 ? 'text-on-surface-variant' : isPositive ? 'text-green-500' : 'text-error';
+            const varIcon = variance === 0 ? 'minus' : isPositive ? 'arrow-up' : 'arrow-down';
+            return `
+                <article class="bg-surface-container-low rounded-2xl p-5 border border-white/5 hover:border-white/10 flex items-center gap-4 relative group hover:bg-surface-container transition-all duration-300 cursor-pointer" onclick="tOpenDetails('${card.id}')">
+                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-surface-container overflow-hidden shrink-0 border border-white/5 relative">
+                        <img src="${card.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" alt="${card.name}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center overflow-hidden">
+                        <h4 class="font-headline text-base md:text-lg font-bold text-on-surface truncate">${card.name}</h4>
+                        <span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1 truncate">${card.subtitle}</span>
+                    </div>
+                    <div class="flex flex-col items-end justify-center shrink-0">
+                        <span class="font-headline text-lg font-extrabold text-on-surface">${tFormatBRL(currentP)}</span>
+                        <div class="flex items-center gap-1 mt-1 ${varColor}">
+                            <i data-lucide="${varIcon}" class="w-3 h-3 md:w-3.5 md:h-3.5"></i>
+                            <span class="font-label text-[10px] uppercase tracking-wider font-bold">${variance > 0 ? '+' : ''}${variance.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button onclick="tEditCard('${card.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg border border-white/5"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        <button onclick="tDeleteCard('${card.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg border border-white/5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function tRenderHome() {
+            const listEl = document.getElementById('tracker-card-list');
+            listEl.innerHTML = '';
+            const portfolioCards = tCards.filter(c => !c.is_wishlist);
+            if (portfolioCards.length === 0) {
+                listEl.innerHTML = `<div class="text-on-surface-variant text-sm col-span-full py-10 text-center bg-surface-container-low rounded-2xl border border-dashed border-white/10">Seu portfólio está vazio.</div>`;
+            }
+            let totalValue = 0; let totalPreviousValue = 0;
+            const sortedCards = [...portfolioCards].sort((a, b) => tGetLatestPrice(b) - tGetLatestPrice(a));
+            sortedCards.forEach(card => {
+                const currentP = tGetLatestPrice(card);
+                const prevP = tGetPreviousPrice(card);
+                totalValue += currentP; totalPreviousValue += prevP;
+                listEl.insertAdjacentHTML('beforeend', tGenerateCardHtml(card, currentP, prevP));
+            });
+            document.getElementById('tracker-total-portfolio').textContent = tFormatBRL(totalValue);
+            const totalVar = tGetVariance(totalValue, totalPreviousValue);
+            const varSpan = document.getElementById('tracker-total-variance');
+            varSpan.textContent = `${totalVar > 0 ? '+' : ''}${totalVar.toFixed(1)}% este mês`;
+            varSpan.parentElement.className = `flex items-center gap-1.5 mt-2 ${totalVar >= 0 ? 'text-green-500' : 'text-error'}`;
+            varSpan.previousElementSibling.setAttribute('data-lucide', totalVar >= 0 ? 'trending-up' : 'trending-down');
+            lucide.createIcons();
+        }
+
+        function tRenderWishlist() {
+            const listEl = document.getElementById('tracker-wishlist-card-list');
+            listEl.innerHTML = '';
+            const wishlistCards = tCards.filter(c => c.is_wishlist);
+            if (wishlistCards.length === 0) {
+                listEl.innerHTML = `<div class="text-on-surface-variant text-sm col-span-full py-10 text-center bg-surface-container-low rounded-2xl border border-dashed border-white/10">Nenhuma carta no radar no momento.</div>`;
+            }
+            let totalValue = 0;
+            const sortedCards = [...wishlistCards].sort((a, b) => tGetLatestPrice(b) - tGetLatestPrice(a));
+            sortedCards.forEach(card => {
+                const currentP = tGetLatestPrice(card);
+                const prevP = tGetPreviousPrice(card);
+                totalValue += currentP;
+                listEl.insertAdjacentHTML('beforeend', tGenerateCardHtml(card, currentP, prevP));
+            });
+            document.getElementById('tracker-total-wishlist').textContent = tFormatBRL(totalValue);
+            lucide.createIcons();
+        }
+
+        function tOpenDetails(id) {
+            tActiveCardId = id;
+            const card = tCards.find(c => c.id === id);
+            document.getElementById('tracker-detail-title').textContent = card.name;
+            document.getElementById('tracker-detail-subtitle').textContent = card.subtitle;
+            document.getElementById('tracker-detail-image').src = card.image;
+            const badgeColor = document.getElementById('tracker-detail-badge-color');
+            const badgeText = document.getElementById('tracker-detail-badge-text');
+            if(card.is_wishlist) {
+                badgeColor.className = "w-2 h-2 rounded-full bg-secondary"; badgeText.textContent = "Wishlist";
+            } else {
+                badgeColor.className = "w-2 h-2 rounded-full bg-primary"; badgeText.textContent = "Portfólio";
+            }
+            tRenderHistoryList(card.history);
+            tRenderChart(card.history);
+            goToView('tracker-details-view', 'tracker');
+        }
+
+        function tRenderHistoryList(history) {
+            const listEl = document.getElementById('tracker-detail-history-list');
+            listEl.innerHTML = '';
+            const reversed = [...history].reverse();
+            reversed.forEach((entry, index) => {
+                const isLatest = index === 0;
+                const html = `
+                    <div class="flex justify-between items-center w-full py-4 border-b border-white/5 last:border-0 hover:bg-surface-container transition-colors group px-2 -mx-2 rounded-lg">
+                        <div class="flex flex-col">
+                            <span class="font-headline text-base md:text-lg ${isLatest ? 'text-primary font-bold' : 'text-on-surface font-medium'}">${tFormatBRL(entry.value)}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-body text-xs md:text-sm text-on-surface-variant">${tFormatDate(entry.date)}</span>
+                            <button onclick="tDeletePriceRecord('${entry.id}', event)" class="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-full transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100" title="Excluir Registro">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listEl.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons();
+        }
+
+        function tRenderChart(history) {
+            const canvas = document.getElementById('tracker-priceChart');
+            const emptyState = document.getElementById('tracker-chart-empty-state');
+            if (history.length < 2) {
+                emptyState.classList.remove('hidden');
+                if (tChartInstance) { tChartInstance.destroy(); tChartInstance = null; }
+                return;
+            }
+            emptyState.classList.add('hidden');
+            const labels = history.map(h => tFormatDate(h.date));
+            const data = history.map(h => h.value);
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(242, 192, 0, 0.25)');
+            gradient.addColorStop(1, 'rgba(242, 192, 0, 0)');
+            const pointColors = data.map((_, i) => i === data.length - 1 ? '#f2c000' : '#121416');
+            const pointRadiuses = data.map((_, i) => i === data.length - 1 ? 6 : 0);
+            const pointHoverRadiuses = data.map((_, i) => i === data.length - 1 ? 8 : 6);
+
+            if (tChartInstance) {
+                tChartInstance.data.labels = labels;
+                tChartInstance.data.datasets[0].data = data;
+                tChartInstance.data.datasets[0].pointBackgroundColor = pointColors;
+                tChartInstance.data.datasets[0].pointRadius = pointRadiuses;
+                tChartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiuses;
+                tChartInstance.update();
+            } else {
+                tChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data, fill: true, backgroundColor: gradient, borderColor: '#f2c000', borderWidth: 3, tension: 0.4,
+                            pointBackgroundColor: pointColors, pointBorderColor: '#f2c000', pointBorderWidth: 2, pointRadius: pointRadiuses,
+                            pointHoverRadius: pointHoverRadiuses, pointHoverBackgroundColor: '#f2c000'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                displayColors: false, backgroundColor: 'rgba(51, 53, 55, 0.95)', titleFont: { family: 'Inter', size: 12 },
+                                bodyFont: { family: 'Manrope', size: 15, weight: 'bold' }, padding: 12, cornerRadius: 8,
+                                callbacks: { label: function(context) { return tFormatBRL(context.parsed.y); } }
+                            }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: {
+                                position: 'left', border: { display: false }, grid: { color: '#333537', drawTicks: false },
+                                ticks: {
+                                    font: { family: 'Inter', size: 11, weight: '500' }, color: '#8e909f', maxTicksLimit: 6, padding: 10,
+                                    callback: function(value) { return value >= 1000 ? 'R$ ' + (value/1000).toFixed(1) + 'k' : 'R$ ' + value; }
+                                }
+                            }
+                        },
+                        interaction: { intersect: false, mode: 'index' },
+                    }
+                });
+            }
+        }
+
+        async function tRepeatLastPrice() {
+            if(!tActiveCardId) return;
+            const card = tCards.find(c => c.id === tActiveCardId);
+            const lastVal = tGetLatestPrice(card);
+            try {
+                const { error } = await trackerDb.from('price_history').insert([{ card_id: tActiveCardId, value: lastVal }]);
+                if (error) throw error;
+                await tLoadData(); 
+            } catch (err) {
+                showToast("Erro ao repetir preço.", true);
+            }
+        }
+
+        async function tSaveNewPrice() {
+            if(!tActiveCardId) return;
+            const numVal = parseInt(tCalcValueStr, 10) / 100;
+            if(numVal <= 0) return;
+            try {
+                const { error } = await trackerDb.from('price_history').insert([{ card_id: tActiveCardId, value: numVal }]);
+                if (error) throw error;
+                tCloseModal('tracker-modal-price');
+                await tLoadData();
+            } catch(err) {
+                showToast("Erro ao salvar novo preço.", true);
+            }
+        }
+        
+        async function tDeletePriceRecord(priceId, event) {
+            event.stopPropagation();
+            if(confirm("Tem certeza que deseja excluir este registro de preço?")) {
+                try {
+                    const { error } = await trackerDb.from('price_history').delete().eq('id', priceId);
+                    if(error) throw error;
+                    await tLoadData();
+                } catch(err) { showToast("Erro ao excluir registro de preço.", true); }
+            }
+        }
+
+        function tSetChartPeriod(period, btnElement) {
+            const container = btnElement.parentElement;
+            const buttons = container.querySelectorAll('button');
+            buttons.forEach(btn => btn.className = "px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors");
+            btnElement.className = "px-4 py-2 rounded-lg bg-surface-container-highest shadow-sm text-on-surface transition-colors border border-white/5";
+        }
+
+        function tUpdateCalcDisplay() {
+            const num = parseInt(tCalcValueStr, 10) / 100;
+            document.getElementById('tracker-calc-display').textContent = tFormatBRL(num);
+        }
+        function tCalcInput(num) {
+            if (tCalcValueStr === "0") tCalcValueStr = num;
+            else if (tCalcValueStr.length < 10) tCalcValueStr += num;
+            tUpdateCalcDisplay();
+        }
+        function tCalcBackspace() {
+            tCalcValueStr = tCalcValueStr.slice(0, -1);
+            if (tCalcValueStr === "") tCalcValueStr = "0";
+            tUpdateCalcDisplay();
+        }
+        function tCalcClear() {
+            tCalcValueStr = "0";
+            tUpdateCalcDisplay();
+        }
+
+        async function tSaveCard(e) {
+            e.preventDefault();
+            const btnSave = document.getElementById('tracker-btn-save-card');
+            btnSave.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> <span>Salvando...</span>`;
+            btnSave.disabled = true;
+            const idInput = document.getElementById('tracker-input-card-id').value;
+            const name = document.getElementById('tracker-input-card-name').value;
+            const subtitle = document.getElementById('tracker-input-card-subtitle').value;
+            const image_url = document.getElementById('tracker-input-card-image').value;
+            const is_wishlist = document.getElementById('tracker-input-card-wishlist').checked;
+            
+            try {
+                if (idInput) {
+                    const { error } = await trackerDb.from('cards').update({ name, subtitle, image_url, is_wishlist }).eq('id', idInput);
+                    if (error) throw error;
+                } else {
+                    const price = parseFloat(document.getElementById('tracker-input-card-price').value);
+                    const { data: newCard, error: cardError } = await trackerDb.from('cards').insert([{ name, subtitle, image_url, is_wishlist }]).select().single();
+                    if (cardError) throw cardError;
+                    if (newCard) {
+                        const { error: priceError } = await trackerDb.from('price_history').insert([{ card_id: newCard.id, value: price }]);
+                        if (priceError) throw priceError;
+                    }
+                }
+                tCloseModal('tracker-modal-card');
+                await tLoadData();
+            } catch(err) {
+                showToast("Erro ao realizar operação no banco de dados.", true);
+            } finally {
+                btnSave.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Carta</span>`;
+                btnSave.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        function tEditCard(id, event) {
+            event.stopPropagation();
+            const card = tCards.find(c => c.id === id);
+            if(!card) return;
+            document.getElementById('tracker-input-card-id').value = card.id;
+            document.getElementById('tracker-input-card-name').value = card.name;
+            document.getElementById('tracker-input-card-subtitle').value = card.subtitle;
+            document.getElementById('tracker-input-card-image').value = card.image;
+            document.getElementById('tracker-input-card-wishlist').checked = card.is_wishlist; 
+            document.getElementById('tracker-initial-price-container').classList.add('hidden');
+            document.getElementById('tracker-input-card-price').removeAttribute('required');
+            document.getElementById('tracker-modal-card-title').textContent = "Editar Carta";
+            tOpenModal('tracker-modal-card');
+        }
+
+        async function tDeleteCard(id, event) {
+            event.stopPropagation();
+            if(confirm("Tem certeza que deseja excluir esta carta? O histórico de preços será excluído junto.")) {
+                try {
+                    const { error } = await trackerDb.from('cards').delete().eq('id', id);
+                    if(error) throw error;
+                    await tLoadData();
+                    if(tActiveCardId === id) goToView('tracker-home-view', 'tracker');
+                } catch(err) { showToast("Erro ao excluir carta.", true); }
+            }
+        }
+
+        function tOpenModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.children[1];
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+
+        function tCloseModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.children[1];
+            modal.classList.add('opacity-0'); content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        function tOpenModalCard(isWishlistDefault = false) {
+            document.getElementById('tracker-form-card').reset();
+            document.getElementById('tracker-input-card-id').value = '';
+            document.getElementById('tracker-initial-price-container').classList.remove('hidden');
+            document.getElementById('tracker-input-card-price').setAttribute('required', 'true');
+            document.getElementById('tracker-input-card-wishlist').checked = isWishlistDefault;
+            document.getElementById('tracker-modal-card-title').textContent = "Nova Carta";
+            tOpenModal('tracker-modal-card');
+        }
+
+        function tOpenModalPrice() {
+            tCalcValueStr = "0";
+            tUpdateCalcDisplay();
+            tOpenModal('tracker-modal-price');
+        }
+
+        // Boot Inicial Geral
+        const initBoot = async () => {
+            await loadDataFromCloud();
+            await tLoadData();
+        };
+
+        initBoot();
     </script>
 </body>
 </html>

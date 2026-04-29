@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Prazius - Gestor de Projetos</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-hover": "#0e4bce",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    cursor: {
+                        'col-resize': 'col-resize',
+                        'grab': 'grab',
+                        'grabbing': 'grabbing',
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; user-select: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        
+        /* Grid Background Pattern */
+        .gantt-grid {
+            background-size: 40px 40px; /* Será sobrescrito pelo JS */
+            background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Smooth inputs */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #135bec;
+            box-shadow: 0 0 0 2px rgba(19, 91, 236, 0.2);
+        }
+
+        .task-bar { transition: background-color 0.2s, box-shadow 0.2s; }
+        .task-bar.dragging { opacity: 0.9; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); cursor: grabbing; z-index: 50; }
+        
+        /* Dependency Lines */
+        svg.connections { pointer-events: none; overflow: visible; }
+        path.connection-line { fill: none; stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4; transition: d 0.1s linear; }
+        path.connection-line:hover { stroke: #135bec; stroke-width: 2; cursor: pointer; pointer-events: stroke; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-20 relative shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined">dataset</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 leading-tight">Prazius</h1>
+                <p class="text-xs font-medium text-slate-500">Gestor de Projetos GOT</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- View Mode Controls -->
+            <div class="flex items-center gap-2">
+                <button id="btnView-day" onclick="app.setViewMode('day')" class="flex items-center gap-1 px-3 py-2 text-xs font-semibold border rounded-lg transition-colors" title="Visualização por Dias">
+                    <span class="material-symbols-outlined text-lg">view_day</span> Dias
+                </button>
+                <button id="btnView-week" onclick="app.setViewMode('week')" class="flex items-center gap-1 px-3 py-2 text-xs font-semibold border rounded-lg transition-colors" title="Visualização por Semanas">
+                    <span class="material-symbols-outlined text-lg">view_week</span> Semanas
+                </button>
+                <button id="btnView-month" onclick="app.setViewMode('month')" class="flex items-center gap-1 px-3 py-2 text-xs font-semibold border rounded-lg transition-colors" title="Visualização por Meses">
+                    <span class="material-symbols-outlined text-lg">calendar_view_month</span> Meses
+                </button>
+                <button id="btnView-year" onclick="app.setViewMode('year')" class="flex items-center gap-1 px-3 py-2 text-xs font-semibold border rounded-lg transition-colors" title="Visualização por Anos">
+                    <span class="material-symbols-outlined text-lg">calendar_month</span> Anos
+                </button>
+            </div>
+            
+            <div class="h-6 w-px bg-slate-200 mx-2"></div>
+
+            <button onclick="app.scrollToToday()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors" title="Centralizar no Hoje">
+                <span class="material-symbols-outlined text-lg">today</span> Hoje
+            </button>
+
+            <button onclick="app.exportToCSV()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors" title="Download Excel Table">
+                <span class="material-symbols-outlined text-lg">table_view</span> Exportar Excel
+            </button>
+
+            <button onclick="app.exportData()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors" title="Download JSON Backup">
+                <span class="material-symbols-outlined text-lg">code</span> JSON
+            </button>
+            <button onclick="document.getElementById('fileInput').click()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-lg">upload</span> Importar
+            </button>
+            <input type="file" id="fileInput" class="hidden" accept=".json" onchange="app.importData(this)">
+            
+            <button onclick="app.openModal(null, null)" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm shadow-primary/30">
+                <span class="material-symbols-outlined text-xl">add</span> Nova Seção
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden relative">
+        
+        <!-- Sidebar (Task List) -->
+        <div class="w-[320px] bg-white border-r border-slate-200 flex flex-col shrink-0 z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]">
+            <!-- Table Header -->
+            <div class="h-12 bg-slate-50 border-b border-slate-200 flex items-center px-4 shrink-0">
+                <div class="w-8"></div>
+                <div class="flex-1 text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</div>
+                <div class="w-16 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Dur.</div>
+            </div>
+            
+            <!-- Task List Container -->
+            <div id="taskList" class="flex-1 overflow-y-hidden hover:overflow-y-auto scroll-smooth">
+                <!-- Tasks injected via JS -->
+            </div>
+            
+            <!-- Footer Summary -->
+            <div class="h-10 border-t border-slate-200 bg-slate-50 flex items-center px-4 justify-between text-xs text-slate-500">
+                <span id="taskCount">0 tasks</span>
+            </div>
+        </div>
+
+        <!-- Gantt Chart Area -->
+        <div class="flex-1 flex flex-col relative overflow-hidden bg-white" id="ganttContainer">
+            
+            <!-- Timeline Header (Dynamic Groups) -->
+            <div id="timelineHeader" class="h-12 bg-slate-50 border-b border-slate-200 shrink-0 relative overflow-x-hidden overflow-y-hidden select-none">
+                <!-- Wrapper interno vital para o scroll funcionar adequadamente no cabeçalho -->
+                <div id="timelineHeaderInner" class="absolute top-0 left-0 h-full"></div>
+            </div>
+
+            <!-- Timeline Body -->
+            <div id="timelineBody" class="flex-1 relative overflow-auto scroll-smooth bg-white">
+                
+                <!-- Explicit Grid Columns -->
+                <div id="gridCols" class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none"></div>
+
+                <!-- SVG Layer for Dependencies -->
+                <svg id="dependencyLayer" class="connections absolute top-0 left-0 w-full h-full z-0">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
+                        </marker>
+                    </defs>
+                    <!-- Paths injected via JS -->
+                </svg>
+
+                <!-- Task Bars Container -->
+                <div id="taskBars" class="absolute top-0 left-0 w-full h-full z-10">
+                    <!-- Bars injected via JS -->
+                </div>
+
+                <!-- Today Line (Vertical line only) -->
+                <div id="todayLine" class="absolute top-0 bottom-0 w-px bg-red-500 z-20 pointer-events-none hidden shadow-[0_0_4px_rgba(239,68,68,0.4)]">
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Editar Tarefa</h3>
+                <button onclick="app.closeModal()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="taskForm" onsubmit="app.saveTask(event)" class="p-6 space-y-4">
+                <input type="hidden" id="taskId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nome da Tarefa</label>
+                    <input type="text" id="taskName" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary text-slate-700 font-medium placeholder-slate-400" placeholder="e.g. Design System">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Data Início</label>
+                        <input type="date" id="taskStart" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Data Fim</label>
+                        <input type="date" id="taskEnd" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Progresso (%)</label>
+                        <input type="number" id="taskProgress" min="0" max="100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Cor</label>
+                        <input type="hidden" id="taskColor" value="blue">
+                        <div id="colorGrid" class="grid grid-cols-6 gap-2 pt-1 w-max">
+                            <!-- Gerado via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">ID da Seção Pai</label>
+                        <input type="number" id="taskParent" placeholder="Opcional (ID da Seção)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700 bg-slate-50" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Dependências</label>
+                        <input type="text" id="taskDeps" placeholder="IDs (e.g. 1, 3)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700 font-mono">
+                    </div>
+                </div>
+
+
+                <div class="pt-4 flex items-center justify-between">
+                    <button type="button" onclick="app.deleteTask()" id="btnDelete" class="text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-semibold transition-colors">Deletar</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                        <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-md shadow-primary/20 transition-all">Salvar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Milestone Modal -->
+    <div id="milestoneModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="text-lg font-bold text-slate-800">Gerenciar Etapas (Milestones)</h3>
+                <button onclick="app.closeMilestoneModal()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="milestoneForm" onsubmit="app.saveMilestones(event)" class="p-6 flex-1 overflow-y-auto space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Lista de Etapas</span>
+                    <button type="button" onclick="app.addMilestoneRow()" class="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">add</span> Adicionar (Max 20)
+                    </button>
+                </div>
+                
+                <div id="milestoneList" class="space-y-2">
+                    <!-- Dynamic rows here -->
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+                    <button type="button" onclick="app.closeMilestoneModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-md shadow-amber-500/20 transition-all">Salvar Etapas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script>
+        /**
+         * Gantt Application Logic
+         * Implements grouping, drag-and-drop, dependencies, nesting, and state management.
+         */
+        const app = (() => {
+            // --- State ---
+            let tasks = [];
+            let visibleTasks = [];
+            
+            let config = {
+                viewMode: 'day', // 'day', 'week', 'month', 'year'
+                zoom: 40, // pixels per day, adjusted by viewMode
+                headerHeight: 48,
+                rowHeight: 48,
+                barHeight: 32,
+                startDate: new Date(),
+                endDate: new Date(),
+            };
+            
+            // Drag/Resize State
+            let dragState = {
+                active: false,
+                type: null,
+                task: null,
+                startX: 0,
+                initialLeft: 0,
+                initialWidth: 0,
+                element: null
+            };
+
+            // DOM Cache
+            const dom = {
+                taskList: document.getElementById('taskList'),
+                timelineHeaderInner: document.getElementById('timelineHeaderInner'),
+                timelineHeader: document.getElementById('timelineHeader'),
+                timelineBody: document.getElementById('timelineBody'),
+                taskBars: document.getElementById('taskBars'),
+                dependencyLayer: document.getElementById('dependencyLayer'),
+                todayLine: document.getElementById('todayLine'),
+                gridCols: document.getElementById('gridCols'),
+                modal: document.getElementById('taskModal'),
+                form: document.getElementById('taskForm'),
+                taskCount: document.getElementById('taskCount'),
+                milestoneModal: document.getElementById('milestoneModal'),
+                milestoneList: document.getElementById('milestoneList')
+            };
+
+            // --- Helpers ---
+            const dateUtils = {
+                parseDate: (str) => {
+                    if (!str) return new Date();
+                    const [y, m, d] = str.split('-');
+                    return new Date(y, m - 1, d);
+                },
+                stripTime: (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()),
+                addDays: (d, days) => {
+                    const result = new Date(d);
+                    result.setDate(result.getDate() + days);
+                    return result;
+                },
+                diffDays: (d1, d2) => {
+                    const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+                    const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+                    return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+                },
+                format: (d) => {
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                }
+            };
+
+            const colors = {
+                primary: { bg: 'bg-primary', border: 'border-primary', light: 'bg-primary/20', borderLight: 'border-primary/30' },
+                blue:   { bg: 'bg-blue-500', border: 'border-blue-500', light: 'bg-blue-500/20', borderLight: 'border-blue-500/30' },
+                sky:    { bg: 'bg-sky-500', border: 'border-sky-500', light: 'bg-sky-500/20', borderLight: 'border-sky-500/30' },
+                cyan:   { bg: 'bg-cyan-500', border: 'border-cyan-500', light: 'bg-cyan-500/20', borderLight: 'border-cyan-500/30' },
+                teal:   { bg: 'bg-teal-500', border: 'border-teal-500', light: 'bg-teal-500/20', borderLight: 'border-teal-500/30' },
+                emerald:{ bg: 'bg-emerald-500', border: 'border-emerald-500', light: 'bg-emerald-500/20', borderLight: 'border-emerald-500/30' },
+                green:  { bg: 'bg-green-500', border: 'border-green-500', light: 'bg-green-500/20', borderLight: 'border-green-500/30' },
+                lime:   { bg: 'bg-lime-500', border: 'border-lime-500', light: 'bg-lime-500/20', borderLight: 'border-lime-500/30' },
+                yellow: { bg: 'bg-yellow-500', border: 'border-yellow-500', light: 'bg-yellow-500/20', borderLight: 'border-yellow-500/30' },
+                amber:  { bg: 'bg-amber-500', border: 'border-amber-500', light: 'bg-amber-500/20', borderLight: 'border-amber-500/30' },
+                orange: { bg: 'bg-orange-500', border: 'border-orange-500', light: 'bg-orange-500/20', borderLight: 'border-orange-500/30' },
+                red:    { bg: 'bg-red-500', border: 'border-red-500', light: 'bg-red-500/20', borderLight: 'border-red-500/30' },
+                rose:   { bg: 'bg-rose-500', border: 'border-rose-500', light: 'bg-rose-500/20', borderLight: 'border-rose-500/30' },
+                pink:   { bg: 'bg-pink-500', border: 'border-pink-500', light: 'bg-pink-500/20', borderLight: 'border-pink-500/30' },
+                fuchsia:{ bg: 'bg-fuchsia-500', border: 'border-fuchsia-500', light: 'bg-fuchsia-500/20', borderLight: 'border-fuchsia-500/30' },
+                purple: { bg: 'bg-purple-500', border: 'border-purple-500', light: 'bg-purple-500/20', borderLight: 'border-purple-500/30' },
+                violet: { bg: 'bg-violet-500', border: 'border-violet-500', light: 'bg-violet-500/20', borderLight: 'border-violet-500/30' },
+                indigo: { bg: 'bg-indigo-500', border: 'border-indigo-500', light: 'bg-indigo-500/20', borderLight: 'border-indigo-500/30' },
+                slate:  { bg: 'bg-slate-500', border: 'border-slate-500', light: 'bg-slate-500/20', borderLight: 'border-slate-500/30' },
+                gray:   { bg: 'bg-gray-700', border: 'border-gray-700', light: 'bg-gray-700/20', borderLight: 'border-gray-700/30' },
+                zinc:   { bg: 'bg-zinc-500', border: 'border-zinc-500', light: 'bg-zinc-500/20', borderLight: 'border-zinc-500/30' },
+                neutral:{ bg: 'bg-neutral-600', border: 'border-neutral-600', light: 'bg-neutral-600/20', borderLight: 'border-neutral-600/30' },
+                stone:  { bg: 'bg-stone-500', border: 'border-stone-500', light: 'bg-stone-500/20', borderLight: 'border-stone-500/30' },
+                black:  { bg: 'bg-black', border: 'border-black', light: 'bg-black/20', borderLight: 'border-black/30' }
+            };
+
+            // --- Gerador de Nome de Arquivo (Timestamp) ---
+            function getExportFilename(extension) {
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                const h = String(now.getHours()).padStart(2, '0');
+                const min = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                return `Gantt_GOT_${y}-${m}-${d}T${h}_${min}_${s}.${extension}`;
+            }
+
+            // --- Initialization ---
+            function init() {
+                loadFromStorage();
+                
+                dom.timelineBody.addEventListener('scroll', () => {
+                    dom.timelineHeader.scrollLeft = dom.timelineBody.scrollLeft;
+                    dom.taskList.scrollTop = dom.timelineBody.scrollTop;
+                });
+                
+                dom.taskList.addEventListener('scroll', () => {
+                    dom.timelineBody.scrollTop = dom.taskList.scrollTop;
+                });
+
+                window.addEventListener('mousemove', handleGlobalMouseMove);
+                window.addEventListener('mouseup', handleGlobalMouseUp);
+
+                // Força o modo de visualização inicial e renderiza
+                setViewMode('day', true);
+
+                // Configura Motor de Drag and Drop da Lista de Etapas (Milestones)
+                dom.milestoneList.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(dom.milestoneList, e.clientY);
+                    const draggable = document.querySelector('.dragging');
+                    if (draggable) {
+                        if (afterElement == null) {
+                            dom.milestoneList.appendChild(draggable);
+                        } else {
+                            dom.milestoneList.insertBefore(draggable, afterElement);
+                        }
+                    }
+                });
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.milestone-row:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            // --- Core Rendering ---
+            function setViewMode(mode, initial = false) {
+                config.viewMode = mode;
+                
+                if (mode === 'day') config.zoom = 40;
+                if (mode === 'week') config.zoom = 10;
+                if (mode === 'month') config.zoom = 3;
+                if (mode === 'year') config.zoom = 0.5;
+
+                const viewStyles = {
+                    day: {
+                        active: ['text-purple-700', 'bg-purple-50', 'border-purple-200', 'shadow-sm'],
+                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-purple-50', 'hover:text-purple-700', 'hover:border-purple-200']
+                    },
+                    week: {
+                        active: ['text-amber-700', 'bg-amber-50', 'border-amber-200', 'shadow-sm'],
+                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:border-amber-200']
+                    },
+                    month: {
+                        active: ['text-pink-700', 'bg-pink-50', 'border-pink-200', 'shadow-sm'],
+                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-pink-50', 'hover:text-pink-700', 'hover:border-pink-200']
+                    },
+                    year: {
+                        active: ['text-teal-700', 'bg-teal-50', 'border-teal-200', 'shadow-sm'],
+                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-teal-50', 'hover:text-teal-700', 'hover:border-teal-200']
+                    }
+                };
+
+                ['day', 'week', 'month', 'year'].forEach(m => {
+                    const btn = document.getElementById(`btnView-${m}`);
+                    if (btn) {
+                        Object.values(viewStyles).forEach(style => {
+                            btn.classList.remove(...style.active, ...style.inactive);
+                        });
+                        if (m === mode) {
+                            btn.classList.add(...viewStyles[m].active);
+                        } else {
+                            btn.classList.add(...viewStyles[m].inactive);
+                        }
+                    }
+                });
+
+                calculateProjectBounds();
+                render();
+                
+                if (initial) {
+                    setTimeout(() => scrollToToday(false), 50);
+                } else {
+                    scrollToToday(true);
+                }
+            }
+
+            function calculateProjectBounds() {
+                if (tasks.length === 0) {
+                    config.startDate = dateUtils.addDays(new Date(), -7);
+                    config.endDate = dateUtils.addDays(new Date(), 30);
+                    return;
+                }
+                
+                let min = dateUtils.parseDate(tasks[0].start);
+                let max = dateUtils.parseDate(tasks[0].end);
+
+                tasks.forEach(t => {
+                    const s = dateUtils.parseDate(t.start);
+                    const e = dateUtils.parseDate(t.end);
+                    if (s < min) min = s;
+                    if (e > max) max = e;
+                });
+
+                const today = dateUtils.stripTime(new Date());
+                if (today < min) min = today;
+                if (today > max) max = today;
+
+                if (config.viewMode === 'day') {
+                    config.startDate = dateUtils.addDays(min, -15);
+                    config.endDate = dateUtils.addDays(max, 365);
+                } else if (config.viewMode === 'week') {
+                    config.startDate = dateUtils.addDays(min, -30);
+                    config.endDate = dateUtils.addDays(max, 365);
+                } else if (config.viewMode === 'month') {
+                    config.startDate = new Date(min.getFullYear(), min.getMonth() - 2, 1);
+                    config.endDate = new Date(max.getFullYear() + 2, max.getMonth(), 0);
+                } else if (config.viewMode === 'year') {
+                    config.startDate = new Date(min.getFullYear() - 2, 0, 1);
+                    config.endDate = new Date(max.getFullYear() + 5, 0, 1);
+                }
+            }
+
+            function buildVisibleTasks() {
+                visibleTasks = [];
+                function addTasksRecursive(parentId, level) {
+                    const children = tasks.filter(t => t.parentId == parentId);
+                    children.sort((a,b) => a.id - b.id);
+
+                    children.forEach(task => {
+                        const taskWithMeta = { ...task, _level: level, _hasChildren: tasks.some(t => t.parentId == task.id) };
+                        visibleTasks.push(taskWithMeta);
+
+                        if (task.expanded) {
+                            addTasksRecursive(task.id, level + 1);
+                            if (task.parentId === null) {
+                                visibleTasks.push({ _type: 'button', _level: level + 1, parentId: task.id });
+                            }
+                        }
+                    });
+                }
+                addTasksRecursive(null, 0);
+            }
+
+            function render() {
+                buildVisibleTasks();
+                renderGrid();
+                renderTaskList();
+                renderTaskBars();
+                renderDependencies();
+                dom.taskCount.innerText = `${tasks.length} Tarefas`;
+            }
+
+            function renderGrid() {
+                dom.timelineHeaderInner.innerHTML = '';
+                
+                const totalDays = dateUtils.diffDays(config.startDate, config.endDate);
+                const totalWidth = totalDays * config.zoom;
+                
+                dom.timelineHeaderInner.style.width = `${totalWidth}px`;
+                dom.timelineBody.firstElementChild.style.width = `${totalWidth}px`; 
+                
+                const today = dateUtils.stripTime(new Date());
+                dom.todayLine.classList.add('hidden');
+
+                let currentDate = new Date(config.startDate);
+                let currentTopText = null;
+                let currentTopDiv = null;
+                let currentTopStartLeft = 0;
+                
+                let gridColsHtml = '';
+
+                while (currentDate <= config.endDate) {
+                    let nextDate;
+                    let bottomText = '';
+                    let topText = '';
+
+                    if (config.viewMode === 'day') {
+                        nextDate = dateUtils.addDays(currentDate, 1);
+                        bottomText = String(currentDate.getDate()).padStart(2, '0');
+                        topText = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                    } else if (config.viewMode === 'week') {
+                        const daysToSunday = 7 - currentDate.getDay();
+                        nextDate = dateUtils.addDays(currentDate, daysToSunday === 0 ? 7 : daysToSunday);
+                        bottomText = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        topText = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                    } else if (config.viewMode === 'month') {
+                        nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                        bottomText = currentDate.toLocaleDateString('pt-BR', { month: 'short' });
+                        topText = currentDate.getFullYear().toString();
+                    } else if (config.viewMode === 'year') {
+                        nextDate = new Date(currentDate.getFullYear() + 1, 0, 1);
+                        bottomText = currentDate.getFullYear().toString();
+                        topText = (Math.floor(currentDate.getFullYear() / 10) * 10) + "s";
+                    }
+
+                    let segmentDays = dateUtils.diffDays(currentDate, nextDate);
+                    const leftPos = dateUtils.diffDays(config.startDate, currentDate) * config.zoom;
+                    
+                    if (currentDate.getTime() + (segmentDays * 86400000) > config.endDate.getTime()) {
+                        segmentDays = dateUtils.diffDays(currentDate, config.endDate);
+                    }
+                    if (segmentDays <= 0) break;
+
+                    const segmentWidth = segmentDays * config.zoom;
+
+                    if (topText !== currentTopText) {
+                        if (currentTopDiv) {
+                            currentTopDiv.style.width = `${leftPos - currentTopStartLeft}px`;
+                        }
+                        currentTopDiv = document.createElement('div');
+                        currentTopDiv.className = 'absolute top-0 border-r border-slate-200 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap overflow-hidden flex items-center bg-slate-50/30';
+                        currentTopDiv.style.left = `${leftPos}px`;
+                        currentTopDiv.innerText = topText;
+                        dom.timelineHeaderInner.appendChild(currentTopDiv);
+
+                        currentTopText = topText;
+                        currentTopStartLeft = leftPos;
+                    }
+
+                    const bottomDiv = document.createElement('div');
+                    bottomDiv.className = 'absolute bottom-0 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 overflow-hidden';
+                    bottomDiv.style.left = `${leftPos}px`;
+                    bottomDiv.style.width = `${segmentWidth}px`;
+                    bottomDiv.style.height = '20px';
+                    bottomDiv.innerText = bottomText;
+                    
+                    if (config.viewMode === 'day') {
+                        const dayOfWeek = currentDate.getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) bottomDiv.classList.add('bg-slate-50/50', 'text-slate-300');
+                    }
+
+                    if (today >= currentDate && today < nextDate) {
+                        bottomDiv.classList.remove('bg-slate-50/50', 'text-slate-300', 'text-slate-500');
+                        bottomDiv.classList.add('bg-red-50', 'text-red-600', 'font-extrabold');
+                    }
+
+                    dom.timelineHeaderInner.appendChild(bottomDiv);
+
+                    gridColsHtml += `<div class="absolute top-0 bottom-0 border-r border-slate-200/60 pointer-events-none" style="left: ${leftPos}px; width: ${segmentWidth}px;"></div>`;
+
+                    currentDate = nextDate;
+                }
+
+                if (currentTopDiv) {
+                    currentTopDiv.style.width = `${totalWidth - currentTopStartLeft}px`;
+                }
+
+                dom.gridCols.innerHTML = gridColsHtml;
+
+                const todayOffset = dateUtils.diffDays(config.startDate, today);
+                if (todayOffset >= 0 && todayOffset <= totalDays) {
+                    dom.todayLine.style.left = `${(todayOffset * config.zoom)}px`;
+                    dom.todayLine.classList.remove('hidden');
+                }
+            }
+
+            function renderTaskList() {
+                dom.taskList.innerHTML = '';
+                
+                visibleTasks.forEach((task, index) => {
+                    if (task._type === 'button') {
+                        const row = document.createElement('div');
+                        row.className = 'h-12 border-b border-slate-100 flex items-center px-4 hover:bg-slate-50 transition-colors group cursor-pointer';
+                        const paddingLeft = task._level * 24;
+                        row.onclick = () => app.openModal(null, task.parentId);
+
+                        row.innerHTML = `
+                             <div class="w-8 flex items-center justify-center shrink-0"></div>
+                             <div class="flex-1 min-w-0 flex items-center" style="padding-left: ${paddingLeft}px">
+                                 <button class="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-primary/5">
+                                    <span class="material-symbols-outlined text-base">add</span> Nova Tarefa
+                                 </button>
+                             </div>
+                        `;
+                        dom.taskList.appendChild(row);
+                        return;
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'h-12 border-b border-slate-100 flex items-center px-4 hover:bg-slate-50 transition-colors group relative';
+                    
+                    const isSection = task.parentId === null;
+                    const colorClass = colors[task.color || 'blue'].bg;
+                    const paddingLeft = task._level * 24;
+                    
+                    let toggleHtml = `<div class="w-6 h-6 mr-1"></div>`; 
+                    if (isSection || task._hasChildren) {
+                        const icon = task.expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_right';
+                        toggleHtml = `
+                            <button onclick="app.toggleTask(${task.id})" class="w-6 h-6 mr-1 rounded hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                                <span class="material-symbols-outlined text-sm">${icon}</span>
+                            </button>
+                        `;
+                    }
+
+                    const textStyle = isSection ? 'font-bold text-slate-800' : 'font-medium text-slate-600';
+                    let milestoneBtn = '';
+                    if (isSection) {
+                        milestoneBtn = `<button onclick="app.openMilestoneModal(${task.id}); event.stopPropagation();" class="ml-auto text-slate-400 hover:text-amber-500 transition-colors" title="Gerenciar Etapas"><span class="material-symbols-outlined text-[16px]">flag</span></button>`;
+                    }
+
+                    row.innerHTML = `
+                        <div class="w-8 flex items-center justify-center shrink-0">
+                            <span class="text-xs text-slate-400 font-mono">${task.id}</span>
+                        </div>
+                        <div class="flex-1 min-w-0 flex items-center pr-3" style="padding-left: ${paddingLeft}px">
+                            ${toggleHtml}
+                            <div class="flex items-center gap-2 cursor-pointer truncate" onclick="app.openModal(${task.id})">
+                                <div class="w-3 h-3 rounded-full ${colorClass}"></div>
+                                <span class="text-sm truncate group-hover:text-primary transition-colors ${textStyle}">${task.name}</span>
+                            </div>
+                            ${milestoneBtn}
+                        </div>
+                        <div class="w-16 text-right text-xs text-slate-500 font-mono shrink-0">
+                            ${dateUtils.diffDays(dateUtils.parseDate(task.start), dateUtils.parseDate(task.end))}d
+                        </div>
+                    `;
+                    dom.taskList.appendChild(row);
+                });
+            }
+
+            function renderTaskBars() {
+                dom.taskBars.innerHTML = '';
+                
+                visibleTasks.forEach((task, index) => {
+                    if (task._type === 'button') return; 
+
+                    const startDate = dateUtils.parseDate(task.start);
+                    const endDate = dateUtils.parseDate(task.end);
+                    
+                    const offsetDays = dateUtils.diffDays(config.startDate, startDate);
+                    const durationDays = dateUtils.diffDays(startDate, endDate);
+                    
+                    const left = offsetDays * config.zoom;
+                    const width = Math.max(durationDays * config.zoom, 8); 
+                    const top = (index * config.rowHeight) + ((config.rowHeight - config.barHeight) / 2);
+
+                    const styleObj = colors[task.color || 'blue'];
+                    const isSection = task.parentId === null;
+                    const shapeClass = isSection || task._hasChildren ? 'rounded-md opacity-90' : 'rounded-full';
+                    const extraClasses = isSection ? 'border-slate-400' : '';
+
+                    const bar = document.createElement('div');
+                    bar.className = `absolute border shadow-sm group select-none flex items-center overflow-visible task-bar ${styleObj.light} ${styleObj.borderLight} ${shapeClass} ${extraClasses}`;
+                    bar.style.left = `${left}px`;
+                    bar.style.top = `${top}px`;
+                    bar.style.width = `${width}px`;
+                    bar.style.height = `${config.barHeight}px`;
+                    
+                    bar.dataset.id = task.id;
+                    
+                    const progress = document.createElement('div');
+                    progress.className = `h-full ${isSection || task._hasChildren ? 'rounded-l-md' : 'rounded-l-full'} ${styleObj.bg}`;
+                    progress.style.width = `${task.progress}%`;
+                    bar.appendChild(progress);
+
+                    if (width > 60) {
+                         const label = document.createElement('span');
+                         label.className = 'absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700 pointer-events-none mix-blend-multiply uppercase tracking-tight';
+                         label.innerText = `${task.progress}%`;
+                         bar.appendChild(label);
+                    }
+
+                    const hoverLabel = document.createElement('div');
+                    hoverLabel.className = 'absolute left-full ml-2 text-xs font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-white/80 px-1 rounded z-50 pointer-events-none';
+                    hoverLabel.innerText = task.name;
+                    bar.appendChild(hoverLabel);
+
+                    const dragArea = document.createElement('div');
+                    dragArea.className = 'absolute inset-0 cursor-grab active:cursor-grabbing z-10';
+                    dragArea.onmousedown = (e) => startDrag(e, task, 'move', bar);
+                    bar.appendChild(dragArea);
+
+                    const resizeHandle = document.createElement('div');
+                    resizeHandle.className = 'absolute right-0 top-0 bottom-0 w-4 cursor-col-resize hover:bg-black/10 z-20 rounded-r-full';
+                    resizeHandle.onmousedown = (e) => startDrag(e, task, 'resize', bar);
+                    bar.appendChild(resizeHandle);
+
+                    dom.taskBars.appendChild(bar);
+
+                    if (isSection && task.milestones && task.milestones.length > 0) {
+                        task.milestones.forEach(ms => {
+                            if(!ms.date) return;
+                            const msDate = dateUtils.parseDate(ms.date);
+                            if (msDate < config.startDate || msDate > config.endDate) return;
+
+                            const msOffsetDays = dateUtils.diffDays(config.startDate, msDate);
+                            const msLeft = msOffsetDays * config.zoom;
+                            const dateStr = msDate.toLocaleDateString('pt-BR', {day: '2-digit', month:'2-digit'});
+                            
+                            const marker = document.createElement('div');
+                            marker.className = 'absolute z-30 flex flex-col items-center pointer-events-none';
+                            marker.style.left = `${msLeft}px`;
+                            marker.style.top = `${top - 8}px`; 
+                            
+                            marker.innerHTML = `
+                                <div class="text-[9px] font-bold text-slate-800 absolute top-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/90 px-1 rounded shadow border border-slate-200 truncate max-w-[150px] pointer-events-auto" title="${ms.name}">${ms.name} - ${dateStr}</div>
+                                <div class="w-3 h-3 bg-amber-400 rotate-45 border border-amber-600 shadow-sm pointer-events-auto"></div>
+                            `;
+                            dom.taskBars.appendChild(marker);
+                        });
+                    }
+                });
+            }
+
+            function renderDependencies() {
+                dom.dependencyLayer.innerHTML = `
+                    <defs>
+                        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
+                        </marker>
+                    </defs>
+                `;
+
+                visibleTasks.forEach((task) => {
+                    if (task._type === 'button') return;
+                    if (!task.dependencies || task.dependencies.length === 0) return;
+                    
+                    const targetEl = dom.taskBars.querySelector(`div[data-id="${task.id}"]`);
+                    if(!targetEl) return;
+
+                    const targetRect = getRelativeRect(targetEl);
+                    const startX = targetRect.x;
+                    const startY = targetRect.y + (targetRect.height / 2);
+
+                    task.dependencies.forEach(depId => {
+                        const sourceTask = visibleTasks.find(t => t.id == depId); 
+                        if (!sourceTask) return;
+                        
+                        const sourceEl = dom.taskBars.querySelector(`div[data-id="${depId}"]`);
+                        if (!sourceEl) return;
+
+                        const sourceRect = getRelativeRect(sourceEl);
+                        const endX = sourceRect.x + sourceRect.width;
+                        const endY = sourceRect.y + (sourceRect.height / 2);
+
+                        const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+                        path.setAttribute('class', 'connection-line');
+                        path.setAttribute('marker-end', 'url(#arrowhead)');
+                        
+                        const d = `M ${endX} ${endY} C ${endX + 40} ${endY}, ${startX - 40} ${startY}, ${startX} ${startY}`;
+                        path.setAttribute('d', d);
+                        dom.dependencyLayer.appendChild(path);
+                    });
+                });
+            }
+
+            function getRelativeRect(el) {
+                const parent = dom.timelineBody.getBoundingClientRect();
+                const child = el.getBoundingClientRect();
+                return {
+                    x: child.left - parent.left + dom.timelineBody.scrollLeft,
+                    y: child.top - parent.top + dom.timelineBody.scrollTop,
+                    width: child.width,
+                    height: child.height
+                };
+            }
+
+            // --- Interaction Logic ---
+            
+            function scrollToToday(smooth = true) {
+                const today = dateUtils.stripTime(new Date());
+                const offsetDays = dateUtils.diffDays(config.startDate, today);
+
+                if (offsetDays < 0) return;
+
+                const positionX = (offsetDays * config.zoom);
+                const containerWidth = dom.timelineBody.clientWidth;
+                const scrollTarget = positionX - (containerWidth / 2);
+
+                dom.timelineBody.scrollTo({
+                    left: scrollTarget,
+                    behavior: smooth ? 'smooth' : 'auto'
+                });
+            }
+
+            function toggleTask(id) {
+                const task = tasks.find(t => t.id == id);
+                if (task) {
+                    task.expanded = !task.expanded;
+                    saveToStorage();
+                    render();
+                }
+            }
+
+            function startDrag(e, task, type, element) {
+                e.stopPropagation();
+                e.preventDefault();
+                dragState = {
+                    active: true,
+                    type: type,
+                    task: task,
+                    startX: e.clientX,
+                    initialLeft: parseFloat(element.style.left),
+                    initialWidth: parseFloat(element.style.width),
+                    element: element
+                };
+                element.classList.add('dragging');
+                document.body.style.cursor = type === 'move' ? 'grabbing' : 'col-resize';
+            }
+
+            function handleGlobalMouseMove(e) {
+                if (!dragState.active) return;
+                e.preventDefault();
+                const deltaX = e.clientX - dragState.startX;
+
+                if (dragState.type === 'move') {
+                    const newLeft = dragState.initialLeft + deltaX;
+                    dragState.element.style.left = `${newLeft}px`;
+                } else if (dragState.type === 'resize') {
+                    const newWidth = Math.max(8, dragState.initialWidth + deltaX);
+                    dragState.element.style.width = `${newWidth}px`;
+                }
+            }
+
+            function handleGlobalMouseUp(e) {
+                if (!dragState.active) return;
+
+                const { task, type, element } = dragState;
+                const currentLeft = parseFloat(element.style.left);
+                const currentWidth = parseFloat(element.style.width);
+                
+                if (type === 'move') {
+                    const daysOffset = Math.round(currentLeft / config.zoom);
+                    const oldStart = dateUtils.parseDate(task.start);
+                    const newStart = dateUtils.addDays(config.startDate, daysOffset);
+                    const duration = dateUtils.diffDays(oldStart, dateUtils.parseDate(task.end));
+                    const newEnd = dateUtils.addDays(newStart, duration);
+                    const shiftDays = dateUtils.diffDays(oldStart, newStart);
+
+                    task.start = dateUtils.format(newStart);
+                    task.end = dateUtils.format(newEnd);
+
+                    const shiftChildren = (parentId, days) => {
+                         const children = tasks.filter(t => t.parentId == parentId);
+                         children.forEach(child => {
+                             const childStart = dateUtils.parseDate(child.start);
+                             const childEnd = dateUtils.parseDate(child.end);
+                             child.start = dateUtils.format(dateUtils.addDays(childStart, days));
+                             child.end = dateUtils.format(dateUtils.addDays(childEnd, days));
+                             shiftChildren(child.id, days);
+                         });
+                    };
+                    shiftChildren(task.id, shiftDays);
+
+                } else if (type === 'resize') {
+                    const durationDays = Math.round(currentWidth / config.zoom);
+                    const finalDays = Math.max(1, durationDays);
+                    const newEnd = dateUtils.addDays(dateUtils.parseDate(task.start), finalDays);
+                    task.end = dateUtils.format(newEnd);
+                }
+
+                element.classList.remove('dragging');
+                document.body.style.cursor = '';
+                dragState.active = false;
+                dragState.element = null;
+
+                saveToStorage();
+                calculateProjectBounds();
+                render();
+            }
+
+            function renderColorGrid(selectedColor) {
+                const grid = document.getElementById('colorGrid');
+                const input = document.getElementById('taskColor');
+                input.value = selectedColor;
+                grid.innerHTML = '';
+                
+                Object.keys(colors).forEach(colorKey => {
+                    const colorObj = colors[colorKey];
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.title = colorKey.charAt(0).toUpperCase() + colorKey.slice(1);
+                    
+                    btn.className = `w-[22px] h-[22px] rounded-full cursor-pointer transition-all hover:scale-125 focus:outline-none ring-offset-2 ${colorObj.bg}`;
+                    
+                    if (colorKey === selectedColor) {
+                        btn.classList.add('ring-2', 'ring-slate-400', 'scale-110', 'shadow-md');
+                    }
+
+                    btn.onclick = () => renderColorGrid(colorKey);
+                    
+                    grid.appendChild(btn);
+                });
+            }
+
+            // --- Modal & Data Ops ---
+            function openModal(taskId = null, parentId = null) {
+                dom.form.reset();
+                dom.modal.classList.remove('hidden');
+                dom.modal.classList.add('flex');
+                
+                const title = document.getElementById('modalTitle');
+                const btnDelete = document.getElementById('btnDelete');
+                const parentInput = document.getElementById('taskParent');
+
+                if (!taskId) {
+                    btnDelete.classList.add('hidden');
+                    document.getElementById('taskId').value = '';
+                    
+                    if (parentId) {
+                        title.innerText = 'Nova Tarefa';
+                        parentInput.value = parentId;
+                        parentInput.classList.remove('hidden');
+                    } else {
+                        title.innerText = 'Nova Seção';
+                        parentInput.value = '';
+                        parentInput.classList.add('hidden'); 
+                    }
+                    
+                    document.getElementById('taskStart').value = dateUtils.format(new Date());
+                    document.getElementById('taskEnd').value = dateUtils.format(dateUtils.addDays(new Date(), 3));
+                    document.getElementById('taskProgress').value = 0;
+                    
+                    renderColorGrid(parentId ? 'blue' : 'gray');
+                    
+                } else {
+                    const task = tasks.find(t => t.id == taskId);
+                    dragState.task = task;
+                    
+                    title.innerText = `Editar ${task.parentId === null ? 'Seção' : 'Tarefa'} #${task.id}`;
+                    btnDelete.classList.remove('hidden');
+                    
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskName').value = task.name;
+                    document.getElementById('taskStart').value = task.start;
+                    document.getElementById('taskEnd').value = task.end;
+                    document.getElementById('taskProgress').value = task.progress;
+                    
+                    renderColorGrid(task.color || 'blue');
+                    
+                    parentInput.value = task.parentId || '';
+                    document.getElementById('taskDeps').value = task.dependencies ? task.dependencies.join(', ') : '';
+                    
+                    parentInput.classList.remove('hidden');
+                    if (task.parentId === null) parentInput.classList.add('hidden'); 
+                }
+            }
+
+            function closeModal() {
+                dom.modal.classList.add('hidden');
+                dom.modal.classList.remove('flex');
+            }
+
+            function saveTask(e) {
+                e.preventDefault();
+                const id = document.getElementById('taskId').value;
+                const name = document.getElementById('taskName').value;
+                const start = document.getElementById('taskStart').value;
+                const end = document.getElementById('taskEnd').value;
+                const progress = document.getElementById('taskProgress').value;
+                const color = document.getElementById('taskColor').value;
+                const parentVal = document.getElementById('taskParent').value;
+                const depStr = document.getElementById('taskDeps').value;
+                
+                const parentId = parentVal ? parseInt(parentVal) : null;
+                const dependencies = depStr.split(',').map(s => s.trim()).filter(s => s !== '' && !isNaN(s));
+
+                if (dateUtils.parseDate(end) < dateUtils.parseDate(start)) {
+                    alert('Data final não pode ser anterior à data inicial');
+                    return;
+                }
+
+                if (id && parentId == id) {
+                    alert('Uma tarefa não pode ser pai de si mesma');
+                    return;
+                }
+
+                if (id) {
+                    const task = tasks.find(t => t.id == id);
+                    task.name = name;
+                    task.start = start;
+                    task.end = end;
+                    task.progress = parseInt(progress);
+                    task.color = color;
+                    task.dependencies = dependencies;
+                    task.parentId = parentId;
+                } else {
+                    const newId = tasks.length > 0 ? Math.max(...tasks.map(t => parseInt(t.id))) + 1 : 1;
+                    tasks.push({
+                        id: newId,
+                        name, start, end, 
+                        progress: parseInt(progress),
+                        color,
+                        dependencies,
+                        parentId: parentId,
+                        expanded: true 
+                    });
+                }
+
+                closeModal();
+                saveToStorage();
+                calculateProjectBounds();
+                render();
+            }
+
+            function deleteTask() {
+                const id = document.getElementById('taskId').value;
+                if (!id) return;
+                if (!confirm('Tem certeza? Isso pode afetar dependências.')) return;
+                
+                tasks.forEach(t => {
+                    if (t.parentId == id) t.parentId = null;
+                    if (t.dependencies) t.dependencies = t.dependencies.filter(d => d != id);
+                });
+
+                tasks = tasks.filter(t => t.id != id);
+
+                closeModal();
+                saveToStorage();
+                calculateProjectBounds();
+                render();
+            }
+
+            // --- Milestone Logic ---
+            let currentMilestoneSectionId = null;
+
+            function openMilestoneModal(sectionId) {
+                currentMilestoneSectionId = sectionId;
+                const task = tasks.find(t => t.id == sectionId);
+                const ms = task.milestones || [];
+                
+                dom.milestoneList.innerHTML = '';
+                ms.forEach((m, i) => addMilestoneRow(m.name, m.date));
+                
+                dom.milestoneModal.classList.remove('hidden');
+                dom.milestoneModal.classList.add('flex');
+            }
+
+            function closeMilestoneModal() {
+                dom.milestoneModal.classList.add('hidden');
+                dom.milestoneModal.classList.remove('flex');
+                currentMilestoneSectionId = null;
+            }
+
+            function addMilestoneRow(name = '', date = '') {
+                if (dom.milestoneList.children.length >= 20) {
+                    alert('Limite máximo de 20 etapas atingido para esta seção.');
+                    return;
+                }
+                
+                const count = dom.milestoneList.children.length + 1;
+                const defaultName = name || `Etapa ${count}`;
+                
+                const div = document.createElement('div');
+                div.className = 'flex gap-2 items-center milestone-row p-1 -mx-1 rounded border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all bg-white';
+                div.innerHTML = `
+                    <div class="drag-handle cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 flex items-center justify-center p-1" title="Arraste para reordenar">
+                        <span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+                    </div>
+                    <input type="text" class="ms-name flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" value="${defaultName}" placeholder="Nome da Etapa" required>
+                    <input type="date" class="ms-date w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" value="${date}" required>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Remover"><span class="material-symbols-outlined text-sm">delete</span></button>
+                `;
+
+                const handle = div.querySelector('.drag-handle');
+                handle.addEventListener('mousedown', () => div.setAttribute('draggable', 'true'));
+                handle.addEventListener('mouseup', () => div.setAttribute('draggable', 'false'));
+                handle.addEventListener('mouseleave', () => div.setAttribute('draggable', 'false'));
+
+                div.addEventListener('dragstart', () => {
+                    div.classList.add('opacity-50', 'dragging', 'bg-slate-100');
+                });
+
+                div.addEventListener('dragend', () => {
+                    div.classList.remove('opacity-50', 'dragging', 'bg-slate-100');
+                    div.setAttribute('draggable', 'false');
+                });
+
+                dom.milestoneList.appendChild(div);
+            }
+
+            function saveMilestones(e) {
+                e.preventDefault();
+                const task = tasks.find(t => t.id == currentMilestoneSectionId);
+                const rows = dom.milestoneList.children;
+                const newMs = [];
+                
+                for(let r of rows) {
+                    const name = r.querySelector('.ms-name').value;
+                    const date = r.querySelector('.ms-date').value;
+                    if(name && date) {
+                        newMs.push({ name, date });
+                    }
+                }
+                
+                task.milestones = newMs;
+                saveToStorage();
+                closeMilestoneModal();
+                calculateProjectBounds();
+                render();
+            }
+
+            // --- Persistence & IO ---
+            function saveToStorage() {
+                localStorage.setItem('gantt_tasks', JSON.stringify(tasks));
+            }
+
+            function loadFromStorage() {
+                const stored = localStorage.getItem('gantt_tasks');
+                if (stored) {
+                    tasks = JSON.parse(stored);
+                } else {
+                    const today = new Date();
+                    tasks = [
+                        { id: 1, name: "VARA DE MANOBRAS", start: dateUtils.format(dateUtils.addDays(today, -5)), end: dateUtils.format(dateUtils.addDays(today, 10)), progress: 20, color: "gray", dependencies: [], expanded: true, parentId: null },
+                        { id: 11, name: "Elaboração do ECS", start: dateUtils.format(dateUtils.addDays(today, -5)), end: dateUtils.format(dateUtils.addDays(today, -2)), progress: 100, color: "blue", dependencies: [], parentId: 1 },
+                        { id: 12, name: "Aprovação da SC", start: dateUtils.format(dateUtils.addDays(today, -1)), end: dateUtils.format(dateUtils.addDays(today, 2)), progress: 80, color: "blue", dependencies: [11], parentId: 1 },
+                        { id: 13, name: "Assinatura do Contrato", start: dateUtils.format(dateUtils.addDays(today, 3)), end: dateUtils.format(dateUtils.addDays(today, 5)), progress: 0, color: "blue", dependencies: [12], parentId: 1 },
+                        { id: 2, name: "SISTEMA ELÉTRICO", start: dateUtils.format(dateUtils.addDays(today, 6)), end: dateUtils.format(dateUtils.addDays(today, 20)), progress: 0, color: "gray", dependencies: [], expanded: true, parentId: null },
+                        { id: 21, name: "Compra de cabos", start: dateUtils.format(dateUtils.addDays(today, 6)), end: dateUtils.format(dateUtils.addDays(today, 10)), progress: 0, color: "orange", dependencies: [], parentId: 2 },
+                    ];
+                }
+            }
+
+            function exportData() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks));
+                const downloadAnchorNode = document.createElement('a');
+                
+                const filename = getExportFilename('json');
+                
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", filename);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            }
+
+            function exportToCSV() {
+                const headers = ["ID", "Task Name", "Start Date", "End Date", "Duration (Days)", "Progress", "Parent ID", "Dependencies"];
+                const safe = (str) => {
+                    if (str === null || str === undefined) return '';
+                    const s = String(str);
+                    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                        return `"${s.replace(/"/g, '""')}"`;
+                    }
+                    return s;
+                };
+
+                const rows = tasks.map(t => {
+                    const duration = dateUtils.diffDays(dateUtils.parseDate(t.start), dateUtils.parseDate(t.end));
+                    return [
+                        t.id,
+                        safe(t.name),
+                        t.start,
+                        t.end,
+                        duration,
+                        `${t.progress}%`,
+                        t.parentId || "",
+                        safe((t.dependencies || []).join(','))
+                    ].join(',');
+                });
+
+                const csvContent = "\uFEFF" + headers.join(',') + "\n" + rows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement("a");
+                
+                const filename = getExportFilename('csv');
+                
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            function importData(input) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        if (Array.isArray(json)) {
+                            tasks = json;
+                            saveToStorage();
+                            setViewMode('day'); // reset render and bounds
+                        } else {
+                            alert('Formato JSON inválido');
+                        }
+                    } catch (err) {
+                        alert('Erro ao ler o ficheiro');
+                    }
+                };
+                reader.readAsText(file);
+                input.value = ''; 
+            }
+
+            return {
+                init,
+                openModal,
+                closeModal,
+                saveTask,
+                deleteTask,
+                setViewMode,
+                exportData,
+                importData,
+                exportToCSV,
+                toggleTask,
+                openMilestoneModal,
+                closeMilestoneModal,
+                addMilestoneRow,
+                saveMilestones,
+                scrollToToday
+            };
+        })();
+
+        window.addEventListener('DOMContentLoaded', app.init);
+    </script>
+</body>
+</html>

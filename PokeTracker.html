@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>PokéTracker</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#121212",
+                        "on-background": "#e3e3e3",
+                        "surface": "#1e1e1e",
+                        "on-surface": "#e3e3e3",
+                        "surface-variant": "#444746",
+                        "on-surface-variant": "#c4c7c5",
+                        "surface-container-lowest": "#1e1e1e",
+                        "surface-container-low": "#1c1b1f",
+                        "surface-container": "#2a2a2a",
+                        "surface-container-high": "#2f2f2f",
+                        "surface-container-highest": "#363636",
+                        "primary": "#f2c000",
+                        "on-primary": "#3a2d00",
+                        "primary-container": "#584400",
+                        "on-primary-container": "#ffe08d",
+                        "primary-fixed": "#ffe08d",
+                        "primary-fixed-dim": "#f2c000",
+                        "on-primary-fixed": "#241a00",
+                        "on-primary-fixed-variant": "#584400",
+                        "secondary": "#a0caff",
+                        "on-secondary": "#003258",
+                        "secondary-container": "#00497e",
+                        "on-secondary-container": "#d2e4ff",
+                        "secondary-fixed": "#d2e4ff",
+                        "secondary-fixed-dim": "#a0caff",
+                        "on-secondary-fixed": "#001c37",
+                        "on-secondary-fixed-variant": "#00497e",
+                        "tertiary": "#ffb4a8",
+                        "on-tertiary": "#690000",
+                        "tertiary-container": "#930000",
+                        "on-tertiary-container": "#ffdad4",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#8e918f",
+                        "outline-variant": "#444746"
+                    },
+                    fontFamily: {
+                        "h1": ["Plus Jakarta Sans", "sans-serif"],
+                        "caption": ["Work Sans", "sans-serif"],
+                        "body-md": ["Work Sans", "sans-serif"],
+                        "label-md": ["Work Sans", "sans-serif"],
+                        "h3": ["Plus Jakarta Sans", "sans-serif"],
+                        "h2": ["Plus Jakarta Sans", "sans-serif"],
+                        "body-lg": ["Work Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444746; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        /* Estilização extra para options de select no dark mode */
+        select option { background-color: #1e1e1e; color: #e3e3e3; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+
+    <!-- Container Responsivo -->
+    <div class="w-full min-h-screen relative flex flex-col">
+        
+        <!-- HEADER GLOBAL (Aplicado a Home e Wishlist) -->
+        <header id="global-header" class="sticky top-0 z-30 bg-surface-container-lowest/90 backdrop-blur border-b border-surface-variant px-4 md:px-8 h-16 flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-8 max-w-screen-xl mx-auto w-full">
+                <h1 class="font-h1 text-[20px] md:text-[24px] font-black text-secondary">PokéTracker</h1>
+                
+                <!-- Nav Desktop -->
+                <nav class="hidden md:flex gap-6 font-label-md text-sm">
+                    <button onclick="navigate('home')" id="nav-desktop-home" class="text-secondary font-bold flex items-center gap-2 transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Início
+                    </button>
+                    <button onclick="navigate('wishlist')" id="nav-desktop-wishlist" class="text-outline hover:text-on-surface transition-colors flex items-center gap-2">
+                        <i data-lucide="star" class="w-4 h-4"></i> Wishlist
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- ==================== VIEW: HOME (PORTFÓLIO) ==================== -->
+        <div id="view-home" class="flex flex-col flex-1 pb-20 md:pb-8 fade-in">
+            <main class="flex-1 p-4 md:p-8 flex flex-col gap-6 md:gap-10 max-w-screen-xl mx-auto w-full">
+                <!-- Resumo Portfólio -->
+                <section class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 relative bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-surface-variant">
+                    <div class="flex flex-col gap-2">
+                        <span class="font-label-md text-xs md:text-sm text-outline uppercase tracking-wider">Valor do Portfólio</span>
+                        <h2 id="total-portfolio" class="font-h1 text-4xl md:text-5xl text-secondary">R$ 0,00</h2>
+                        <div class="flex items-center gap-1 text-secondary mt-1">
+                            <i data-lucide="trending-up" class="w-4 h-4 md:w-5 md:h-5"></i>
+                            <span id="total-variance" class="font-label-md text-sm md:text-base">Calculando...</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="openModalCard()" class="mt-2 md:mt-0 bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim transition-colors rounded-xl px-6 py-3 md:py-4 font-label-md text-sm md:text-base flex items-center justify-center gap-2 w-full md:w-auto shadow-sm">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Incluir Carta
+                    </button>
+                </section>
+
+                <!-- Lista de Cartas -->
+                <section class="flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-h3 text-xl md:text-2xl text-on-surface">Sua Coleção</h3>
+                    </div>
+                    <div id="card-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div class="text-outline text-sm">Carregando coleção...</div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ==================== VIEW: WISHLIST ==================== -->
+        <div id="view-wishlist" class="hidden flex-col flex-1 pb-20 md:pb-8 fade-in">
+            <main class="flex-1 p-4 md:p-8 flex flex-col gap-6 md:gap-10 max-w-screen-xl mx-auto w-full">
+                <!-- Resumo Wishlist -->
+                <section class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 relative bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-surface-variant">
+                    <div class="flex flex-col gap-2">
+                        <span class="font-label-md text-xs md:text-sm text-outline uppercase tracking-wider">Custo Estimado</span>
+                        <h2 id="total-wishlist" class="font-h1 text-4xl md:text-5xl text-primary">R$ 0,00</h2>
+                        <div class="flex items-center gap-1 text-outline mt-1">
+                            <i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i>
+                            <span class="font-label-md text-sm md:text-base">Radar de mercado</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="openModalCard(true)" class="mt-2 md:mt-0 bg-secondary text-on-secondary hover:bg-secondary-container transition-colors rounded-xl px-6 py-3 md:py-4 font-label-md text-sm md:text-base flex items-center justify-center gap-2 w-full md:w-auto shadow-sm">
+                        <i data-lucide="star" class="w-5 h-5"></i> Adicionar Alvo
+                    </button>
+                </section>
+
+                <!-- Lista de Cartas Wishlist -->
+                <section class="flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-h3 text-xl md:text-2xl text-on-surface">Na Mira</h3>
+                    </div>
+                    <div id="wishlist-card-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- Renderizado via JS -->
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ==================== VIEW: DETALHES ==================== -->
+        <div id="view-details" class="hidden flex-col flex-1 pb-20 md:pb-8 bg-background fade-in">
+            <!-- Header Detalhes -->
+            <header class="sticky top-0 z-30 bg-surface-container-lowest/90 backdrop-blur border-b border-surface-variant px-4 md:px-8 py-3 flex items-center shadow-sm">
+                <div class="max-w-screen-xl mx-auto w-full flex items-center gap-4">
+                    <button onclick="navigate('home')" class="p-2 -ml-2 rounded-full hover:bg-surface-container-high transition text-outline hover:text-on-surface">
+                        <i data-lucide="arrow-left" class="w-6 h-6 md:w-7 md:h-7"></i>
+                    </button>
+                    <div class="flex flex-col overflow-hidden">
+                        <span id="detail-subtitle" class="font-caption text-[10px] md:text-xs text-outline uppercase tracking-wider">Carta Holográfica</span>
+                        <h1 id="detail-title" class="font-h3 text-lg md:text-2xl text-on-surface truncate">...</h1>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-4 md:p-8 flex flex-col max-w-screen-xl mx-auto w-full h-full">
+                <!-- Divisão em 2 colunas no Desktop -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                    
+                    <!-- Coluna Esquerda: Imagem e Ações -->
+                    <div class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 md:gap-6 sticky top-24">
+                        <section class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant p-6 flex items-center justify-center aspect-square md:aspect-auto md:h-80 lg:h-auto lg:aspect-[4/5] relative">
+                            <div class="absolute inset-0 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 rounded-xl"></div>
+                            <img id="detail-image" src="" alt="Card" class="max-h-full max-w-full object-contain relative z-10 drop-shadow-2xl rounded-lg">
+                            <div id="detail-badge-container" class="absolute top-4 right-4 z-20 bg-surface-container-lowest/95 backdrop-blur rounded-full px-3 py-1.5 border border-surface-variant flex items-center gap-2 shadow-sm">
+                                <span id="detail-badge-color" class="w-2 h-2 rounded-full bg-tertiary"></span>
+                                <span id="detail-badge-text" class="font-caption text-xs text-on-surface font-semibold">Ativo</span>
+                            </div>
+                        </section>
+
+                        <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full">
+                            <button onclick="openModalPrice()" class="flex-1 bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim font-label-md py-3.5 rounded-xl shadow-sm active:scale-95 transition-all flex justify-center items-center gap-2">
+                                <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i> Novo Preço
+                            </button>
+                            <button onclick="repeatLastPrice()" class="flex-1 bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container font-label-md py-3.5 rounded-xl shadow-sm active:scale-95 transition-all flex justify-center items-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-5 h-5"></i> Repetir Preço
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: Gráfico e Histórico -->
+                    <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
+                        <!-- Gráfico (Chart.js) -->
+                        <section class="bg-surface-container-lowest w-full rounded-xl shadow-sm border border-surface-variant p-4 md:p-6 flex flex-col">
+                            <div class="flex justify-between items-center mb-4 md:mb-6 w-full">
+                                <div>
+                                    <h2 class="font-h3 text-lg md:text-xl text-on-surface">Histórico</h2>
+                                    <p class="font-caption text-xs md:text-sm text-outline">Evolução do valor</p>
+                                </div>
+                                <div class="bg-surface-container rounded-full p-1 flex text-xs md:text-sm font-semibold shrink-0" id="chart-period-selector">
+                                    <button onclick="setChartPeriod('dia', this)" class="px-3 md:px-4 py-1.5 rounded-full text-outline hover:text-on-surface transition-colors">Dia</button>
+                                    <button onclick="setChartPeriod('semana', this)" class="px-3 md:px-4 py-1.5 rounded-full bg-surface-container-highest shadow-sm text-on-surface transition-colors">Semana</button>
+                                    <button onclick="setChartPeriod('mes', this)" class="px-3 md:px-4 py-1.5 rounded-full text-outline hover:text-on-surface transition-colors">Mês</button>
+                                </div>
+                            </div>
+                            <div class="w-full h-56 md:h-72 relative mt-2 -ml-1">
+                                <canvas id="priceChart" class="w-full h-full"></canvas>
+                                <div id="chart-empty-state" class="hidden absolute inset-0 flex items-center justify-center text-xs md:text-sm text-outline bg-surface-container-lowest/80 backdrop-blur-sm z-10 rounded-lg">Dados insuficientes para gerar o gráfico</div>
+                            </div>
+                        </section>
+
+                        <!-- Lista de Histórico -->
+                        <section class="bg-surface-container-lowest w-full rounded-xl shadow-sm border border-surface-variant p-4 md:p-6 flex flex-col">
+                            <div class="flex justify-between items-center pb-3 border-b-2 border-surface-variant font-caption text-[10px] md:text-xs text-outline uppercase tracking-wider w-full">
+                                <span>Valor Registrado</span>
+                                <span>Data de Atualização</span>
+                            </div>
+                            <div id="detail-history-list" class="flex flex-col w-full mt-2 gap-1">
+                                <!-- Renderizado via JS -->
+                            </div>
+                        </section>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+        <!-- Navegação Inferior (Mobile) -->
+        <nav id="mobile-nav" class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest/95 backdrop-blur-md border-t border-surface-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.5)] flex justify-around py-2 z-20 pb-safe">
+            <button onclick="navigate('home')" id="nav-mobile-home" class="flex flex-col items-center p-2 text-secondary transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-bold">Início</span>
+            </button>
+            <button onclick="navigate('wishlist')" id="nav-mobile-wishlist" class="flex flex-col items-center p-2 text-outline hover:text-on-surface transition-colors">
+                <i data-lucide="star" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-bold">Wishlist</span>
+            </button>
+        </nav>
+
+        <!-- ==================== MODALS ==================== -->
+        
+        <!-- Modal: Incluir/Editar Carta -->
+        <div id="modal-card" class="fixed inset-0 z-50 hidden items-end md:items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity">
+            <div class="bg-surface-container-lowest w-full max-w-md rounded-t-2xl md:rounded-2xl p-6 md:p-8 flex flex-col gap-4 transform transition-transform translate-y-full md:translate-y-0 md:scale-95 md:opacity-0 shadow-2xl border border-surface-variant" id="modal-card-content">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 id="modal-card-title" class="font-h3 text-xl md:text-2xl text-on-surface">Nova Carta</h3>
+                    <button onclick="closeModal('modal-card')" class="p-1.5 bg-surface-container hover:bg-surface-container-high rounded-full transition-colors text-outline hover:text-on-surface"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form id="form-card" class="flex flex-col gap-4" onsubmit="saveCard(event)">
+                    <input type="hidden" id="input-card-id">
+                    
+                    <div>
+                        <label class="font-label-md text-xs text-on-surface-variant">Nome da Carta</label>
+                        <input required type="text" id="input-card-name" class="w-full mt-1.5 p-3.5 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:outline-none focus:border-secondary transition-colors" placeholder="Ex: Charizard 1st Edition">
+                    </div>
+                    
+                    <div>
+                        <label class="font-label-md text-xs text-on-surface-variant">Raridade / Detalhes</label>
+                        <div class="relative w-full mt-1.5">
+                            <select required id="input-card-subtitle" class="w-full p-3.5 pr-10 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:outline-none focus:border-secondary transition-colors appearance-none cursor-pointer">
+                                <option value="" disabled selected>Selecione a raridade</option>
+                                <option value="Dupla Rara">Dupla Rara</option>
+                                <option value="Ilustração Rara">Ilustração Rara</option>
+                                <option value="Ultra Rara">Ultra Rara</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none">
+                                <i data-lucide="chevron-down" class="w-5 h-5 text-outline"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="font-label-md text-xs text-on-surface-variant">URL da Imagem</label>
+                        <input required type="url" id="input-card-image" class="w-full mt-1.5 p-3.5 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:outline-none focus:border-secondary transition-colors" placeholder="https://...">
+                    </div>
+                    
+                    <div id="initial-price-container">
+                        <label class="font-label-md text-xs text-on-surface-variant">Preço Atual (R$)</label>
+                        <input required type="number" step="0.01" id="input-card-price" class="w-full mt-1.5 p-3.5 border border-outline-variant rounded-xl bg-surface-container text-on-surface focus:outline-none focus:border-secondary transition-colors" placeholder="0.00">
+                    </div>
+
+                    <!-- WISHLIST TOGGLE -->
+                    <div class="flex items-center gap-3 p-4 border border-outline-variant rounded-xl bg-surface-container mt-1 cursor-pointer" onclick="document.getElementById('input-card-wishlist').click()">
+                        <input type="checkbox" id="input-card-wishlist" class="w-5 h-5 accent-secondary rounded bg-surface-container-highest border-outline cursor-pointer" onclick="event.stopPropagation()">
+                        <label for="input-card-wishlist" class="font-label-md text-sm text-on-surface cursor-pointer select-none">
+                            Salvar na Wishlist <br>
+                            <span class="text-xs text-outline font-normal">Ainda não possuo esta carta</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="btn-save-card" class="mt-4 w-full bg-secondary text-on-secondary py-4 rounded-xl font-label-md text-base hover:bg-secondary-container hover:text-on-secondary-container transition-all active:scale-95 shadow-md flex justify-center items-center gap-2 border border-secondary/20">
+                        Salvar Carta
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Novo Preço (Calculadora) -->
+        <div id="modal-price" class="fixed inset-0 z-50 hidden items-end md:items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity">
+            <div class="bg-surface-container-lowest w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 md:p-8 flex flex-col gap-4 transform transition-transform translate-y-full md:translate-y-0 md:scale-95 md:opacity-0 shadow-2xl border border-surface-variant" id="modal-price-content">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-h3 text-lg md:text-xl text-on-surface">Atualizar Valor</h3>
+                    <button onclick="closeModal('modal-price')" class="p-1.5 bg-surface-container hover:bg-surface-container-high rounded-full transition-colors text-outline hover:text-on-surface"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                
+                <!-- Display -->
+                <div class="bg-surface-container border border-outline-variant rounded-2xl p-5 flex flex-col items-end justify-center mb-2 h-24 shadow-inner">
+                    <span class="font-caption text-xs text-outline">Novo valor em Reais</span>
+                    <span id="calc-display" class="font-h1 text-4xl text-secondary font-bold">R$ 0,00</span>
+                </div>
+
+                <!-- Teclado Numérico -->
+                <div class="grid grid-cols-3 gap-3 md:gap-4 text-on-surface">
+                    <button onclick="calcInput('1')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">1</button>
+                    <button onclick="calcInput('2')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">2</button>
+                    <button onclick="calcInput('3')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">3</button>
+                    <button onclick="calcInput('4')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">4</button>
+                    <button onclick="calcInput('5')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">5</button>
+                    <button onclick="calcInput('6')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">6</button>
+                    <button onclick="calcInput('7')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">7</button>
+                    <button onclick="calcInput('8')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">8</button>
+                    <button onclick="calcInput('9')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">9</button>
+                    <button onclick="calcClear()" class="bg-error-container/20 hover:bg-error-container/40 text-error py-4 md:py-5 rounded-2xl font-label-md text-lg active:scale-95 transition-all">C</button>
+                    <button onclick="calcInput('0')" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl font-h3 text-xl md:text-2xl active:scale-95 transition-all">0</button>
+                    <button onclick="calcBackspace()" class="bg-surface-container hover:bg-surface-container-high py-4 md:py-5 rounded-2xl flex justify-center items-center active:scale-95 transition-all text-on-surface-variant"><i data-lucide="delete" class="w-7 h-7"></i></button>
+                </div>
+                <button onclick="saveNewPrice()" class="w-full bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim font-label-md text-lg py-4 md:py-5 rounded-2xl mt-2 flex justify-center items-center gap-2 active:scale-95 transition-all shadow-md">
+                    <i data-lucide="check" class="w-6 h-6"></i> Confirmar
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script de Lógica do App Integrado ao Supabase -->
+    <script>
+        // ================= SUPABASE SETUP =================
+        const supabaseUrl = 'https://oqptciabsasultpatcrr.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcHRjaWFic2FzdWx0cGF0Y3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDAzOTcsImV4cCI6MjA5MzAxNjM5N30.CqCY22aOwdbsFDPXbD9dVe0gCf2yeF9TFebvMTfwMcQ';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // ================= ESTADO DA APLICAÇÃO =================
+        let cards = [];
+        let activeCardId = null;
+        let calcValueStr = "0";
+        let chartInstance = null;
+
+        // ================= UTILITÁRIOS =================
+        const formatBRL = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        const formatDate = (isoString) => {
+            const d = new Date(isoString);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+        const getLatestPrice = (card) => card.history && card.history.length > 0 ? card.history[card.history.length - 1].value : 0;
+        const getPreviousPrice = (card) => card.history && card.history.length > 1 ? card.history[card.history.length - 2].value : getLatestPrice(card);
+        const getVariance = (current, previous) => {
+            if (previous === 0) return 0;
+            return ((current - previous) / previous) * 100;
+        };
+
+        // ================= CARREGAMENTO DE DADOS (SUPABASE) =================
+        async function loadData() {
+            try {
+                // Adicionado is_wishlist na query
+                const { data, error } = await supabaseClient
+                    .from('cards')
+                    .select(`
+                        id, name, subtitle, image_url, is_wishlist,
+                        price_history ( id, value, recorded_at )
+                    `);
+
+                if (error) throw error;
+
+                cards = data.map(card => {
+                    const sortedHistory = card.price_history.sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+                    return {
+                        id: card.id,
+                        name: card.name,
+                        subtitle: card.subtitle,
+                        image: card.image_url,
+                        is_wishlist: card.is_wishlist, // Novo campo
+                        history: sortedHistory.map(h => ({ id: h.id, date: h.recorded_at, value: parseFloat(h.value) }))
+                    };
+                });
+
+                // Atualiza as duas views principais baseadas na aba ativa ou em ambas silenciosamente
+                renderHome();
+                renderWishlist();
+                
+                if(activeCardId) {
+                    const updatedCard = cards.find(c => c.id === activeCardId);
+                    if(updatedCard) {
+                        renderHistoryList(updatedCard.history);
+                        renderChart(updatedCard.history);
+                    }
+                }
+
+            } catch (err) {
+                console.error("Erro ao buscar dados do Supabase:", err.message);
+                document.getElementById('card-list').innerHTML = `<div class="text-error col-span-full">Erro ao conectar com o banco de dados.</div>`;
+            }
+        }
+
+        // ================= RENDERIZAÇÃO =================
+        
+        async function initApp() {
+            lucide.createIcons();
+            await loadData();
+        }
+
+        // Função Genérica para gerar o HTML do card list
+        function generateCardHtml(card, currentP, prevP) {
+            const variance = getVariance(currentP, prevP);
+            const isPositive = variance >= 0;
+            
+            // Cores ajustadas para Dark Mode contrast
+            const varColor = variance === 0 ? 'text-outline bg-surface-container-highest' : 
+                             isPositive ? 'text-[#81c995] bg-[#81c995]/10' : 'text-error bg-error/10';
+            const varIcon = variance === 0 ? 'minus' : isPositive ? 'arrow-up' : 'arrow-down';
+
+            return `
+                <article class="bg-surface-container-lowest rounded-2xl p-4 md:p-5 shadow-sm border border-surface-variant flex items-center gap-4 relative group hover:shadow-lg transition-all cursor-pointer" onclick="openDetails('${card.id}')">
+                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-surface overflow-hidden shrink-0 border border-surface-variant/50">
+                        <img src="${card.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${card.name}">
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center overflow-hidden">
+                        <h4 class="font-label-md text-sm md:text-base text-on-surface truncate">${card.name}</h4>
+                        <span class="font-caption text-xs md:text-sm text-outline mt-1 truncate">${card.subtitle}</span>
+                    </div>
+                    <div class="flex flex-col items-end justify-center shrink-0">
+                        <span class="font-h3 text-base md:text-lg font-bold text-on-surface">${formatBRL(currentP)}</span>
+                        <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full mt-1.5 ${varColor}">
+                            <i data-lucide="${varIcon}" class="w-3 h-3 md:w-3.5 md:h-3.5"></i>
+                            <span class="font-caption text-[10px] md:text-xs font-bold">${variance > 0 ? '+' : ''}${variance.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <!-- Ações rápidas -->
+                    <div class="absolute -top-3 -right-3 bg-surface-container-highest shadow-xl border border-surface-variant rounded-full hidden md:group-hover:flex p-1.5 gap-1.5 z-10 transition-all">
+                        <button onclick="editCard('${card.id}', event)" class="p-2 text-outline hover:text-secondary hover:bg-surface rounded-full transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteCard('${card.id}', event)" class="p-2 text-outline hover:text-error hover:bg-error/10 rounded-full transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderHome() {
+            const listEl = document.getElementById('card-list');
+            listEl.innerHTML = '';
+            
+            const portfolioCards = cards.filter(c => !c.is_wishlist);
+
+            if (portfolioCards.length === 0) {
+                listEl.innerHTML = `<div class="text-outline text-sm col-span-full py-8 text-center bg-surface-container rounded-xl border border-dashed border-outline-variant">Seu portfólio está vazio.</div>`;
+            }
+
+            let totalValue = 0;
+            let totalPreviousValue = 0;
+
+            const sortedCards = [...portfolioCards].sort((a, b) => getLatestPrice(b) - getLatestPrice(a));
+
+            sortedCards.forEach(card => {
+                const currentP = getLatestPrice(card);
+                const prevP = getPreviousPrice(card);
+                totalValue += currentP;
+                totalPreviousValue += prevP;
+
+                listEl.insertAdjacentHTML('beforeend', generateCardHtml(card, currentP, prevP));
+            });
+
+            document.getElementById('total-portfolio').textContent = formatBRL(totalValue);
+            const totalVar = getVariance(totalValue, totalPreviousValue);
+            const varSpan = document.getElementById('total-variance');
+            varSpan.textContent = `${totalVar > 0 ? '+' : ''}${totalVar.toFixed(1)}% este mês`;
+            
+            // Ajuste verde dark mode
+            varSpan.parentElement.className = `flex items-center gap-1 mt-1 ${totalVar >= 0 ? 'text-[#81c995]' : 'text-error'}`;
+            varSpan.previousElementSibling.setAttribute('data-lucide', totalVar >= 0 ? 'trending-up' : 'trending-down');
+            
+            lucide.createIcons();
+        }
+
+        function renderWishlist() {
+            const listEl = document.getElementById('wishlist-card-list');
+            listEl.innerHTML = '';
+            
+            const wishlistCards = cards.filter(c => c.is_wishlist);
+
+            if (wishlistCards.length === 0) {
+                listEl.innerHTML = `<div class="text-outline text-sm col-span-full py-8 text-center bg-surface-container rounded-xl border border-dashed border-outline-variant">Nenhuma carta no radar no momento.</div>`;
+            }
+
+            let totalValue = 0;
+
+            const sortedCards = [...wishlistCards].sort((a, b) => getLatestPrice(b) - getLatestPrice(a));
+
+            sortedCards.forEach(card => {
+                const currentP = getLatestPrice(card);
+                const prevP = getPreviousPrice(card);
+                totalValue += currentP;
+
+                listEl.insertAdjacentHTML('beforeend', generateCardHtml(card, currentP, prevP));
+            });
+
+            document.getElementById('total-wishlist').textContent = formatBRL(totalValue);
+            lucide.createIcons();
+        }
+
+        function openDetails(id) {
+            activeCardId = id;
+            const card = cards.find(c => c.id === id);
+            
+            document.getElementById('detail-title').textContent = card.name;
+            document.getElementById('detail-subtitle').textContent = card.subtitle;
+            document.getElementById('detail-image').src = card.image;
+
+            const badgeColor = document.getElementById('detail-badge-color');
+            const badgeText = document.getElementById('detail-badge-text');
+            
+            if(card.is_wishlist) {
+                badgeColor.className = "w-2 h-2 rounded-full bg-primary";
+                badgeText.textContent = "Wishlist";
+            } else {
+                badgeColor.className = "w-2 h-2 rounded-full bg-[#81c995]";
+                badgeText.textContent = "Portfólio";
+            }
+
+            renderHistoryList(card.history);
+            renderChart(card.history);
+            navigate('details');
+        }
+
+        function renderHistoryList(history) {
+            const listEl = document.getElementById('detail-history-list');
+            listEl.innerHTML = '';
+            
+            const reversed = [...history].reverse();
+            
+            reversed.forEach((entry, index) => {
+                const isLatest = index === 0;
+                const html = `
+                    <div class="flex justify-between items-center w-full py-3.5 md:py-4 border-b border-surface-variant/50 last:border-0 px-2 rounded-lg hover:bg-surface-container transition-colors group">
+                        <div class="flex flex-col">
+                            <span class="font-body-lg text-sm md:text-base ${isLatest ? 'text-secondary font-bold' : 'text-on-surface font-medium'}">${formatBRL(entry.value)}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-body-md text-xs md:text-sm text-on-surface-variant">${formatDate(entry.date)}</span>
+                            <!-- Botão de deletar registro - Visível no mobile e no hover do desktop -->
+                            <button onclick="deletePriceRecord('${entry.id}', event)" class="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-full transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100" title="Excluir Registro">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listEl.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons();
+        }
+
+        function renderChart(history) {
+            const canvas = document.getElementById('priceChart');
+            const emptyState = document.getElementById('chart-empty-state');
+            
+            if (history.length < 2) {
+                emptyState.classList.remove('hidden');
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+
+            const labels = history.map(h => formatDate(h.date));
+            const data = history.map(h => h.value);
+
+            const ctx = canvas.getContext('2d');
+            
+            // Gradiente Dark Mode (Azul secundário translúcido)
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(160, 202, 255, 0.25)'); // #a0caff
+            gradient.addColorStop(1, 'rgba(160, 202, 255, 0)');
+
+            const pointColors = data.map((_, i) => i === data.length - 1 ? '#f2c000' : '#1e1e1e');
+            const pointRadiuses = data.map((_, i) => i === data.length - 1 ? 6 : 0);
+            const pointHoverRadiuses = data.map((_, i) => i === data.length - 1 ? 8 : 6);
+
+            if (chartInstance) {
+                chartInstance.data.labels = labels;
+                chartInstance.data.datasets[0].data = data;
+                chartInstance.data.datasets[0].pointBackgroundColor = pointColors;
+                chartInstance.data.datasets[0].pointRadius = pointRadiuses;
+                chartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiuses;
+                chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            fill: true,
+                            backgroundColor: gradient,
+                            borderColor: '#a0caff', // Azul claro
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: '#a0caff',
+                            pointBorderWidth: 2,
+                            pointRadius: pointRadiuses,
+                            pointHoverRadius: pointHoverRadiuses,
+                            pointHoverBackgroundColor: '#f2c000'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                displayColors: false,
+                                backgroundColor: 'rgba(54, 54, 54, 0.95)',
+                                titleFont: { family: 'Work Sans', size: 12 },
+                                bodyFont: { family: 'Plus Jakarta Sans', size: 15, weight: 'bold' },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        return formatBRL(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: false,
+                            },
+                            y: {
+                                position: 'left',
+                                border: { display: false },
+                                grid: {
+                                    color: '#444746', // Cor da linha de grade no dark mode
+                                    drawTicks: false,
+                                },
+                                ticks: {
+                                    font: { family: 'Work Sans', size: 11 },
+                                    color: '#8e918f',
+                                    maxTicksLimit: 6,
+                                    padding: 10,
+                                    callback: function(value) {
+                                        if (value >= 1000) {
+                                            return 'R$ ' + (value/1000).toFixed(1) + 'k';
+                                        }
+                                        return 'R$ ' + value;
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        },
+                    }
+                });
+            }
+        }
+
+        // ================= LÓGICA DE PRECIFICAÇÃO =================
+        async function repeatLastPrice() {
+            if(!activeCardId) return;
+            const card = cards.find(c => c.id === activeCardId);
+            const lastVal = getLatestPrice(card);
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('price_history')
+                    .insert([{ card_id: activeCardId, value: lastVal }]);
+                
+                if (error) throw error;
+                await loadData(); 
+            } catch (err) {
+                console.error("Erro ao repetir preço:", err.message);
+                alert("Erro ao salvar histórico de preços.");
+            }
+        }
+
+        async function saveNewPrice() {
+            if(!activeCardId) return;
+            const numVal = parseInt(calcValueStr, 10) / 100;
+            if(numVal <= 0) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('price_history')
+                    .insert([{ card_id: activeCardId, value: numVal }]);
+                    
+                if (error) throw error;
+                
+                closeModal('modal-price');
+                await loadData();
+            } catch(err) {
+                console.error("Erro ao salvar novo preço:", err.message);
+                alert("Erro ao salvar o preço.");
+            }
+        }
+        
+        async function deletePriceRecord(priceId, event) {
+            event.stopPropagation();
+            if(confirm("Tem certeza que deseja excluir este registro de preço?")) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('price_history')
+                        .delete()
+                        .eq('id', priceId);
+                        
+                    if(error) throw error;
+                    
+                    await loadData();
+                } catch(err) {
+                    console.error("Erro ao deletar registro de preço:", err.message);
+                    alert("Erro ao excluir registro de preço.");
+                }
+            }
+        }
+
+        // ================= SELETOR DE PERÍODO (GRÁFICO) =================
+        function setChartPeriod(period, btnElement) {
+            const container = btnElement.parentElement;
+            const buttons = container.querySelectorAll('button');
+
+            buttons.forEach(btn => {
+                btn.className = "px-3 md:px-4 py-1.5 rounded-full text-outline hover:text-on-surface transition-colors";
+            });
+
+            btnElement.className = "px-3 md:px-4 py-1.5 rounded-full bg-surface-container-highest shadow-sm text-on-surface transition-colors";
+        }
+
+        // ================= CALCULADORA NUMÉRICA =================
+        function updateCalcDisplay() {
+            const num = parseInt(calcValueStr, 10) / 100;
+            document.getElementById('calc-display').textContent = formatBRL(num);
+        }
+        function calcInput(num) {
+            if (calcValueStr === "0") calcValueStr = num;
+            else if (calcValueStr.length < 10) calcValueStr += num;
+            updateCalcDisplay();
+        }
+        function calcBackspace() {
+            calcValueStr = calcValueStr.slice(0, -1);
+            if (calcValueStr === "") calcValueStr = "0";
+            updateCalcDisplay();
+        }
+        function calcClear() {
+            calcValueStr = "0";
+            updateCalcDisplay();
+        }
+
+        // ================= CRUD CARTAS =================
+        async function saveCard(e) {
+            e.preventDefault();
+            
+            const btnSave = document.getElementById('btn-save-card');
+            btnSave.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Salvando...`;
+            btnSave.disabled = true;
+
+            const idInput = document.getElementById('input-card-id').value;
+            const name = document.getElementById('input-card-name').value;
+            const subtitle = document.getElementById('input-card-subtitle').value;
+            const image_url = document.getElementById('input-card-image').value;
+            const is_wishlist = document.getElementById('input-card-wishlist').checked;
+            
+            try {
+                if (idInput) {
+                    // Update
+                    const { error } = await supabaseClient
+                        .from('cards')
+                        .update({ name, subtitle, image_url, is_wishlist })
+                        .eq('id', idInput);
+                        
+                    if (error) throw error;
+                } else {
+                    // Create
+                    const price = parseFloat(document.getElementById('input-card-price').value);
+                    
+                    const { data: newCard, error: cardError } = await supabaseClient
+                        .from('cards')
+                        .insert([{ name, subtitle, image_url, is_wishlist }])
+                        .select()
+                        .single();
+                        
+                    if (cardError) throw cardError;
+                    
+                    if (newCard) {
+                        const { error: priceError } = await supabaseClient
+                            .from('price_history')
+                            .insert([{ card_id: newCard.id, value: price }]);
+                            
+                        if (priceError) throw priceError;
+                    }
+                }
+                
+                closeModal('modal-card');
+                await loadData();
+            } catch(err) {
+                console.error("Erro ao salvar carta:", err.message);
+                alert("Erro ao realizar operação no banco de dados.");
+            } finally {
+                btnSave.innerHTML = `Salvar Carta`;
+                btnSave.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        function editCard(id, event) {
+            event.stopPropagation();
+            const card = cards.find(c => c.id === id);
+            if(!card) return;
+
+            document.getElementById('input-card-id').value = card.id;
+            document.getElementById('input-card-name').value = card.name;
+            document.getElementById('input-card-subtitle').value = card.subtitle;
+            document.getElementById('input-card-image').value = card.image;
+            document.getElementById('input-card-wishlist').checked = card.is_wishlist; // carrega o estado da wishlist
+
+            document.getElementById('initial-price-container').classList.add('hidden');
+            document.getElementById('input-card-price').removeAttribute('required');
+            document.getElementById('modal-card-title').textContent = "Editar Carta";
+            openModal('modal-card', 'modal-card-content');
+        }
+
+        async function deleteCard(id, event) {
+            event.stopPropagation();
+            if(confirm("Tem certeza que deseja excluir esta carta? O histórico de preços será excluído junto.")) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('cards')
+                        .delete()
+                        .eq('id', id);
+                        
+                    if(error) throw error;
+                    
+                    await loadData();
+                    if(activeCardId === id) navigate('home');
+                } catch(err) {
+                    console.error("Erro ao deletar carta:", err.message);
+                    alert("Erro ao excluir carta.");
+                }
+            }
+        }
+
+        // ================= NAVEGAÇÃO & MODALS =================
+        function updateNavVisuals(activeView) {
+            // Estilos padrão inativos
+            const inactiveClassDesk = "text-outline hover:text-on-surface transition-colors flex items-center gap-2";
+            const inactiveClassMob = "flex flex-col items-center p-2 text-outline hover:text-on-surface transition-colors";
+            
+            // Estilos ativos
+            const activeClassDesk = "text-secondary font-bold flex items-center gap-2 transition-colors";
+            const activeClassMob = "flex flex-col items-center p-2 text-secondary transition-colors";
+
+            // Reseta todos
+            document.getElementById('nav-desktop-home').className = inactiveClassDesk;
+            document.getElementById('nav-desktop-wishlist').className = inactiveClassDesk;
+            document.getElementById('nav-mobile-home').className = inactiveClassMob;
+            document.getElementById('nav-mobile-wishlist').className = inactiveClassMob;
+
+            // Aplica ativo no atual
+            if(activeView === 'home' || activeView === 'wishlist') {
+                document.getElementById(`nav-desktop-${activeView}`).className = activeClassDesk;
+                document.getElementById(`nav-mobile-${activeView}`).className = activeClassMob;
+            }
+            
+            // Esconder header global quando entrar nos detalhes
+            const header = document.getElementById('global-header');
+            const mobileNav = document.getElementById('mobile-nav');
+            if(activeView === 'details') {
+                header.classList.add('hidden');
+                header.classList.remove('flex');
+                mobileNav.classList.add('hidden');
+                mobileNav.classList.remove('flex');
+            } else {
+                header.classList.remove('hidden');
+                header.classList.add('flex');
+                mobileNav.classList.remove('hidden');
+                mobileNav.classList.add('flex');
+            }
+        }
+
+        function navigate(view) {
+            // Esconde todas as telas
+            ['home', 'wishlist', 'details'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`view-${v}`).classList.remove('flex');
+            });
+
+            // Mostra a tela alvo
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.getElementById(`view-${view}`).classList.add('flex');
+            
+            activeCardId = (view === 'details') ? activeCardId : null;
+            
+            if (view === 'home') renderHome();
+            if (view === 'wishlist') renderWishlist();
+
+            updateNavVisuals(view);
+            window.scrollTo(0,0);
+        }
+
+        function openModal(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('translate-y-full', 'md:scale-95', 'md:opacity-0');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.children[0];
+            content.classList.add('translate-y-full', 'md:scale-95', 'md:opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function openModalCard(isWishlistDefault = false) {
+            document.getElementById('form-card').reset();
+            document.getElementById('input-card-id').value = '';
+            document.getElementById('initial-price-container').classList.remove('hidden');
+            document.getElementById('input-card-price').setAttribute('required', 'true');
+            
+            // Se foi clicado a partir da tela de Wishlist, já marca o checkbox
+            document.getElementById('input-card-wishlist').checked = isWishlistDefault;
+            
+            document.getElementById('modal-card-title').textContent = "Nova Carta";
+            openModal('modal-card', 'modal-card-content');
+        }
+
+        function openModalPrice() {
+            calcValueStr = "0";
+            updateCalcDisplay();
+            openModal('modal-price', 'modal-price-content');
+        }
+
+        // Inicia a aplicação
+        window.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>

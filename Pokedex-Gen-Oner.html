@@ -347,40 +347,51 @@
     <!-- ========================================== -->
     <!-- TELA 6: TRACKER (INÍCIO/PORTFÓLIO)         -->
     <!-- ========================================== -->
-    <div id="tracker-home-view" class="view-transition view-hidden flex-col">
-        <header class="sticky top-0 z-30 bg-[#121416]/95 backdrop-blur-sm border-b border-white/5 px-6 md:px-8 h-16 flex justify-between items-center w-full">
-            <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
-                <h1 class="font-headline text-[20px] md:text-[22px] font-black text-on-background tracking-tight">PokéTracker</h1>
-                <nav class="flex gap-6 font-label text-xs uppercase tracking-widest font-bold">
-                    <button onclick="goToView('tracker-home-view', 'tracker')" class="text-primary flex items-center gap-2 transition-colors">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Portfólio
-                    </button>
-                    <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2">
-                        <i data-lucide="star" class="w-4 h-4"></i> Wishlist
-                    </button>
-                </nav>
-            </div>
-        </header>
-        <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full flex flex-col gap-10">
-            <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
-                <div class="flex flex-col gap-2">
-                    <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Valor do Portfólio</span>
-                    <h2 id="tracker-total-portfolio" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
-                    <div class="flex items-center gap-1.5 mt-2 text-primary">
-                        <i data-lucide="trending-up" class="w-4 h-4 md:w-5 md:h-5"></i>
-                        <span id="tracker-total-variance" class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Calculando...</span>
+    <div id="tracker-home-view" class="view-transition view-hidden">
+        <main class="px-6 pt-8 pb-12 max-w-5xl mx-auto w-full">
+            <section class="mb-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                    <div>
+                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Tracker</h2>
+                        <p class="text-on-surface-variant font-medium text-sm md:text-base">
+                            Acompanhamento de preços
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button onclick="goToView('tracker-home-view', 'tracker')" class="flex-1 md:flex-none bg-surface-container-highest text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all border border-white/10 shadow-sm">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-primary"></i>
+                            Portfólio
+                        </button>
+                        <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="flex-1 md:flex-none bg-surface-container text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm">
+                            <i data-lucide="star" class="w-4 h-4 text-on-surface-variant"></i>
+                            Wishlist
+                        </button>
+                        <button onclick="tOpenModalCard()" class="w-full md:w-auto bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            Nova Carta
+                        </button>
                     </div>
                 </div>
-                <button onclick="tOpenModalCard()" class="bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10 w-full md:w-auto mt-2 md:mt-0">
-                    <i data-lucide="plus" class="w-5 h-5"></i> Nova Carta
-                </button>
-            </section>
-            <section class="flex flex-col gap-6">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Sua Coleção</h3>
-                </div>
-                <div id="tracker-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="text-on-surface-variant text-sm col-span-full text-center py-10">Conectando ao banco de dados Tracker...</div>
+
+                <div class="flex flex-col gap-10">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
+                        <div class="flex flex-col gap-2">
+                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Valor do Portfólio</span>
+                            <h2 id="tracker-total-portfolio" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
+                            <div class="flex items-center gap-1.5 mt-2 text-primary">
+                                <i data-lucide="trending-up" class="w-4 h-4 md:w-5 md:h-5"></i>
+                                <span id="tracker-total-variance" class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Calculando...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Sua Coleção</h3>
+                        </div>
+                        <div id="tracker-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="text-on-surface-variant text-sm col-span-full text-center py-10">Conectando ao banco de dados Tracker...</div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -389,39 +400,50 @@
     <!-- ========================================== -->
     <!-- TELA 7: TRACKER (WISHLIST)                 -->
     <!-- ========================================== -->
-    <div id="tracker-wishlist-view" class="view-transition view-hidden flex-col">
-        <header class="sticky top-0 z-30 bg-[#121416]/95 backdrop-blur-sm border-b border-white/5 px-6 md:px-8 h-16 flex justify-between items-center w-full">
-            <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
-                <h1 class="font-headline text-[20px] md:text-[22px] font-black text-on-background tracking-tight">PokéTracker</h1>
-                <nav class="flex gap-6 font-label text-xs uppercase tracking-widest font-bold">
-                    <button onclick="goToView('tracker-home-view', 'tracker')" class="text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-2">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Portfólio
-                    </button>
-                    <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="text-primary flex items-center gap-2 transition-colors">
-                        <i data-lucide="star" class="w-4 h-4"></i> Wishlist
-                    </button>
-                </nav>
-            </div>
-        </header>
-        <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full flex flex-col gap-10">
-            <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
-                <div class="flex flex-col gap-2">
-                    <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Custo Estimado</span>
-                    <h2 id="tracker-total-wishlist" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
-                    <div class="flex items-center gap-1.5 mt-2 text-on-surface-variant">
-                        <i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i>
-                        <span class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Radar de mercado</span>
+    <div id="tracker-wishlist-view" class="view-transition view-hidden">
+        <main class="px-6 pt-8 pb-12 max-w-5xl mx-auto w-full">
+            <section class="mb-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                    <div>
+                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Tracker</h2>
+                        <p class="text-on-surface-variant font-medium text-sm md:text-base">
+                            Acompanhamento de preços
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button onclick="goToView('tracker-home-view', 'tracker')" class="flex-1 md:flex-none bg-surface-container text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-on-surface-variant"></i>
+                            Portfólio
+                        </button>
+                        <button onclick="goToView('tracker-wishlist-view', 'tracker')" class="flex-1 md:flex-none bg-surface-container-highest text-on-surface font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all border border-white/10 shadow-sm">
+                            <i data-lucide="star" class="w-4 h-4 text-primary"></i>
+                            Wishlist
+                        </button>
+                        <button onclick="tOpenModalCard(true)" class="w-full md:w-auto bg-secondary-container text-on-secondary-container font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-secondary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-secondary-container/10">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            Adicionar Alvo
+                        </button>
                     </div>
                 </div>
-                <button onclick="tOpenModalCard(true)" class="bg-surface-container text-on-surface font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-95 transition-all border border-white/5 shadow-sm w-full md:w-auto mt-2 md:mt-0">
-                    <i data-lucide="star" class="w-5 h-5"></i> Adicionar Alvo
-                </button>
-            </section>
-            <section class="flex flex-col gap-6">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Na Mira</h3>
-                </div>
-                <div id="tracker-wishlist-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="flex flex-col gap-10">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
+                        <div class="flex flex-col gap-2">
+                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Custo Estimado</span>
+                            <h2 id="tracker-total-wishlist" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface">R$ 0,00</h2>
+                            <div class="flex items-center gap-1.5 mt-2 text-on-surface-variant">
+                                <i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i>
+                                <span class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Radar de mercado</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-headline text-2xl md:text-3xl font-extrabold tracking-tight text-on-surface">Na Mira</h3>
+                        </div>
+                        <div id="tracker-wishlist-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -750,7 +772,14 @@
                 const dd = String(today.getDate()).padStart(2, '0');
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const filename = `update-${dd}-${mm}-${today.getFullYear()}.json`;
-                const dataStr = JSON.stringify(appState, null, 2);
+                
+                // Agrupa as coleções, fichários (appState) e as cartas do Tracker (tCards)
+                const fullBackupData = {
+                    ...appState,
+                    tracker_cards: typeof tCards !== 'undefined' ? tCards : []
+                };
+
+                const dataStr = JSON.stringify(fullBackupData, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -762,6 +791,7 @@
                 URL.revokeObjectURL(url);
                 showToast('Backup gerado e baixado com sucesso!');
             } catch (err) {
+                console.error(err);
                 showToast('Erro ao gerar o arquivo de backup.', true);
             }
         };
@@ -1438,14 +1468,21 @@
         const openDeleteModal = (type, id) => {
             deleteContext = { type, id };
             const isEntity = type === 'collection' || type === 'binder';
+            
             let title = 'Excluir';
             if (isEntity) title = `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}`;
             else if (type === 'page') title = 'Excluir Página';
             else title = 'Excluir Carta';
+            
             document.getElementById('delete-modal-title').textContent = title;
+            
             const desc = document.getElementById('delete-modal-desc');
-            if (type === 'page') desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
-            else desc.textContent = 'Ação irreversível no banco de dados.';
+            if (type === 'page') {
+                desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
+            } else {
+                desc.textContent = 'Ação irreversível no banco de dados.';
+            }
+            
             const modalDel = document.getElementById('modal-delete');
             modalDel.classList.remove('hidden');
             requestAnimationFrame(() => {
@@ -1457,10 +1494,6 @@
         // ----------------------------------------------------
         // LÓGICA DO POKETRACKER (ISOLADA / ASSIMILADA)
         // ----------------------------------------------------
-        const trackerSupabaseUrl = 'https://oqptciabsasultpatcrr.supabase.co';
-        const trackerSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcHRjaWFic2FzdWx0cGF0Y3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDAzOTcsImV4cCI6MjA5MzAxNjM5N30.CqCY22aOwdbsFDPXbD9dVe0gCf2yeF9TFebvMTfwMcQ';
-        const trackerDb = supabase.createClient(trackerSupabaseUrl, trackerSupabaseKey);
-
         let tCards = [];
         let tActiveCardId = null;
         let tCalcValueStr = "0";
@@ -1480,7 +1513,7 @@
 
         async function tLoadData() {
             try {
-                const { data, error } = await trackerDb
+                const { data, error } = await db
                     .from('cards')
                     .select(`id, name, subtitle, image_url, is_wishlist, price_history ( id, value, recorded_at )`);
                 if (error) throw error;
@@ -1689,7 +1722,7 @@
             const card = tCards.find(c => c.id === tActiveCardId);
             const lastVal = tGetLatestPrice(card);
             try {
-                const { error } = await trackerDb.from('price_history').insert([{ card_id: tActiveCardId, value: lastVal }]);
+                const { error } = await db.from('price_history').insert([{ card_id: tActiveCardId, value: lastVal }]);
                 if (error) throw error;
                 await tLoadData(); 
             } catch (err) {
@@ -1702,7 +1735,7 @@
             const numVal = parseInt(tCalcValueStr, 10) / 100;
             if(numVal <= 0) return;
             try {
-                const { error } = await trackerDb.from('price_history').insert([{ card_id: tActiveCardId, value: numVal }]);
+                const { error } = await db.from('price_history').insert([{ card_id: tActiveCardId, value: numVal }]);
                 if (error) throw error;
                 tCloseModal('tracker-modal-price');
                 await tLoadData();
@@ -1715,7 +1748,7 @@
             event.stopPropagation();
             if(confirm("Tem certeza que deseja excluir este registro de preço?")) {
                 try {
-                    const { error } = await trackerDb.from('price_history').delete().eq('id', priceId);
+                    const { error } = await db.from('price_history').delete().eq('id', priceId);
                     if(error) throw error;
                     await tLoadData();
                 } catch(err) { showToast("Erro ao excluir registro de preço.", true); }
@@ -1761,14 +1794,14 @@
             
             try {
                 if (idInput) {
-                    const { error } = await trackerDb.from('cards').update({ name, subtitle, image_url, is_wishlist }).eq('id', idInput);
+                    const { error } = await db.from('cards').update({ name, subtitle, image_url, is_wishlist }).eq('id', idInput);
                     if (error) throw error;
                 } else {
                     const price = parseFloat(document.getElementById('tracker-input-card-price').value);
-                    const { data: newCard, error: cardError } = await trackerDb.from('cards').insert([{ name, subtitle, image_url, is_wishlist }]).select().single();
+                    const { data: newCard, error: cardError } = await db.from('cards').insert([{ name, subtitle, image_url, is_wishlist }]).select().single();
                     if (cardError) throw cardError;
                     if (newCard) {
-                        const { error: priceError } = await trackerDb.from('price_history').insert([{ card_id: newCard.id, value: price }]);
+                        const { error: priceError } = await db.from('price_history').insert([{ card_id: newCard.id, value: price }]);
                         if (priceError) throw priceError;
                     }
                 }
@@ -1802,7 +1835,7 @@
             event.stopPropagation();
             if(confirm("Tem certeza que deseja excluir esta carta? O histórico de preços será excluído junto.")) {
                 try {
-                    const { error } = await trackerDb.from('cards').delete().eq('id', id);
+                    const { error } = await db.from('cards').delete().eq('id', id);
                     if(error) throw error;
                     await tLoadData();
                     if(tActiveCardId === id) goToView('tracker-home-view', 'tracker');

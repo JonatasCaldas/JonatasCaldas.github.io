@@ -130,8 +130,8 @@
 </head>
 <body class="bg-background text-on-background min-h-screen pb-32 selection:bg-primary/30 overflow-x-hidden relative">
 
-    <!-- Toast Notificação -->
-    <div id="toast" class="fixed top-6 right-1/2 translate-x-1/2 md:translate-x-0 md:right-6 z-[100] bg-surface-container-high border border-white/10 text-on-surface px-5 py-3.5 rounded-xl shadow-2xl transform transition-all duration-300 -translate-y-[150%] opacity-0 flex items-center gap-3 w-[90%] md:w-auto max-w-sm pointer-events-none">
+    <!-- Toast Notificação - Posicionado no topo centro e independente dos botões -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-surface-container-high border border-white/10 text-on-surface px-5 py-3.5 rounded-xl shadow-2xl transform transition-all duration-300 -translate-y-[150%] opacity-0 flex items-center gap-3 w-[90%] md:w-auto max-w-sm pointer-events-none">
         <div id="toast-icon-container" class="flex shrink-0 items-center justify-center">
             <i data-lucide="info" class="w-5 h-5 text-primary"></i>
         </div>
@@ -755,6 +755,7 @@
         let editingEntityType = null;
         let editingCardId = null;
         let deleteContext = { type: null, id: null };
+        let toastTimeout; // Variável global para controlar e resetar o timer do Toast
 
         const showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
@@ -763,7 +764,14 @@
             iconContainer.innerHTML = `<i data-lucide="${isError ? 'alert-circle' : 'check-circle'}" class="w-5 h-5 ${isError ? 'text-error' : 'text-primary'}"></i>`;
             lucide.createIcons({ root: iconContainer });
             toast.classList.remove('-translate-y-[150%]', 'opacity-0');
-            setTimeout(() => toast.classList.add('-translate-y-[150%]', 'opacity-0'), 3500);
+            
+            // Limpa o timer anterior se existir, garantindo 3 segundos a partir do novo evento
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('-translate-y-[150%]', 'opacity-0');
+            }, 3000);
         };
 
         const saveBackup = () => {
@@ -773,7 +781,6 @@
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const filename = `update-${dd}-${mm}-${today.getFullYear()}.json`;
                 
-                // Agrupa as coleções, fichários (appState) e as cartas do Tracker (tCards)
                 const fullBackupData = {
                     ...appState,
                     tracker_cards: typeof tCards !== 'undefined' ? tCards : []
@@ -1647,7 +1654,6 @@
             const listEl = document.getElementById('tracker-detail-history-list');
             listEl.innerHTML = '';
             
-            // Calcula os dias consecutivos mantendo o mesmo valor
             let currentStreakValue = null;
             let streakStartDate = null;
             const processedHistory = history.map(entry => {
@@ -1657,10 +1663,9 @@
                     return { ...entry, streakDays: 0 };
                 } else {
                     const start = new Date(streakStartDate);
-                    start.setHours(0, 0, 0, 0); // Zera as horas para focar apenas nos dias
+                    start.setHours(0, 0, 0, 0); 
                     const current = new Date(entry.date);
                     current.setHours(0, 0, 0, 0);
-                    
                     const diffTime = current - start;
                     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
                     return { ...entry, streakDays: diffDays };
@@ -1671,7 +1676,6 @@
             
             reversed.forEach((entry, index) => {
                 const isLatest = index === 0;
-                
                 let streakBadge = '';
                 if (entry.streakDays > 0) {
                     streakBadge = `
@@ -1772,6 +1776,7 @@
                 const { error } = await db.from('price_history').insert([{ card_id: tActiveCardId, value: lastVal }]);
                 if (error) throw error;
                 await tLoadData(); 
+                showToast("Preço registado com sucesso!");
             } catch (err) {
                 showToast("Erro ao repetir preço.", true);
             }
@@ -1786,6 +1791,7 @@
                 if (error) throw error;
                 tCloseModal('tracker-modal-price');
                 await tLoadData();
+                showToast("Preço registado com sucesso!");
             } catch(err) {
                 showToast("Erro ao salvar novo preço.", true);
             }
@@ -1854,6 +1860,7 @@
                 }
                 tCloseModal('tracker-modal-card');
                 await tLoadData();
+                showToast("Carta registada com sucesso!");
             } catch(err) {
                 showToast("Erro ao realizar operação no banco de dados.", true);
             } finally {
@@ -1886,6 +1893,7 @@
                     if(error) throw error;
                     await tLoadData();
                     if(tActiveCardId === id) goToView('tracker-home-view', 'tracker');
+                    showToast("Carta excluída com sucesso!");
                 } catch(err) { showToast("Erro ao excluir carta.", true); }
             }
         }

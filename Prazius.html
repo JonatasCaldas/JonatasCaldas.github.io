@@ -129,6 +129,9 @@
                 <div class="w-8"></div>
                 <div class="flex-1 flex items-center gap-2">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</span>
+                    <button id="groupBtn" onclick="app.toggleGroup()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Agrupar por Equipe">
+                        <span class="material-symbols-outlined text-[16px]">workspaces</span>
+                    </button>
                     <button id="sortBtn" onclick="app.openSortModal()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Ordenar Seções por Etapa">
                         <span class="material-symbols-outlined text-[16px]">sort</span>
                     </button>
@@ -152,7 +155,6 @@
             
             <!-- Timeline Header (Dynamic Groups) -->
             <div id="timelineHeader" class="h-12 bg-slate-50 border-b border-slate-200 shrink-0 relative overflow-x-hidden overflow-y-hidden select-none">
-                <!-- Wrapper interno vital para o scroll funcionar adequadamente no cabeçalho -->
                 <div id="timelineHeaderInner" class="absolute top-0 left-0 h-full"></div>
             </div>
 
@@ -169,7 +171,6 @@
                             <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
                         </marker>
                     </defs>
-                    <!-- Paths injected via JS -->
                 </svg>
 
                 <!-- Task Bars Container -->
@@ -177,7 +178,7 @@
                     <!-- Bars injected via JS -->
                 </div>
 
-                <!-- Today Line (Vertical line only) -->
+                <!-- Today Line -->
                 <div id="todayLine" class="absolute top-0 bottom-0 w-px bg-red-500 z-20 pointer-events-none hidden shadow-[0_0_4px_rgba(239,68,68,0.4)]">
                 </div>
 
@@ -228,17 +229,26 @@
                     </div>
                 </div>
 
+                <!-- Modificado: Campo dinâmico adaptável para Equipe ou Pai -->
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
+                    <div id="containerParentId">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">ID da Seção Pai</label>
-                        <input type="number" id="taskParent" placeholder="Opcional (ID da Seção)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700 bg-slate-50" readonly>
+                        <input type="number" id="taskParent" placeholder="Opcional (ID)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700 bg-slate-50" readonly>
+                    </div>
+                    <div id="containerTeam" class="hidden">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Equipe</label>
+                        <select id="taskTeam" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                            <option value="">Sem Equipe</option>
+                            <option value="DOTI">DOTI</option>
+                            <option value="DOTM">DOTM</option>
+                            <option value="DOTV">DOTV</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Dependências</label>
                         <input type="text" id="taskDeps" placeholder="IDs (e.g. 1, 3)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700 font-mono">
                     </div>
                 </div>
-
 
                 <div class="pt-4 flex items-center justify-between">
                     <button type="button" onclick="app.deleteTask()" id="btnDelete" class="text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-semibold transition-colors">Deletar</button>
@@ -316,14 +326,11 @@
 
     <!-- Logic -->
     <script>
-        /**
-         * Gantt Application Logic
-         * Implements grouping, drag-and-drop, dependencies, nesting, and state management.
-         */
         const app = (() => {
             // --- State ---
             let tasks = [];
             let visibleTasks = [];
+            let groupByTeam = false;
             
             let sortConfig = {
                 milestone: null,
@@ -331,8 +338,8 @@
             };
 
             let config = {
-                viewMode: 'day', // 'day', 'week', 'month', 'year'
-                zoom: 40, // pixels per day, adjusted by viewMode
+                viewMode: 'day', 
+                zoom: 40, 
                 headerHeight: 48,
                 rowHeight: 48,
                 barHeight: 32,
@@ -340,7 +347,6 @@
                 endDate: new Date(),
             };
             
-            // Drag/Resize State
             let dragState = {
                 active: false,
                 type: null,
@@ -368,7 +374,11 @@
                 milestoneList: document.getElementById('milestoneList'),
                 sortModal: document.getElementById('sortModal'),
                 sortMilestone: document.getElementById('sortMilestone'),
-                sortDirection: document.getElementById('sortDirection')
+                sortDirection: document.getElementById('sortDirection'),
+                containerParentId: document.getElementById('containerParentId'),
+                containerTeam: document.getElementById('containerTeam'),
+                taskParent: document.getElementById('taskParent'),
+                taskTeam: document.getElementById('taskTeam'),
             };
 
             // --- Helpers ---
@@ -424,7 +434,6 @@
                 black:  { bg: 'bg-black', border: 'border-black', light: 'bg-black/20', borderLight: 'border-black/30' }
             };
 
-            // --- Gerador de Nome de Arquivo (Timestamp) ---
             function getExportFilename(extension) {
                 const now = new Date();
                 const y = now.getFullYear();
@@ -452,10 +461,8 @@
                 window.addEventListener('mousemove', handleGlobalMouseMove);
                 window.addEventListener('mouseup', handleGlobalMouseUp);
 
-                // Força o modo de visualização inicial e renderiza
                 setViewMode('day', true);
 
-                // Configura Motor de Drag and Drop da Lista de Etapas (Milestones)
                 dom.milestoneList.addEventListener('dragover', e => {
                     e.preventDefault();
                     const afterElement = getDragAfterElement(dom.milestoneList, e.clientY);
@@ -493,46 +500,31 @@
                 if (mode === 'year') config.zoom = 0.5;
 
                 const viewStyles = {
-                    day: {
-                        active: ['text-purple-700', 'bg-purple-50', 'border-purple-200', 'shadow-sm'],
-                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-purple-50', 'hover:text-purple-700', 'hover:border-purple-200']
-                    },
-                    week: {
-                        active: ['text-amber-700', 'bg-amber-50', 'border-amber-200', 'shadow-sm'],
-                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:border-amber-200']
-                    },
-                    month: {
-                        active: ['text-pink-700', 'bg-pink-50', 'border-pink-200', 'shadow-sm'],
-                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-pink-50', 'hover:text-pink-700', 'hover:border-pink-200']
-                    },
-                    year: {
-                        active: ['text-teal-700', 'bg-teal-50', 'border-teal-200', 'shadow-sm'],
-                        inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-teal-50', 'hover:text-teal-700', 'hover:border-teal-200']
-                    }
+                    day: { active: ['text-purple-700', 'bg-purple-50', 'border-purple-200', 'shadow-sm'], inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-purple-50', 'hover:text-purple-700', 'hover:border-purple-200'] },
+                    week: { active: ['text-amber-700', 'bg-amber-50', 'border-amber-200', 'shadow-sm'], inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:border-amber-200'] },
+                    month: { active: ['text-pink-700', 'bg-pink-50', 'border-pink-200', 'shadow-sm'], inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-pink-50', 'hover:text-pink-700', 'hover:border-pink-200'] },
+                    year: { active: ['text-teal-700', 'bg-teal-50', 'border-teal-200', 'shadow-sm'], inactive: ['text-slate-500', 'bg-white', 'border-slate-200', 'hover:bg-teal-50', 'hover:text-teal-700', 'hover:border-teal-200'] }
                 };
 
                 ['day', 'week', 'month', 'year'].forEach(m => {
                     const btn = document.getElementById(`btnView-${m}`);
                     if (btn) {
-                        Object.values(viewStyles).forEach(style => {
-                            btn.classList.remove(...style.active, ...style.inactive);
-                        });
-                        if (m === mode) {
-                            btn.classList.add(...viewStyles[m].active);
-                        } else {
-                            btn.classList.add(...viewStyles[m].inactive);
-                        }
+                        Object.values(viewStyles).forEach(style => btn.classList.remove(...style.active, ...style.inactive));
+                        if (m === mode) btn.classList.add(...viewStyles[m].active);
+                        else btn.classList.add(...viewStyles[m].inactive);
                     }
                 });
 
                 calculateProjectBounds();
                 render();
                 
-                if (initial) {
-                    setTimeout(() => scrollToToday(false), 50);
-                } else {
-                    scrollToToday(true);
-                }
+                if (initial) setTimeout(() => scrollToToday(false), 50);
+                else scrollToToday(true);
+            }
+
+            function toggleGroup() {
+                groupByTeam = !groupByTeam;
+                render();
             }
 
             function calculateProjectBounds() {
@@ -573,38 +565,72 @@
 
             function buildVisibleTasks() {
                 visibleTasks = [];
+                
+                let rootTasks = tasks.filter(t => t.parentId === null);
+
+                // Aplica Ordenação
+                if (sortConfig.milestone) {
+                    rootTasks.sort((a, b) => {
+                        const msA = (a.milestones || []).find(m => m.name === sortConfig.milestone);
+                        const msB = (b.milestones || []).find(m => m.name === sortConfig.milestone);
+
+                        const dateA = msA && msA.date ? new Date(msA.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
+                        const dateB = msB && msB.date ? new Date(msB.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
+
+                        if (dateA === dateB) return a.id - b.id; 
+                        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                    });
+                } else {
+                    rootTasks.sort((a,b) => a.id - b.id);
+                }
+
                 function addTasksRecursive(parentId, level) {
                     let children = tasks.filter(t => t.parentId == parentId);
-                    
-                    // Ordenação de Seções por Milestone
-                    if (parentId === null && sortConfig.milestone) {
-                        children.sort((a, b) => {
-                            const msA = (a.milestones || []).find(m => m.name === sortConfig.milestone);
-                            const msB = (b.milestones || []).find(m => m.name === sortConfig.milestone);
-
-                            const dateA = msA && msA.date ? new Date(msA.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
-                            const dateB = msB && msB.date ? new Date(msB.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
-
-                            if (dateA === dateB) return a.id - b.id; // Fallback para ID
-                            return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
-                        });
-                    } else {
-                        children.sort((a,b) => a.id - b.id);
-                    }
-
+                    children.sort((a,b) => a.id - b.id);
                     children.forEach(task => {
                         const taskWithMeta = { ...task, _level: level, _hasChildren: tasks.some(t => t.parentId == task.id) };
                         visibleTasks.push(taskWithMeta);
-
                         if (task.expanded) {
                             addTasksRecursive(task.id, level + 1);
-                            if (task.parentId === null) {
-                                visibleTasks.push({ _type: 'button', _level: level + 1, parentId: task.id });
-                            }
                         }
                     });
                 }
-                addTasksRecursive(null, 0);
+
+                // Processa Agrupamento ou Fluxo Padrão
+                if (groupByTeam) {
+                    const defaultTeams = ['DOTI', 'DOTM', 'DOTV'];
+                    const groups = { 'Sem Equipe': [] };
+                    defaultTeams.forEach(t => groups[t] = []);
+
+                    rootTasks.forEach(task => {
+                        const team = task.team && task.team.trim() !== '' ? task.team : 'Sem Equipe';
+                        if (!groups[team]) groups[team] = []; // fallback para times não mapeados se vier do JSON
+                        groups[team].push(task);
+                    });
+
+                    Object.keys(groups).forEach(team => {
+                        if (groups[team].length > 0) {
+                            visibleTasks.push({ _type: 'team_header', name: team });
+                            groups[team].forEach(task => {
+                                const taskWithMeta = { ...task, _level: 0, _hasChildren: tasks.some(t => t.parentId == task.id) };
+                                visibleTasks.push(taskWithMeta);
+                                if (task.expanded) {
+                                    addTasksRecursive(task.id, 1);
+                                    visibleTasks.push({ _type: 'button', _level: 1, parentId: task.id });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    rootTasks.forEach(task => {
+                        const taskWithMeta = { ...task, _level: 0, _hasChildren: tasks.some(t => t.parentId == task.id) };
+                        visibleTasks.push(taskWithMeta);
+                        if (task.expanded) {
+                            addTasksRecursive(task.id, 1);
+                            visibleTasks.push({ _type: 'button', _level: 1, parentId: task.id });
+                        }
+                    });
+                }
             }
 
             function render() {
@@ -618,7 +644,6 @@
 
             function renderGrid() {
                 dom.timelineHeaderInner.innerHTML = '';
-                
                 const totalDays = dateUtils.diffDays(config.startDate, config.endDate);
                 const totalWidth = totalDays * config.zoom;
                 
@@ -632,13 +657,10 @@
                 let currentTopText = null;
                 let currentTopDiv = null;
                 let currentTopStartLeft = 0;
-                
                 let gridColsHtml = '';
 
                 while (currentDate <= config.endDate) {
-                    let nextDate;
-                    let bottomText = '';
-                    let topText = '';
+                    let nextDate, bottomText, topText;
 
                     if (config.viewMode === 'day') {
                         nextDate = dateUtils.addDays(currentDate, 1);
@@ -670,15 +692,12 @@
                     const segmentWidth = segmentDays * config.zoom;
 
                     if (topText !== currentTopText) {
-                        if (currentTopDiv) {
-                            currentTopDiv.style.width = `${leftPos - currentTopStartLeft}px`;
-                        }
+                        if (currentTopDiv) currentTopDiv.style.width = `${leftPos - currentTopStartLeft}px`;
                         currentTopDiv = document.createElement('div');
                         currentTopDiv.className = 'absolute top-0 border-r border-slate-200 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap overflow-hidden flex items-center bg-slate-50/30';
                         currentTopDiv.style.left = `${leftPos}px`;
                         currentTopDiv.innerText = topText;
                         dom.timelineHeaderInner.appendChild(currentTopDiv);
-
                         currentTopText = topText;
                         currentTopStartLeft = leftPos;
                     }
@@ -701,16 +720,11 @@
                     }
 
                     dom.timelineHeaderInner.appendChild(bottomDiv);
-
                     gridColsHtml += `<div class="absolute top-0 bottom-0 border-r border-slate-200/60 pointer-events-none" style="left: ${leftPos}px; width: ${segmentWidth}px;"></div>`;
-
                     currentDate = nextDate;
                 }
 
-                if (currentTopDiv) {
-                    currentTopDiv.style.width = `${totalWidth - currentTopStartLeft}px`;
-                }
-
+                if (currentTopDiv) currentTopDiv.style.width = `${totalWidth - currentTopStartLeft}px`;
                 dom.gridCols.innerHTML = gridColsHtml;
 
                 const todayOffset = dateUtils.diffDays(config.startDate, today);
@@ -723,7 +737,6 @@
             function renderTaskList() {
                 dom.taskList.innerHTML = '';
                 
-                // Feedback visual se a ordenação está ativa
                 const sortBtn = document.getElementById('sortBtn');
                 if (sortBtn) {
                     if (sortConfig.milestone) {
@@ -735,13 +748,31 @@
                     }
                 }
 
+                const groupBtn = document.getElementById('groupBtn');
+                if (groupBtn) {
+                    if (groupByTeam) {
+                        groupBtn.classList.add('text-primary', 'bg-primary/10');
+                        groupBtn.classList.remove('text-slate-400');
+                    } else {
+                        groupBtn.classList.remove('text-primary', 'bg-primary/10');
+                        groupBtn.classList.add('text-slate-400');
+                    }
+                }
+
                 visibleTasks.forEach((task, index) => {
+                    if (task._type === 'team_header') {
+                        const row = document.createElement('div');
+                        row.className = 'h-12 border-b border-slate-200 bg-slate-50 flex items-center px-4 shrink-0';
+                        row.innerHTML = `<span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Equipe: ${task.name}</span>`;
+                        dom.taskList.appendChild(row);
+                        return;
+                    }
+
                     if (task._type === 'button') {
                         const row = document.createElement('div');
                         row.className = 'h-12 border-b border-slate-100 flex items-center px-4 hover:bg-slate-50 transition-colors group cursor-pointer';
                         const paddingLeft = task._level * 24;
                         row.onclick = () => app.openModal(null, task.parentId);
-
                         row.innerHTML = `
                              <div class="w-8 flex items-center justify-center shrink-0"></div>
                              <div class="flex-1 min-w-0 flex items-center" style="padding-left: ${paddingLeft}px">
@@ -801,6 +832,17 @@
                 dom.taskBars.innerHTML = '';
                 
                 visibleTasks.forEach((task, index) => {
+                    const top = (index * config.rowHeight) + ((config.rowHeight - config.barHeight) / 2);
+
+                    if (task._type === 'team_header') {
+                        const sep = document.createElement('div');
+                        sep.className = 'absolute left-0 w-full bg-slate-50/50 border-b border-slate-200 pointer-events-none z-0';
+                        sep.style.top = `${index * config.rowHeight}px`;
+                        sep.style.height = `${config.rowHeight}px`;
+                        dom.taskBars.appendChild(sep);
+                        return;
+                    }
+
                     if (task._type === 'button') return; 
 
                     const startDate = dateUtils.parseDate(task.start);
@@ -811,7 +853,6 @@
                     
                     const left = offsetDays * config.zoom;
                     const width = Math.max(durationDays * config.zoom, 8); 
-                    const top = (index * config.rowHeight) + ((config.rowHeight - config.barHeight) / 2);
 
                     const styleObj = colors[task.color || 'blue'];
                     const isSection = task.parentId === null;
@@ -891,7 +932,7 @@
                 `;
 
                 visibleTasks.forEach((task) => {
-                    if (task._type === 'button') return;
+                    if (task._type === 'button' || task._type === 'team_header') return;
                     if (!task.dependencies || task.dependencies.length === 0) return;
                     
                     const targetEl = dom.taskBars.querySelector(`div[data-id="${task.id}"]`);
@@ -1070,20 +1111,23 @@
                 
                 const title = document.getElementById('modalTitle');
                 const btnDelete = document.getElementById('btnDelete');
-                const parentInput = document.getElementById('taskParent');
 
                 if (!taskId) {
                     btnDelete.classList.add('hidden');
                     document.getElementById('taskId').value = '';
                     
-                    if (parentId) {
+                    if (parentId) { // Criando Subtarefa
                         title.innerText = 'Nova Tarefa';
-                        parentInput.value = parentId;
-                        parentInput.classList.remove('hidden');
-                    } else {
+                        dom.containerParentId.classList.remove('hidden');
+                        dom.containerTeam.classList.add('hidden');
+                        dom.taskParent.value = parentId;
+                        dom.taskTeam.value = '';
+                    } else { // Criando Seção
                         title.innerText = 'Nova Seção';
-                        parentInput.value = '';
-                        parentInput.classList.add('hidden'); 
+                        dom.containerParentId.classList.add('hidden');
+                        dom.containerTeam.classList.remove('hidden');
+                        dom.taskParent.value = '';
+                        dom.taskTeam.value = '';
                     }
                     
                     document.getElementById('taskStart').value = dateUtils.format(new Date());
@@ -1104,14 +1148,19 @@
                     document.getElementById('taskStart').value = task.start;
                     document.getElementById('taskEnd').value = task.end;
                     document.getElementById('taskProgress').value = task.progress;
+                    document.getElementById('taskDeps').value = task.dependencies ? task.dependencies.join(', ') : '';
                     
                     renderColorGrid(task.color || 'blue');
                     
-                    parentInput.value = task.parentId || '';
-                    document.getElementById('taskDeps').value = task.dependencies ? task.dependencies.join(', ') : '';
-                    
-                    parentInput.classList.remove('hidden');
-                    if (task.parentId === null) parentInput.classList.add('hidden'); 
+                    if (task.parentId === null) { // Editando Seção
+                        dom.containerParentId.classList.add('hidden');
+                        dom.containerTeam.classList.remove('hidden');
+                        dom.taskTeam.value = task.team || '';
+                    } else { // Editando Subtarefa
+                        dom.containerParentId.classList.remove('hidden');
+                        dom.containerTeam.classList.add('hidden');
+                        dom.taskParent.value = task.parentId;
+                    }
                 }
             }
 
@@ -1132,6 +1181,7 @@
                 const depStr = document.getElementById('taskDeps').value;
                 
                 const parentId = parentVal ? parseInt(parentVal) : null;
+                const team = parentId === null ? document.getElementById('taskTeam').value : null;
                 const dependencies = depStr.split(',').map(s => s.trim()).filter(s => s !== '' && !isNaN(s));
 
                 if (dateUtils.parseDate(end) < dateUtils.parseDate(start)) {
@@ -1153,6 +1203,7 @@
                     task.color = color;
                     task.dependencies = dependencies;
                     task.parentId = parentId;
+                    if (parentId === null) task.team = team;
                 } else {
                     const newId = tasks.length > 0 ? Math.max(...tasks.map(t => parseInt(t.id))) + 1 : 1;
                     tasks.push({
@@ -1162,6 +1213,7 @@
                         color,
                         dependencies,
                         parentId: parentId,
+                        team: team,
                         expanded: true 
                     });
                 }
@@ -1365,11 +1417,11 @@
                 } else {
                     const today = new Date();
                     tasks = [
-                        { id: 1, name: "VARA DE MANOBRAS", start: dateUtils.format(dateUtils.addDays(today, -5)), end: dateUtils.format(dateUtils.addDays(today, 10)), progress: 20, color: "gray", dependencies: [], expanded: true, parentId: null },
+                        { id: 1, name: "VARA DE MANOBRAS", start: dateUtils.format(dateUtils.addDays(today, -5)), end: dateUtils.format(dateUtils.addDays(today, 10)), progress: 20, color: "gray", team: "DOTI", dependencies: [], expanded: true, parentId: null },
                         { id: 11, name: "Elaboração do ECS", start: dateUtils.format(dateUtils.addDays(today, -5)), end: dateUtils.format(dateUtils.addDays(today, -2)), progress: 100, color: "blue", dependencies: [], parentId: 1 },
                         { id: 12, name: "Aprovação da SC", start: dateUtils.format(dateUtils.addDays(today, -1)), end: dateUtils.format(dateUtils.addDays(today, 2)), progress: 80, color: "blue", dependencies: [11], parentId: 1 },
                         { id: 13, name: "Assinatura do Contrato", start: dateUtils.format(dateUtils.addDays(today, 3)), end: dateUtils.format(dateUtils.addDays(today, 5)), progress: 0, color: "blue", dependencies: [12], parentId: 1 },
-                        { id: 2, name: "SISTEMA ELÉTRICO", start: dateUtils.format(dateUtils.addDays(today, 6)), end: dateUtils.format(dateUtils.addDays(today, 20)), progress: 0, color: "gray", dependencies: [], expanded: true, parentId: null },
+                        { id: 2, name: "SISTEMA ELÉTRICO", start: dateUtils.format(dateUtils.addDays(today, 6)), end: dateUtils.format(dateUtils.addDays(today, 20)), progress: 0, color: "gray", team: "DOTM", dependencies: [], expanded: true, parentId: null },
                         { id: 21, name: "Compra de cabos", start: dateUtils.format(dateUtils.addDays(today, 6)), end: dateUtils.format(dateUtils.addDays(today, 10)), progress: 0, color: "orange", dependencies: [], parentId: 2 },
                     ];
                 }
@@ -1389,7 +1441,7 @@
             }
 
             function exportToCSV() {
-                const headers = ["ID", "Task Name", "Start Date", "End Date", "Duration (Days)", "Progress", "Parent ID", "Dependencies"];
+                const headers = ["ID", "Task Name", "Team", "Start Date", "End Date", "Duration (Days)", "Progress", "Parent ID", "Dependencies"];
                 const safe = (str) => {
                     if (str === null || str === undefined) return '';
                     const s = String(str);
@@ -1404,6 +1456,7 @@
                     return [
                         t.id,
                         safe(t.name),
+                        safe(t.team || ""),
                         t.start,
                         t.end,
                         duration,
@@ -1458,6 +1511,7 @@
                 saveTask,
                 deleteTask,
                 setViewMode,
+                toggleGroup,
                 exportData,
                 importData,
                 exportToCSV,

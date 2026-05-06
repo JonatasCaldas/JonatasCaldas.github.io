@@ -127,7 +127,12 @@
             <!-- Table Header -->
             <div class="h-12 bg-slate-50 border-b border-slate-200 flex items-center px-4 shrink-0">
                 <div class="w-8"></div>
-                <div class="flex-1 text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</div>
+                <div class="flex-1 flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</span>
+                    <button id="sortBtn" onclick="app.openSortModal()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Ordenar Seções por Etapa">
+                        <span class="material-symbols-outlined text-[16px]">sort</span>
+                    </button>
+                </div>
                 <div class="w-16 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Dur.</div>
             </div>
             
@@ -276,6 +281,39 @@
         </div>
     </div>
 
+    <!-- Sort Modal -->
+    <div id="sortModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="text-lg font-bold text-slate-800">Ordenar Seções</h3>
+                <button onclick="app.closeSortModal()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="sortForm" onsubmit="app.applySort(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Etapa de Referência</label>
+                    <select id="sortMilestone" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Ordem</label>
+                    <select id="sortDirection" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
+                        <option value="asc">Crescente (Mais antiga primeiro)</option>
+                        <option value="desc">Decrescente (Mais recente primeiro)</option>
+                    </select>
+                </div>
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between shrink-0">
+                    <button type="button" onclick="app.clearSort()" class="text-xs font-bold text-slate-500 hover:text-red-500 transition-colors">Remover Ordenação</button>
+                    <div class="flex gap-2">
+                        <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-md transition-all">Aplicar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Logic -->
     <script>
         /**
@@ -287,6 +325,11 @@
             let tasks = [];
             let visibleTasks = [];
             
+            let sortConfig = {
+                milestone: null,
+                direction: 'asc'
+            };
+
             let config = {
                 viewMode: 'day', // 'day', 'week', 'month', 'year'
                 zoom: 40, // pixels per day, adjusted by viewMode
@@ -322,7 +365,10 @@
                 form: document.getElementById('taskForm'),
                 taskCount: document.getElementById('taskCount'),
                 milestoneModal: document.getElementById('milestoneModal'),
-                milestoneList: document.getElementById('milestoneList')
+                milestoneList: document.getElementById('milestoneList'),
+                sortModal: document.getElementById('sortModal'),
+                sortMilestone: document.getElementById('sortMilestone'),
+                sortDirection: document.getElementById('sortDirection')
             };
 
             // --- Helpers ---
@@ -528,8 +574,23 @@
             function buildVisibleTasks() {
                 visibleTasks = [];
                 function addTasksRecursive(parentId, level) {
-                    const children = tasks.filter(t => t.parentId == parentId);
-                    children.sort((a,b) => a.id - b.id);
+                    let children = tasks.filter(t => t.parentId == parentId);
+                    
+                    // Ordenação de Seções por Milestone
+                    if (parentId === null && sortConfig.milestone) {
+                        children.sort((a, b) => {
+                            const msA = (a.milestones || []).find(m => m.name === sortConfig.milestone);
+                            const msB = (b.milestones || []).find(m => m.name === sortConfig.milestone);
+
+                            const dateA = msA && msA.date ? new Date(msA.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
+                            const dateB = msB && msB.date ? new Date(msB.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
+
+                            if (dateA === dateB) return a.id - b.id; // Fallback para ID
+                            return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                        });
+                    } else {
+                        children.sort((a,b) => a.id - b.id);
+                    }
 
                     children.forEach(task => {
                         const taskWithMeta = { ...task, _level: level, _hasChildren: tasks.some(t => t.parentId == task.id) };
@@ -662,6 +723,18 @@
             function renderTaskList() {
                 dom.taskList.innerHTML = '';
                 
+                // Feedback visual se a ordenação está ativa
+                const sortBtn = document.getElementById('sortBtn');
+                if (sortBtn) {
+                    if (sortConfig.milestone) {
+                        sortBtn.classList.add('text-primary', 'bg-primary/10');
+                        sortBtn.classList.remove('text-slate-400');
+                    } else {
+                        sortBtn.classList.remove('text-primary', 'bg-primary/10');
+                        sortBtn.classList.add('text-slate-400');
+                    }
+                }
+
                 visibleTasks.forEach((task, index) => {
                     if (task._type === 'button') {
                         const row = document.createElement('div');
@@ -1144,8 +1217,10 @@
                     return;
                 }
                 
-                const count = dom.milestoneList.children.length + 1;
-                const defaultName = name || `Etapa ${count}`;
+                const predefinedOptions = ["Valoração", "Finalização", "Sessão", "Contrato", "Desembolso"];
+                const isCustom = name && !predefinedOptions.includes(name);
+                const selectValue = isCustom ? 'Outro' : name;
+                const inputValue = isCustom ? name : '';
                 
                 const div = document.createElement('div');
                 div.className = 'flex gap-2 items-center milestone-row p-1 -mx-1 rounded border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all bg-white';
@@ -1153,10 +1228,34 @@
                     <div class="drag-handle cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 flex items-center justify-center p-1" title="Arraste para reordenar">
                         <span class="material-symbols-outlined text-[20px]">drag_indicator</span>
                     </div>
-                    <input type="text" class="ms-name flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" value="${defaultName}" placeholder="Nome da Etapa" required>
-                    <input type="date" class="ms-date w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" value="${date}" required>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Remover"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    <select class="ms-type w-[140px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" required>
+                        <option value="" disabled ${!selectValue ? 'selected' : ''}>Selecione...</option>
+                        <option value="Valoração" ${selectValue === 'Valoração' ? 'selected' : ''}>Valoração</option>
+                        <option value="Finalização" ${selectValue === 'Finalização' ? 'selected' : ''}>Finalização</option>
+                        <option value="Sessão" ${selectValue === 'Sessão' ? 'selected' : ''}>Sessão</option>
+                        <option value="Contrato" ${selectValue === 'Contrato' ? 'selected' : ''}>Contrato</option>
+                        <option value="Desembolso" ${selectValue === 'Desembolso' ? 'selected' : ''}>Desembolso</option>
+                        <option value="Outro" ${selectValue === 'Outro' ? 'selected' : ''}>Outro</option>
+                    </select>
+                    <input type="text" class="ms-name flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700 ${!isCustom ? 'hidden' : ''}" value="${inputValue}" placeholder="Especifique">
+                    <input type="date" class="ms-date w-[130px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-700" value="${date}" required>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors shrink-0" title="Remover"><span class="material-symbols-outlined text-sm">delete</span></button>
                 `;
+
+                const typeSelect = div.querySelector('.ms-type');
+                const nameInput = div.querySelector('.ms-name');
+                
+                typeSelect.addEventListener('change', (e) => {
+                    if (e.target.value === 'Outro') {
+                        nameInput.classList.remove('hidden');
+                        nameInput.required = true;
+                        nameInput.focus();
+                    } else {
+                        nameInput.classList.add('hidden');
+                        nameInput.required = false;
+                        nameInput.value = ''; 
+                    }
+                });
 
                 const handle = div.querySelector('.drag-handle');
                 handle.addEventListener('mousedown', () => div.setAttribute('draggable', 'true'));
@@ -1182,10 +1281,14 @@
                 const newMs = [];
                 
                 for(let r of rows) {
-                    const name = r.querySelector('.ms-name').value;
+                    const type = r.querySelector('.ms-type').value;
+                    const customName = r.querySelector('.ms-name').value;
                     const date = r.querySelector('.ms-date').value;
-                    if(name && date) {
-                        newMs.push({ name, date });
+                    
+                    const finalName = type === 'Outro' ? customName : type;
+                    
+                    if(finalName && date) {
+                        newMs.push({ name: finalName, date });
                     }
                 }
                 
@@ -1193,6 +1296,60 @@
                 saveToStorage();
                 closeMilestoneModal();
                 calculateProjectBounds();
+                render();
+            }
+
+            // --- Sorting Logic ---
+            function openSortModal() {
+                const uniqueMilestones = new Set();
+                tasks.forEach(t => {
+                    if (t.milestones) {
+                        t.milestones.forEach(m => uniqueMilestones.add(m.name));
+                    }
+                });
+
+                const select = dom.sortMilestone;
+                select.innerHTML = '<option value="" disabled selected>Selecione uma etapa...</option>';
+                
+                [...uniqueMilestones].sort().forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    if (sortConfig.milestone === name) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                if (uniqueMilestones.size === 0) {
+                    select.innerHTML = '<option value="" disabled selected>Nenhuma etapa criada no projeto.</option>';
+                }
+
+                dom.sortDirection.value = sortConfig.direction || 'asc';
+
+                dom.sortModal.classList.remove('hidden');
+                dom.sortModal.classList.add('flex');
+            }
+
+            function closeSortModal() {
+                dom.sortModal.classList.add('hidden');
+                dom.sortModal.classList.remove('flex');
+            }
+
+            function applySort(e) {
+                e.preventDefault();
+                const ms = dom.sortMilestone.value;
+                if (!ms) return;
+
+                sortConfig.milestone = ms;
+                sortConfig.direction = dom.sortDirection.value;
+                
+                closeSortModal();
+                render();
+            }
+
+            function clearSort() {
+                sortConfig.milestone = null;
+                sortConfig.direction = 'asc';
+                closeSortModal();
                 render();
             }
 
@@ -1309,7 +1466,11 @@
                 closeMilestoneModal,
                 addMilestoneRow,
                 saveMilestones,
-                scrollToToday
+                scrollToToday,
+                openSortModal,
+                closeSortModal,
+                applySort,
+                clearSort
             };
         })();
 

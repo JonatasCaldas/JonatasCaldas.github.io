@@ -1428,23 +1428,32 @@
             }
 
             function exportData() {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks));
-                const downloadAnchorNode = document.createElement('a');
+                // Formatting JSON with 2 spaces for better readability in text editors
+                const jsonStr = JSON.stringify(tasks, null, 2);
+                const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
                 
+                const link = document.createElement("a");
                 const filename = getExportFilename('json');
                 
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", filename);
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Limpeza de memória
+                URL.revokeObjectURL(url);
             }
 
             function exportToCSV() {
-                const headers = ["ID", "Task Name", "Team", "Start Date", "End Date", "Duration (Days)", "Progress", "Parent ID", "Dependencies"];
+                const headers = ["ID", "Nome da Tarefa", "Equipe", "Data Início", "Data Fim", "Duração (Dias)", "Progresso", "ID Pai", "Dependências", "Etapas (Milestones)"];
+                
                 const safe = (str) => {
                     if (str === null || str === undefined) return '';
                     const s = String(str);
+                    // Se contiver vírgula, aspa ou quebra de linha, envolve em aspas duplas (padrão CSV)
                     if (s.includes(',') || s.includes('"') || s.includes('\n')) {
                         return `"${s.replace(/"/g, '""')}"`;
                     }
@@ -1453,6 +1462,13 @@
 
                 const rows = tasks.map(t => {
                     const duration = dateUtils.diffDays(dateUtils.parseDate(t.start), dateUtils.parseDate(t.end));
+                    
+                    // Converte array de objetos de etapas para uma string legível
+                    let milestonesStr = "";
+                    if (t.milestones && t.milestones.length > 0) {
+                        milestonesStr = t.milestones.map(m => `${m.name} (${m.date})`).join('; ');
+                    }
+
                     return [
                         t.id,
                         safe(t.name),
@@ -1462,16 +1478,17 @@
                         duration,
                         `${t.progress}%`,
                         t.parentId || "",
-                        safe((t.dependencies || []).join(','))
+                        safe((t.dependencies || []).join(',')),
+                        safe(milestonesStr)
                     ].join(',');
                 });
 
+                // \uFEFF é o BOM (Byte Order Mark) que força o Excel a abrir arquivos CSV com UTF-8 (mantendo acentos)
                 const csvContent = "\uFEFF" + headers.join(',') + "\n" + rows.join('\n');
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 
                 const link = document.createElement("a");
-                
                 const filename = getExportFilename('csv');
                 
                 link.setAttribute("href", url);
@@ -1480,6 +1497,9 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                
+                // Limpeza de memória
+                URL.revokeObjectURL(url);
             }
 
             function importData(input) {

@@ -1567,6 +1567,7 @@
         let tActiveCardId = null;
         let tCalcValueStr = "0";
         let tChartInstance = null;
+        let tCurrentChartPeriod = 'semana'; // Estado global do filtro selecionado
 
         const tFormatBRL = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         const tFormatDate = (isoString) => {
@@ -1694,6 +1695,16 @@
             } else {
                 badgeColor.className = "w-2 h-2 rounded-full bg-primary"; badgeText.textContent = "Portfólio";
             }
+            
+            // Reseta a visualização do gráfico para 'semana' ao abrir nova carta
+            tCurrentChartPeriod = 'semana';
+            const selector = document.getElementById('tracker-chart-period-selector');
+            const buttons = selector.querySelectorAll('button');
+            buttons.forEach((btn, idx) => {
+                if (idx === 1) btn.className = "px-4 py-2 rounded-lg bg-surface-container-highest shadow-sm text-on-surface transition-colors border border-white/5";
+                else btn.className = "px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors";
+            });
+
             tRenderHistoryList(card.history);
             tRenderChart(card.history);
             goToView('tracker-details-view', 'tracker');
@@ -1770,14 +1781,51 @@
         function tRenderChart(history) {
             const canvas = document.getElementById('tracker-priceChart');
             const emptyState = document.getElementById('tracker-chart-empty-state');
-            if (history.length < 2) {
+            
+            // Lógica de Filtragem e Agrupamento baseada no período selecionado
+            const now = new Date();
+            let startTime = new Date();
+            if (tCurrentChartPeriod === 'dia') startTime.setDate(now.getDate() - 1);
+            else if (tCurrentChartPeriod === 'semana') startTime.setDate(now.getDate() - 7);
+            else if (tCurrentChartPeriod === 'mes') startTime.setMonth(now.getMonth() - 1);
+
+            let filteredHistory = history.filter(h => new Date(h.date) >= startTime);
+
+            // Garante linha contínua visual caso o último preço seja mais antigo que o período selecionado
+            if (filteredHistory.length > 0 && history.length > filteredHistory.length) {
+                const olderPoints = history.filter(h => new Date(h.date) < startTime);
+                if (olderPoints.length > 0) {
+                    filteredHistory.unshift({
+                        ...olderPoints[olderPoints.length - 1],
+                        date: startTime.toISOString() 
+                    });
+                }
+            } else if (filteredHistory.length === 0 && history.length > 0) {
+                const lastKnown = history[history.length - 1];
+                filteredHistory = [
+                    { ...lastKnown, date: startTime.toISOString() },
+                    { ...lastKnown, date: now.toISOString() }
+                ];
+            }
+
+            if (filteredHistory.length < 2) {
                 emptyState.classList.remove('hidden');
                 if (tChartInstance) { tChartInstance.destroy(); tChartInstance = null; }
                 return;
             }
             emptyState.classList.add('hidden');
-            const labels = history.map(h => tFormatDate(h.date));
-            const data = history.map(h => h.value);
+            
+            const labels = filteredHistory.map(h => {
+                const d = new Date(h.date);
+                if (tCurrentChartPeriod === 'dia') {
+                    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                } else if (tCurrentChartPeriod === 'semana') {
+                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}h`;
+                } else {
+                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}`;
+                }
+            });
+            const data = filteredHistory.map(h => h.value);
             const ctx = canvas.getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, 'rgba(242, 192, 0, 0.25)');
@@ -1875,6 +1923,15 @@
             const buttons = container.querySelectorAll('button');
             buttons.forEach(btn => btn.className = "px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors");
             btnElement.className = "px-4 py-2 rounded-lg bg-surface-container-highest shadow-sm text-on-surface transition-colors border border-white/5";
+            
+            // Salva o período ativado e atualiza o gráfico da carta que está em aberto
+            tCurrentChartPeriod = period;
+            if (tActiveCardId) {
+                const card = tCards.find(c => c.id === tActiveCardId);
+                if (card) {
+                    tRenderChart(card.history);
+                }
+            }
         }
 
         function tUpdateCalcDisplay() {

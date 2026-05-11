@@ -826,6 +826,53 @@
             }
         };
 
+        // ----------------------------------------------------
+        // LÓGICA DE LONG PRESS PARA COLETAR CARTAS
+        // ----------------------------------------------------
+        let longPressTimer;
+
+        const startLongPress = (cardId) => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                markCardAsCollected(cardId);
+            }, 800); // 800ms conforme solicitado
+        };
+
+        const cancelLongPress = () => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+        };
+
+        const markCardAsCollected = async (cardId) => {
+            const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
+            const entity = list.find(en => en.id === appState.currentEntityId);
+            if (!entity) return;
+            
+            const card = entity.cards.find(c => c.id === cardId);
+            if (!card || card.collected) return; // Só marca se não estiver coletada
+
+            // Atualização visual otimista instantânea
+            card.collected = true;
+            if (navigator.vibrate) navigator.vibrate(50); // Feedback tátil (se suportado pelo dispositivo)
+
+            if (appState.activeContext === 'collection') renderCollectionDetails();
+            else renderBinderDetails();
+
+            // Sincronização em segundo plano no Supabase
+            const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
+            try {
+                const { error } = await db.from(table).update({ collected: true }).eq('id', cardId);
+                if (error) throw error;
+                showToast('Carta marcada como coletada!');
+            } catch (err) {
+                console.error(err);
+                // Reverte em caso de falha na rede
+                card.collected = false;
+                if (appState.activeContext === 'collection') renderCollectionDetails();
+                else renderBinderDetails();
+                showToast('Erro ao marcar carta. Tente novamente.', true);
+            }
+        };
+
         document.getElementById('form-entity').addEventListener('submit', async (e) => {
             e.preventDefault();
             const list = editingEntityType === 'collection' ? appState.collections : appState.binders;
@@ -1104,12 +1151,20 @@
             });
             sortedCards.forEach(card => {
                 const imgClass = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
+                
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="relative group col-card-item" data-collected="${card.collected}">
+                    <div class="relative group col-card-item select-none" style="-webkit-touch-callout: none;" data-collected="${card.collected}"
+                        onmousedown="startLongPress('${card.id}')"
+                        ontouchstart="startLongPress('${card.id}')"
+                        onmouseup="cancelLongPress()"
+                        onmouseleave="cancelLongPress()"
+                        ontouchend="cancelLongPress()"
+                        ontouchmove="cancelLongPress()"
+                        ontouchcancel="cancelLongPress()">
                         <div class="aspect-[2.5/3.5] rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect transition-transform duration-300 hover:scale-[1.02] active:scale-95 border border-white/5">
                             <img alt="${card.name}" class="${imgClass}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
                             <div class="card-sheen z-0"></div>
-                            <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                 <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                 <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
@@ -1327,14 +1382,21 @@
                     const imgClass = isMissing ? 'w-full h-full object-cover missing-card' : 'w-full h-full object-cover';
                     const missingRibbon = isMissing ? `<div class="absolute inset-0 flex items-center justify-center rotate-[-12deg] z-30 pointer-events-none"><span class="bg-tertiary-container text-on-tertiary-container font-headline font-black text-[10px] md:text-xs px-3 py-1 rounded-sm uppercase tracking-[0.2em] shadow-xl">Faltando</span></div>` : '';
                     grid.insertAdjacentHTML('beforeend', `
-                        <div class="relative group aspect-[2.5/3.5] cursor-grab active:cursor-grabbing">
+                        <div class="relative group aspect-[2.5/3.5] cursor-grab active:cursor-grabbing select-none" style="-webkit-touch-callout: none;"
+                            onmousedown="startLongPress('${card.id}')"
+                            ontouchstart="startLongPress('${card.id}')"
+                            onmouseup="cancelLongPress()"
+                            onmouseleave="cancelLongPress()"
+                            ontouchend="cancelLongPress()"
+                            ontouchmove="cancelLongPress()"
+                            ontouchcancel="cancelLongPress()">
                             <div class="absolute inset-0 bg-surface-container-highest rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] border border-white/5">
                                 <img alt="${card.name}" class="${imgClass}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
                                 ${missingRibbon}
                                 <div class="card-sheen z-0"></div>
-                                <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-40">
-                                    <button onclick="event.stopPropagation(); openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                    <button onclick="event.stopPropagation(); openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-40" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                    <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                    <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                         </div>

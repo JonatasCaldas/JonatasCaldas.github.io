@@ -843,7 +843,7 @@
             if (longPressTimer) clearTimeout(longPressTimer);
             longPressTimer = setTimeout(() => {
                 markCardAsCollected(cardId);
-            }, 800); // 800ms conforme solicitado
+            }, 400); // 400ms conforme solicitado
         };
 
         const cancelLongPress = () => {
@@ -1870,6 +1870,22 @@
                 }
             });
             const data = filteredHistory.map(h => h.value);
+            
+            // NOVA LÓGICA DE ESCALA EM MÚLTIPLOS DE 5
+            const dataMin = Math.min(...data);
+            const dataMax = Math.max(...data);
+            
+            let yMin = Math.floor(dataMin / 5) * 5;
+            let yMax = Math.ceil(dataMax / 5) * 5;
+            
+            // Força a escala a ter no mínimo 5 reais de variação total
+            if (yMax === yMin) {
+                yMin = Math.max(0, yMin - 5);
+                yMax += 5;
+            } else if (yMax - yMin < 5) {
+                yMax = yMin + 5;
+            }
+
             const ctx = canvas.getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, 'rgba(242, 192, 0, 0.25)');
@@ -1884,6 +1900,11 @@
                 tChartInstance.data.datasets[0].pointBackgroundColor = pointColors;
                 tChartInstance.data.datasets[0].pointRadius = pointRadiuses;
                 tChartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiuses;
+                
+                // Aplica os novos limites de escala na instância existente
+                tChartInstance.options.scales.y.suggestedMin = yMin;
+                tChartInstance.options.scales.y.suggestedMax = yMax;
+                
                 tChartInstance.update();
             } else {
                 tChartInstance = new Chart(ctx, {
@@ -1909,6 +1930,9 @@
                         scales: {
                             x: { display: false },
                             y: {
+                                // Aplica os limites calculados aqui
+                                suggestedMin: yMin,
+                                suggestedMax: yMax,
                                 position: 'left', border: { display: false }, grid: { color: '#333537', drawTicks: false },
                                 ticks: {
                                     font: { family: 'Inter', size: 11, weight: '500' }, color: '#8e909f', maxTicksLimit: 6, padding: 10,

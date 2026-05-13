@@ -841,7 +841,7 @@
             if (longPressTimer) clearTimeout(longPressTimer);
             longPressTimer = setTimeout(() => {
                 markCardAsCollected(cardId);
-            }, 400); // 400ms conforme solicitado
+            }, 100); // 100ms conforme solicitado
         };
 
         const cancelLongPress = () => {

@@ -1973,7 +1973,7 @@
                 const { error } = await db.from('price_history').insert([{ card_id: tActiveCardId, value: lastVal }]);
                 if (error) throw error;
                 await tLoadData(); 
-                showToast("Preço registado com sucesso!");
+                showToast("Preço registrado com sucesso!");
             } catch (err) {
                 showToast("Erro ao repetir preço.", true);
             }
@@ -1988,7 +1988,7 @@
                 if (error) throw error;
                 tCloseModal('tracker-modal-price');
                 await tLoadData();
-                showToast("Preço registado com sucesso!");
+                showToast("Preço registrado com sucesso!");
             } catch(err) {
                 showToast("Erro ao salvar novo preço.", true);
             }

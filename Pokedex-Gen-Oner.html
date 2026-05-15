@@ -481,6 +481,12 @@
                             <span id="tracker-detail-badge-text" class="font-label text-[10px] uppercase tracking-widest text-on-surface font-bold">Ativo</span>
                         </div>
                     </section>
+                    
+                    <div class="bg-surface-container-low rounded-2xl border border-white/5 p-6 flex flex-col gap-1 w-full">
+                        <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Menor Valor Registrado</span>
+                        <span id="tracker-detail-lowest-price" class="font-headline text-2xl font-extrabold text-primary">Nenhum registro anterior</span>
+                    </div>
+
                     <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full">
                         <button onclick="tOpenModalPrice()" class="flex-1 bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10">
                             <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i> Novo Preço
@@ -841,7 +847,7 @@
             if (longPressTimer) clearTimeout(longPressTimer);
             longPressTimer = setTimeout(() => {
                 markCardAsCollected(cardId);
-            }, 100); // 100ms conforme solicitado
+            }, 400); // 400ms conforme solicitado
         };
 
         const cancelLongPress = () => {
@@ -1642,6 +1648,7 @@
                 if(tActiveCardId) {
                     const updatedCard = tCards.find(c => c.id === tActiveCardId);
                     if(updatedCard) {
+                        tRenderLowestPrice(updatedCard.history);
                         tRenderHistoryList(updatedCard.history);
                         tRenderChart(updatedCard.history);
                     }
@@ -1737,6 +1744,8 @@
             } else {
                 badgeColor.className = "w-2 h-2 rounded-full bg-primary"; badgeText.textContent = "Portfólio";
             }
+
+            tRenderLowestPrice(card.history);
             
             // Reseta a visualização do gráfico para 'semana' ao abrir nova carta
             tCurrentChartPeriod = 'semana';
@@ -1762,6 +1771,18 @@
                 goToView('tracker-wishlist-view', 'tracker');
             } else {
                 goToView('tracker-home-view', 'tracker');
+            }
+        }
+
+        function tRenderLowestPrice(history) {
+            const lowestPriceEl = document.getElementById('tracker-detail-lowest-price');
+            if (history && history.length > 0) {
+                const lowestVal = Math.min(...history.map(h => h.value));
+                lowestPriceEl.textContent = tFormatBRL(lowestVal);
+                lowestPriceEl.className = "font-headline text-2xl font-extrabold text-primary";
+            } else {
+                lowestPriceEl.textContent = "Nenhum registro anterior";
+                lowestPriceEl.className = "font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold";
             }
         }
 

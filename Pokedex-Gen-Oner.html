@@ -226,15 +226,20 @@
                 </div>
             </div>
             
-            <div class="flex items-center gap-3 mb-6">
-                <label class="relative flex items-center cursor-pointer group">
-                    <input type="checkbox" id="col-filter-collected" class="sr-only peer">
-                    <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-primary/10 peer-checked:text-primary peer-checked:border-primary/50 hover:bg-surface-container transition-all shadow-sm">Coletado</div>
-                </label>
-                <label class="relative flex items-center cursor-pointer group">
-                    <input type="checkbox" id="col-filter-uncollected" class="sr-only peer">
-                    <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-surface-container-highest peer-checked:text-on-surface peer-checked:border-outline-variant hover:bg-surface-container transition-all shadow-sm">Não Coletado</div>
-                </label>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div class="flex items-center gap-3 shrink-0">
+                    <label class="relative flex items-center cursor-pointer group">
+                        <input type="checkbox" id="col-filter-collected" class="sr-only peer">
+                        <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-primary/10 peer-checked:text-primary peer-checked:border-primary/50 hover:bg-surface-container transition-all shadow-sm">Coletado</div>
+                    </label>
+                    <label class="relative flex items-center cursor-pointer group">
+                        <input type="checkbox" id="col-filter-uncollected" class="sr-only peer">
+                        <div class="px-4 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant text-[11px] font-bold uppercase tracking-wider peer-checked:bg-surface-container-highest peer-checked:text-on-surface peer-checked:border-outline-variant hover:bg-surface-container transition-all shadow-sm">Não Coletado</div>
+                    </label>
+                </div>
+                <div id="col-rarity-counter" class="flex flex-wrap items-center gap-2">
+                    <!-- Rarity counters via JS -->
+                </div>
             </div>
 
             <div id="collection-details-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -322,7 +327,7 @@
                     <!-- Indicador centralizado -->
                     <div id="binder-page-indicator" class="bg-surface-container-highest px-4 py-1.5 rounded-xl flex flex-col items-center justify-center text-center font-label uppercase tracking-widest text-on-surface-variant border border-white/5 min-w-[120px]">
                         <span class="text-[9px] font-bold text-primary truncate max-w-[100px] mb-0.5">Página</span>
-                        <span class="text-[10px] md:text-xs leading-none">01 de 01</span>
+                        <span class="text-[10px] md:text-xs leading-none">${String(appState.binderPage + 1).padStart(2, '0')} de ${String(totalPages).padStart(2, '0')}</span>
                     </div>
                     <button id="btn-next-binder-page" onclick="nextBinderPage()" class="text-secondary hover:text-primary transition-colors flex items-center gap-1 group focus:outline-none">
                         <span class="text-xs font-bold font-label uppercase tracking-widest group-hover:underline">Próxima</span>
@@ -528,11 +533,40 @@
         </main>
     </div>
 
+    <!-- ========================================== -->
+    <!-- TELA 9: DESTAQUES (TIMELINE)               -->
+    <!-- ========================================== -->
+    <div id="destaques-view" class="view-transition view-hidden">
+        <main class="px-6 pt-8 pb-12 max-w-5xl mx-auto w-full">
+            <section class="mb-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                    <div>
+                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Destaques</h2>
+                        <p class="text-on-surface-variant font-medium text-sm md:text-base">
+                            Sua linha do tempo de conquistas memoráveis.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button onclick="mOpenModalMilestone()" class="w-full md:w-auto bg-primary text-on-primary font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            Novo Destaque
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timeline Container -->
+                <div id="milestones-timeline" class="relative pl-6 ml-4 border-l-2 border-white/10 space-y-10">
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
 
     <!-- ========================================== -->
     <!-- NAVEGAÇÃO INFERIOR E MODAIS GLOBAIS        -->
     <!-- ========================================== -->
-    <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-8 pb-6 pt-3 bg-[#121416]/80 backdrop-blur-xl border-t border-white/5 shadow-[0px_-10px_30px_rgba(0,0,0,0.5)] z-50">
+    <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 md:px-8 pb-6 pt-3 bg-[#121416]/80 backdrop-blur-xl border-t border-white/5 shadow-[0px_-10px_30px_rgba(0,0,0,0.5)] z-50">
         <button id="nav-home" onclick="goToView('home-view', 'home')" class="flex flex-col items-center justify-center text-primary transition-transform active:scale-95 focus:outline-none">
             <div class="relative mb-1">
                 <i data-lucide="archive" id="icon-home" class="w-6 h-6 lucide-filled transition-all"></i>
@@ -546,6 +580,11 @@
         <button id="nav-tracker" onclick="goToView('tracker-home-view', 'tracker')" class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none">
             <i data-lucide="radar" id="icon-tracker" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
             <span class="font-inter text-[10px] font-medium uppercase tracking-wider">Tracker</span>
+        </button>
+        <!-- Novo Botão de Destaques -->
+        <button id="nav-destaques" onclick="goToView('destaques-view', 'destaques')" class="flex flex-col items-center justify-center text-secondary/60 hover:text-secondary transition-colors active:scale-95 group focus:outline-none">
+            <i data-lucide="star" id="icon-destaques" class="w-6 h-6 mb-1 group-hover:scale-110 transition-transform"></i>
+            <span class="font-inter text-[10px] font-medium uppercase tracking-wider">Destaques</span>
         </button>
     </nav>
 
@@ -739,6 +778,54 @@
         </div>
     </div>
 
+    <!-- Modal: Novo Destaque (Timeline) -->
+    <div id="modal-milestone" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="mCloseModalMilestone()"></div>
+        <div id="modal-milestone-panel" class="relative bg-surface-container border border-white/10 rounded-2xl w-[90%] max-w-md p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-milestone-title" class="text-2xl font-bold text-on-surface">Novo Destaque</h3>
+                <button onclick="mCloseModalMilestone()" class="text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <form id="form-milestone" class="flex flex-col gap-4" onsubmit="mSaveMilestone(event)">
+                <!-- Input hidden para controlar se estamos editando ou criando -->
+                <input type="hidden" id="input-ms-id">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium mb-1.5 text-on-surface-variant">Nome da Carta / Item</label>
+                        <input type="text" id="input-ms-name" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5 text-on-surface-variant">Data</label>
+                        <input type="date" id="input-ms-date" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface [color-scheme:dark]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5 text-on-surface-variant">Etiqueta</label>
+                        <input type="text" id="input-ms-subtitle" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface" placeholder="Ex: Grail">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL da Imagem</label>
+                    <input type="url" id="input-ms-image" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5 text-on-surface-variant">Sua História</label>
+                    <textarea id="input-ms-text" required rows="3" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface resize-none" placeholder="O que torna esta carta especial?"></textarea>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="mCloseModalMilestone()" class="px-5 py-3 rounded-xl font-bold text-on-surface hover:bg-white/5 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-3 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-fixed active:scale-95 transition-all flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Salvar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- ========================================== -->
     <!-- JAVASCRIPT GERAL                           -->
@@ -803,7 +890,8 @@
                     },
                     collections: appState.collections,
                     binders: appState.binders,
-                    tracker_cards: typeof tCards !== 'undefined' ? tCards : []
+                    tracker_cards: typeof tCards !== 'undefined' ? tCards : [],
+                    milestones: typeof mMilestones !== 'undefined' ? mMilestones : []
                 };
 
                 const dataStr = JSON.stringify(fullBackupData, null, 2);
@@ -1012,12 +1100,25 @@
                     if (binder.page_names && binder.page_names.length > pageIndex) binder.page_names.splice(pageIndex, 1);
                     try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch(err) {}
                     renderBinderPages();
+                } else if (deleteContext.type === 'milestone') {
+                    const { error } = await db.from('milestones').delete().eq('id', deleteContext.id);
+                    if (error) throw error;
+                    await mLoadData();
+                } else if (deleteContext.type === 'tracker-card') {
+                    const { error } = await db.from('cards').delete().eq('id', deleteContext.id);
+                    if(error) throw error;
+                    await tLoadData();
+                    if(tActiveCardId === deleteContext.id) goToView('tracker-home-view', 'tracker');
+                } else if (deleteContext.type === 'tracker-price') {
+                    const { error } = await db.from('price_history').delete().eq('id', deleteContext.id);
+                    if(error) throw error;
+                    await tLoadData();
                 }
-                showToast('Excluído permanentemente da nuvem.');
+                showToast('Excluído com sucesso!');
                 closeDeleteModal();
             } catch(err) {
                 console.error("Erro completo na exclusão:", err);
-                showToast('Falha ao excluir no banco de dados.', true);
+                showToast('Falha ao excluir.', true);
             } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;
@@ -1025,7 +1126,7 @@
         };
 
         const goToView = (viewId, navIcon) => {
-            ['home-view', 'binders-view', 'collection-details-view', 'binder-pages-view', 'binder-details-view', 'tracker-home-view', 'tracker-wishlist-view', 'tracker-details-view'].forEach(v => {
+            ['home-view', 'binders-view', 'collection-details-view', 'binder-pages-view', 'binder-details-view', 'tracker-home-view', 'tracker-wishlist-view', 'tracker-details-view', 'destaques-view'].forEach(v => {
                 const el = document.getElementById(v);
                 if(el) el.classList.replace('view-visible', 'view-hidden');
             });
@@ -1034,7 +1135,7 @@
             appState.activeView = viewId;
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            const icons = ['home', 'binder', 'tracker'];
+            const icons = ['home', 'binder', 'tracker', 'destaques'];
             icons.forEach(icon => {
                 const btn = document.getElementById(`nav-${icon}`);
                 const icn = document.getElementById(`icon-${icon}`);
@@ -1053,6 +1154,7 @@
             if (viewId === 'binders-view') renderEntityGrid('binder');
             if (viewId === 'tracker-home-view') tRenderHome();
             if (viewId === 'tracker-wishlist-view') tRenderWishlist();
+            if (viewId === 'destaques-view') mRenderMilestones();
         };
 
         const calcProgress = (cards) => {
@@ -1153,6 +1255,44 @@
             const barEl = document.getElementById('col-detail-progress-bar');
             barEl.className = `h-full bg-gradient-to-r ${barClass} transition-all duration-1000`;
             barEl.style.width = `${prog.percent}%`;
+            
+            // --- CONTABILIZADOR DE RARIDADE ---
+            const rarityMap = {
+                'COMUM': { symbol: 'C', label: 'Comum' },
+                'INCOMUM': { symbol: 'U', label: 'Incomum' },
+                'RARA': { symbol: 'R', label: 'Rara' },
+                'DUPLA RARA': { symbol: 'RR', label: 'Dupla Rara' },
+                'ILUSTRAÇÃO RARA': { symbol: 'AR', label: 'Ilustração Rara (Art Rare)' },
+                'ULTRA RARA': { symbol: 'SR', label: 'Ultra Rara' },
+                'PROMO': { symbol: 'P', label: 'Promo' }
+            };
+            const rarityOrder = ['COMUM', 'INCOMUM', 'RARA', 'DUPLA RARA', 'ILUSTRAÇÃO RARA', 'ULTRA RARA', 'PROMO'];
+            
+            let rarityCounts = {};
+            (collection.cards || []).forEach(c => {
+                const r = c.rarity ? c.rarity.toUpperCase() : 'COMUM';
+                rarityCounts[r] = (rarityCounts[r] || 0) + 1;
+            });
+
+            const rarityContainer = document.getElementById('col-rarity-counter');
+            let rarityHtml = '';
+            
+            rarityOrder.forEach(r => {
+                if (rarityCounts[r] > 0) {
+                    rarityHtml += `
+                        <div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-white/5 shadow-sm cursor-help transition-colors hover:bg-surface-container" title="${rarityMap[r].label}">
+                            <span class="font-headline text-[11px] font-black text-primary">${rarityMap[r].symbol}</span>
+                            <span class="font-label text-[11px] font-bold text-on-surface-variant">${rarityCounts[r]}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            if (rarityContainer) {
+                rarityContainer.innerHTML = rarityHtml;
+            }
+            // ----------------------------------
+
             const grid = document.getElementById('collection-details-grid');
             grid.innerHTML = `
                 <div onclick="openCardModal()" class="relative group order-first">
@@ -1597,6 +1737,9 @@
             let title = 'Excluir';
             if (isEntity) title = `Excluir ${type === 'collection' ? 'Coleção' : 'Fichário'}`;
             else if (type === 'page') title = 'Excluir Página';
+            else if (type === 'milestone') title = 'Excluir Destaque';
+            else if (type === 'tracker-card') title = 'Excluir Carta';
+            else if (type === 'tracker-price') title = 'Excluir Registro';
             else title = 'Excluir Carta';
             
             document.getElementById('delete-modal-title').textContent = title;
@@ -1604,6 +1747,12 @@
             const desc = document.getElementById('delete-modal-desc');
             if (type === 'page') {
                 desc.textContent = 'Todas as cartas desta página serão apagadas e as páginas seguintes serão reordenadas. Ação irreversível no banco de dados.';
+            } else if (type === 'milestone') {
+                desc.textContent = 'Este destaque será removido da sua linha do tempo de forma permanente.';
+            } else if (type === 'tracker-card') {
+                desc.textContent = 'O histórico de preços desta carta também será excluído. Ação irreversível no banco de dados.';
+            } else if (type === 'tracker-price') {
+                desc.textContent = 'Este registro de preço será apagado do histórico. Ação irreversível no banco de dados.';
             } else {
                 desc.textContent = 'Ação irreversível no banco de dados.';
             }
@@ -1617,13 +1766,16 @@
         };
 
         // ----------------------------------------------------
-        // LÓGICA DO POKETRACKER (ISOLADA / ASSIMILADA)
+        // LÓGICA DO POKETRACKER E DESTAQUES (TIMELINE)
         // ----------------------------------------------------
         let tCards = [];
         let tActiveCardId = null;
         let tCalcValueStr = "0";
         let tChartInstance = null;
-        let tCurrentChartPeriod = 'semana'; // Estado global do filtro selecionado
+        let tCurrentChartPeriod = 'semana'; 
+        
+        // Estado global para Destaques conectado ao Supabase
+        let mMilestones = [];
 
         const tFormatBRL = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         const tFormatDate = (isoString) => {
@@ -1667,6 +1819,166 @@
             }
         }
 
+        async function mLoadData() {
+            try {
+                const { data, error } = await db.from('milestones').select('*').order('recorded_date', { ascending: false });
+                if (error) throw error;
+                mMilestones = data || [];
+                mRenderMilestones();
+            } catch (err) {
+                console.error("Erro ao carregar dados de Destaques:", err.message);
+                document.getElementById('milestones-timeline').innerHTML = `<div class="text-error font-medium pl-4">Erro ao conectar com o banco de dados.</div>`;
+            }
+        }
+
+        // ---------- DESTAQUES: Funções de Render e Actions ----------
+        function mRenderMilestones() {
+            const container = document.getElementById('milestones-timeline');
+            container.innerHTML = '';
+            
+            if(mMilestones.length === 0) {
+                container.innerHTML = `<div class="text-on-surface-variant text-sm py-10 text-center bg-surface-container-low rounded-2xl border border-dashed border-white/10 -ml-6">Nenhum destaque adicionado ainda.</div>`;
+                return;
+            }
+
+            // Ordena do mais recente para o mais antigo com base no banco
+            const sorted = [...mMilestones].sort((a, b) => new Date(b.recorded_date) - new Date(a.recorded_date));
+
+            sorted.forEach((m, index) => {
+                const isFirst = index === 0;
+                const nodeColor = isFirst ? 'bg-primary ring-4 ring-primary/20 shadow-[0_0_15px_rgba(242,192,0,0.5)]' : 'bg-surface-container-highest border-2 border-surface-container-lowest';
+                const dateColor = isFirst ? 'text-primary' : 'text-on-surface-variant';
+                
+                const dateObj = new Date(m.recorded_date + 'T12:00:00Z');
+                const formattedDate = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+                const html = `
+                    <div class="relative">
+                        <!-- Node -->
+                        <div class="absolute -left-[33px] top-4 w-4 h-4 rounded-full ${nodeColor} z-10"></div>
+                        
+                        <!-- Date -->
+                        <div class="mb-3 flex items-center gap-2">
+                            <i data-lucide="calendar" class="${dateColor} w-4 h-4"></i>
+                            <span class="font-label text-[10px] ${dateColor} tracking-widest uppercase font-bold">${formattedDate}</span>
+                        </div>
+                        
+                        <!-- Content Card -->
+                        <article class="bg-surface-container-low rounded-xl p-4 md:p-5 shadow-xl border border-white/5 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none"></div>
+                            
+                            <!-- Ações (Editar/Excluir) integradas ao modal -->
+                            <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <button onclick="mEditMilestone('${m.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg border border-white/5"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); openDeleteModal('milestone', '${m.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg border border-white/5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-5 relative z-10">
+                                <!-- Box da imagem com formato de carta real (aspect 2.5/3.5) -->
+                                <div class="aspect-[2.5/3.5] w-28 sm:w-36 shrink-0 rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect border border-white/5 shadow-md">
+                                    <img alt="${m.name}" class="w-full h-full object-cover ${!isFirst ? 'grayscale-[30%] group-hover:grayscale-0 transition-all duration-500' : ''}" src="${m.image_url}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
+                                    <div class="card-sheen z-0"></div>
+                                </div>
+                                <div class="flex flex-col justify-center flex-1">
+                                    <div class="flex justify-between items-start mb-2 gap-2 pr-16">
+                                        <h3 class="font-headline text-lg md:text-xl font-bold text-on-surface">${m.name}</h3>
+                                        <span class="bg-surface-container-highest text-on-surface font-label text-[10px] font-bold px-2.5 py-1 rounded border border-white/10 uppercase tracking-widest whitespace-nowrap mt-1">${m.subtitle}</span>
+                                    </div>
+                                    <div class="bg-surface-container/50 border border-white/5 rounded-lg p-3.5 mt-2">
+                                        <div class="flex items-start gap-2.5 text-on-surface-variant">
+                                            <i data-lucide="quote" class="w-4 h-4 shrink-0 mt-0.5 opacity-50"></i>
+                                            <p class="font-body text-sm italic leading-relaxed">${m.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons();
+        }
+
+        function mOpenModalMilestone() {
+            document.getElementById('form-milestone').reset();
+            document.getElementById('input-ms-id').value = '';
+            document.getElementById('modal-milestone-title').textContent = "Novo Destaque";
+            
+            const modal = document.getElementById('modal-milestone');
+            const content = document.getElementById('modal-milestone-panel');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+
+        function mEditMilestone(id, event) {
+            event.stopPropagation();
+            const milestone = mMilestones.find(m => m.id === id);
+            if(!milestone) return;
+
+            document.getElementById('input-ms-id').value = milestone.id;
+            document.getElementById('input-ms-name').value = milestone.name;
+            document.getElementById('input-ms-subtitle').value = milestone.subtitle;
+            document.getElementById('input-ms-image').value = milestone.image_url;
+            document.getElementById('input-ms-date').value = milestone.recorded_date;
+            document.getElementById('input-ms-text').value = milestone.description;
+
+            document.getElementById('modal-milestone-title').textContent = "Editar Destaque";
+            
+            const modal = document.getElementById('modal-milestone');
+            const content = document.getElementById('modal-milestone-panel');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+
+        function mCloseModalMilestone() {
+            const modal = document.getElementById('modal-milestone');
+            const content = document.getElementById('modal-milestone-panel');
+            modal.classList.add('opacity-0'); content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+
+        async function mSaveMilestone(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Salvando...</span>`;
+            btn.disabled = true;
+
+            const id = document.getElementById('input-ms-id').value;
+            const name = document.getElementById('input-ms-name').value.trim();
+            const subtitle = document.getElementById('input-ms-subtitle').value.trim();
+            const image_url = document.getElementById('input-ms-image').value.trim();
+            const recorded_date = document.getElementById('input-ms-date').value;
+            const description = document.getElementById('input-ms-text').value.trim();
+
+            const payload = { name, subtitle, image_url, recorded_date, description };
+
+            try {
+                if (id) {
+                    const { error } = await db.from('milestones').update(payload).eq('id', id);
+                    if (error) throw error;
+                    showToast('Destaque atualizado na nuvem!');
+                } else {
+                    const { error } = await db.from('milestones').insert([payload]);
+                    if (error) throw error;
+                    showToast('Destaque salvo na nuvem!');
+                }
+
+                await mLoadData();
+                mCloseModalMilestone();
+            } catch (err) {
+                console.error(err);
+                showToast('Erro ao salvar destaque.', true);
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // ---------- FIM DESTAQUES ----------
+
         function tGenerateCardHtml(card, currentP, prevP) {
             const variance = tGetVariance(currentP, prevP);
             const isPositive = variance >= 0;
@@ -1690,7 +2002,7 @@
                     </div>
                     <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <button onclick="tEditCard('${card.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg border border-white/5"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                        <button onclick="tDeleteCard('${card.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg border border-white/5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="event.stopPropagation(); openDeleteModal('tracker-card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg border border-white/5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 </article>
             `;
@@ -1848,7 +2160,7 @@
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="font-body text-xs md:text-sm text-on-surface-variant">${tFormatDate(entry.date)}</span>
-                            <button onclick="tDeletePriceRecord('${entry.id}', event)" class="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-full transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100" title="Excluir Registro">
+                            <button onclick="event.stopPropagation(); openDeleteModal('tracker-price', '${entry.id}')" class="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-full transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100" title="Excluir Registro">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -2011,17 +2323,6 @@
                 showToast("Erro ao salvar novo preço.", true);
             }
         }
-        
-        async function tDeletePriceRecord(priceId, event) {
-            event.stopPropagation();
-            if(confirm("Tem certeza que deseja excluir este registro de preço?")) {
-                try {
-                    const { error } = await db.from('price_history').delete().eq('id', priceId);
-                    if(error) throw error;
-                    await tLoadData();
-                } catch(err) { showToast("Erro ao excluir registro de preço.", true); }
-            }
-        }
 
         function tSetChartPeriod(period, btnElement) {
             const container = btnElement.parentElement;
@@ -2109,19 +2410,6 @@
             tOpenModal('tracker-modal-card');
         }
 
-        async function tDeleteCard(id, event) {
-            event.stopPropagation();
-            if(confirm("Tem certeza que deseja excluir esta carta? O histórico de preços será excluído junto.")) {
-                try {
-                    const { error } = await db.from('cards').delete().eq('id', id);
-                    if(error) throw error;
-                    await tLoadData();
-                    if(tActiveCardId === id) goToView('tracker-home-view', 'tracker');
-                    showToast("Carta excluída com sucesso!");
-                } catch(err) { showToast("Erro ao excluir carta.", true); }
-            }
-        }
-
         function tOpenModal(modalId) {
             const modal = document.getElementById(modalId);
             const content = modal.children[1];
@@ -2156,6 +2444,7 @@
         const initBoot = async () => {
             await loadDataFromCloud();
             await tLoadData();
+            await mLoadData();
         };
 
         initBoot();

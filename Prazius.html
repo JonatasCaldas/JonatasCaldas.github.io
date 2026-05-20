@@ -121,14 +121,19 @@
             <div class="bg-slate-50 border-b border-slate-200 flex flex-col shrink-0">
                 <div class="h-10 flex items-center px-4">
                     <div class="w-8"></div>
-                    <div class="flex-1 flex items-center gap-2">
+                    <div class="flex-1 flex items-center gap-1">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</span>
-                        <button id="groupBtn" onclick="app.toggleGroup()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Agrupar por Equipe">
-                            <span class="material-symbols-outlined text-[16px]">workspaces</span>
-                        </button>
-                        <button id="sortBtn" onclick="app.openSortModal()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Ordenar Seções por Etapa">
-                            <span class="material-symbols-outlined text-[16px]">sort</span>
-                        </button>
+                        <div class="ml-auto flex gap-1">
+                            <button id="groupTeamBtn" onclick="app.toggleGroupTeam()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Agrupar por Equipe">
+                                <span class="material-symbols-outlined text-[16px]">workspaces</span>
+                            </button>
+                            <button id="groupPosBtn" onclick="app.toggleGroupPosition()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Agrupar por Posição">
+                                <span class="material-symbols-outlined text-[16px]">layers</span>
+                            </button>
+                            <button id="sortBtn" onclick="app.openSortModal()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Ordenar Seções por Etapa">
+                                <span class="material-symbols-outlined text-[16px]">sort</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="w-16 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Dur.</div>
                 </div>
@@ -314,7 +319,8 @@
         const app = (() => {
             let tasks = [];
             let visibleTasks = [];
-            let groupByTeam = false;
+            let groupByTeam = localStorage.getItem('gantt_group_by_team') === 'true';
+            let groupByPosition = localStorage.getItem('gantt_group_by_position') === 'true';
             let activeColorFilter = null;
             
             let sortConfig = {
@@ -513,8 +519,15 @@
                 else scrollToToday(true);
             }
 
-            function toggleGroup() {
+            function toggleGroupTeam() {
                 groupByTeam = !groupByTeam;
+                localStorage.setItem('gantt_group_by_team', groupByTeam);
+                render();
+            }
+
+            function toggleGroupPosition() {
+                groupByPosition = !groupByPosition;
+                localStorage.setItem('gantt_group_by_position', groupByPosition);
                 render();
             }
 
@@ -567,20 +580,45 @@
                     validTasks = [...tasks];
                 }
 
-                if (sortConfig.milestone) {
-                    validTasks.sort((a, b) => {
+                validTasks.sort((a, b) => {
+                    if (sortConfig.milestone) {
                         const msA = (a.milestones || []).find(m => m.name === sortConfig.milestone);
                         const msB = (b.milestones || []).find(m => m.name === sortConfig.milestone);
                         const dateA = msA && msA.date ? new Date(msA.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
                         const dateB = msB && msB.date ? new Date(msB.date).getTime() : (sortConfig.direction === 'asc' ? Infinity : -Infinity);
-                        if (dateA === dateB) return a.id - b.id; 
-                        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
-                    });
-                } else {
-                    validTasks.sort((a,b) => a.id - b.id);
-                }
+                        if (dateA !== dateB) return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                    }
+                    
+                    const prio = { 'red': 1, 'orange': 2, 'green': 3, 'black': 4 };
+                    const pA = prio[a.color] || 5;
+                    const pB = prio[b.color] || 5;
+                    if (pA !== pB) return pA - pB;
+                    return (a.name || '').localeCompare(b.name || '');
+                });
 
-                if (groupByTeam) {
+                if (groupByTeam && groupByPosition) {
+                    const defaultTeams = ['DOTI', 'DOTM', 'DOTV'];
+                    const groups = { 'Sem Equipe': {} };
+                    defaultTeams.forEach(t => groups[t] = {});
+
+                    validTasks.forEach(task => {
+                        const team = task.team && task.team.trim() !== '' ? task.team : 'Sem Equipe';
+                        if (!groups[team]) groups[team] = {};
+                        const pos = task.position && task.position.trim() !== '' ? task.position : 'Em gestão';
+                        if (!groups[team][pos]) groups[team][pos] = [];
+                        groups[team][pos].push(task);
+                    });
+
+                    Object.keys(groups).forEach(team => {
+                        if (Object.keys(groups[team]).length > 0) {
+                            visibleTasks.push({ _type: 'team_header', name: team });
+                            Object.keys(groups[team]).sort().forEach(pos => {
+                                visibleTasks.push({ _type: 'pos_header', name: pos });
+                                groups[team][pos].forEach(task => visibleTasks.push(task));
+                            });
+                        }
+                    });
+                } else if (groupByTeam) {
                     const defaultTeams = ['DOTI', 'DOTM', 'DOTV'];
                     const groups = { 'Sem Equipe': [] };
                     defaultTeams.forEach(t => groups[t] = []);
@@ -596,6 +634,18 @@
                             visibleTasks.push({ _type: 'team_header', name: team });
                             groups[team].forEach(task => visibleTasks.push(task));
                         }
+                    });
+                } else if (groupByPosition) {
+                    const groups = {};
+                    validTasks.forEach(task => {
+                        const pos = task.position && task.position.trim() !== '' ? task.position : 'Em gestão';
+                        if (!groups[pos]) groups[pos] = [];
+                        groups[pos].push(task);
+                    });
+
+                    Object.keys(groups).sort().forEach(pos => {
+                        visibleTasks.push({ _type: 'pos_header', name: pos });
+                        groups[pos].forEach(task => visibleTasks.push(task));
                     });
                 } else {
                     validTasks.forEach(task => visibleTasks.push(task));
@@ -735,14 +785,25 @@
                     }
                 }
 
-                const groupBtn = document.getElementById('groupBtn');
-                if (groupBtn) {
+                const groupTeamBtn = document.getElementById('groupTeamBtn');
+                if (groupTeamBtn) {
                     if (groupByTeam) {
-                        groupBtn.classList.add('text-primary', 'bg-primary/10');
-                        groupBtn.classList.remove('text-slate-400');
+                        groupTeamBtn.classList.add('text-primary', 'bg-primary/10');
+                        groupTeamBtn.classList.remove('text-slate-400');
                     } else {
-                        groupBtn.classList.remove('text-primary', 'bg-primary/10');
-                        groupBtn.classList.add('text-slate-400');
+                        groupTeamBtn.classList.remove('text-primary', 'bg-primary/10');
+                        groupTeamBtn.classList.add('text-slate-400');
+                    }
+                }
+
+                const groupPosBtn = document.getElementById('groupPosBtn');
+                if (groupPosBtn) {
+                    if (groupByPosition) {
+                        groupPosBtn.classList.add('text-primary', 'bg-primary/10');
+                        groupPosBtn.classList.remove('text-slate-400');
+                    } else {
+                        groupPosBtn.classList.remove('text-primary', 'bg-primary/10');
+                        groupPosBtn.classList.add('text-slate-400');
                     }
                 }
 
@@ -751,6 +812,15 @@
                         const row = document.createElement('div');
                         row.className = 'h-12 border-b border-slate-200 bg-slate-50 flex items-center px-4 shrink-0';
                         row.innerHTML = `<span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Equipe: ${task.name}</span>`;
+                        dom.taskList.appendChild(row);
+                        return;
+                    }
+
+                    if (task._type === 'pos_header') {
+                        const row = document.createElement('div');
+                        const indentClass = groupByTeam ? 'pl-8' : 'px-4';
+                        row.className = `h-12 border-b border-slate-200 bg-slate-100/50 flex items-center shrink-0 ${indentClass}`;
+                        row.innerHTML = `<span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Posição: ${task.name}</span>`;
                         dom.taskList.appendChild(row);
                         return;
                     }
@@ -792,6 +862,16 @@
                     if (task._type === 'team_header') {
                         const sep = document.createElement('div');
                         sep.className = 'absolute left-0 bg-slate-50/50 border-b border-slate-200 pointer-events-none z-0';
+                        sep.style.top = `${index * config.rowHeight}px`;
+                        sep.style.height = `${config.rowHeight}px`;
+                        sep.style.width = `${totalWidth}px`;
+                        dom.taskBars.appendChild(sep);
+                        return;
+                    }
+
+                    if (task._type === 'pos_header') {
+                        const sep = document.createElement('div');
+                        sep.className = 'absolute left-0 bg-slate-100/30 border-b border-slate-200 pointer-events-none z-0';
                         sep.style.top = `${index * config.rowHeight}px`;
                         sep.style.height = `${config.rowHeight}px`;
                         sep.style.width = `${totalWidth}px`;
@@ -923,10 +1003,10 @@
                 const delta = e.clientX - dragState.startX;
 
                 if (dragState.type === 'move') {
-                    const newLeft = dragState.initialLeft + deltaX;
+                    const newLeft = dragState.initialLeft + delta;
                     dragState.element.style.left = `${newLeft}px`;
                 } else if (dragState.type === 'resize') {
-                    const newWidth = Math.max(8, dragState.initialWidth + deltaX);
+                    const newWidth = Math.max(8, dragState.initialWidth + delta);
                     dragState.element.style.width = `${newWidth}px`;
                 }
             }
@@ -1386,7 +1466,8 @@
                 saveTask,
                 deleteTask,
                 setViewMode,
-                toggleGroup,
+                toggleGroupTeam,
+                toggleGroupPosition,
                 toggleColorFilter,
                 exportData,
                 importData,

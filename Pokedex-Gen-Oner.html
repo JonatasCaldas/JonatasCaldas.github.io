@@ -857,6 +857,7 @@
         let editingCardId = null;
         let deleteContext = { type: null, id: null };
         let toastTimeout; // Variável global para controlar e resetar o timer do Toast
+        let activeRarityFilter = null; // Variável global para o filtro de raridade
 
         const showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
@@ -1223,6 +1224,7 @@
             appState.activeContext = type;
             appState.currentEntityId = id;
             if (type === 'collection') {
+                activeRarityFilter = null; // Limpa o filtro de raridade ao abrir a coleção
                 renderCollectionDetails();
                 goToView('collection-details-view', 'home');
             } else {
@@ -1259,11 +1261,11 @@
             // --- CONTABILIZADOR DE RARIDADE ---
             const rarityMap = {
                 'COMUM': { symbol: 'C', label: 'Comum' },
-                'INCOMUM': { symbol: 'U', label: 'Incomum' },
+                'INCOMUM': { symbol: 'I', label: 'Incomum' },
                 'RARA': { symbol: 'R', label: 'Rara' },
-                'DUPLA RARA': { symbol: 'RR', label: 'Dupla Rara' },
-                'ILUSTRAÇÃO RARA': { symbol: 'AR', label: 'Ilustração Rara (Art Rare)' },
-                'ULTRA RARA': { symbol: 'SR', label: 'Ultra Rara' },
+                'DUPLA RARA': { symbol: 'DR', label: 'Dupla Rara' },
+                'ILUSTRAÇÃO RARA': { symbol: 'IR', label: 'Ilustração Rara' },
+                'ULTRA RARA': { symbol: 'UR', label: 'Ultra Rara' },
                 'PROMO': { symbol: 'P', label: 'Promo' }
             };
             const rarityOrder = ['COMUM', 'INCOMUM', 'RARA', 'DUPLA RARA', 'ILUSTRAÇÃO RARA', 'ULTRA RARA', 'PROMO'];
@@ -1279,8 +1281,10 @@
             
             rarityOrder.forEach(r => {
                 if (rarityCounts[r] > 0) {
+                    const isActive = activeRarityFilter === r;
+                    const bgClass = isActive ? 'bg-primary/20 border-primary' : 'bg-surface-container-low border-white/5 hover:bg-surface-container';
                     rarityHtml += `
-                        <div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-white/5 shadow-sm cursor-help transition-colors hover:bg-surface-container" title="${rarityMap[r].label}">
+                        <div onclick="toggleRarityFilter('${r}')" class="rarity-badge flex items-center gap-1.5 ${bgClass} px-2.5 py-1.5 rounded-lg border shadow-sm cursor-pointer transition-colors" title="Filtrar por ${rarityMap[r].label}" data-rarity="${r}">
                             <span class="font-headline text-[11px] font-black text-primary">${rarityMap[r].symbol}</span>
                             <span class="font-label text-[11px] font-bold text-on-surface-variant">${rarityCounts[r]}</span>
                         </div>
@@ -1311,9 +1315,10 @@
             });
             sortedCards.forEach(card => {
                 const imgClass = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
+                const r = card.rarity ? card.rarity.toUpperCase() : 'COMUM';
                 
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="relative group col-card-item select-none" style="-webkit-touch-callout: none;" data-collected="${card.collected}"
+                    <div class="relative group col-card-item select-none" style="-webkit-touch-callout: none;" data-collected="${card.collected}" data-rarity="${r}"
                         onmousedown="startLongPress('${card.id}')"
                         ontouchstart="startLongPress('${card.id}')"
                         onmouseup="cancelLongPress()"
@@ -1340,10 +1345,35 @@
 
         const filterCollTrue = document.getElementById('col-filter-collected');
         const filterCollFalse = document.getElementById('col-filter-uncollected');
+        
+        function toggleRarityFilter(rarity) {
+            if (activeRarityFilter === rarity) {
+                activeRarityFilter = null; // Desativa se clicar no mesmo
+            } else {
+                activeRarityFilter = rarity; // Ativa a nova raridade
+            }
+            
+            // Atualiza o estilo visual dos botões de raridade
+            document.querySelectorAll('.rarity-badge').forEach(badge => {
+                if (badge.dataset.rarity === activeRarityFilter) {
+                    badge.className = "rarity-badge flex items-center gap-1.5 bg-primary/20 border-primary px-2.5 py-1.5 rounded-lg border shadow-sm cursor-pointer transition-colors";
+                } else {
+                    badge.className = "rarity-badge flex items-center gap-1.5 bg-surface-container-low border-white/5 hover:bg-surface-container px-2.5 py-1.5 rounded-lg border shadow-sm cursor-pointer transition-colors";
+                }
+            });
+
+            applyColFilters();
+        }
+
         const applyColFilters = () => {
             document.querySelectorAll('.col-card-item').forEach(card => {
                 const isCol = card.dataset.collected === 'true';
-                card.classList.toggle('hidden', (filterCollTrue.checked && !isCol) || (filterCollFalse.checked && isCol));
+                const cardRar = card.dataset.rarity;
+                
+                const passCol = !(filterCollTrue.checked && !isCol) && !(filterCollFalse.checked && isCol);
+                const passRar = activeRarityFilter ? (cardRar === activeRarityFilter) : true;
+                
+                card.classList.toggle('hidden', !passCol || !passRar);
             });
         };
         filterCollTrue.addEventListener('change', (e) => { if (e.target.checked) filterCollFalse.checked = false; applyColFilters(); });

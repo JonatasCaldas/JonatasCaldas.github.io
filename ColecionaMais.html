@@ -94,10 +94,16 @@
 </head>
 <body class="min-h-screen antialiased overflow-x-hidden">
 
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-[#2f3430]/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 md:hidden cursor-pointer"></div>
+
     <!-- NavigationDrawer -->
-    <aside class="hidden md:flex flex-col gap-2 p-6 h-screen fixed left-0 top-0 bg-surface-container-low w-72 z-40 border-r border-outline-variant/5">
-        <div class="flex items-center gap-2 mb-10 pt-2">
+    <aside id="sidebar" class="flex flex-col gap-2 p-6 h-screen fixed left-0 top-0 bg-surface-container-low w-72 z-50 border-r border-outline-variant/5 transition-transform duration-300 -translate-x-full md:translate-x-0">
+        <div class="flex items-center justify-between mb-10 pt-2">
             <span class="text-on-surface font-black italic font-headline text-3xl tracking-tight">Coleciona+</span>
+            <button id="btn-close-sidebar" class="md:hidden text-outline hover:text-on-surface transition-colors p-1">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
         </div>
 
         <nav class="flex flex-col gap-2">
@@ -127,8 +133,11 @@
         <!-- TopAppBar -->
         <header class="sticky top-0 z-30 bg-[#faf9f6]/90 backdrop-blur-[20px] shadow-sm md:shadow-none transition-all duration-300 w-full">
             <div class="flex justify-between items-center px-6 lg:px-12 h-16 w-full max-w-[1440px] mx-auto">
-                <div class="flex items-center gap-4">
-                    <i data-lucide="search" class="w-5 h-5 text-primary cursor-pointer hover:text-on-surface transition-colors"></i>
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <button id="btn-mobile-menu" class="md:hidden text-primary cursor-pointer hover:text-on-surface transition-colors flex items-center justify-center">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <i data-lucide="search" class="w-5 h-5 text-primary cursor-pointer hover:text-on-surface transition-colors hidden sm:block"></i>
                     <span class="md:hidden text-on-surface font-black italic font-headline text-2xl tracking-tight">Coleciona+</span>
                 </div>
             </div>
@@ -348,7 +357,6 @@
         const SUPABASE_URL = 'https://zfavgcysudfnnwkswwjv.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_8QhjGpY0kxiYlKedxtyr5w_m7nVDHld'; 
         
-        // Inicializa o cliente se as credenciais forem fornecidas.
         const supabaseClient = (SUPABASE_URL && SUPABASE_KEY && window.supabase) 
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) 
             : null;
@@ -356,6 +364,7 @@
         const STORAGE_KEY = 'coleciona_mangas_data';
 
         document.addEventListener('DOMContentLoaded', () => {
+            // ELEMENTOS DO DOM (Ordem de declaração corrigida)
             const gridLendo = document.getElementById('grid-lendo');
             const gridConcluidos = document.getElementById('grid-concluidos');
             const gridIncompletoss = document.getElementById('grid-incompletos');
@@ -374,7 +383,11 @@
             const btnFilterDropdown = document.getElementById('btn-filter-dropdown');
             const filterDropdownMenu = document.getElementById('filter-dropdown-menu');
             
-            // Elementos de Backup e Importação
+            const sidebar = document.getElementById('sidebar');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+            const btnMobileMenu = document.getElementById('btn-mobile-menu');
+            const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+
             const btnBackup = document.getElementById('btn-backup');
             const btnImport = document.getElementById('btn-import');
             const importFile = document.getElementById('import-file');
@@ -421,6 +434,32 @@
             function removeEmptyMsgs() {
                 document.querySelectorAll('.empty-msg').forEach(msg => msg.remove());
             }
+
+            // --- Lógica do Menu Mobile (Sidebar) ---
+            function toggleSidebar() {
+                const isClosed = sidebar.classList.contains('-translate-x-full');
+                if (isClosed) {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebarBackdrop.classList.remove('hidden');
+                    setTimeout(() => sidebarBackdrop.classList.remove('opacity-0'), 10);
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarBackdrop.classList.add('opacity-0');
+                    setTimeout(() => sidebarBackdrop.classList.add('hidden'), 300);
+                }
+            }
+
+            if(btnMobileMenu) btnMobileMenu.addEventListener('click', toggleSidebar);
+            if(btnCloseSidebar) btnCloseSidebar.addEventListener('click', toggleSidebar);
+            if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', toggleSidebar);
+
+            sidebar.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                        toggleSidebar();
+                    }
+                });
+            });
 
             // --- Geradores de HTML (Templates) ---
             const getDropdownHTML = () => `
@@ -511,7 +550,7 @@
 
             // --- Lógica de Persistência (Supabase Híbrido) ---
             function saveLocalFallback() {
-                if (supabaseClient) return; // Se banco existe, não gerencia o LocalStorage como fonte de verdade
+                if (supabaseClient) return; 
                 const allCards = document.querySelectorAll('.group[data-status]');
                 const state = Array.from(allCards).map(card => ({
                     id: card.dataset.id,
@@ -563,7 +602,6 @@
                     state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
                 }
                 
-                // Mock inicial se o armazenamento estiver vazio para visualização do design
                 if (!state || state.length === 0) {
                     state = [{
                         id: crypto.randomUUID(),
@@ -590,9 +628,7 @@
             }
 
             // --- Funcionalidades de Backup e Importação ---
-            
-            // Gerar Backup (Download de JSON)
-            btnBackup.addEventListener('click', async () => {
+            if(btnBackup) btnBackup.addEventListener('click', async () => {
                 try {
                     let dataToExport = [];
                     
@@ -601,7 +637,6 @@
                         if (error) throw error;
                         dataToExport = data || [];
                     } else {
-                        // Coleta dados da UI (Fallback) ou LocalStorage
                         saveLocalFallback();
                         dataToExport = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
                     }
@@ -625,11 +660,9 @@
                 }
             });
 
-            // Disparar input de arquivo oculto
-            btnImport.addEventListener('click', () => importFile.click());
+            if(btnImport) btnImport.addEventListener('click', () => importFile.click());
 
-            // Processar a Importação e Substituição de Dados
-            importFile.addEventListener('change', (e) => {
+            if(importFile) importFile.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
 
@@ -640,28 +673,24 @@
                         if (!Array.isArray(importedData)) throw new Error("O arquivo não possui o formato esperado.");
 
                         if (supabaseClient) {
-                            // Deleta todos os dados atuais na nuvem usando um filtro genérico
                             const { error: delErr } = await supabaseClient.from('collection_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                             if (delErr) throw delErr;
                             
-                            // Insere a nova massa de dados
                             if (importedData.length > 0) {
                                 const { error: insErr } = await supabaseClient.from('collection_items').insert(importedData);
                                 if (insErr) throw insErr;
                             }
                         } 
                         
-                        // Atualiza sempre o localStorage como base de segurança local
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(importedData));
                         
-                        // Recarrega a interface sem recarregar a página
                         loadState();
                         showNotification('Dados restaurados com sucesso!');
                     } catch (err) {
                         console.error("Erro na importação:", err);
                         showNotification('Erro: Arquivo inválido ou corrompido.');
                     } finally {
-                        importFile.value = ''; // Limpa o estado do input para permitir nova importação do mesmo arquivo se necessário
+                        importFile.value = ''; 
                     }
                 };
                 reader.readAsText(file);
@@ -697,7 +726,6 @@
                     title, author, volumes, read: currentRead, cover: coverUrl, status, genres, format, isWishlist
                 };
 
-                // ---- Supabase Sync: Upsert (Inserir ou Atualizar) ----
                 if (supabaseClient) {
                     const { error } = await supabaseClient.from('collection_items').upsert([{
                         id: newManga.id,
@@ -718,7 +746,6 @@
                         return;
                     }
                 }
-                // ------------------------------------------------------
 
                 removeEmptyMsgs();
 
@@ -760,7 +787,6 @@
                     currentDropdown.classList.toggle('flex');
                 }
 
-                // Ação: Injetar e abrir Editar
                 if (e.target.closest('.btn-edit')) {
                     e.stopPropagation();
                     editingCard = e.target.closest('.group'); 
@@ -798,7 +824,6 @@
                     e.target.closest('.card-dropdown').classList.add('hidden');
                 }
 
-                // Ação: Disparar Exclusão UI
                 if (e.target.closest('.btn-delete')) {
                     e.stopPropagation();
                     cardToDelete = e.target.closest('.group'); 
@@ -806,7 +831,6 @@
                     e.target.closest('.card-dropdown').classList.add('hidden');
                 }
 
-                // Ação: Incrementar Volume Rapidamente
                 if (e.target.closest('.btn-increment')) {
                     e.stopPropagation();
                     const btn = e.target.closest('.btn-increment');
@@ -819,7 +843,6 @@
                         read++;
                         const newStatus = read === total ? 'lido' : card.dataset.status;
 
-                        // ---- Supabase Sync: Update Lidos ----
                         if (supabaseClient) {
                             const { error } = await supabaseClient.from('collection_items')
                                 .update({ read: read, status: newStatus })
@@ -831,7 +854,6 @@
                                 return;
                             }
                         }
-                        // -------------------------------------
 
                         card.dataset.read = read; 
                         
@@ -871,13 +893,12 @@
                 }
             });
 
-            // Processar Modal de Exclusão (Lógica Supabase Delete)
+            // Processar Modal de Exclusão
             document.getElementById('cancel-delete').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
             document.getElementById('delete-modal-backdrop').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
             document.getElementById('confirm-delete').addEventListener('click', async () => {
                 if (cardToDelete) {
                     
-                    // ---- Supabase Sync: Delete ----
                     if (supabaseClient) {
                         const { error } = await supabaseClient.from('collection_items')
                             .delete()
@@ -890,7 +911,6 @@
                             return;
                         }
                     }
-                    // -------------------------------
 
                     cardToDelete.style.transition = "all 0.3s ease";
                     cardToDelete.style.opacity = "0";
@@ -971,7 +991,7 @@
                 }
             });
 
-            // Dispara a montagem inicial do app de forma assíncrona
+            // Dispara a montagem inicial do app
             loadState(); 
         });
     </script>

@@ -108,6 +108,17 @@
                 <i data-lucide="heart" class="w-5 h-5"></i> Desejos
             </a>
         </nav>
+
+        <!-- Ações de Dados (Backup e Importação) posicionados no fundo -->
+        <div class="mt-auto flex flex-col gap-2 pt-6 border-t border-outline-variant/10">
+            <input type="file" id="import-file" accept="application/json" class="hidden" />
+            <button id="btn-import" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface-container-highest border border-outline-variant/20 text-on-surface font-bold rounded-xl text-xs hover:bg-surface-container-high transition-colors shadow-sm">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importar Dados
+            </button>
+            <button id="btn-backup" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2f3430] text-[#faf9f6] font-bold rounded-xl text-xs hover:opacity-90 active:scale-95 transition-all shadow-atmospheric">
+                <i data-lucide="download-cloud" class="w-4 h-4"></i> Gerar Backup
+            </button>
+        </div>
     </aside>
 
     <!-- App Wrapper -->
@@ -363,6 +374,11 @@
             const btnFilterDropdown = document.getElementById('btn-filter-dropdown');
             const filterDropdownMenu = document.getElementById('filter-dropdown-menu');
             
+            // Elementos de Backup e Importação
+            const btnBackup = document.getElementById('btn-backup');
+            const btnImport = document.getElementById('btn-import');
+            const importFile = document.getElementById('import-file');
+            
             let editingCard = null; 
             let cardToDelete = null;
             let activeFilters = [];
@@ -572,6 +588,84 @@
                 updateTotalVolumes();
                 applySearchAndFilters();
             }
+
+            // --- Funcionalidades de Backup e Importação ---
+            
+            // Gerar Backup (Download de JSON)
+            btnBackup.addEventListener('click', async () => {
+                try {
+                    let dataToExport = [];
+                    
+                    if (supabaseClient) {
+                        const { data, error } = await supabaseClient.from('collection_items').select('*');
+                        if (error) throw error;
+                        dataToExport = data || [];
+                    } else {
+                        // Coleta dados da UI (Fallback) ou LocalStorage
+                        saveLocalFallback();
+                        dataToExport = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                    }
+                    
+                    const dataStr = JSON.stringify(dataToExport, null, 2);
+                    const blob = new Blob([dataStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `coleciona_backup_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showNotification('Backup realizado com sucesso!');
+                } catch (err) {
+                    console.error("Erro no backup:", err);
+                    showNotification('Erro ao gerar arquivo de backup.');
+                }
+            });
+
+            // Disparar input de arquivo oculto
+            btnImport.addEventListener('click', () => importFile.click());
+
+            // Processar a Importação e Substituição de Dados
+            importFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        if (!Array.isArray(importedData)) throw new Error("O arquivo não possui o formato esperado.");
+
+                        if (supabaseClient) {
+                            // Deleta todos os dados atuais na nuvem usando um filtro genérico
+                            const { error: delErr } = await supabaseClient.from('collection_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                            if (delErr) throw delErr;
+                            
+                            // Insere a nova massa de dados
+                            if (importedData.length > 0) {
+                                const { error: insErr } = await supabaseClient.from('collection_items').insert(importedData);
+                                if (insErr) throw insErr;
+                            }
+                        } 
+                        
+                        // Atualiza sempre o localStorage como base de segurança local
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedData));
+                        
+                        // Recarrega a interface sem recarregar a página
+                        loadState();
+                        showNotification('Dados restaurados com sucesso!');
+                    } catch (err) {
+                        console.error("Erro na importação:", err);
+                        showNotification('Erro: Arquivo inválido ou corrompido.');
+                    } finally {
+                        importFile.value = ''; // Limpa o estado do input para permitir nova importação do mesmo arquivo se necessário
+                    }
+                };
+                reader.readAsText(file);
+            });
 
             // Modal Handlers
             btnAddItem.addEventListener('click', () => {

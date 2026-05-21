@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Coleção de Mangás | Coleciona+</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Google Fonts: Manrope (Display) e Inter (Funcional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Supabase SDK (Preparação para Banco de Dados) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Tailwind Configuration -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#faf9f6",
+                        "surface-container-low": "#f4f4f0",
+                        "surface-container": "#edeeea",
+                        "surface-container-high": "#e6e9e4",
+                        "surface-container-highest": "#e0e4de",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#2f3430",
+                        "on-surface-variant": "#5c605c",
+                        "background": "#faf9f6",
+                        "on-background": "#2f3430",
+                        "primary": "#5a5f62",
+                        "primary-dim": "#4e5356",
+                        "on-primary": "#f4f8fc",
+                        "secondary": "#0060ac",
+                        "secondary-dim": "#005498",
+                        "on-secondary": "#f8f8ff",
+                        "secondary-container": "#d3e3ff",
+                        "on-secondary-container": "#005395",
+                        "tertiary-container": "#8d42ff",
+                        "on-tertiary-container": "#ffffff",
+                        "outline": "#777c77",
+                        "outline-variant": "#afb3ae",
+                        "manga-start": "#ff7e5f",
+                        "manga-end": "#feb47b"
+                    },
+                    boxShadow: {
+                        "atmospheric": "0 12px 32px -4px rgba(47, 52, 48, 0.08)",
+                        "high-contrast": "0 20px 40px -8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0,0,0,0.1)"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    keyframes: {
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fade-in-up 0.3s ease-out forwards'
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #faf9f6; 
+            color: #2f3430; 
+        }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e0e4de; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen antialiased overflow-x-hidden">
+
+    <!-- NavigationDrawer -->
+    <aside class="hidden md:flex flex-col gap-2 p-6 h-screen fixed left-0 top-0 bg-surface-container-low w-72 z-40 border-r border-outline-variant/5">
+        <div class="flex items-center gap-2 mb-10 pt-2">
+            <span class="text-on-surface font-black italic font-headline text-3xl tracking-tight">Coleciona+</span>
+        </div>
+
+        <nav class="flex flex-col gap-2">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-surface-container-lowest text-on-surface font-bold rounded-xl shadow-atmospheric transition-all translate-x-1">
+                <i data-lucide="book-open" class="w-5 h-5 text-secondary"></i> Biblioteca
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 text-primary hover:bg-surface-container hover:text-on-surface transition-all rounded-xl font-medium text-sm">
+                <i data-lucide="heart" class="w-5 h-5"></i> Desejos
+            </a>
+        </nav>
+    </aside>
+
+    <!-- App Wrapper -->
+    <div class="md:pl-72 flex flex-col min-h-screen w-full relative">
+        
+        <!-- TopAppBar -->
+        <header class="sticky top-0 z-30 bg-[#faf9f6]/90 backdrop-blur-[20px] shadow-sm md:shadow-none transition-all duration-300 w-full">
+            <div class="flex justify-between items-center px-6 lg:px-12 h-16 w-full max-w-[1440px] mx-auto">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="search" class="w-5 h-5 text-primary cursor-pointer hover:text-on-surface transition-colors"></i>
+                    <span class="md:hidden text-on-surface font-black italic font-headline text-2xl tracking-tight">Coleciona+</span>
+                </div>
+            </div>
+            <div class="bg-outline-variant/10 h-[1px] w-full"></div>
+        </header>
+
+        <!-- Canvas -->
+        <main class="flex-1 pt-8 pb-28 md:pb-12 px-6 lg:px-12 w-full max-w-[1440px] mx-auto">
+            
+            <!-- Hero Header -->
+            <section class="mb-10 animate-fade-in-up">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <h2 class="text-4xl md:text-[40px] leading-tight font-black font-headline text-on-background tracking-tight mb-2">Biblioteca</h2>
+                        <p class="text-on-surface-variant font-body text-sm font-medium"><span id="total-volumes-count">0</span> volumes catalogados • Editorial Functionalism</p>
+                    </div>
+                    <button id="btn-add-item" class="bg-gradient-to-br from-primary to-primary-dim text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-atmospheric flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all w-full md:w-auto">
+                        <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Item
+                    </button>
+                </div>
+            </section>
+
+            <!-- Filters & Search -->
+            <section class="bg-surface-container-low rounded-2xl p-6 mb-12 flex flex-col gap-6">
+                <div class="flex flex-col lg:flex-row gap-4 justify-between">
+                    <div class="relative flex-1 group">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-outline transition-colors group-focus-within:text-secondary"></i>
+                        <input type="text" id="search-input" placeholder="Buscar mangá por título, autor ou gênero..." class="w-full bg-surface-container-lowest border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow shadow-sm outline-none placeholder:text-outline-variant font-medium"/>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <div class="relative">
+                            <button id="btn-filter-dropdown" class="bg-surface-container-highest text-on-surface px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#d6dbd5] transition-colors">
+                                <i data-lucide="filter" class="w-4 h-4"></i> Filtrar por
+                            </button>
+                            <!-- Dropdown de Filtros (Alto Contraste) -->
+                            <div id="filter-dropdown-menu" class="hidden absolute right-0 mt-2 bg-white shadow-high-contrast border border-outline-variant/30 rounded-xl flex-col min-w-[200px] z-40 p-2 gap-1 animate-fade-in-up" style="animation-duration: 0.2s;">
+                                <div class="text-[10px] font-bold text-outline uppercase tracking-widest px-2 py-1 mt-1">Status da Coleção</div>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="status" data-value="lendo" data-label="Status: Lendo">Lendo</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="status" data-value="incompleto" data-label="Status: Incompletos">Incompletos</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="status" data-value="lido" data-label="Status: Lido">Lido</button>
+                                
+                                <div class="text-[10px] font-bold text-outline uppercase tracking-widest px-2 py-1 mt-2 border-t border-outline-variant/10 pt-2">Gênero</div>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Ação" data-label="Gênero: Ação">Ação/Aventura</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Slice of Life" data-label="Gênero: Slice">Slice of Life</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Romance" data-label="Gênero: Romance">Romance</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Sci-Fi" data-label="Gênero: Sci-Fi">Sci-Fi</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Terror" data-label="Gênero: Terror">Terror/Mistério</button>
+                                <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="genres" data-value="Drama" data-label="Gênero: Drama">Drama</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 items-center hidden" id="filter-container">
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-outline">Filtros Ativos:</span>
+                    <div id="active-filters-list" class="flex flex-wrap gap-2 items-center"></div>
+                    <button id="clear-filters" class="text-secondary text-[11px] font-bold hover:underline ml-2 transition-all">Limpar tudo</button>
+                </div>
+            </section>
+
+            <!-- Nested Sections -->
+            <div class="space-y-16">
+                
+                <!-- Section: Lendo -->
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <h3 class="text-xl font-bold font-headline tracking-tight text-on-background">Lendo</h3>
+                        <div class="h-[1px] flex-1 bg-surface-container-highest"></div>
+                    </div>
+                    <div id="grid-lendo" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- Cards injetados via JS -->
+                    </div>
+                </section>
+
+                <!-- Section: Concluídos -->
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <h3 class="text-xl font-bold font-headline tracking-tight text-on-background">Lido</h3>
+                        <div class="h-[1px] flex-1 bg-surface-container-highest"></div>
+                    </div>
+                    <div id="grid-concluidos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Cards injetados via JS -->
+                    </div>
+                </section>
+
+                <!-- Section: Incompletos -->
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <h3 class="text-xl font-bold font-headline tracking-tight text-on-background">Incompletos</h3>
+                        <div class="h-[1px] flex-1 bg-surface-container-highest"></div>
+                    </div>
+                    <div id="grid-incompletos" class="flex flex-col gap-3">
+                        <!-- Cards injetados via JS -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- UI: Toast Notification -->
+    <div id="toast-notification" class="fixed bottom-6 right-6 md:right-12 translate-y-24 opacity-0 bg-white text-on-surface px-5 py-3.5 rounded-xl shadow-high-contrast border border-outline-variant/20 font-bold text-sm flex items-center gap-3 transition-all duration-300 z-[120]">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-secondary"></i>
+        <span id="toast-message">Ação realizada com sucesso!</span>
+    </div>
+
+    <!-- Modal Adicionar/Editar Item -->
+    <div id="add-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div id="add-modal-backdrop" class="absolute inset-0 bg-[#2f3430]/60 backdrop-blur-md transition-opacity cursor-pointer"></div>
+        <div class="relative bg-white rounded-3xl shadow-high-contrast border border-outline-variant/30 overflow-hidden flex flex-col w-full max-w-lg max-h-[90vh] animate-fade-in-up">
+            <div class="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
+                <h2 class="text-xl font-headline font-black text-on-background tracking-tight">Novo Item</h2>
+                <button id="close-modal" class="text-outline hover:text-on-surface transition-colors p-2 -mr-2 rounded-full hover:bg-surface-container-low"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form id="add-item-form" class="p-6 overflow-y-auto space-y-6">
+                <!-- Title & Author -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Título da Obra</label>
+                        <input type="text" id="item-title" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Akira">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Autor</label>
+                        <input type="text" id="item-author" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Katsuhiro Otomo">
+                    </div>
+                </div>
+
+                <!-- Formato -->
+                <div>
+                    <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Formato</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <label class="cursor-pointer"><input type="radio" name="item-format" value="Mangá" class="peer sr-only" checked><div class="text-center py-2 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim hover:opacity-80 transition-all">Mangá</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-format" value="HQ" class="peer sr-only"><div class="text-center py-2 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim hover:opacity-80 transition-all">HQ</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-format" value="Livro" class="peer sr-only"><div class="text-center py-2 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim hover:opacity-80 transition-all">Livro</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-format" value="Manhwa" class="peer sr-only"><div class="text-center py-2 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim hover:opacity-80 transition-all">Manhwa</div></label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Total de Volumes</label>
+                        <input type="number" id="item-volumes" required min="1" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: 6">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Link da Capa (URL)</label>
+                        <input type="url" id="item-cover" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="https://...">
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Status da Coleção</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer"><input type="radio" name="item-status" value="lendo" class="peer sr-only" required><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Lendo</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-status" value="incompleto" class="peer sr-only"><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Incompletos</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-status" value="lido" class="peer sr-only"><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Lido</div></label>
+                    </div>
+                </div>
+
+                <!-- Gêneros -->
+                <div>
+                    <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Gêneros (Múltipla escolha)</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Ação/Aventura" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Ação/Aventura</div></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Slice of Life" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Slice of Life</div></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Romance" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Romance</div></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Sci-Fi" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Sci-Fi</div></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Terror/Mistério" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Terror/Mistério</div></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="item-genre" value="Drama" class="peer sr-only"><div class="py-1.5 px-3.5 rounded-full bg-surface-container border border-transparent text-[11px] font-bold text-on-surface-variant peer-checked:bg-tertiary-container peer-checked:text-on-tertiary-container transition-all hover:bg-surface-container-high">Drama</div></label>
+                    </div>
+                </div>
+
+                <!-- Lista de Desejos -->
+                <div>
+                    <label class="flex items-center gap-4 cursor-pointer p-3 rounded-xl bg-surface border border-outline-variant/20 hover:bg-surface-container transition-colors">
+                        <input type="checkbox" id="item-wishlist" class="w-5 h-5 rounded text-error border-outline-variant/50 focus:ring-error/30 transition-all">
+                        <div class="flex flex-col flex-1">
+                            <span class="text-sm font-bold text-on-surface flex items-center gap-2">Desejo</span>
+                            <span class="text-[10px] text-on-surface-variant font-medium mt-0.5">Marcar este item como desejo para futura aquisição.</span>
+                        </div>
+                        <i data-lucide="heart" class="w-5 h-5 text-error"></i>
+                    </label>
+                </div>
+            </form>
+            
+            <div class="px-6 py-4 border-t border-outline-variant/10 bg-surface-container-low flex justify-end gap-3 rounded-b-3xl">
+                <button type="button" id="cancel-add" class="px-5 py-2.5 text-xs font-bold text-primary hover:bg-surface-container hover:text-on-surface transition-colors rounded-xl">Cancelar</button>
+                <button type="submit" form="add-item-form" class="bg-gradient-to-br from-primary to-primary-dim text-on-primary px-6 py-2.5 rounded-xl font-bold text-xs shadow-atmospheric flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">Salvar Obra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar Exclusão -->
+    <div id="delete-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4">
+        <div id="delete-modal-backdrop" class="absolute inset-0 bg-[#2f3430]/60 backdrop-blur-md transition-opacity cursor-pointer"></div>
+        <div class="relative bg-white rounded-3xl shadow-high-contrast border border-outline-variant/30 p-6 flex flex-col w-full max-w-sm animate-fade-in-up">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-10 h-10 rounded-full bg-error-container/20 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
+                </div>
+                <h3 class="text-lg font-headline font-black text-on-background tracking-tight">Excluir Obra?</h3>
+            </div>
+            <p class="text-sm text-on-surface-variant font-medium mb-6">Esta ação não pode ser desfeita. O item será removido permanentemente da sua coleção.</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" id="cancel-delete" class="bg-surface-container-lowest border border-outline-variant/20 text-on-surface px-5 py-2.5 text-xs font-bold hover:bg-surface-container-low transition-colors rounded-xl">Cancelar</button>
+                <button type="button" id="confirm-delete" class="bg-error text-on-error px-6 py-2.5 rounded-xl font-bold text-xs shadow-atmospheric hover:opacity-90 active:scale-95 transition-all">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script>
+        // =========================================================================
+        // CONFIGURAÇÃO SUPABASE
+        // =========================================================================
+        const SUPABASE_URL = 'https://zfavgcysudfnnwkswwjv.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_8QhjGpY0kxiYlKedxtyr5w_m7nVDHld'; 
+        
+        // Inicializa o cliente se as credenciais forem fornecidas.
+        const supabaseClient = (SUPABASE_URL && SUPABASE_KEY && window.supabase) 
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) 
+            : null;
+        
+        const STORAGE_KEY = 'coleciona_mangas_data';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridLendo = document.getElementById('grid-lendo');
+            const gridConcluidos = document.getElementById('grid-concluidos');
+            const gridIncompletoss = document.getElementById('grid-incompletos');
+            const countElement = document.getElementById('total-volumes-count');
+            
+            const btnAddItem = document.getElementById('btn-add-item');
+            const addModal = document.getElementById('add-modal');
+            const closeModalBtns = document.querySelectorAll('#close-modal, #cancel-add, #add-modal-backdrop');
+            const addItemForm = document.getElementById('add-item-form');
+            const deleteModal = document.getElementById('delete-modal');
+            
+            const searchInput = document.getElementById('search-input');
+            const filterContainer = document.getElementById('filter-container');
+            const activeFiltersList = document.getElementById('active-filters-list');
+            const clearFiltersBtn = document.getElementById('clear-filters');
+            const btnFilterDropdown = document.getElementById('btn-filter-dropdown');
+            const filterDropdownMenu = document.getElementById('filter-dropdown-menu');
+            
+            let editingCard = null; 
+            let cardToDelete = null;
+            let activeFilters = [];
+            let toastTimeout;
+
+            lucide.createIcons();
+
+            // --- Lógica de UI Global ---
+            
+            function showNotification(message) {
+                const toast = document.getElementById('toast-notification');
+                document.getElementById('toast-message').textContent = message;
+                
+                toast.classList.remove('translate-y-24', 'opacity-0');
+                
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    toast.classList.add('translate-y-24', 'opacity-0');
+                }, 3000);
+            }
+
+            function toggleModal() { 
+                addModal.classList.toggle('hidden'); 
+            }
+
+            function updateTotalVolumes() {
+                let totalVolumes = 0;
+                document.querySelectorAll('.group[data-volumes]').forEach(card => {
+                    totalVolumes += parseInt(card.dataset.volumes || 0);
+                });
+                if (countElement) countElement.textContent = totalVolumes;
+            }
+
+            function checkEmptyGrids() {
+                if (gridLendo.children.length === 0) gridLendo.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 col-span-full empty-msg">Itens marcados como lendo aparecerão aqui.</div>';
+                if (gridConcluidos.children.length === 0) gridConcluidos.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 px-2 col-span-full empty-msg">Itens marcados como lidos aparecerão aqui.</div>';
+                if (gridIncompletoss.children.length === 0) gridIncompletoss.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 px-2 empty-msg">Itens marcados como incompletos aparecerão aqui.</div>';
+            }
+
+            function removeEmptyMsgs() {
+                document.querySelectorAll('.empty-msg').forEach(msg => msg.remove());
+            }
+
+            // --- Geradores de HTML (Templates) ---
+            const getDropdownHTML = () => `
+                <div class="card-dropdown hidden absolute right-0 top-6 bg-white shadow-high-contrast border border-outline-variant/30 rounded-xl flex-col min-w-[120px] overflow-hidden z-40">
+                    <button type="button" class="btn-edit text-left px-4 py-2.5 text-xs font-bold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-2"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i> Editar</button>
+                    <button type="button" class="btn-delete text-left px-4 py-2.5 text-xs font-bold text-error hover:bg-error-container/20 transition-colors flex items-center gap-2"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir</button>
+                </div>
+            `;
+
+            function createLendoCard(m) {
+                const percentage = Math.round((m.read / m.volumes) * 100);
+                const genreTags = m.genres ? m.genres.split(',').map(g => `<span class="bg-tertiary-container text-on-tertiary-container px-2.5 py-1 rounded-full text-[9px] font-bold tracking-wider uppercase">${g}</span>`).join('') : '';
+                const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                
+                return `
+                    <div class="group bg-surface-container-lowest rounded-2xl p-4 flex gap-5 hover:shadow-atmospheric transition-all duration-300 animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
+                        <div class="w-[100px] h-[140px] rounded-xl overflow-hidden flex-shrink-0 shadow-sm relative">
+                            <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Sem+Capa'"/>
+                            <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
+                        </div>
+                        <div class="flex flex-col justify-between py-1 flex-1">
+                            <div>
+                                <div class="flex justify-between items-start gap-2">
+                                    <h4 class="font-bold text-on-background line-clamp-2 leading-snug group-hover:text-secondary transition-colors text-sm">${m.title} ${heartIcon}</h4>
+                                    <div class="relative">
+                                        <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors p-1 -mr-2 -mt-1"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+                                        ${getDropdownHTML()}
+                                    </div>
+                                </div>
+                                <p class="volume-text text-xs text-on-surface-variant mt-1 mb-4 font-medium">${m.format} • ${m.read} de ${m.volumes} Vols • ${m.author}</p>
+                                <div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-2">
+                                    <div class="progress-fill h-full bg-gradient-to-r from-manga-start to-manga-end w-[${percentage}%] rounded-full transition-all duration-500 ease-out"></div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <p class="progress-text text-[10px] text-outline font-bold tracking-wide">Progresso: ${percentage}%</p>
+                                    <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mt-3">${genreTags}</div>
+                        </div>
+                    </div>`;
+            }
+
+            function createLidoCard(m) {
+                const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3 h-3 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                return `
+                    <div class="group bg-surface-container-low rounded-xl p-3 flex gap-4 hover:bg-surface-container-lowest hover:shadow-atmospheric transition-all cursor-pointer animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
+                        <div class="w-12 h-16 rounded bg-surface-container-highest overflow-hidden flex-shrink-0">
+                            <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
+                        </div>
+                        <div class="flex flex-col justify-center min-w-0 flex-1 relative">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-sm font-bold text-on-surface truncate group-hover:text-secondary transition-colors pr-4">${m.title} ${heartIcon}</h4>
+                                <div class="relative absolute right-0 top-0">
+                                    <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors opacity-0 group-hover:opacity-100"><i data-lucide="more-vertical" class="w-3.5 h-3.5"></i></button>
+                                    ${getDropdownHTML()}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.volumes}/${m.volumes} Vols • ${m.author}</p>
+                        </div>
+                    </div>`;
+            }
+
+            function createIncompletosCard(m) {
+                const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                return `
+                    <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm">
+                                <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors">${m.title} ${heartIcon}</h4>
+                                <p class="text-xs text-on-surface-variant font-medium mt-0.5">${m.format} • Vol. ${m.volumes} • ${m.author}</p>
+                            </div>
+                        </div>
+                        <div class="hidden sm:flex flex-1 justify-center">
+                            <span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold tracking-wide">INCOMPLETO</span>
+                        </div>
+                        <div class="flex items-center gap-4">                   
+                            <div class="relative">
+                                <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                                ${getDropdownHTML()}
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            // --- Lógica de Persistência (Supabase Híbrido) ---
+            function saveLocalFallback() {
+                if (supabaseClient) return; // Se banco existe, não gerencia o LocalStorage como fonte de verdade
+                const allCards = document.querySelectorAll('.group[data-status]');
+                const state = Array.from(allCards).map(card => ({
+                    id: card.dataset.id,
+                    title: card.dataset.title,
+                    author: card.dataset.author,
+                    volumes: parseInt(card.dataset.volumes),
+                    read: parseInt(card.dataset.read),
+                    cover: card.dataset.cover,
+                    status: card.dataset.status,
+                    genres: card.dataset.genres || '',
+                    format: card.dataset.format || 'Mangá',
+                    isWishlist: card.dataset.wishlist === 'true'
+                }));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            async function loadState() {
+                let state = [];
+                
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('collection_items')
+                            .select('*')
+                            .order('created_at', { ascending: false });
+                            
+                        if (error) throw error;
+                        
+                        if (data && data.length > 0) {
+                            state = data.map(item => ({
+                                id: item.id,
+                                title: item.title,
+                                author: item.author,
+                                volumes: item.volumes,
+                                read: item.read,
+                                cover: item.cover,
+                                status: item.status,
+                                genres: item.genres,
+                                format: item.format,
+                                isWishlist: item.is_wishlist
+                            }));
+                        }
+                    } catch (err) {
+                        console.error("Erro ao carregar do Supabase:", err);
+                        showNotification("Modo Offline (Falha no Supabase)");
+                        state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                    }
+                } else {
+                    state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                }
+                
+                // Mock inicial se o armazenamento estiver vazio para visualização do design
+                if (!state || state.length === 0) {
+                    state = [{
+                        id: crypto.randomUUID(),
+                        title: "Vagabond - VizBig Ed.", author: "Takehiko Inoue",
+                        volumes: 37, read: 31, cover: "https://lh3.googleusercontent.com/aida-public/AB6AXuBwUr_PQUB6p11dhuuzbnVwN-vt81WAq_TDq4L13_uhLuXB6FbLD4-xK9PMaZaBD7QsrYc9GM44ymi0rt86pBE7IOyKilopj-tKyVKF2vcxFJKE1nxkbzDbDN4zHrpQ9udKel3Roco1RVpZQY1YuV_vZbqPSfEuv9_8NEKmsQlARWcrIl5vaJ1KBQ54UpDMWIG15Bj0rxPK5XFYNpppSXTLDt9OXVSj43h_Ohl9SFnaMGHNQE7eZ6Ms5gruroSTGwUW67Cm6Ja4hWe3",
+                        status: "lendo", genres: "Ação/Aventura", format: "Mangá", isWishlist: false
+                    }];
+                }
+
+                gridLendo.innerHTML = '';
+                gridConcluidos.innerHTML = '';
+                gridIncompletoss.innerHTML = '';
+
+                state.forEach(m => {
+                    if (m.status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(m));
+                    else if (m.status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(m));
+                    else if (m.status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(m));
+                });
+
+                checkEmptyGrids();
+                lucide.createIcons();
+                updateTotalVolumes();
+                applySearchAndFilters();
+            }
+
+            // Modal Handlers
+            btnAddItem.addEventListener('click', () => {
+                editingCard = null;
+                addItemForm.reset();
+                document.querySelector('#add-modal h2').textContent = 'Novo Item';
+                toggleModal();
+            });
+            closeModalBtns.forEach(btn => btn.addEventListener('click', toggleModal));
+
+            // Formulário Adicionar/Editar
+            addItemForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const title = document.getElementById('item-title').value;
+                const author = document.getElementById('item-author').value;
+                const volumes = parseInt(document.getElementById('item-volumes').value);
+                const coverUrl = document.getElementById('item-cover').value;
+                const status = document.querySelector('input[name="item-status"]:checked').value;
+                const format = document.querySelector('input[name="item-format"]:checked').value;
+                const isWishlist = document.getElementById('item-wishlist').checked;
+                const genres = Array.from(document.querySelectorAll('input[name="item-genre"]:checked')).map(cb => cb.value).join(',');
+                
+                let currentRead = editingCard ? parseInt(editingCard.dataset.read || 0) : 0;
+                if (currentRead > volumes) currentRead = volumes; 
+
+                const newManga = {
+                    id: editingCard ? editingCard.dataset.id : crypto.randomUUID(),
+                    title, author, volumes, read: currentRead, cover: coverUrl, status, genres, format, isWishlist
+                };
+
+                // ---- Supabase Sync: Upsert (Inserir ou Atualizar) ----
+                if (supabaseClient) {
+                    const { error } = await supabaseClient.from('collection_items').upsert([{
+                        id: newManga.id,
+                        title: newManga.title,
+                        author: newManga.author,
+                        volumes: newManga.volumes,
+                        read: newManga.read,
+                        cover: newManga.cover,
+                        status: newManga.status,
+                        genres: newManga.genres,
+                        format: newManga.format,
+                        is_wishlist: newManga.isWishlist
+                    }]);
+
+                    if (error) {
+                        console.error(error);
+                        showNotification("Erro ao sincronizar com banco de dados!");
+                        return;
+                    }
+                }
+                // ------------------------------------------------------
+
+                removeEmptyMsgs();
+
+                if (status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(newManga));
+                else if (status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(newManga));
+                else if (status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(newManga));
+                
+                lucide.createIcons();
+                if (editingCard) editingCard.remove();
+                
+                addItemForm.reset();
+                toggleModal();
+                checkEmptyGrids();
+                updateTotalVolumes();
+                applySearchAndFilters();
+                saveLocalFallback(); 
+                
+                showNotification(editingCard ? 'Item editado com sucesso!' : 'Novo item adicionado à coleção!');
+            });
+
+            // Delegação Global para Ações dos Cards
+            document.addEventListener('click', async (e) => {
+                const isBtnOptions = e.target.closest('.btn-card-options');
+                const isDropdown = e.target.closest('.card-dropdown');
+                
+                if (!isBtnOptions && !isDropdown) {
+                    document.querySelectorAll('.card-dropdown').forEach(d => {
+                        d.classList.add('hidden'); d.classList.remove('flex');
+                    });
+                }
+
+                if (isBtnOptions) {
+                    e.stopPropagation();
+                    const currentDropdown = isBtnOptions.nextElementSibling;
+                    document.querySelectorAll('.card-dropdown').forEach(d => {
+                        if (d !== currentDropdown) { d.classList.add('hidden'); d.classList.remove('flex'); }
+                    });
+                    currentDropdown.classList.toggle('hidden');
+                    currentDropdown.classList.toggle('flex');
+                }
+
+                // Ação: Injetar e abrir Editar
+                if (e.target.closest('.btn-edit')) {
+                    e.stopPropagation();
+                    editingCard = e.target.closest('.group'); 
+                    
+                    document.getElementById('item-title').value = editingCard.dataset.title || '';
+                    document.getElementById('item-author').value = editingCard.dataset.author || '';
+                    document.getElementById('item-volumes').value = editingCard.dataset.volumes || '';
+                    document.getElementById('item-cover').value = editingCard.dataset.cover || '';
+                    
+                    const status = editingCard.dataset.status;
+                    if(status) {
+                        const statusRadio = document.querySelector(`input[name="item-status"][value="${status}"]`);
+                        if(statusRadio) statusRadio.checked = true;
+                    }
+
+                    const format = editingCard.dataset.format;
+                    if(format) {
+                        const formatRadio = document.querySelector(`input[name="item-format"][value="${format}"]`);
+                        if(formatRadio) formatRadio.checked = true;
+                    }
+
+                    document.getElementById('item-wishlist').checked = editingCard.dataset.wishlist === 'true';
+                    
+                    document.querySelectorAll('input[name="item-genre"]').forEach(cb => cb.checked = false);
+                    if (editingCard.dataset.genres) {
+                        editingCard.dataset.genres.split(',').forEach(g => {
+                            if (!g) return;
+                            const cb = document.querySelector(`input[name="item-genre"][value="${g}"]`);
+                            if (cb) cb.checked = true;
+                        });
+                    }
+                    
+                    document.querySelector('#add-modal h2').textContent = 'Editar Item';
+                    toggleModal(); 
+                    e.target.closest('.card-dropdown').classList.add('hidden');
+                }
+
+                // Ação: Disparar Exclusão UI
+                if (e.target.closest('.btn-delete')) {
+                    e.stopPropagation();
+                    cardToDelete = e.target.closest('.group'); 
+                    deleteModal.classList.remove('hidden');
+                    e.target.closest('.card-dropdown').classList.add('hidden');
+                }
+
+                // Ação: Incrementar Volume Rapidamente
+                if (e.target.closest('.btn-increment')) {
+                    e.stopPropagation();
+                    const btn = e.target.closest('.btn-increment');
+                    const card = btn.closest('.group');
+                    
+                    let read = parseInt(card.dataset.read || 0);
+                    const total = parseInt(card.dataset.volumes || 1);
+
+                    if (read < total) {
+                        read++;
+                        const newStatus = read === total ? 'lido' : card.dataset.status;
+
+                        // ---- Supabase Sync: Update Lidos ----
+                        if (supabaseClient) {
+                            const { error } = await supabaseClient.from('collection_items')
+                                .update({ read: read, status: newStatus })
+                                .eq('id', card.dataset.id);
+                                
+                            if (error) {
+                                console.error(error);
+                                showNotification("Falha na sincronização.");
+                                return;
+                            }
+                        }
+                        // -------------------------------------
+
+                        card.dataset.read = read; 
+                        
+                        const percentage = Math.round((read / total) * 100);
+                        card.querySelector('.volume-text').textContent = `${card.dataset.format} • ${read} de ${total} Vols • ${card.dataset.author}`;
+                        card.querySelector('.progress-text').textContent = `Progresso: ${percentage}%`;
+                        card.querySelector('.progress-fill').style.width = `${percentage}%`;
+                        
+                        if (read === total) {
+                            card.dataset.status = 'lido';
+                            card.style.transition = "all 0.3s ease";
+                            card.style.opacity = "0";
+                            card.style.transform = "scale(0.95)";
+                            
+                            setTimeout(() => {
+                                removeEmptyMsgs();
+                                
+                                const m = {
+                                    id: card.dataset.id, title: card.dataset.title, author: card.dataset.author,
+                                    volumes: total, read: total, cover: card.dataset.cover, status: 'lido', genres: card.dataset.genres,
+                                    format: card.dataset.format, isWishlist: card.dataset.wishlist === 'true'
+                                };
+                                gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(m));
+                                
+                                card.remove();
+                                checkEmptyGrids();
+                                lucide.createIcons();
+                                saveLocalFallback(); 
+                                applySearchAndFilters();
+                                showNotification('Parabéns! Obra concluída.');
+                            }, 300);
+                        } else {
+                            saveLocalFallback();
+                            showNotification('Progresso de leitura atualizado!');
+                        }
+                    }
+                }
+            });
+
+            // Processar Modal de Exclusão (Lógica Supabase Delete)
+            document.getElementById('cancel-delete').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
+            document.getElementById('delete-modal-backdrop').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
+            document.getElementById('confirm-delete').addEventListener('click', async () => {
+                if (cardToDelete) {
+                    
+                    // ---- Supabase Sync: Delete ----
+                    if (supabaseClient) {
+                        const { error } = await supabaseClient.from('collection_items')
+                            .delete()
+                            .eq('id', cardToDelete.dataset.id);
+                            
+                        if (error) {
+                            console.error(error);
+                            showNotification("Erro ao excluir do banco de dados!");
+                            deleteModal.classList.add('hidden');
+                            return;
+                        }
+                    }
+                    // -------------------------------
+
+                    cardToDelete.style.transition = "all 0.3s ease";
+                    cardToDelete.style.opacity = "0";
+                    cardToDelete.style.transform = "scale(0.95)";
+                    setTimeout(() => { 
+                        cardToDelete.remove(); 
+                        cardToDelete = null;
+                        checkEmptyGrids();
+                        updateTotalVolumes(); 
+                        applySearchAndFilters();
+                        saveLocalFallback();
+                        showNotification('Obra removida permanentemente.');
+                    }, 300);
+                    deleteModal.classList.add('hidden');
+                }
+            });
+
+            // --- Lógica de Filtros ---
+            function applySearchAndFilters() {
+                const term = searchInput.value.toLowerCase().trim();
+                const allCards = document.querySelectorAll('.group[data-title]');
+
+                allCards.forEach(card => {
+                    const title = (card.dataset.title || '').toLowerCase();
+                    const author = (card.dataset.author || '').toLowerCase();
+                    const genres = (card.dataset.genres || '').toLowerCase();
+                    const format = (card.dataset.format || '').toLowerCase();
+                    
+                    const matchesSearch = term === '' || title.includes(term) || author.includes(term) || genres.includes(term) || format.includes(term);
+                    
+                    let matchesFilters = true;
+                    if (activeFilters.length > 0) {
+                        matchesFilters = activeFilters.every(filter => {
+                            const cardValue = (card.dataset[filter.type] || '').toLowerCase();
+                            return cardValue.includes(filter.value.toLowerCase());
+                        });
+                    }
+
+                    if (matchesSearch && matchesFilters) card.style.display = '';
+                    else card.style.display = 'none';
+                });
+            }
+
+            function renderActiveFilters() {
+                activeFiltersList.innerHTML = '';
+                if (activeFilters.length === 0 && searchInput.value === '') {
+                    filterContainer.classList.add('hidden');
+                } else {
+                    filterContainer.classList.remove('hidden');
+                    activeFilters.forEach((filter, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = "filter-chip bg-secondary text-on-secondary px-4 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-opacity animate-fade-in-up";
+                        btn.style.animationDuration = "0.2s";
+                        btn.innerHTML = `${filter.label} <i data-lucide="x" class="w-3 h-3"></i>`;
+                        btn.addEventListener('click', () => { activeFilters.splice(index, 1); renderActiveFilters(); applySearchAndFilters(); });
+                        activeFiltersList.appendChild(btn);
+                    });
+                    lucide.createIcons();
+                }
+            }
+
+            searchInput.addEventListener('input', () => { applySearchAndFilters(); if(searchInput.value !== '') filterContainer.classList.remove('hidden'); else if (activeFilters.length === 0) filterContainer.classList.add('hidden'); });
+            clearFiltersBtn.addEventListener('click', () => { activeFilters = []; searchInput.value = ''; renderActiveFilters(); applySearchAndFilters(); });
+            btnFilterDropdown.addEventListener('click', (e) => { e.stopPropagation(); filterDropdownMenu.classList.toggle('hidden'); filterDropdownMenu.classList.toggle('flex'); });
+
+            document.querySelectorAll('.add-filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const exists = activeFilters.find(f => f.type === btn.dataset.type && f.value === btn.dataset.value);
+                    if (!exists) { activeFilters.push({ type: btn.dataset.type, value: btn.dataset.value, label: btn.dataset.label }); renderActiveFilters(); applySearchAndFilters(); }
+                    filterDropdownMenu.classList.add('hidden'); filterDropdownMenu.classList.remove('flex');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!btnFilterDropdown.contains(e.target) && !filterDropdownMenu.contains(e.target)) {
+                    filterDropdownMenu.classList.add('hidden'); filterDropdownMenu.classList.remove('flex');
+                }
+            });
+
+            // Dispara a montagem inicial do app de forma assíncrona
+            loadState(); 
+        });
+    </script>
+</body>
+</html>

@@ -115,7 +115,7 @@
             </a>
         </nav>
 
-        <!-- Ações de Dados (Backup e Importação) posicionados no fundo -->
+        <!-- Ações de Dados (Backup e Importação) -->
         <div class="mt-auto flex flex-col gap-2 pt-6 border-t border-outline-variant/10">
             <input type="file" id="import-file" accept="application/json" class="hidden" />
             <button id="btn-import" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface-container-highest border border-outline-variant/20 text-on-surface font-bold rounded-xl text-xs hover:bg-surface-container-high transition-colors shadow-sm">
@@ -173,7 +173,7 @@
                             <button id="btn-filter-dropdown" class="bg-surface-container-highest text-on-surface px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#d6dbd5] transition-colors">
                                 <i data-lucide="filter" class="w-4 h-4"></i> Filtrar por
                             </button>
-                            <!-- Dropdown de Filtros (Alto Contraste) -->
+                            <!-- Dropdown de Filtros -->
                             <div id="filter-dropdown-menu" class="hidden absolute right-0 mt-2 bg-white shadow-high-contrast border border-outline-variant/30 rounded-xl flex-col min-w-[200px] z-40 p-2 gap-1 animate-fade-in-up" style="animation-duration: 0.2s;">
                                 <div class="text-[10px] font-bold text-outline uppercase tracking-widest px-2 py-1 mt-1">Status da Coleção</div>
                                 <button type="button" class="add-filter-btn text-left px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" data-type="status" data-value="lendo" data-label="Status: Lendo">Lendo</button>
@@ -254,15 +254,15 @@
             </div>
             
             <form id="add-item-form" class="p-6 overflow-y-auto space-y-6">
-                <!-- Title & Author -->
+                <!-- Title & Author (Nenhum campo é obrigatório) -->
                 <div class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Título da Obra</label>
-                        <input type="text" id="item-title" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Akira">
+                        <input type="text" id="item-title" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Akira">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Autor</label>
-                        <input type="text" id="item-author" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Katsuhiro Otomo">
+                        <input type="text" id="item-author" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: Katsuhiro Otomo">
                     </div>
                 </div>
 
@@ -280,11 +280,11 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Total de Volumes</label>
-                        <input type="number" id="item-volumes" required min="1" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: 6">
+                        <input type="number" id="item-volumes" min="1" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="Ex: 6">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Link da Capa (URL)</label>
-                        <input type="url" id="item-cover" required class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="https://...">
+                        <input type="url" id="item-cover" class="w-full bg-surface border border-outline-variant/20 rounded-xl py-3 px-4 focus:ring-2 focus:ring-secondary/30 text-on-surface text-sm transition-shadow outline-none font-medium placeholder:text-outline-variant" placeholder="https://...">
                     </div>
                 </div>
 
@@ -292,7 +292,7 @@
                 <div>
                     <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Status da Coleção</label>
                     <div class="grid grid-cols-3 gap-2">
-                        <label class="cursor-pointer"><input type="radio" name="item-status" value="lendo" class="peer sr-only" required><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Lendo</div></label>
+                        <label class="cursor-pointer"><input type="radio" name="item-status" value="lendo" class="peer sr-only" checked><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Lendo</div></label>
                         <label class="cursor-pointer"><input type="radio" name="item-status" value="incompleto" class="peer sr-only"><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Incompletos</div></label>
                         <label class="cursor-pointer"><input type="radio" name="item-status" value="lido" class="peer sr-only"><div class="text-center py-2.5 px-3 rounded-xl bg-surface-container border border-transparent text-xs font-bold text-on-surface-variant peer-checked:bg-secondary-container peer-checked:text-secondary-dim peer-checked:border-secondary/30 hover:opacity-80 transition-all">Lido</div></label>
                     </div>
@@ -364,7 +364,6 @@
         const STORAGE_KEY = 'coleciona_mangas_data';
 
         document.addEventListener('DOMContentLoaded', () => {
-            // ELEMENTOS DO DOM (Ordem de declaração corrigida)
             const gridLendo = document.getElementById('grid-lendo');
             const gridConcluidos = document.getElementById('grid-concluidos');
             const gridIncompletoss = document.getElementById('grid-incompletos');
@@ -474,28 +473,34 @@
                 const genreTags = m.genres ? m.genres.split(',').map(g => `<span class="bg-tertiary-container text-on-tertiary-container px-2.5 py-1 rounded-full text-[9px] font-bold tracking-wider uppercase">${g}</span>`).join('') : '';
                 const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
                 
+                const displayTitle = m.title || 'Sem Título';
+                const displayAuthor = m.author ? ` • ${m.author}` : '';
+
                 return `
                     <div class="group bg-surface-container-lowest rounded-2xl p-4 flex gap-5 hover:shadow-atmospheric transition-all duration-300 animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
                         <div class="w-[100px] h-[140px] rounded-xl overflow-hidden flex-shrink-0 shadow-sm relative">
-                            <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Sem+Capa'"/>
+                            <img src="${m.cover}" alt="${displayTitle}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Sem+Capa'"/>
                             <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
                         </div>
                         <div class="flex flex-col justify-between py-1 flex-1">
                             <div>
                                 <div class="flex justify-between items-start gap-2">
-                                    <h4 class="font-bold text-on-background line-clamp-2 leading-snug group-hover:text-secondary transition-colors text-sm">${m.title} ${heartIcon}</h4>
+                                    <h4 class="font-bold text-on-background line-clamp-2 leading-snug group-hover:text-secondary transition-colors text-sm">${displayTitle} ${heartIcon}</h4>
                                     <div class="relative">
                                         <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors p-1 -mr-2 -mt-1"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
                                         ${getDropdownHTML()}
                                     </div>
                                 </div>
-                                <p class="volume-text text-xs text-on-surface-variant mt-1 mb-4 font-medium">${m.format} • ${m.read} de ${m.volumes} Vols • ${m.author}</p>
+                                <p class="volume-text text-xs text-on-surface-variant mt-1 mb-4 font-medium">${m.format} • ${m.read} de ${m.volumes} Vols${displayAuthor}</p>
                                 <div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mb-2">
                                     <div class="progress-fill h-full bg-gradient-to-r from-manga-start to-manga-end w-[${percentage}%] rounded-full transition-all duration-500 ease-out"></div>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <p class="progress-text text-[10px] text-outline font-bold tracking-wide">Progresso: ${percentage}%</p>
-                                    <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i></button>
+                                        <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex flex-wrap gap-2 mt-3">${genreTags}</div>
@@ -505,39 +510,51 @@
 
             function createLidoCard(m) {
                 const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3 h-3 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                
+                const displayTitle = m.title || 'Sem Título';
+                const displayAuthor = m.author ? ` • ${m.author}` : '';
+
                 return `
                     <div class="group bg-surface-container-low rounded-xl p-3 flex gap-4 hover:bg-surface-container-lowest hover:shadow-atmospheric transition-all cursor-pointer animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
                         <div class="w-12 h-16 rounded bg-surface-container-highest overflow-hidden flex-shrink-0">
-                            <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
+                            <img src="${m.cover}" alt="${displayTitle}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
                         </div>
                         <div class="flex flex-col justify-center min-w-0 flex-1 relative">
                             <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-on-surface truncate group-hover:text-secondary transition-colors pr-4">${m.title} ${heartIcon}</h4>
+                                <h4 class="text-sm font-bold text-on-surface truncate group-hover:text-secondary transition-colors pr-4">${displayTitle} ${heartIcon}</h4>
                                 <div class="relative absolute right-0 top-0">
                                     <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors opacity-0 group-hover:opacity-100"><i data-lucide="more-vertical" class="w-3.5 h-3.5"></i></button>
                                     ${getDropdownHTML()}
                                 </div>
                             </div>
-                            <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.volumes}/${m.volumes} Vols • ${m.author}</p>
+                            <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.volumes}/${m.volumes} Vols${displayAuthor}</p>
                         </div>
                     </div>`;
             }
 
             function createIncompletosCard(m) {
                 const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                
+                const displayTitle = m.title || 'Sem Título';
+                const displayAuthor = m.author ? ` • ${m.author}` : '';
+
                 return `
                     <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
                         <div class="flex items-center gap-4 flex-1">
                             <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm">
-                                <img src="${m.cover}" alt="${m.title}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
+                                <img src="${m.cover}" alt="${displayTitle}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors">${m.title} ${heartIcon}</h4>
-                                <p class="text-xs text-on-surface-variant font-medium mt-0.5">${m.format} • Vol. ${m.volumes} • ${m.author}</p>
+                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors">${displayTitle} ${heartIcon}</h4>
+                                <p class="volume-text text-xs text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.read} de ${m.volumes} Vols${displayAuthor}</p>
                             </div>
                         </div>
-                        <div class="hidden sm:flex flex-1 justify-center">
+                        <div class="hidden sm:flex flex-1 justify-center items-center gap-4">
                             <span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold tracking-wide">INCOMPLETO</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i></button>
+                                <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                            </div>
                         </div>
                         <div class="flex items-center gap-4">                   
                             <div class="relative">
@@ -709,10 +726,17 @@
             addItemForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const title = document.getElementById('item-title').value;
-                const author = document.getElementById('item-author').value;
-                const volumes = parseInt(document.getElementById('item-volumes').value);
-                const coverUrl = document.getElementById('item-cover').value;
+                // Variáveis extraídas e tratadas para aceitar campos vazios
+                const titleInput = document.getElementById('item-title').value.trim();
+                const authorInput = document.getElementById('item-author').value.trim();
+                const volumesInput = document.getElementById('item-volumes').value;
+                const coverInput = document.getElementById('item-cover').value.trim();
+
+                const title = titleInput || ""; 
+                const author = authorInput || "";
+                const volumes = parseInt(volumesInput) || 1; // Default 1 para não quebrar a barra de progresso
+                const coverUrl = coverInput || 'https://placehold.co/100x140/e0e4de/5c605c?text=Sem+Capa';
+                
                 const status = document.querySelector('input[name="item-status"]:checked').value;
                 const format = document.querySelector('input[name="item-format"]:checked').value;
                 const isWishlist = document.getElementById('item-wishlist').checked;
@@ -794,7 +818,10 @@
                     document.getElementById('item-title').value = editingCard.dataset.title || '';
                     document.getElementById('item-author').value = editingCard.dataset.author || '';
                     document.getElementById('item-volumes').value = editingCard.dataset.volumes || '';
-                    document.getElementById('item-cover').value = editingCard.dataset.cover || '';
+                    
+                    // Não carregar o link se for o placeholder automático
+                    const currentCover = editingCard.dataset.cover || '';
+                    document.getElementById('item-cover').value = currentCover.includes('placehold.co') ? '' : currentCover;
                     
                     const status = editingCard.dataset.status;
                     if(status) {
@@ -838,6 +865,7 @@
                     
                     let read = parseInt(card.dataset.read || 0);
                     const total = parseInt(card.dataset.volumes || 1);
+                    const author = card.dataset.author;
 
                     if (read < total) {
                         read++;
@@ -858,10 +886,20 @@
                         card.dataset.read = read; 
                         
                         const percentage = Math.round((read / total) * 100);
-                        card.querySelector('.volume-text').textContent = `${card.dataset.format} • ${read} de ${total} Vols • ${card.dataset.author}`;
-                        card.querySelector('.progress-text').textContent = `Progresso: ${percentage}%`;
-                        card.querySelector('.progress-fill').style.width = `${percentage}%`;
+                        const displayAuthor = author ? ` • ${author}` : '';
+
+                        const volumeTextEl = card.querySelector('.volume-text');
+                        if (volumeTextEl) volumeTextEl.textContent = `${card.dataset.format} • ${read} de ${total} Vols${displayAuthor}`;
                         
+                        const progressTextEl = card.querySelector('.progress-text');
+                        if (progressTextEl) progressTextEl.textContent = `Progresso: ${percentage}%`;
+                        
+                        const progressFillEl = card.querySelector('.progress-fill');
+                        if (progressFillEl) progressFillEl.style.width = `${percentage}%`;
+                        
+                        const decBtn = card.querySelector('.btn-decrement');
+                        if (decBtn && read > 0) decBtn.classList.remove('hidden');
+
                         if (read === total) {
                             card.dataset.status = 'lido';
                             card.style.transition = "all 0.3s ease";
@@ -889,6 +927,56 @@
                             saveLocalFallback();
                             showNotification('Progresso de leitura atualizado!');
                         }
+                    }
+                }
+
+                if (e.target.closest('.btn-decrement')) {
+                    e.stopPropagation();
+                    const btn = e.target.closest('.btn-decrement');
+                    const card = btn.closest('.group');
+                    
+                    let read = parseInt(card.dataset.read || 0);
+                    const total = parseInt(card.dataset.volumes || 1);
+                    const author = card.dataset.author;
+
+                    if (read > 0) {
+                        read--;
+
+                        if (supabaseClient) {
+                            const { error } = await supabaseClient.from('collection_items')
+                                .update({ read: read })
+                                .eq('id', card.dataset.id);
+                                
+                            if (error) {
+                                console.error(error);
+                                showNotification("Falha na sincronização.");
+                                return;
+                            }
+                        }
+
+                        card.dataset.read = read; 
+                        
+                        const percentage = Math.round((read / total) * 100);
+                        const displayAuthor = author ? ` • ${author}` : '';
+
+                        const volumeTextEl = card.querySelector('.volume-text');
+                        if (volumeTextEl) volumeTextEl.textContent = `${card.dataset.format} • ${read} de ${total} Vols${displayAuthor}`;
+                        
+                        const progressTextEl = card.querySelector('.progress-text');
+                        if (progressTextEl) progressTextEl.textContent = `Progresso: ${percentage}%`;
+                        
+                        const progressFillEl = card.querySelector('.progress-fill');
+                        if (progressFillEl) progressFillEl.style.width = `${percentage}%`;
+                        
+                        if (read <= 0) {
+                            btn.classList.add('hidden');
+                        }
+                        
+                        const incBtn = card.querySelector('.btn-increment');
+                        if (incBtn) incBtn.classList.remove('hidden');
+
+                        saveLocalFallback();
+                        showNotification('Progresso de leitura reduzido.');
                     }
                 }
             });

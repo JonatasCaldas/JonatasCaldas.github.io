@@ -650,18 +650,34 @@
                     let dataToExport = [];
                     
                     if (supabaseClient) {
+                        // Extrai todos os dados diretamente do Supabase
                         const { data, error } = await supabaseClient.from('collection_items').select('*');
                         if (error) throw error;
                         dataToExport = data || [];
                     } else {
+                        // Extrai do LocalStorage e padroniza para o modelo de Banco de Dados
                         saveLocalFallback();
-                        dataToExport = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                        const localData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                        dataToExport = localData.map(item => ({
+                            id: item.id,
+                            title: item.title,
+                            author: item.author,
+                            volumes: item.volumes,
+                            read: item.read,
+                            cover: item.cover,
+                            status: item.status,
+                            genres: item.genres,
+                            format: item.format,
+                            is_wishlist: item.isWishlist !== undefined ? item.isWishlist : (item.is_wishlist || false)
+                        }));
                     }
                     
+                    // Gera o arquivo JSON formatado
                     const dataStr = JSON.stringify(dataToExport, null, 2);
                     const blob = new Blob([dataStr], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     
+                    // Força o Download
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `coleciona_backup_${new Date().toISOString().split('T')[0]}.json`;
@@ -670,7 +686,7 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     
-                    showNotification('Backup realizado com sucesso!');
+                    showNotification('Backup gerado com sucesso!');
                 } catch (err) {
                     console.error("Erro no backup:", err);
                     showNotification('Erro ao gerar arquivo de backup.');
@@ -689,25 +705,48 @@
                         const importedData = JSON.parse(event.target.result);
                         if (!Array.isArray(importedData)) throw new Error("O arquivo não possui o formato esperado.");
 
+                        // Validação e padronização dos dados para evitar quebra da UI
+                        const normalizedDB = importedData.map(item => ({
+                            id: item.id || crypto.randomUUID(),
+                            title: item.title || 'Sem Título',
+                            author: item.author || '',
+                            volumes: item.volumes || 1,
+                            read: item.read || 0,
+                            cover: item.cover || '',
+                            status: item.status || 'lido',
+                            genres: item.genres || '',
+                            format: item.format || 'Mangá',
+                            is_wishlist: item.is_wishlist !== undefined ? item.is_wishlist : (item.isWishlist || false)
+                        }));
+
+                        const normalizedLocal = normalizedDB.map(item => ({
+                            ...item,
+                            isWishlist: item.is_wishlist // Mantém a compatibilidade com a leitura em LocalStorage
+                        }));
+
                         if (supabaseClient) {
+                            // Limpa a base atual
                             const { error: delErr } = await supabaseClient.from('collection_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                             if (delErr) throw delErr;
                             
-                            if (importedData.length > 0) {
-                                const { error: insErr } = await supabaseClient.from('collection_items').insert(importedData);
+                            // Insere a nova base
+                            if (normalizedDB.length > 0) {
+                                const { error: insErr } = await supabaseClient.from('collection_items').insert(normalizedDB);
                                 if (insErr) throw insErr;
                             }
                         } 
                         
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedData));
+                        // Atualiza a contingência local
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedLocal));
                         
+                        // Recarrega a interface
                         loadState();
-                        showNotification('Dados restaurados com sucesso!');
+                        showNotification('Coleção restaurada com sucesso!');
                     } catch (err) {
                         console.error("Erro na importação:", err);
-                        showNotification('Erro: Arquivo inválido ou corrompido.');
+                        showNotification('Erro: Arquivo JSON inválido ou corrompido.');
                     } finally {
-                        importFile.value = ''; 
+                        importFile.value = ''; // Permite reimportar o mesmo arquivo se necessário
                     }
                 };
                 reader.readAsText(file);

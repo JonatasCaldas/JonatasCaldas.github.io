@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>GenONER</title>
-    <link rel="icon" type="image/x-icon" href="https://jonatascaldas.github.io/favicon.ico">
-
+    <title>Minhas Coleções - Pokémon TCG Curator</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -118,6 +116,17 @@
         .missing-card {
             filter: grayscale(1) contrast(0.8) opacity(0.4);
         }
+        
+        .sortable-drag {
+            opacity: 0.8 !important;
+            cursor: grabbing !important;
+        }
+        .sortable-drag * {
+            pointer-events: none !important;
+        }
+        .sortable-ghost {
+            opacity: 0.4 !important;
+        }
 
         .view-transition { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .view-hidden { opacity: 0; pointer-events: none; position: absolute; width: 100%; transform: translateY(10px); }
@@ -148,7 +157,7 @@
             <section class="mb-10">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                     <div>
-                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">GenONER</h2>
+                        <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Coleções</h2>
                         <p class="text-on-surface-variant font-medium text-sm md:text-base">
                             Você possui <span id="total-collections-cards" class="text-primary font-bold">0</span> cartas coletadas
                         </p>
@@ -474,7 +483,7 @@
                 <div class="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
                     <section class="bg-surface-container-low rounded-2xl border border-white/5 p-8 flex items-center justify-center aspect-square md:aspect-auto md:h-80 lg:h-auto lg:aspect-[4/5] relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent z-0"></div>
-                        <img id="tracker-detail-image" src="" alt="Card" class="max-h-full max-w-full object-contain relative z-10 drop-shadow-2xl rounded-lg">
+                        <img id="tracker-detail-image" src="" alt="Card" class="max-h-full max-w-full object-contain relative z-10 drop-shadow-2xl rounded-lg cursor-pointer hover:scale-105 transition-transform duration-300" onclick="openZoomModal(this.src)">
                         <div id="tracker-detail-badge-container" class="absolute top-4 right-4 z-20 bg-surface-container/90 backdrop-blur rounded-full px-3 py-1.5 border border-white/10 flex items-center gap-2 shadow-sm">
                             <span id="tracker-detail-badge-color" class="w-2 h-2 rounded-full bg-primary"></span>
                             <span id="tracker-detail-badge-text" class="font-label text-[10px] uppercase tracking-widest text-on-surface font-bold">Ativo</span>
@@ -637,16 +646,16 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div class="col-span-1">
                         <label for="input-card-num" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Nº</label>
-                        <input type="text" id="input-card-num" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                        <input type="text" id="input-card-num" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
                     </div>
                     <div class="col-span-2">
                         <label for="input-card-name" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Pokémon</label>
-                        <input type="text" id="input-card-name" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                        <input type="text" id="input-card-name" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
                     </div>
                 </div>
                 <div>
                     <label for="input-card-image" class="block text-sm font-medium mb-1.5 text-on-surface-variant">URL da Imagem</label>
-                    <input type="url" id="input-card-image" required class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
+                    <input type="url" id="input-card-image" class="w-full bg-background border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-on-surface">
                 </div>
                 <div>
                     <label for="input-card-rarity" class="block text-sm font-medium mb-1.5 text-on-surface-variant">Raridade</label>
@@ -828,6 +837,10 @@
         </div>
     </div>
 
+    <!-- Modal Zoom da Imagem -->
+    <div id="modal-zoom" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md opacity-0 hidden transition-opacity duration-300 cursor-pointer" onclick="closeZoomModal()">
+        <img id="zoom-card-image" src="" class="max-w-[90vw] max-h-[90vh] object-contain drop-shadow-2xl rounded-2xl scale-95 transition-transform duration-300 cursor-default" onclick="event.stopPropagation()" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'">
+    </div>
 
     <!-- ========================================== -->
     <!-- JAVASCRIPT GERAL                           -->
@@ -861,6 +874,123 @@
         let toastTimeout; // Variável global para controlar e resetar o timer do Toast
         let activeRarityFilter = null; // Variável global para o filtro de raridade
 
+        // ----------------------------------------------------
+        // LÓGICA DE LONG PRESS, ZOOM E DRAG PARA CARTAS
+        // ----------------------------------------------------
+        let pStartX = undefined;
+        let pStartY = undefined;
+        let pTimer = null;
+        let pIsDragging = false;
+        let pCardId = null;
+
+        function cardPointerDown(e, cardId) {
+            if (e.button && e.button !== 0) return; // Ignora clique direito
+            pStartX = e.clientX;
+            pStartY = e.clientY;
+            pIsDragging = false;
+            pCardId = cardId;
+
+            if (pTimer) clearTimeout(pTimer);
+            pTimer = setTimeout(() => {
+                if (!pIsDragging) markCardAsCollected(pCardId);
+            }, 800); // 800ms para o long press
+        }
+
+        function cardPointerMove(e) {
+            if (pStartX === undefined || pStartY === undefined) return;
+            const dx = Math.abs(e.clientX - pStartX);
+            const dy = Math.abs(e.clientY - pStartY);
+            // Distância para determinar se é drag ou apenas clique
+            const threshold = e.pointerType === 'touch' ? 15 : 8;
+
+            if (dx > threshold || dy > threshold) {
+                pIsDragging = true;
+                if (pTimer) {
+                    clearTimeout(pTimer);
+                    pTimer = null;
+                }
+            }
+        }
+
+        function cardPointerUp(e, imageSrc) {
+            if (pTimer) {
+                clearTimeout(pTimer);
+                pTimer = null;
+            }
+            if (!pIsDragging && pStartX !== undefined) {
+                // É um clique simples, abre o zoom
+                openZoomModal(imageSrc);
+            }
+            pStartX = undefined;
+            pStartY = undefined;
+            pIsDragging = false;
+        }
+
+        function cardPointerCancel(e) {
+            if (pTimer) {
+                clearTimeout(pTimer);
+                pTimer = null;
+            }
+            pStartX = undefined;
+            pStartY = undefined;
+            pIsDragging = false;
+        }
+
+        function openZoomModal(imageSrc) {
+            const modal = document.getElementById('modal-zoom');
+            const img = document.getElementById('zoom-card-image');
+            img.src = imageSrc || 'https://placehold.co/400x560/121416/f2c000?text=Indisponível';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                img.classList.remove('scale-95');
+            });
+        }
+
+        function closeZoomModal() {
+            const modal = document.getElementById('modal-zoom');
+            const img = document.getElementById('zoom-card-image');
+            modal.classList.add('opacity-0');
+            img.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        const markCardAsCollected = async (cardId) => {
+            const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
+            const entity = list.find(en => en.id === appState.currentEntityId);
+            if (!entity) return;
+            
+            const card = entity.cards.find(c => c.id === cardId);
+            if (!card || card.collected) return;
+
+            // Atualização visual otimista instantânea
+            card.collected = true;
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            if (appState.activeContext === 'collection') renderCollectionDetails();
+            else renderBinderDetails();
+
+            // Sincronização em segundo plano no Supabase
+            const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
+            try {
+                const { error } = await db.from(table).update({ collected: true }).eq('id', cardId);
+                if (error) throw error;
+                showToast('Carta marcada como coletada!');
+            } catch (err) {
+                console.error(err);
+                // Reverte em caso de falha na rede
+                card.collected = false;
+                if (appState.activeContext === 'collection') renderCollectionDetails();
+                else renderBinderDetails();
+                showToast('Erro ao marcar carta. Tente novamente.', true);
+            }
+        };
+
+
         const showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = msg;
@@ -869,7 +999,6 @@
             lucide.createIcons({ root: iconContainer });
             toast.classList.remove('-translate-y-[150%]', 'opacity-0');
             
-            // Limpa o timer anterior se existir, garantindo 3 segundos a partir do novo evento
             if (toastTimeout) {
                 clearTimeout(toastTimeout);
             }
@@ -885,7 +1014,6 @@
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const filename = `backup-tcg-${dd}-${mm}-${today.getFullYear()}.json`;
                 
-                // Garantindo que apenas os dados puros (sem estados de UI) sejam salvos
                 const fullBackupData = {
                     metadata: {
                         export_date: new Date().toISOString(),
@@ -937,53 +1065,6 @@
             }
         };
 
-        // ----------------------------------------------------
-        // LÓGICA DE LONG PRESS PARA COLETAR CARTAS
-        // ----------------------------------------------------
-        let longPressTimer;
-
-        const startLongPress = (cardId) => {
-            if (longPressTimer) clearTimeout(longPressTimer);
-            longPressTimer = setTimeout(() => {
-                markCardAsCollected(cardId);
-            }, 400); // 400ms conforme solicitado
-        };
-
-        const cancelLongPress = () => {
-            if (longPressTimer) clearTimeout(longPressTimer);
-        };
-
-        const markCardAsCollected = async (cardId) => {
-            const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
-            const entity = list.find(en => en.id === appState.currentEntityId);
-            if (!entity) return;
-            
-            const card = entity.cards.find(c => c.id === cardId);
-            if (!card || card.collected) return; // Só marca se não estiver coletada
-
-            // Atualização visual otimista instantânea
-            card.collected = true;
-            if (navigator.vibrate) navigator.vibrate(50); // Feedback tátil (se suportado pelo dispositivo)
-
-            if (appState.activeContext === 'collection') renderCollectionDetails();
-            else renderBinderDetails();
-
-            // Sincronização em segundo plano no Supabase
-            const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
-            try {
-                const { error } = await db.from(table).update({ collected: true }).eq('id', cardId);
-                if (error) throw error;
-                showToast('Carta marcada como coletada!');
-            } catch (err) {
-                console.error(err);
-                // Reverte em caso de falha na rede
-                card.collected = false;
-                if (appState.activeContext === 'collection') renderCollectionDetails();
-                else renderBinderDetails();
-                showToast('Erro ao marcar carta. Tente novamente.', true);
-            }
-        };
-
         document.getElementById('form-entity').addEventListener('submit', async (e) => {
             e.preventDefault();
             const list = editingEntityType === 'collection' ? appState.collections : appState.binders;
@@ -1029,11 +1110,14 @@
             const entity = list.find(en => en.id === appState.currentEntityId);
             const table = appState.activeContext === 'collection' ? 'collection_cards' : 'binder_cards';
             const fKey = appState.activeContext === 'collection' ? { collection_id: entity.id } : { binder_id: entity.id };
-            const num = document.getElementById('input-card-num').value.trim();
-            const name = document.getElementById('input-card-name').value.trim();
-            const image = document.getElementById('input-card-image').value.trim();
-            const rarity = document.getElementById('input-card-rarity').value.trim();
+            
+            // Implementação de campos opcionais com defaults apropriados
+            const num = document.getElementById('input-card-num').value.trim() || '-';
+            const name = document.getElementById('input-card-name').value.trim() || 'Carta sem título';
+            const image = document.getElementById('input-card-image').value.trim() || '';
+            const rarity = document.getElementById('input-card-rarity').value.trim() || 'COMUM';
             const collected = document.getElementById('input-card-collected').checked;
+            
             const btn = document.getElementById('btn-card-submit-text');
             btn.textContent = 'Enviando...';
             try {
@@ -1318,20 +1402,19 @@
             sortedCards.forEach(card => {
                 const imgClass = `w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${card.collected ? '' : 'grayscale opacity-60'}`;
                 const r = card.rarity ? card.rarity.toUpperCase() : 'COMUM';
+                const imgSrc = card.image || 'https://placehold.co/400x560/121416/f2c000?text=Indisponível';
                 
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="relative group col-card-item select-none" style="-webkit-touch-callout: none;" data-collected="${card.collected}" data-rarity="${r}"
-                        onmousedown="startLongPress('${card.id}')"
-                        ontouchstart="startLongPress('${card.id}')"
-                        onmouseup="cancelLongPress()"
-                        onmouseleave="cancelLongPress()"
-                        ontouchend="cancelLongPress()"
-                        ontouchmove="cancelLongPress()"
-                        ontouchcancel="cancelLongPress()">
+                        onpointerdown="cardPointerDown(event, '${card.id}')"
+                        onpointermove="cardPointerMove(event)"
+                        onpointerup="cardPointerUp(event, '${imgSrc}')"
+                        onpointercancel="cardPointerCancel(event)"
+                        onpointerleave="cardPointerCancel(event)">
                         <div class="aspect-[2.5/3.5] rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect transition-transform duration-300 hover:scale-[1.02] active:scale-95 border border-white/5">
-                            <img alt="${card.name}" class="${imgClass}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
+                            <img alt="${card.name}" class="${imgClass}" src="${imgSrc}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
                             <div class="card-sheen z-0"></div>
-                            <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                            <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                 <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                 <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
@@ -1586,20 +1669,20 @@
                     const isMissing = !card.collected;
                     const imgClass = isMissing ? 'w-full h-full object-cover missing-card' : 'w-full h-full object-cover';
                     const missingRibbon = isMissing ? `<div class="absolute inset-0 flex items-center justify-center rotate-[-12deg] z-30 pointer-events-none"><span class="bg-tertiary-container text-on-tertiary-container font-headline font-black text-[10px] md:text-xs px-3 py-1 rounded-sm uppercase tracking-[0.2em] shadow-xl">Faltando</span></div>` : '';
+                    const imgSrc = card.image || 'https://placehold.co/400x560/121416/f2c000?text=Indisponível';
+                    
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="relative group aspect-[2.5/3.5] cursor-grab active:cursor-grabbing select-none" style="-webkit-touch-callout: none;"
-                            onmousedown="startLongPress('${card.id}')"
-                            ontouchstart="startLongPress('${card.id}')"
-                            onmouseup="cancelLongPress()"
-                            onmouseleave="cancelLongPress()"
-                            ontouchend="cancelLongPress()"
-                            ontouchmove="cancelLongPress()"
-                            ontouchcancel="cancelLongPress()">
+                            onpointerdown="cardPointerDown(event, '${card.id}')"
+                            onpointermove="cardPointerMove(event)"
+                            onpointerup="cardPointerUp(event, '${imgSrc}')"
+                            onpointercancel="cardPointerCancel(event)"
+                            onpointerleave="cardPointerCancel(event)">
                             <div class="absolute inset-0 bg-surface-container-highest rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] border border-white/5">
-                                <img alt="${card.name}" class="${imgClass}" src="${card.image}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
+                                <img alt="${card.name}" class="${imgClass}" src="${imgSrc}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
                                 ${missingRibbon}
                                 <div class="card-sheen z-0"></div>
-                                <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-40" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-40" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                     <button onclick="openCardModal('${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                     <button onclick="openDeleteModal('card', '${card.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </div>
@@ -1621,7 +1704,7 @@
             lucide.createIcons();
             if (window.binderCardsSortable) window.binderCardsSortable.destroy();
             window.binderCardsSortable = new Sortable(grid, {
-                swap: true, swapClass: 'opacity-40', animation: 250, delay: 200, delayOnTouchOnly: true, ghostClass: 'scale-105',
+                swap: true, swapClass: 'opacity-40', animation: 250, delay: 200, delayOnTouchOnly: true, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', revertOnSpill: true,
                 onEnd: async function (evt) { if (evt.oldIndex !== evt.newIndex) await swapBinderCards(evt.oldIndex, evt.newIndex); }
             });
         };
@@ -1745,14 +1828,12 @@
             const wrapper = document.getElementById('binder-page-wrapper');
             const btn = document.getElementById('btn-fit-screen');
             if (isFitToScreen) {
-                // Escala a largura máxima de acordo com a altura disponível na janela
                 wrapper.style.maxWidth = 'calc((100vh - 280px) * 0.85)';
                 btn.innerHTML = `
                     <i data-lucide="minimize" class="w-4 h-4"></i>
                     <span class="text-xs uppercase tracking-widest">Expandir</span>
                 `;
             } else {
-                // Restaura o tamanho original
                 wrapper.style.maxWidth = '100%';
                 btn.innerHTML = `
                     <i data-lucide="maximize" class="w-4 h-4"></i>
@@ -1806,7 +1887,6 @@
         let tChartInstance = null;
         let tCurrentChartPeriod = 'semana'; 
         
-        // Estado global para Destaques conectado ao Supabase
         let mMilestones = [];
 
         const tFormatBRL = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -1863,7 +1943,6 @@
             }
         }
 
-        // ---------- DESTAQUES: Funções de Render e Actions ----------
         function mRenderMilestones() {
             const container = document.getElementById('milestones-timeline');
             container.innerHTML = '';
@@ -1873,7 +1952,6 @@
                 return;
             }
 
-            // Ordena do mais recente para o mais antigo com base no banco
             const sorted = [...mMilestones].sort((a, b) => new Date(b.recorded_date) - new Date(a.recorded_date));
 
             sorted.forEach((m, index) => {
@@ -1886,30 +1964,21 @@
 
                 const html = `
                     <div class="relative">
-                        <!-- Node -->
                         <div class="absolute -left-[33px] top-4 w-4 h-4 rounded-full ${nodeColor} z-10"></div>
-                        
-                        <!-- Date -->
                         <div class="mb-3 flex items-center gap-2">
                             <i data-lucide="calendar" class="${dateColor} w-4 h-4"></i>
                             <span class="font-label text-[10px] ${dateColor} tracking-widest uppercase font-bold">${formattedDate}</span>
                         </div>
-                        
-                        <!-- Content Card -->
                         <article class="bg-surface-container-low rounded-xl p-4 md:p-5 shadow-xl border border-white/5 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                             <div class="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none"></div>
-                            
-                            <!-- Ações (Editar/Excluir) integradas ao modal -->
                             <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="mEditMilestone('${m.id}', event)" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-on-surface hover:text-primary transition-colors shadow-lg border border-white/5"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                 <button onclick="event.stopPropagation(); openDeleteModal('milestone', '${m.id}')" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg border border-white/5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
-
                             <div class="flex flex-col sm:flex-row gap-5 relative z-10">
-                                <!-- Box da imagem com formato de carta real (aspect 2.5/3.5) -->
-                                <div class="aspect-[2.5/3.5] w-28 sm:w-36 shrink-0 rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect border border-white/5 shadow-md">
+                                <div class="aspect-[2.5/3.5] w-28 sm:w-36 shrink-0 rounded-xl overflow-hidden bg-surface-container-highest relative card-pocket-effect border border-white/5 shadow-md cursor-pointer hover:scale-[1.02] transition-transform" onclick="openZoomModal('${m.image_url}')">
                                     <img alt="${m.name}" class="w-full h-full object-cover ${!isFirst ? 'grayscale-[30%] group-hover:grayscale-0 transition-all duration-500' : ''}" src="${m.image_url}" onerror="this.src='https://placehold.co/400x560/121416/f2c000?text=Indisponível'"/>
-                                    <div class="card-sheen z-0"></div>
+                                    <div class="card-sheen z-0 pointer-events-none"></div>
                                 </div>
                                 <div class="flex flex-col justify-center flex-1">
                                     <div class="flex justify-between items-start mb-2 gap-2 pr-16">
@@ -2009,8 +2078,6 @@
             }
         }
 
-        // ---------- FIM DESTAQUES ----------
-
         function tGenerateCardHtml(card, currentP, prevP) {
             const variance = tGetVariance(currentP, prevP);
             const isPositive = variance >= 0;
@@ -2099,7 +2166,6 @@
 
             tRenderPriceStats(card.history);
             
-            // Reseta a visualização do gráfico para 'semana' ao abrir nova carta
             tCurrentChartPeriod = 'semana';
             const selector = document.getElementById('tracker-chart-period-selector');
             const buttons = selector.querySelectorAll('button');
@@ -2135,7 +2201,6 @@
                 lowestPriceEl.textContent = tFormatBRL(lowestVal);
                 lowestPriceEl.className = "font-headline text-lg md:text-2xl font-extrabold text-primary truncate";
                 
-                // history vem ordenado do mais antigo para o mais novo
                 const latestVal = history[history.length - 1].value;
                 latestPriceEl.textContent = tFormatBRL(latestVal);
                 latestPriceEl.className = "font-headline text-lg md:text-2xl font-extrabold text-on-surface truncate";
@@ -2207,7 +2272,6 @@
             const canvas = document.getElementById('tracker-priceChart');
             const emptyState = document.getElementById('tracker-chart-empty-state');
             
-            // Lógica de Filtragem e Agrupamento baseada no período selecionado
             const now = new Date();
             let startTime = new Date();
             if (tCurrentChartPeriod === 'dia') startTime.setDate(now.getDate() - 1);
@@ -2216,7 +2280,6 @@
 
             let filteredHistory = history.filter(h => new Date(h.date) >= startTime);
 
-            // Garante linha contínua visual caso o último preço seja mais antigo que o período selecionado
             if (filteredHistory.length > 0 && history.length > filteredHistory.length) {
                 const olderPoints = history.filter(h => new Date(h.date) < startTime);
                 if (olderPoints.length > 0) {
@@ -2252,14 +2315,12 @@
             });
             const data = filteredHistory.map(h => h.value);
             
-            // NOVA LÓGICA DE ESCALA EM MÚLTIPLOS DE 5
             const dataMin = Math.min(...data);
             const dataMax = Math.max(...data);
             
             let yMin = Math.floor(dataMin / 5) * 5;
             let yMax = Math.ceil(dataMax / 5) * 5;
             
-            // Força a escala a ter no mínimo 5 reais de variação total
             if (yMax === yMin) {
                 yMin = Math.max(0, yMin - 5);
                 yMax += 5;
@@ -2282,7 +2343,6 @@
                 tChartInstance.data.datasets[0].pointRadius = pointRadiuses;
                 tChartInstance.data.datasets[0].pointHoverRadius = pointHoverRadiuses;
                 
-                // Aplica os novos limites de escala na instância existente
                 tChartInstance.options.scales.y.suggestedMin = yMin;
                 tChartInstance.options.scales.y.suggestedMax = yMax;
                 
@@ -2311,7 +2371,6 @@
                         scales: {
                             x: { display: false },
                             y: {
-                                // Aplica os limites calculados aqui
                                 suggestedMin: yMin,
                                 suggestedMax: yMax,
                                 position: 'left', border: { display: false }, grid: { color: '#333537', drawTicks: false },
@@ -2362,7 +2421,6 @@
             buttons.forEach(btn => btn.className = "px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors");
             btnElement.className = "px-4 py-2 rounded-lg bg-surface-container-highest shadow-sm text-on-surface transition-colors border border-white/5";
             
-            // Salva o período ativado e atualiza o gráfico da carta que está em aberto
             tCurrentChartPeriod = period;
             if (tActiveCardId) {
                 const card = tCards.find(c => c.id === tActiveCardId);

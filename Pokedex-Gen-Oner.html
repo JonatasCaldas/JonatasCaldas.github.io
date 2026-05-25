@@ -1048,93 +1048,136 @@
             try {
                 showToast('Restaurando banco de dados... (não feche a aba)', false);
 
-                // 1. Limpa o BD Atual (Filhos primeiro para não ter erro de chave estrangeira)
+                // 1. Limpa o BD Atual rigorosamente
                 await db.from('collection_cards').delete().not('id', 'is', null);
                 await db.from('binder_cards').delete().not('id', 'is', null);
                 await db.from('price_history').delete().not('id', 'is', null);
-                
-                // Limpa os pais
                 await db.from('collections').delete().not('id', 'is', null);
                 await db.from('binders').delete().not('id', 'is', null);
                 await db.from('cards').delete().not('id', 'is', null);
                 await db.from('milestones').delete().not('id', 'is', null);
 
-                // 2. Insere Coleções e Cartas
+                // 2. Insere Coleções e Cartas (Mapeamento cirúrgico para evitar rejeição do Supabase)
                 if (importedData.collections && importedData.collections.length > 0) {
-                    const colsToInsert = importedData.collections.map(c => {
-                        const { cards, collection_cards, ...rest } = c; // Filtra as chaves problemáticas do JSON antigo
-                        return rest;
-                    });
-                    await db.from('collections').insert(colsToInsert);
+                    const colsToInsert = importedData.collections.map(c => ({
+                        id: c.id,
+                        created_at: c.created_at || new Date().toISOString(),
+                        name: c.name || 'Sem Nome',
+                        category: c.category || 'Geral',
+                        image: c.image || '',
+                        logo_url: c.logo_url || null
+                    }));
+                    const { error: errCol } = await db.from('collections').insert(colsToInsert);
+                    if (errCol) throw errCol;
                     
-                    const colCards = importedData.collections.flatMap(c => c.cards || c.collection_cards || []);
+                    const colCards = importedData.collections.flatMap(c => {
+                        const arr = c.cards || c.collection_cards || [];
+                        return arr.map(cc => ({
+                            id: cc.id,
+                            created_at: cc.created_at || new Date().toISOString(),
+                            collection_id: c.id,
+                            num: cc.num || '-',
+                            name: cc.name || 'Carta sem título',
+                            image: cc.image || '',
+                            rarity: cc.rarity || 'COMUM',
+                            collected: cc.collected || false
+                        }));
+                    });
                     if (colCards.length > 0) {
-                        const cleanCards = colCards.map(cc => {
-                            const { collections, ...rest } = cc; // Remove lixo relacional reverso
-                            return rest;
-                        });
-                        await db.from('collection_cards').insert(cleanCards);
+                        const { error: errCC } = await db.from('collection_cards').insert(colCards);
+                        if (errCC) throw errCC;
                     }
                 }
 
                 // 3. Insere Fichários e Cartas
                 if (importedData.binders && importedData.binders.length > 0) {
-                    const bindersToInsert = importedData.binders.map(b => {
-                        const { cards, binder_cards, ...rest } = b;
-                        return rest;
-                    });
-                    await db.from('binders').insert(bindersToInsert);
+                    const bindersToInsert = importedData.binders.map(b => ({
+                        id: b.id,
+                        created_at: b.created_at || new Date().toISOString(),
+                        name: b.name || 'Sem Nome',
+                        category: b.category || 'Geral',
+                        image: b.image || '',
+                        page_count: b.page_count || 1,
+                        page_names: b.page_names || null,
+                        page_logos: b.page_logos || null
+                    }));
+                    const { error: errBnd } = await db.from('binders').insert(bindersToInsert);
+                    if (errBnd) throw errBnd;
 
-                    const binderCards = importedData.binders.flatMap(b => b.cards || b.binder_cards || []);
+                    const binderCards = importedData.binders.flatMap(b => {
+                        const arr = b.cards || b.binder_cards || [];
+                        return arr.map(bc => ({
+                            id: bc.id,
+                            created_at: bc.created_at || new Date().toISOString(),
+                            binder_id: b.id,
+                            slot_index: bc.slot_index || 0,
+                            num: bc.num || '-',
+                            name: bc.name || 'Carta sem título',
+                            image: bc.image || '',
+                            rarity: bc.rarity || 'COMUM',
+                            collected: bc.collected || false
+                        }));
+                    });
                     if (binderCards.length > 0) {
-                        const cleanCards = binderCards.map(bc => {
-                            const { binders, ...rest } = bc;
-                            return rest;
-                        });
-                        await db.from('binder_cards').insert(cleanCards);
+                        const { error: errBC } = await db.from('binder_cards').insert(binderCards);
+                        if (errBC) throw errBC;
                     }
                 }
 
-                // 4. Insere Cartas do Tracker e Histórico
+                // 4. Insere Tracker
                 if (importedData.tracker_cards && importedData.tracker_cards.length > 0) {
                     const tCardsToInsert = importedData.tracker_cards.map(tc => ({
                         id: tc.id,
-                        name: tc.name,
-                        subtitle: tc.subtitle,
-                        image_url: tc.image_url || tc.image, // Adaptativo (Nomes divergem do DB)
-                        is_wishlist: tc.is_wishlist
+                        created_at: tc.created_at || new Date().toISOString(),
+                        name: tc.name || 'Sem título',
+                        subtitle: tc.subtitle || '',
+                        image_url: tc.image_url || tc.image || '',
+                        is_wishlist: tc.is_wishlist || false
                     }));
-                    await db.from('cards').insert(tCardsToInsert);
+                    const { error: errT } = await db.from('cards').insert(tCardsToInsert);
+                    if (errT) throw errT;
 
                     const tHistory = importedData.tracker_cards.flatMap(tc => 
                         (tc.history || tc.price_history || []).map(h => ({
                             id: h.id,
                             card_id: tc.id,
-                            value: h.value,
-                            recorded_at: h.date || h.recorded_at
+                            value: h.value || 0,
+                            recorded_at: h.recorded_at || h.date || new Date().toISOString()
                         }))
                     );
-                    if (tHistory.length > 0) await db.from('price_history').insert(tHistory);
+                    if (tHistory.length > 0) {
+                        const { error: errTH } = await db.from('price_history').insert(tHistory);
+                        if (errTH) throw errTH;
+                    }
                 }
 
-                // 5. Insere Destaques
+                // 5. Insere Destaques (Milestones)
                 if (importedData.milestones && importedData.milestones.length > 0) {
                     const milestonesToInsert = importedData.milestones.map(m => ({
                         id: m.id,
-                        name: m.name,
-                        subtitle: m.subtitle,
-                        image_url: m.image_url || m.image,
-                        recorded_date: m.recorded_date || m.date,
-                        description: m.description || m.text
+                        name: m.name || 'Sem título',
+                        subtitle: m.subtitle || '',
+                        image_url: m.image_url || m.image || '',
+                        recorded_date: m.recorded_date || m.date || new Date().toISOString().split('T')[0],
+                        description: m.description || m.text || ''
                     }));
-                    await db.from('milestones').insert(milestonesToInsert);
+                    const { error: errMS } = await db.from('milestones').insert(milestonesToInsert);
+                    if (errMS) throw errMS;
                 }
+
+                // Limpa totalmente a memória local para não haver conflitos
+                localStorage.removeItem('tcg_collections');
+                localStorage.removeItem('tcg_binders');
+                appState.collections = [];
+                appState.binders = [];
+                tCards = [];
+                mMilestones = [];
 
                 showToast('Restauração concluída! Carregando dados...');
                 await initBoot();
             } catch (err) {
                 console.error(err);
-                showToast('Erro crítico durante a restauração.', true);
+                showToast('Erro crítico durante a restauração. Veja o console.', true);
             }
         };
 
@@ -1145,7 +1188,7 @@
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const filename = `backup-tcg-${dd}-${mm}-${today.getFullYear()}.json`;
                 
-                // Limpando os nós relacionais "fantasmas" gerados pelas consultas do Supabase para que backups futuros fiquem polidos
+                // Garantindo a exportação limpa, retirando objetos aninhados invisíveis
                 const cleanCols = appState.collections.map(c => {
                     const { collection_cards, ...cleanC } = c;
                     return cleanC;

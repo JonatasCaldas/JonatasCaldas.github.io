@@ -874,6 +874,12 @@
         let toastTimeout; // Variável global para controlar e resetar o timer do Toast
         let activeRarityFilter = null; // Variável global para o filtro de raridade
 
+        // --- NOVO: Rotina para salvar cache localmente (Resiliência) ---
+        const saveToLocal = () => {
+            localStorage.setItem('tcg_collections', JSON.stringify(appState.collections));
+            localStorage.setItem('tcg_binders', JSON.stringify(appState.binders));
+        };
+
         // ----------------------------------------------------
         // LÓGICA DE LONG PRESS, ZOOM E DRAG PARA CARTAS
         // ----------------------------------------------------
@@ -979,6 +985,7 @@
             try {
                 const { error } = await db.from(table).update({ collected: true }).eq('id', cardId);
                 if (error) throw error;
+                saveToLocal();
                 showToast('Carta marcada como coletada!');
             } catch (err) {
                 console.error(err);
@@ -1020,7 +1027,7 @@
                         app: "TCG Curator"
                     },
                     collections: appState.collections,
-                    binders: appState.binders,
+                    binders: appState.binders, // page_logos estão nativamente aqui
                     tracker_cards: typeof tCards !== 'undefined' ? tCards : [],
                     milestones: typeof mMilestones !== 'undefined' ? mMilestones : []
                 };
@@ -1044,6 +1051,19 @@
 
         const loadDataFromCloud = async () => {
             document.getElementById('loading-cols').classList.remove('hidden');
+            
+            // --- Carregar do LocalStorage primeiro (Cache/Offline) ---
+            const localCols = localStorage.getItem('tcg_collections');
+            const localBnds = localStorage.getItem('tcg_binders');
+            if (localCols) appState.collections = JSON.parse(localCols);
+            if (localBnds) appState.binders = JSON.parse(localBnds);
+            
+            // Renderiza imediatamente se houver cache
+            if (localCols || localBnds) {
+                if(appState.activeView === 'home-view') renderEntityGrid('collection');
+                if(appState.activeView === 'binders-view') renderEntityGrid('binder');
+            }
+
             showToast('Sincronizando com a nuvem...');
             try {
                 const { data: cols, error: errCols } = await db.from('collections').select('*, collection_cards(*)').order('created_at', { ascending: false });
@@ -1051,10 +1071,13 @@
                 if (errCols || errBnds) throw new Error('Erro ao buscar dados.');
                 appState.collections = (cols || []).map(c => ({ ...c, cards: c.collection_cards || [] }));
                 appState.binders = (bnds || []).map(b => ({ ...b, cards: b.binder_cards || [] }));
+                
+                saveToLocal(); // Atualiza o cache
+                
                 showToast('Dados sincronizados!');
             } catch (err) {
                 console.error(err);
-                showToast('Falha na conexão com a nuvem.', true);
+                showToast('Falha na conexão com a nuvem. Usando dados locais.', true);
             } finally {
                 document.getElementById('loading-cols').classList.add('hidden');
                 if(appState.activeView === 'home-view') renderEntityGrid('collection');
@@ -1094,6 +1117,7 @@
                     list.unshift(data);
                     showToast('Criado e salvo na nuvem!');
                 }
+                saveToLocal();
                 renderEntityGrid(editingEntityType);
                 closeEntityModal();
             } catch (err) {
@@ -1135,6 +1159,7 @@
                     entity.cards.push(data);
                     showToast('Carta salva na nuvem!');
                 }
+                saveToLocal();
                 if (appState.activeContext === 'collection') renderCollectionDetails();
                 else renderBinderDetails();
                 closeCardModal();
@@ -1158,6 +1183,7 @@
                     const { error } = await db.from(table).delete().eq('id', deleteContext.id);
                     if (error) throw error;
                     appState[listName] = appState[listName].filter(c => c.id !== deleteContext.id);
+                    saveToLocal();
                     renderEntityGrid(deleteContext.type);
                 } else if (deleteContext.type === 'card') {
                     const list = appState.activeContext === 'collection' ? appState.collections : appState.binders;
@@ -1166,6 +1192,7 @@
                     const { error } = await db.from(table).delete().eq('id', deleteContext.id);
                     if (error) throw error;
                     if(entity) entity.cards = entity.cards.filter(c => c.id !== deleteContext.id);
+                    saveToLocal();
                     if (appState.activeContext === 'collection') renderCollectionDetails();
                     else renderBinderDetails();
                 } else if (deleteContext.type === 'page') {
@@ -1185,7 +1212,9 @@
                     binder.cards = binder.cards.filter(c => !cardsToDelete.includes(c));
                     binder.page_count = Math.max(1, (binder.page_count || 1) - 1);
                     if (binder.page_names && binder.page_names.length > pageIndex) binder.page_names.splice(pageIndex, 1);
-                    try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch(err) {}
+                    if (binder.page_logos && binder.page_logos.length > pageIndex) binder.page_logos.splice(pageIndex, 1);
+                    saveToLocal();
+                    try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names, page_logos: binder.page_logos }).eq('id', binder.id); } catch(err) {}
                     renderBinderPages();
                 } else if (deleteContext.type === 'milestone') {
                     const { error } = await db.from('milestones').delete().eq('id', deleteContext.id);
@@ -1470,7 +1499,28 @@
             const name = newName.trim();
             if (!binder.page_names) binder.page_names = Array.from({length: binder.page_count}, (_, i) => `Página ${i + 1}`);
             binder.page_names[pageIndex] = name || `Página ${pageIndex + 1}`;
+            saveToLocal();
             try { await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
+            renderBinderPages();
+        };
+
+        const promptPageLogo = async (pageIndex) => {
+            const binder = appState.binders.find(b => b.id === appState.currentEntityId);
+            if (!binder) return;
+            const currentLogo = (binder.page_logos && binder.page_logos[pageIndex]) ? binder.page_logos[pageIndex] : '';
+            const newLogo = prompt('Insira o link da imagem (logo) para esta página:', currentLogo);
+            if (newLogo === null) return; 
+            
+            if (!binder.page_logos) binder.page_logos = Array.from({length: binder.page_count}, () => '');
+            binder.page_logos[pageIndex] = newLogo.trim();
+            
+            saveToLocal();
+            try { 
+                await db.from('binders').update({ page_logos: binder.page_logos }).eq('id', binder.id); 
+            } catch (e) {
+                console.error("Erro ao salvar logo da página", e);
+                showToast("Salvo localmente. (Sem internet)", true);
+            }
             renderBinderPages();
         };
 
@@ -1522,13 +1572,24 @@
                 const iconColorClass = isPageComplete ? 'text-green-500' : 'text-primary';
                 const barColorClass = isPageComplete ? 'bg-green-500' : 'bg-primary';
 
+                const pageLogo = (binder.page_logos && binder.page_logos[i]) ? binder.page_logos[i] : null;
+                const iconHtml = pageLogo 
+                    ? `<img src="${pageLogo}" class="max-w-full h-12 object-contain filter drop-shadow-md" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                       <div class="w-12 h-12 bg-surface-container-highest rounded-full items-center justify-center shadow-sm border border-white/5 ${iconColorClass}" style="display:none;">
+                           <i data-lucide="layers" class="w-6 h-6"></i>
+                       </div>`
+                    : `<div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center shadow-sm border border-white/5 ${iconColorClass}">
+                           <i data-lucide="layers" class="w-6 h-6"></i>
+                       </div>`;
+
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="bg-surface-container-low rounded-2xl p-5 relative group border border-white/5 hover:border-primary/50 cursor-grab active:cursor-grabbing transition-all active:scale-95" onclick="openBinderPage(${i})">
                         <div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                             <button onclick="event.stopPropagation(); openDeleteModal('page', ${i})" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-error hover:bg-error hover:text-on-error transition-colors shadow-lg" title="Excluir Página"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="event.stopPropagation(); promptPageLogo(${i})" class="bg-surface-container/90 backdrop-blur p-2 rounded-lg text-primary hover:bg-primary hover:text-on-primary transition-colors shadow-lg" title="Adicionar Logo"><i data-lucide="image" class="w-4 h-4"></i></button>
                         </div>
-                        <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center mb-4 ${iconColorClass} shadow-sm border border-white/5">
-                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        <div class="mb-4 flex items-center justify-start h-12 w-full">
+                            ${iconHtml}
                         </div>
                         <div class="flex items-center gap-2 mb-1">
                             <h3 class="text-lg font-bold text-on-surface outline-none focus:border-b-2 focus:border-primary border-b-2 border-transparent transition-colors max-w-full truncate"
@@ -1579,7 +1640,14 @@
                 for(let i=0; i<binder.page_count; i++) { if(!binder.page_names[i]) binder.page_names[i] = `Página ${i + 1}`; }
                 const movedName = binder.page_names.splice(oldPage, 1)[0];
                 binder.page_names.splice(newPage, 0, movedName);
-                try { await db.from('binders').update({ page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
+
+                if (!binder.page_logos) binder.page_logos = Array.from({length: binder.page_count}, () => '');
+                for(let i=0; i<binder.page_count; i++) { if(binder.page_logos[i] === undefined) binder.page_logos[i] = ''; }
+                const movedLogo = binder.page_logos.splice(oldPage, 1)[0];
+                binder.page_logos.splice(newPage, 0, movedLogo);
+
+                saveToLocal();
+                try { await db.from('binders').update({ page_names: binder.page_names, page_logos: binder.page_logos }).eq('id', binder.id); } catch (e) {}
             }
             binder.cards.forEach(card => {
                 const currentSlot = card.slot_index;
@@ -1617,7 +1685,10 @@
             const derivedPages = Math.max(1, Math.ceil((maxSlot + 1) / 9));
             binder.page_count = Math.max(binder.page_count || 1, derivedPages) + 1;
             if (binder.page_names) binder.page_names.push(`Página ${binder.page_count}`);
-            try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
+            if (binder.page_logos) binder.page_logos.push('');
+            
+            saveToLocal();
+            try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names, page_logos: binder.page_logos }).eq('id', binder.id); } catch (e) {}
             renderBinderPages();
         };
 
@@ -1744,8 +1815,11 @@
                 appState.binderPage++;
                 binder.page_count = appState.binderPage + 1;
                 if (binder.page_names) binder.page_names.push(`Página ${binder.page_count}`);
+                if (binder.page_logos) binder.page_logos.push('');
+                
+                saveToLocal();
                 renderBinderDetails(); 
-                try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names }).eq('id', binder.id); } catch (e) {}
+                try { await db.from('binders').update({ page_count: binder.page_count, page_names: binder.page_names, page_logos: binder.page_logos }).eq('id', binder.id); } catch (e) {}
             }
         };
 

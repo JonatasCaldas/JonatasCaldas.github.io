@@ -1059,14 +1059,18 @@
 
                 // 2. Insere Coleções e Cartas (Mapeamento cirúrgico para evitar rejeição do Supabase)
                 if (importedData.collections && importedData.collections.length > 0) {
-                    const colsToInsert = importedData.collections.map(c => ({
-                        id: c.id,
-                        created_at: c.created_at || new Date().toISOString(),
-                        name: c.name || 'Sem Nome',
-                        category: c.category || 'Geral',
-                        image: c.image || '',
-                        logo_url: c.logo_url || null
-                    }));
+                    const colsToInsert = importedData.collections.map(c => {
+                        const payload = {
+                            id: c.id,
+                            created_at: c.created_at || new Date().toISOString(),
+                            name: c.name || 'Sem Nome',
+                            category: c.category || 'Geral',
+                            image: c.image || ''
+                        };
+                        // Inclui campos novos apenas se não forem undefined, evitando quebra caso o DB do utilizador não esteja atualizado
+                        if (c.logo_url !== undefined) payload.logo_url = c.logo_url;
+                        return payload;
+                    });
                     const { error: errCol } = await db.from('collections').insert(colsToInsert);
                     if (errCol) throw errCol;
                     
@@ -1080,7 +1084,7 @@
                             name: cc.name || 'Carta sem título',
                             image: cc.image || '',
                             rarity: cc.rarity || 'COMUM',
-                            collected: cc.collected || false
+                            collected: cc.collected === true
                         }));
                     });
                     if (colCards.length > 0) {
@@ -1091,16 +1095,20 @@
 
                 // 3. Insere Fichários e Cartas
                 if (importedData.binders && importedData.binders.length > 0) {
-                    const bindersToInsert = importedData.binders.map(b => ({
-                        id: b.id,
-                        created_at: b.created_at || new Date().toISOString(),
-                        name: b.name || 'Sem Nome',
-                        category: b.category || 'Geral',
-                        image: b.image || '',
-                        page_count: b.page_count || 1,
-                        page_names: b.page_names || null,
-                        page_logos: b.page_logos || null
-                    }));
+                    const bindersToInsert = importedData.binders.map(b => {
+                        const payload = {
+                            id: b.id,
+                            created_at: b.created_at || new Date().toISOString(),
+                            name: b.name || 'Sem Nome',
+                            category: b.category || 'Geral',
+                            image: b.image || ''
+                        };
+                        // Condicionalmente anexa colunas novas
+                        if (b.page_count !== undefined) payload.page_count = b.page_count;
+                        if (b.page_names !== undefined) payload.page_names = b.page_names;
+                        if (b.page_logos !== undefined) payload.page_logos = b.page_logos;
+                        return payload;
+                    });
                     const { error: errBnd } = await db.from('binders').insert(bindersToInsert);
                     if (errBnd) throw errBnd;
 
@@ -1110,12 +1118,12 @@
                             id: bc.id,
                             created_at: bc.created_at || new Date().toISOString(),
                             binder_id: b.id,
-                            slot_index: bc.slot_index || 0,
+                            slot_index: bc.slot_index !== undefined ? bc.slot_index : 0,
                             num: bc.num || '-',
                             name: bc.name || 'Carta sem título',
                             image: bc.image || '',
                             rarity: bc.rarity || 'COMUM',
-                            collected: bc.collected || false
+                            collected: bc.collected === true
                         }));
                     });
                     if (binderCards.length > 0) {
@@ -1165,7 +1173,7 @@
                     if (errMS) throw errMS;
                 }
 
-                // Limpa totalmente a memória local para não haver conflitos
+                // Limpa totalmente a memória local para forçar nova busca do banco
                 localStorage.removeItem('tcg_collections');
                 localStorage.removeItem('tcg_binders');
                 appState.collections = [];
@@ -1176,8 +1184,10 @@
                 showToast('Restauração concluída! Carregando dados...');
                 await initBoot();
             } catch (err) {
-                console.error(err);
-                showToast('Erro crítico durante a restauração. Veja o console.', true);
+                console.error("ERRO NA RESTAURAÇÃO:", err);
+                // Extrai a mensagem exata do erro no Postgres para dar feedback claro
+                const msg = err.message || err.details || err.hint || "Verifique o console para detalhes.";
+                showToast('Falha na Nuvem: ' + msg.substring(0, 60), true);
             }
         };
 

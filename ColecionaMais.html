@@ -210,6 +210,9 @@
                     <div id="grid-lendo" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         <!-- Cards injetados via JS -->
                     </div>
+                    <div id="show-all-lendo-container" class="mt-6 flex justify-center hidden">
+                        <button id="show-all-lendo-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
+                    </div>
                 </section>
 
                 <!-- Section: Concluídos -->
@@ -221,6 +224,9 @@
                     <div id="grid-concluidos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Cards injetados via JS -->
                     </div>
+                    <div id="show-all-lido-container" class="mt-6 flex justify-center hidden">
+                        <button id="show-all-lido-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
+                    </div>
                 </section>
 
                 <!-- Section: Incompletos -->
@@ -231,6 +237,9 @@
                     </div>
                     <div id="grid-incompletos" class="flex flex-col gap-3">
                         <!-- Cards injetados via JS -->
+                    </div>
+                    <div id="show-all-incompleto-container" class="mt-6 flex justify-center hidden">
+                        <button id="show-all-incompleto-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
                     </div>
                 </section>
             </div>
@@ -244,6 +253,9 @@
                     </div>
                     <div id="grid-desejos" class="flex flex-col gap-3">
                         <!-- Cards injetados via JS -->
+                    </div>
+                    <div id="show-all-desejos-container" class="mt-6 flex justify-center hidden">
+                        <button id="show-all-desejos-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
                     </div>
                 </section>
             </div>
@@ -418,6 +430,25 @@
             let activeFilters = [];
             let toastTimeout;
 
+            // Variável de estado para colapsos (seções com maximo de 4 itens visíveis)
+            const sectionsState = {
+                lendo: { expanded: false },
+                lido: { expanded: false },
+                incompleto: { expanded: false },
+                desejos: { expanded: false }
+            };
+
+            // Setup dos botões "Exibir tudo"
+            Object.keys(sectionsState).forEach(sec => {
+                const btn = document.getElementById(`show-all-${sec}-btn`);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        sectionsState[sec].expanded = !sectionsState[sec].expanded;
+                        applySearchAndFilters();
+                    });
+                }
+            });
+
             lucide.createIcons();
 
             // --- Lógica de Navegação (Views) ---
@@ -500,7 +531,6 @@
             if(btnCloseSidebar) btnCloseSidebar.addEventListener('click', toggleSidebar);
             if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', toggleSidebar);
 
-
             // --- Geradores de HTML (Templates) ---
             const getDropdownHTML = () => `
                 <div class="card-dropdown hidden absolute right-0 top-6 bg-white shadow-high-contrast border border-outline-variant/30 rounded-xl flex-col min-w-[120px] overflow-hidden z-40">
@@ -578,26 +608,26 @@
                 const displayAuthor = m.author ? ` • ${m.author}` : '';
 
                 return `
-                    <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
-                        <div class="flex items-center gap-4 flex-1">
-                            <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up relative gap-4 sm:gap-0" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
+                        <div class="flex items-center gap-4 flex-1 pr-8 sm:pr-0">
+                            <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm flex-shrink-0">
                                 <img src="${m.cover}" alt="${displayTitle}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors">${displayTitle} ${heartIcon}</h4>
+                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors line-clamp-1">${displayTitle} ${heartIcon}</h4>
                                 <p class="volume-text text-xs text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.read} de ${m.volumes} Vols${displayAuthor}</p>
                             </div>
                         </div>
-                        <div class="hidden sm:flex flex-1 justify-center items-center gap-4">
+                        <div class="flex flex-1 justify-between sm:justify-center items-center gap-4 border-t sm:border-t-0 border-outline-variant/10 pt-3 sm:pt-0">
                             <span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">${tagLabel}</span>
                             <div class="flex items-center gap-2">
-                                <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i> Vol</button>
-                                <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                                <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-4 h-4"></i> Vol</button>
+                                <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-4 h-4"></i> Vol</button>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4">                   
+                        <div class="absolute top-4 right-4 sm:relative sm:top-0 sm:right-0">                   
                             <div class="relative">
-                                <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                                <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors p-1"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
                                 ${getDropdownHTML()}
                             </div>
                         </div>
@@ -937,7 +967,7 @@
                     if (read < total) {
                         read++;
                         const newStatus = read === total ? 'lido' : card.dataset.status;
-                        const newWishlist = read === total ? false : (card.dataset.wishlist === 'true'); // Move to Lido and leaves wishlist if finished
+                        const newWishlist = read === total ? false : (card.dataset.wishlist === 'true');
 
                         if (supabaseClient) {
                             const { error } = await supabaseClient.from('collection_items')
@@ -1085,10 +1115,14 @@
                 }
             });
 
-            // --- Lógica de Filtros ---
+            // --- Lógica de Filtros e Colapso (Max 4 itens) ---
             function applySearchAndFilters() {
                 const term = searchInput.value.toLowerCase().trim();
+                const isSearching = term !== '' || activeFilters.length > 0;
+                
                 const allCards = document.querySelectorAll('.group[data-title]');
+
+                const totalMatching = { lendo: 0, lido: 0, incompleto: 0, desejos: 0 };
 
                 allCards.forEach(card => {
                     const title = (card.dataset.title || '').toLowerCase();
@@ -1106,8 +1140,36 @@
                         });
                     }
 
-                    if (matchesSearch && matchesFilters) card.style.display = '';
-                    else card.style.display = 'none';
+                    const isWishlist = card.dataset.wishlist === 'true';
+                    const status = card.dataset.status; 
+                    const section = isWishlist ? 'desejos' : status;
+
+                    if (matchesSearch && matchesFilters) {
+                        totalMatching[section]++;
+                        
+                        // Oculta caso não esteja no modo pesquisa, a sessão não foi expandida e seja maior que o quarto item.
+                        if (!isSearching && !sectionsState[section].expanded && totalMatching[section] > 4) {
+                            card.style.display = 'none';
+                        } else {
+                            card.style.display = '';
+                        }
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Atualiza visualização dos botões "Exibir Tudo"
+                Object.keys(sectionsState).forEach(sec => {
+                    const container = document.getElementById(`show-all-${sec}-container`);
+                    if (container) {
+                        if (!isSearching && totalMatching[sec] > 4) {
+                            container.classList.remove('hidden');
+                            const btn = container.querySelector('button');
+                            btn.textContent = sectionsState[sec].expanded ? 'Mostrar menos' : `Exibir tudo (${totalMatching[sec]})`;
+                        } else {
+                            container.classList.add('hidden');
+                        }
+                    }
                 });
             }
 

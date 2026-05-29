@@ -1,0 +1,3104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCE Analytics - Relatório Consolidado GOT</title>
+
+    <!-- Google Fonts: Space Grotesk & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN para SPA standalone) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração do Tailwind baseada no DESIGN.md -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        surface: '#fcf9f8',
+                        'surface-dim': '#dcd9d9',
+                        'surface-container-lowest': '#ffffff',
+                        'surface-container-low': '#f6f3f2',
+                        'surface-container': '#f0edec',
+                        'on-surface': '#1c1b1b',
+                        'on-surface-variant': '#3c4947',
+                        outline: '#6c7a77',
+                        'outline-variant': '#bbcac6',
+                        primary: '#006b5f',
+                        'on-primary': '#ffffff',
+                        'primary-container': '#14b8a6',
+                        'on-primary-container': '#00423b',
+                        secondary: '#006e14',
+                        'secondary-container': '#5cfe5f',
+                        tertiary: '#39618c',
+                        'tertiary-container': '#80a7d6',
+                        error: '#ba1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Body
+                        heading: ['Space Grotesk', 'sans-serif'], // Headlines
+                    },
+                    borderRadius: {
+                        'sm': '0.25rem',
+                        DEFAULT: '0.5rem',
+                        'md': '0.75rem',
+                        'lg': '1rem',
+                        'xl': '1.5rem',
+                    },
+                    boxShadow: {
+                        'technical': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos globais complementares -->
+    <style>
+        /* Foco técnico para inputs */
+        input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #fcf9f8, 0 0 0 4px #006b5f;
+            border-color: #006b5f;
+        }
+        
+        /* Scrollbar customizada e minimalista */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f6f3f2; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bbcac6; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6c7a77; 
+        }
+    </style>
+
+    <!-- Bibliotecas de Terceiros -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-surface text-on-surface font-sans h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- SIDEBAR (Painel Lateral de Input) -->
+    <aside class="w-[400px] flex-shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        
+        <!-- Header Sidebar -->
+        <div class="p-6 border-b border-outline-variant flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-3 text-primary mb-1">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics</h1>
+                </div>
+                <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
+            </div>
+            <!-- Botão de Configurações -->
+            <button onclick="toggleConfiguracoes()" class="p-2 mt-0.5 text-on-surface-variant hover:bg-surface-dim hover:text-primary rounded-md transition-colors" title="Configurações e Referenciais">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Conteúdo Sidebar (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+
+            <!-- Controle de Período (Global para os dados) -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="calendar" class="w-5 h-5 text-tertiary"></i>
+                    <h2 class="font-heading font-medium text-lg">Período de Análise</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="dataInicio" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Inicial</label>
+                        <input type="date" id="dataInicio" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="dataFim" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Final</label>
+                        <input type="date" id="dataFim" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                    </div>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Menu 1: Dados de Falhas -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
+                    <h2 class="font-heading font-medium text-lg">1. Dados de Falhas</h2>
+                </div>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label for="indMes" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores do Mês (Cole do Excel)</label>
+                    <textarea id="indMes" rows="3" placeholder="Cole os dados das falhas recentes aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="indPassados" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores Passados (Cole do Excel)</label>
+                    <textarea id="indPassados" rows="3" placeholder="Cole os dados do histórico aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Menu 2: Dados de Preventiva -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-secondary"></i>
+                    <h2 class="font-heading font-medium text-lg">2. Dados de Preventiva</h2>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe (JAN a DEZ).</p>
+                    <button onclick="abrirModalPreventiva()" class="w-full bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline font-medium py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center gap-2">
+                        <i data-lucide="list-plus" class="w-5 h-5"></i>
+                        <span>Inserir Novo Mês</span>
+                    </button>
+                    <div class="flex justify-between items-center px-1 mt-1">
+                        <span class="text-xs font-semibold text-on-surface-variant">Progresso Anual:</span>
+                        <span class="text-xs font-bold text-primary" id="preventivaProgress">0/12</span>
+                    </div>
+                    
+                    <!-- Nova Lista de Registros Editáveis -->
+                    <div id="listaPreventivaSidebar" class="flex flex-col gap-1 mt-1 max-h-[140px] overflow-y-auto pr-1">
+                        <!-- JS injeta os meses preenchidos aqui -->
+                    </div>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Menu 3: Recomendações GOT -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 text-primary"></i>
+                    <h2 class="font-heading font-medium text-lg">3. Recomendações GOT</h2>
+                </div>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label for="recomendacoesText" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Comentários e Ações</label>
+                    <textarea id="recomendacoesText" rows="5" placeholder="Insira as recomendações técnicas, análises ou orientações..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors resize-y min-h-[100px]"></textarea>
+                </div>
+            </section>
+
+            <!-- Mensagem de Erro (Oculta por padrão) -->
+            <div id="errorMessage" class="hidden bg-error-container text-on-error-container p-3 rounded-md text-sm flex items-start gap-2">
+                <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                <span id="errorText">Preencha ao menos os Dados de Falhas para processar.</span>
+            </div>
+
+        </div>
+
+        <!-- Footer Sidebar (Ações) -->
+        <div class="p-6 border-t border-outline-variant bg-surface-container flex flex-col gap-3">
+            <button id="btnProcessar" onclick="processarDados()" class="w-full bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-3 px-4 rounded transition-all duration-200 flex justify-center items-center gap-2">
+                <i data-lucide="play-circle" class="w-5 h-5"></i>
+                <span>Processar Dados</span>
+            </button>
+            <button onclick="limparCampos()" class="w-full border border-outline hover:bg-surface-dim text-on-surface font-medium py-2 px-4 rounded transition-all duration-200 text-sm">
+                Limpar Campos
+            </button>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
+        
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD (Padrão)                 -->
+        <!-- ========================================== -->
+        <div id="dashboardView" class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- Header Main -->
+            <header class="h-20 px-10 flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest shrink-0">
+                <div>
+                    <h2 class="font-heading text-xl font-semibold text-on-surface">Dashboard Consolidado</h2>
+                    <p class="text-sm text-on-surface-variant" id="dashboardSubtitle">Aguardando processamento de dados...</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <!-- Input file oculto para a importação do JSON -->
+                    <input type="file" id="fileImport" accept=".json" class="hidden" onchange="processarImportacao(event)">
+                    
+                    <button onclick="triggerImportarDados()" class="bg-surface hover:bg-secondary/10 text-secondary border border-secondary px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200" title="Restaurar dados de um backup">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                        Importar Dados
+                    </button>
+
+                    <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200" title="Fazer backup do estado atual">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Salvar Dados
+                    </button>
+
+                    <div class="w-px h-6 bg-outline-variant mx-1"></div> <!-- Divisor visual -->
+
+                    <button id="btnExportar" onclick="exportarPDF()" class="opacity-50 cursor-not-allowed pointer-events-none bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Baixar Relatório PDF
+                    </button>
+                </div>
+            </header>
+
+            <!-- Container Scrollável do Dashboard -->
+            <div class="flex-1 overflow-y-auto p-10">
+                
+                <!-- ÁREA CAPTURADA PARA O PDF -->
+                <div id="pdf-content" class="max-w-[1200px] mx-auto space-y-8 bg-surface pb-10">
+                    
+                    <!-- Estado Vazio Inicial -->
+                    <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                        <i data-lucide="bar-chart-2" class="w-16 h-16 text-outline mb-4"></i>
+                        <h3 class="font-heading text-lg font-medium">Nenhum dado processado</h3>
+                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Insira os dados copiados do Excel no painel lateral e clique em "Processar Dados" para visualizar os gráficos.</p>
+                    </div>
+
+                    <!-- Estado Vazio (Fora do Período Selecionado) -->
+                    <div id="noDataState" class="hidden flex-col items-center justify-center py-20 text-center opacity-80">
+                        <i data-lucide="calendar-x" class="w-16 h-16 text-error mb-4"></i>
+                        <h3 class="font-heading text-xl font-medium text-error">Nenhum dado dentro do período selecionado</h3>
+                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Ajuste as datas iniciais e finais no painel lateral para abranger o período dos registros inseridos.</p>
+                    </div>
+
+                    <!-- Painel de Gráficos (Oculto por padrão) -->
+                    <div id="chartsContainer" class="hidden space-y-6">
+                        
+                        <!-- ========================================== -->
+                        <!-- SEÇÃO 1: Indicadores do Mês                -->
+                        <!-- ========================================== -->
+                        
+                        <!-- Bloco 1: Header, KPIs e Locais -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-[#db0000] flex items-center gap-2">
+                                    <i data-lucide="bar-chart" class="w-6 h-6"></i>
+                                    Indicadores do Mês
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Visão geral e detalhada das avarias no período selecionado.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <!-- KPI Total de Falhas -->
+                                <div class="xl:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <span class="text-sm font-semibold tracking-wider text-on-surface-variant uppercase">Total de Falhas</span>
+                                        <span class="bg-error-container text-[#93000a] text-xs px-2 py-1 rounded font-medium">Global</span>
+                                    </div>
+                                    <div class="flex items-end gap-2 mt-4">
+                                        <span class="font-heading text-5xl font-semibold text-on-surface" id="kpiFalhas">--</span>
+                                        <span class="text-sm text-outline mb-1.5">falhas</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI Modelos em Falha -->
+                                <div class="xl:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <span class="text-sm font-semibold tracking-wider text-on-surface-variant uppercase">Modelos em Falha</span>
+                                        <span class="bg-secondary-container text-[#007316] text-xs px-2 py-1 rounded font-medium">Distintos</span>
+                                    </div>
+                                    <div class="flex items-end gap-2 mt-4">
+                                        <span class="font-heading text-4xl font-semibold text-on-surface" id="kpiModelos">--</span>
+                                        <span class="text-sm text-outline mb-1.5">modelos</span>
+                                    </div>
+                                </div>
+
+                                <!-- Gráfico: Locais -->
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Locais com Mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartLocais"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 2: MCE e Causas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Máquinas com mais falhas no mês</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartMce"></canvas>
+                                    </div>
+                                </div>
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Causas com mais falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartCausa"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 3: Acumulado e Evolução Semanal -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Modelos com Mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartAcumulado"></canvas>
+                                    </div>
+                                </div>
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col relative">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Semanas do Ano</h3>
+                                    
+                                    <!-- Aviso de expansão em períodos menores que 7 dias -->
+                                    <div id="avisoEvolucaoSemanal" class="hidden bg-surface-container-low border border-outline-variant text-on-surface-variant text-xs p-2.5 rounded-md mb-3 items-start gap-2">
+                                        <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0 text-primary"></i>
+                                        <span id="textoAvisoEvolucaoSemanal"></span>
+                                    </div>
+
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartEvolucao"></canvas>
+                                    </div>
+                                    
+                                    <!-- Nota de rodapé explicativa sobre a completude de semanas -->
+                                    <p id="rodapeEvolucaoSemanal" class="hidden text-[10px] text-on-surface-variant mt-2 text-right italic">Dados incluídos por completude da semana do ano</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 4: Parque Instalado x Falhas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Parque Instalado x Falhas</h3>
+                                    <div class="flex-1 relative min-h-[350px]">
+                                        <canvas id="chartParqueFalhas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 5: Evolução Mensal de Falhas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Evolução Mensal de Falhas</h3>
+                                    <div class="flex-1 relative min-h-[350px]">
+                                        <canvas id="chartEvolucaoMensal"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 5.1: KPIs Adicionais de Análise -->
+                        <div class="pdf-export-chunk bg-surface mt-6">
+                            <!-- Grelha atualizada para 10 colunas no desktop para permitir dimensões fracionadas perfeitas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-10 gap-6">
+                                
+                                <!-- KPI 1: Falhas por Localidade -->
+                                <div class="md:col-span-2 xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Falhas por Localidade</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Ranking de falhas por local em relação ao ano passado</p>
+                                    </div>
+                                    <div id="kpiFalhasLocalidade" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 2: Falhas por Causa Crítica -->
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Falhas por Causa Crítica</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Monitora evolução das principais causas</p>
+                                    </div>
+                                    <div id="kpiFalhasCausa" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 3: Ranking de MCE's Críticas -->
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Ranking de MCE's Críticas</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Identifica ativos com maior incidência de falhas</p>
+                                    </div>
+                                    <div id="kpiRankingMce" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 4: Taxa de Falha por Modelo -->
+                                <div class="xl:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Taxa de Falha por Modelo</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Percentual de ativos do modelo que falharam</p>
+                                    </div>
+                                    <div id="kpiTaxaFalhaModelo" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 5: Índice de Confiabilidade -->
+                                <div class="xl:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Índice de Confiabilidade por Modelo</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Mede criticidade dos modelos instalados</p>
+                                    </div>
+                                    <div id="kpiConfiabilidade" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- SEÇÃO 2: Indicadores Passados              -->
+                        <!-- ========================================== -->
+                        
+                        <!-- Bloco 6: Header, Máquinas e Locais -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-[#006e88] flex items-center gap-2">
+                                    <i data-lucide="history" class="w-6 h-6"></i>
+                                    Indicadores Passados
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Análise retrospectiva e comparações históricas de longo prazo.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Máquinas com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosMce"></canvas>
+                                    </div>
+                                </div>
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Locais com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosLocal"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 7: Modelos e Causas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Modelos com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosModelo"></canvas>
+                                    </div>
+                                </div>
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Causas com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosCausa"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 7.1: KPIs Adicionais de Análise (Indicadores Passados) -->
+                        <div class="pdf-export-chunk bg-surface mt-6">
+                            <!-- Grelha de 2 colunas para dividir perfeitamente a largura a 50% -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                
+                                <!-- KPI 1: Variação Anual de Falhas -->
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#006e88] uppercase mb-1 leading-normal">Variação Anual de Falhas</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Mede crescimento ou redução de falhas vs. ano anterior</p>
+                                    </div>
+                                    <div id="kpiVariacaoAnual" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 2: Índice de Diagnóstico Efetivo -->
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold tracking-wider text-[#006e88] uppercase mb-1 leading-normal">Índice de Diagnóstico Efetivo</span>
+                                        <p class="text-[10px] text-on-surface-variant leading-normal">Mede redução de falhas sem causa identificada</p>
+                                    </div>
+                                    <div id="kpiDiagnosticoEfetivo" class="flex-1 flex flex-col justify-center gap-1.5 mt-2 text-on-surface">
+                                        <span class="text-xs text-outline italic font-medium">--</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- SEÇÃO 3: Preventiva                        -->
+                        <!-- ========================================== -->
+                        
+                        <!-- Bloco 8: Header e Desempenho (%) -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-secondary flex items-center gap-2">
+                                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                    Preventiva
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Acompanhamento do percentual de conclusão das manutenções programadas em relação ao parque base.</p>
+                            </div>
+                            
+                            <!-- KPI Cumprimento do PMP -->
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col">
+                                <div class="flex flex-col mb-1">
+                                    <span class="text-xs font-semibold tracking-wider text-[#00886d] uppercase mb-1 leading-normal">Cumprimento do PMP</span>
+                                    <p class="text-[10px] text-on-surface-variant leading-normal">Percentual executado do plano preventivo</p>
+                                </div>
+                                <div id="kpiCumprimentoPmp" class="flex-1 flex flex-col justify-center gap-1 mt-1 text-on-surface">
+                                    <span class="text-xs text-outline italic font-medium">--</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
+                                <div class="flex-1 relative min-h-[350px]">
+                                    <canvas id="chartPreventivaPerc"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloco 9: Volume Absoluto (Qtd) -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Volume Absoluto de Preventivas Realizadas (Qtd)</h3>
+                                <div class="flex-1 relative min-h-[350px]">
+                                    <canvas id="chartPreventivaAbs"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- SEÇÃO 4: Recomendações GOT                 -->
+                        <!-- ========================================== -->
+                        
+                        <!-- Bloco 10: Recomendações da Engenharia -->
+                        <div class="pdf-export-chunk bg-surface flex-col gap-6 mt-8 hidden" id="section-recomendacoes-container">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-primary flex items-center gap-2">
+                                    <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                                    Recomendações da Engenharia de Manutenção
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Orientações e ações técnicas para aumentar a confiabilidade, reduzir riscos e auxiliar a manutenção.</p>
+                            </div>
+                            
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <p id="dashboardRecomendacoes" class="text-on-surface text-sm leading-relaxed text-justify whitespace-pre-wrap"></p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: CONFIGURAÇÕES (Oculta por padrão)  -->
+        <!-- ========================================== -->
+        <div id="settingsView" class="hidden flex-1 flex flex-col h-full overflow-hidden bg-surface">
+            <!-- Header Settings -->
+            <header class="h-20 px-10 flex items-center gap-4 border-b border-outline-variant bg-surface-container-lowest shrink-0">
+                <button onclick="toggleConfiguracoes()" class="p-2 -ml-2 text-on-surface-variant hover:bg-surface-container hover:text-primary rounded-md transition-colors" title="Voltar ao Dashboard">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h2 class="font-heading text-xl font-semibold text-on-surface">Configurações e Referenciais</h2>
+                    <p class="text-sm text-on-surface-variant">Defina os parâmetros base para cálculos da aplicação</p>
+                </div>
+            </header>
+
+            <!-- Container Scrollável de Configurações -->
+            <div class="flex-1 overflow-y-auto p-10">
+                <div class="max-w-[800px] mx-auto space-y-8">
+                    
+                    <!-- Card de Configuração: Base de Cálculo -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                        
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
+                                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-tertiary"></i>
+                                    Parque Instalado de MCE
+                                </h3>
+                                <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por modelo para definir o parque instalado.</p>
+                            </div>
+                            <button onclick="abrirModalParque()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Novo
+                            </button>
+                        </div>
+                        
+                        <!-- Lista Dinâmica Não Editável -->
+                        <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
+                            <table class="w-full text-left text-sm text-on-surface">
+                                <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold">Modelo da MCE</th>
+                                        <th class="px-4 py-3 font-semibold w-32 text-center">Quantidade</th>
+                                        <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaParque" class="divide-y divide-outline-variant/50">
+                                    <!-- JS preenche aqui -->
+                                </tbody>
+                            </table>
+                            <!-- Feedback de Estado Vazio -->
+                            <div id="listaParqueVazia" class="hidden p-8 text-center text-on-surface-variant">
+                                Nenhum modelo cadastrado. Clique em "Novo" para adicionar.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Card de Configuração: Parque VP -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                        
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
+                                    <i data-lucide="users" class="w-5 h-5 text-tertiary"></i>
+                                    Parque de MCE por Equipe VP
+                                </h3>
+                                <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por equipe preventiva da VP.</p>
+                            </div>
+                            <button onclick="abrirModalParqueVP()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Novo
+                            </button>
+                        </div>
+                        
+                        <!-- Lista Dinâmica Não Editável -->
+                        <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
+                            <table class="w-full text-left text-sm text-on-surface">
+                                <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold">Equipe</th>
+                                        <th class="px-4 py-3 font-semibold w-32 text-center">Quantidade</th>
+                                        <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaParqueVP" class="divide-y divide-outline-variant/50">
+                                    <!-- JS preenche aqui -->
+                                </tbody>
+                            </table>
+                            <!-- Feedback de Estado Vazio -->
+                            <div id="listaParqueVPVazia" class="hidden p-8 text-center text-on-surface-variant">
+                                Nenhuma equipe cadastrada. Clique em "Novo" para adicionar.
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Parque Instalado (Oculto por padrão) -->
+    <div id="modalParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <!-- Container do Modal -->
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueContent">
+            
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueTitle">Novo Modelo</h3>
+                <button onclick="fecharModalParque()" class="text-on-surface-variant hover:text-error transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="parqueIndex" value="-1">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Modelo</label>
+                    <input type="text" id="parqueModelo" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: MD2000">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
+                    <input type="number" id="parqueQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 5">
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalParque()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarParque()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Parque Equipe VP (Oculto por padrão) -->
+    <div id="modalParqueVP" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <!-- Container do Modal -->
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueVPContent">
+            
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueVPTitle">Nova Equipe</h3>
+                <button onclick="fecharModalParqueVP()" class="text-on-surface-variant hover:text-error transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="parqueVPIndex" value="-1">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe</label>
+                    <input type="text" id="parqueVPEquipe" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: Equipe Alpha">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
+                    <input type="number" id="parqueVPQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 12">
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalParqueVP()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarParqueVP()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Entrada de Preventiva (Oculto por padrão) -->
+    <div id="modalPreventiva" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <!-- Container do Modal -->
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalPreventivaContent">
+            
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalPreventivaTitle">Inserir Preventiva</h3>
+                <button onclick="fecharModalPreventiva()" class="text-on-surface-variant hover:text-error transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <input type="hidden" id="preventivaIndex" value="-1">
+            
+            <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto" id="modalPreventivaBody">
+                <!-- JS injeta os inputs de cada equipe dinamicamente aqui -->
+            </div>
+            
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalPreventiva()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarPreventiva()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Loading (PDF) -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-surface-container-lowest">
+        <i data-lucide="loader-2" class="w-12 h-12 animate-spin mb-4"></i>
+        <h2 class="font-heading text-xl font-medium">Gerando Documento Técnico...</h2>
+        <p class="text-sm opacity-80 mt-2">Isso pode levar alguns segundos.</p>
+    </div>
+
+    <!-- Scripts da Lógica da Aplicação -->
+    <script>
+        // Inicialização global de gráficos e dados locais
+        let chartInstances = {};
+        
+        let dadosParqueInstalado = [];
+        let dadosParqueVP = []; 
+        let dadosPreventivaMensal = []; 
+
+        const mesesDoAno = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+
+        const chartColors = {
+            primary: '#006b5f',
+            primaryContainer: '#14b8a6',
+            secondary: '#006e14',
+            tertiary: '#39618c',
+            error: '#ba1a1a',
+            surfaceVariant: '#e5e2e1',
+            text: '#1c1b1b'
+        };
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = chartColors.text;
+        Chart.defaults.plugins.tooltip.backgroundColor = '#1c1b1b';
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+        const dataLabelsPlugin = {
+            id: 'customDataLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return;
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (value === undefined || value === null) return;
+                        
+                        ctx.font = '600 13px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 3;
+                        ctx.lineJoin = 'round';
+                        ctx.strokeText(value, element.x, element.y - 6);
+                        
+                        ctx.fillStyle = chartColors.text;
+                        ctx.fillText(value, element.x, element.y - 6);
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            carregarLocalStorage();
+            renderizarListaParque(); 
+            renderizarListaParqueVP(); 
+            configurarAutoSave();
+        });
+
+        // -----------------------------------------------------
+        // LÓGICA DE LOCAL STORAGE (Persistência)
+        // -----------------------------------------------------
+
+        function carregarLocalStorage() {
+            const parqueSalvo = localStorage.getItem('mch_parque');
+            if (parqueSalvo) {
+                try {
+                    dadosParqueInstalado = JSON.parse(parqueSalvo);
+                } catch (e) {
+                    console.error("Erro ao carregar parque do Local Storage", e);
+                }
+            }
+
+            const parqueVPSalvo = localStorage.getItem('mch_parque_vp');
+            if (parqueVPSalvo) {
+                try {
+                    dadosParqueVP = JSON.parse(parqueVPSalvo);
+                } catch (e) {
+                    console.error("Erro ao carregar parque VP do Local Storage", e);
+                }
+            }
+
+            const prevMensalSalva = localStorage.getItem('mch_preventiva_mensal');
+            if (prevMensalSalva) {
+                try {
+                    dadosPreventivaMensal = JSON.parse(prevMensalSalva);
+                    atualizarProgressoPreventiva();
+                } catch (e) {
+                    console.error("Erro ao carregar Preventiva Mensal", e);
+                }
+            }
+
+            const textMes = localStorage.getItem('mch_indMes');
+            if (textMes) document.getElementById('indMes').value = textMes;
+            
+            const textPassado = localStorage.getItem('mch_indPassados');
+            if (textPassado) document.getElementById('indPassados').value = textPassado;
+
+            const textRec = localStorage.getItem('mch_recomendacoes');
+            if (textRec) document.getElementById('recomendacoesText').value = textRec;
+
+            const dataI = localStorage.getItem('mch_dataInicio');
+            const dataF = localStorage.getItem('mch_dataFim');
+            if (dataI && dataF) {
+                document.getElementById('dataInicio').value = dataI;
+                document.getElementById('dataFim').value = dataF;
+            } else {
+                definirDatasPadrao();
+            }
+        }
+
+        function configurarAutoSave() {
+            document.getElementById('indMes').addEventListener('input', (e) => localStorage.setItem('mch_indMes', e.target.value));
+            document.getElementById('indPassados').addEventListener('input', (e) => localStorage.setItem('mch_indPassados', e.target.value));
+            document.getElementById('recomendacoesText').addEventListener('input', (e) => localStorage.setItem('mch_recomendacoes', e.target.value));
+            
+            document.getElementById('dataInicio').addEventListener('change', (e) => localStorage.setItem('mch_dataInicio', e.target.value));
+            document.getElementById('dataFim').addEventListener('change', (e) => localStorage.setItem('mch_dataFim', e.target.value));
+        }
+
+        // -----------------------------------------------------
+        // LÓGICA DO CRUD: Parque Instalado (Modal e Listagem)
+        // -----------------------------------------------------
+
+        function renderizarListaParque() {
+            const tbody = document.getElementById('listaParque');
+            const emptyState = document.getElementById('listaParqueVazia');
+            const table = tbody.parentElement;
+            
+            tbody.innerHTML = '';
+            
+            if (dadosParqueInstalado.length === 0) {
+                table.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            table.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            dadosParqueInstalado.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-tertiary/5 transition-colors group'; 
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-on-surface font-medium">${item.modelo}</td>
+                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalParque(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="excluirParque(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function abrirModalParque(index = -1) {
+            const modal = document.getElementById('modalParque');
+            const content = document.getElementById('modalParqueContent');
+            const title = document.getElementById('modalParqueTitle');
+            const idxInput = document.getElementById('parqueIndex');
+            const modInput = document.getElementById('parqueModelo');
+            const qtdInput = document.getElementById('parqueQuantidade');
+
+            idxInput.value = index;
+
+            if (index >= 0) {
+                title.innerText = 'Editar Modelo';
+                modInput.value = dadosParqueInstalado[index].modelo;
+                qtdInput.value = dadosParqueInstalado[index].quantidade;
+            } else {
+                title.innerText = 'Novo Modelo';
+                modInput.value = '';
+                qtdInput.value = '';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            setTimeout(() => modInput.focus(), 200);
+        }
+
+        function fecharModalParque() {
+            const modal = document.getElementById('modalParque');
+            const content = document.getElementById('modalParqueContent');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function salvarParque() {
+            const idx = parseInt(document.getElementById('parqueIndex').value);
+            const modeloInput = document.getElementById('parqueModelo');
+            const quantidadeInput = document.getElementById('parqueQuantidade');
+            
+            const modelo = modeloInput.value.trim();
+            const quantidade = parseInt(quantidadeInput.value);
+
+            if (!modelo) {
+                modeloInput.focus();
+                return;
+            }
+            if (isNaN(quantidade) || quantidade <= 0) {
+                quantidadeInput.focus();
+                return;
+            }
+
+            if (idx >= 0) {
+                dadosParqueInstalado[idx] = { modelo, quantidade };
+            } else {
+                dadosParqueInstalado.push({ modelo, quantidade });
+            }
+
+            localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+            fecharModalParque();
+            renderizarListaParque();
+        }
+
+        function excluirParque(index) {
+            if (confirm(`Tem certeza que deseja excluir o modelo "${dadosParqueInstalado[index].modelo}"?`)) {
+                dadosParqueInstalado.splice(index, 1);
+                localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+                renderizarListaParque();
+            }
+        }
+
+        // -----------------------------------------------------
+        // LÓGICA DO CRUD: Parque Equipe VP (Modal e Listagem)
+        // -----------------------------------------------------
+
+        function renderizarListaParqueVP() {
+            const tbody = document.getElementById('listaParqueVP');
+            const emptyState = document.getElementById('listaParqueVPVazia');
+            const table = tbody.parentElement;
+            
+            tbody.innerHTML = '';
+            
+            if (dadosParqueVP.length === 0) {
+                table.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            table.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            dadosParqueVP.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-tertiary/5 transition-colors group'; 
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-on-surface font-medium">${item.equipe}</td>
+                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalParqueVP(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="excluirParqueVP(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function abrirModalParqueVP(index = -1) {
+            const modal = document.getElementById('modalParqueVP');
+            const content = document.getElementById('modalParqueVPContent');
+            const title = document.getElementById('modalParqueVPTitle');
+            const idxInput = document.getElementById('parqueVPIndex');
+            const equipeInput = document.getElementById('parqueVPEquipe');
+            const qtdInput = document.getElementById('parqueVPQuantidade');
+
+            idxInput.value = index;
+
+            if (index >= 0) {
+                title.innerText = 'Editar Equipe';
+                equipeInput.value = dadosParqueVP[index].equipe;
+                qtdInput.value = dadosParqueVP[index].quantidade;
+            } else {
+                title.innerText = 'Nova Equipe';
+                equipeInput.value = '';
+                qtdInput.value = '';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            setTimeout(() => equipeInput.focus(), 200);
+        }
+
+        function fecharModalParqueVP() {
+            const modal = document.getElementById('modalParqueVP');
+            const content = document.getElementById('modalParqueVPContent');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function salvarParqueVP() {
+            const idx = parseInt(document.getElementById('parqueVPIndex').value);
+            const equipeInput = document.getElementById('parqueVPEquipe');
+            const quantidadeInput = document.getElementById('parqueVPQuantidade');
+            
+            const equipe = equipeInput.value.trim();
+            const quantidade = parseInt(quantidadeInput.value);
+
+            if (!equipe) {
+                equipeInput.focus();
+                return;
+            }
+            if (isNaN(quantidade) || quantidade <= 0) {
+                quantidadeInput.focus();
+                return;
+            }
+
+            if (idx >= 0) {
+                dadosParqueVP[idx] = { equipe, quantidade };
+            } else {
+                dadosParqueVP.push({ equipe, quantidade });
+            }
+
+            localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+            fecharModalParqueVP();
+            renderizarListaParqueVP();
+            if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+        }
+
+        function excluirParqueVP(index) {
+            if (confirm(`Tem certeza que deseja excluir a equipe "${dadosParqueVP[index].equipe}"?`)) {
+                dadosParqueVP.splice(index, 1);
+                localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+                renderizarListaParqueVP();
+                if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+            }
+        }
+
+        // -----------------------------------------------------
+        // LÓGICA DO CRUD: Inserção de Preventiva Mensal
+        // -----------------------------------------------------
+
+        function atualizarProgressoPreventiva() {
+            document.getElementById('preventivaProgress').innerText = `${dadosPreventivaMensal.length}/12`;
+            renderizarListaPreventivaSidebar();
+        }
+
+        function renderizarListaPreventivaSidebar() {
+            const container = document.getElementById('listaPreventivaSidebar');
+            container.innerHTML = '';
+            
+            dadosPreventivaMensal.forEach((mesObj, index) => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-surface-container-low border border-outline-variant/50 px-2.5 py-2 rounded text-xs group transition-colors hover:bg-surface-container">
+                        <span class="font-medium text-on-surface-variant">${mesObj.mesNome} <span class="opacity-60 font-normal">(Mês ${mesObj.mesReferencia})</span></span>
+                        <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalPreventiva(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar este mês">
+                                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="excluirPreventiva(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir este mês">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function excluirPreventiva(index) {
+            if (confirm(`Excluir os registros de ${dadosPreventivaMensal[index].mesNome}? Os meses subsequentes serão reajustados para manter a sequência.`)) {
+                dadosPreventivaMensal.splice(index, 1);
+                
+                dadosPreventivaMensal.forEach((item, i) => {
+                    item.mesReferencia = i + 1;
+                    item.mesNome = mesesDoAno[i];
+                });
+                
+                localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+                atualizarProgressoPreventiva();
+                if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+            }
+        }
+
+        function abrirModalPreventiva(index = -1) {
+            if (dadosParqueVP.length === 0) {
+                alert("Atenção: Cadastre as equipes VP na aba de Configurações antes de inserir os dados de preventiva.");
+                return;
+            }
+            
+            if (index === -1 && dadosPreventivaMensal.length >= 12) {
+                alert("O ano já está completo (12 meses inseridos). Para reiniciar um novo ciclo, utilize o botão 'Limpar Campos'.");
+                return;
+            }
+
+            const isEdicao = index >= 0;
+            const targetIndex = isEdicao ? index : dadosPreventivaMensal.length;
+            const mesAtual = mesesDoAno[targetIndex];
+            
+            document.getElementById('modalPreventivaTitle').innerText = isEdicao ? `Editar Preventiva - ${mesAtual}` : `Inserir Preventiva - Mês ${targetIndex + 1} (${mesAtual})`;
+            document.getElementById('preventivaIndex').value = index;
+            
+            const body = document.getElementById('modalPreventivaBody');
+            body.innerHTML = '';
+            
+            let valoresEdicao = {};
+            if (isEdicao) {
+                dadosPreventivaMensal[index].dados.forEach(d => {
+                    valoresEdicao[d.equipe] = d.valor;
+                });
+            }
+
+            dadosParqueVP.forEach((item, i) => {
+                const val = isEdicao && valoresEdicao[item.equipe] !== undefined ? valoresEdicao[item.equipe] : '';
+                
+                body.innerHTML += `
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe: ${item.equipe}</label>
+                        <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Insira o valor numérico">
+                    </div>
+                `;
+            });
+
+            const modal = document.getElementById('modalPreventiva');
+            const content = document.getElementById('modalPreventivaContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            setTimeout(() => {
+                const firstInput = document.getElementById('prev_equipe_0');
+                if (firstInput) firstInput.focus();
+            }, 200);
+        }
+
+        function fecharModalPreventiva() {
+            const modal = document.getElementById('modalPreventiva');
+            const content = document.getElementById('modalPreventivaContent');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function salvarPreventiva() {
+            const entradas = [];
+            let possuiErro = false;
+            
+            dadosParqueVP.forEach((item, index) => {
+                const input = document.getElementById(`prev_equipe_${index}`);
+                const valor = parseInt(input.value, 10);
+                
+                if (isNaN(valor) || valor < 0) {
+                    input.focus();
+                    possuiErro = true;
+                } else {
+                    entradas.push({ equipe: item.equipe, valor: valor });
+                }
+            });
+            
+            if (possuiErro) return;
+
+            const idx = parseInt(document.getElementById('preventivaIndex').value, 10);
+            
+            if (idx >= 0) {
+                dadosPreventivaMensal[idx].dados = entradas;
+            } else {
+                const mesIndex = dadosPreventivaMensal.length;
+                dadosPreventivaMensal.push({
+                    mesReferencia: mesIndex + 1, 
+                    mesNome: mesesDoAno[mesIndex], 
+                    dados: entradas
+                });
+            }
+
+            localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+            
+            atualizarProgressoPreventiva(); 
+            fecharModalPreventiva();
+            if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+        }
+
+        // -----------------------------------------------------
+        // RESTANTE DA LÓGICA CORE
+        // -----------------------------------------------------
+
+        function definirDatasPadrao() {
+            const hoje = new Date();
+            const dataMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+            const primeiroDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth(), 1);
+            const ultimoDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth() + 1, 0);
+
+            const formatarData = (data) => {
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const dia = String(data.getDate()).padStart(2, '0');
+                return `${ano}-${mes}-${dia}`;
+            };
+
+            document.getElementById('dataInicio').value = formatarData(primeiroDia);
+            document.getElementById('dataFim').value = formatarData(ultimoDia);
+        }
+
+        function limparCampos() {
+            document.getElementById('indMes').value = '';
+            document.getElementById('indPassados').value = '';
+            document.getElementById('recomendacoesText').value = '';
+            document.getElementById('errorMessage').classList.add('hidden');
+
+            localStorage.removeItem('mch_indMes');
+            localStorage.removeItem('mch_indPassados');
+            localStorage.removeItem('mch_recomendacoes');
+            
+            dadosPreventivaMensal = [];
+            localStorage.removeItem('mch_preventiva_mensal');
+            atualizarProgressoPreventiva();
+        }
+
+        function toggleConfiguracoes() {
+            const dashView = document.getElementById('dashboardView');
+            const settView = document.getElementById('settingsView');
+            
+            if (settView.classList.contains('hidden')) {
+                dashView.classList.add('hidden');
+                settView.classList.remove('hidden');
+            } else {
+                settView.classList.add('hidden');
+                dashView.classList.remove('hidden');
+            }
+        }
+
+        function parseExcelData(text) {
+            if (!text) return { data: [], error: null };
+            const lines = text.trim().split(/\r?\n/);
+            if (lines.length < 2) return { data: [], error: "Formato inválido. Insira os dados contendo pelo menos cabeçalho e uma linha de valores." }; 
+            
+            const headersLine = lines.shift(); 
+            const delimiter = headersLine.includes('\t') ? '\t' : ',';
+            
+            const parseLine = (line) => {
+                if (delimiter === '\t') return line.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                const result = [];
+                let inQuotes = false;
+                let current = '';
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        if (inQuotes && line[i+1] === '"') {
+                            current += '"';
+                            i++; 
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result.map(c => c.replace(/^"|"$/g, ''));
+            };
+
+            const headersOriginais = parseLine(headersLine);
+            const headers = headersOriginais.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'));
+
+            const missingHeaders = [];
+            if (!headers.includes('modelo')) missingHeaders.push('modelo');
+            if (!headers.includes('localidade')) missingHeaders.push('localidade');
+
+            if (missingHeaders.length > 0) {
+                return { 
+                    data: [], 
+                    error: `Erro estrutural: As colunas obrigatórias [ ${missingHeaders.join(', ')} ] não foram encontradas no cabeçalho dos dados colados.` 
+                };
+            }
+
+            const data = lines.map(line => {
+                if(!line.trim()) return null;
+                const values = parseLine(line);
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = values[index] || '';
+                });
+                return obj;
+            }).filter(obj => obj !== null); 
+
+            return { data, error: null };
+        }
+
+        const parseExcelDate = (str) => {
+            if (!str) return null;
+            const parts = str.trim().split('/');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+            return null;
+        };
+
+        // 2. Processamento Real dos Dados Dinâmicos
+        function processarDados() {
+            const indMesRaw = document.getElementById('indMes').value.trim();
+            const indPassadosRaw = document.getElementById('indPassados').value.trim();
+            const errorMsg = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const btnProcessar = document.getElementById('btnProcessar');
+
+            if (!indMesRaw) {
+                errorText.innerText = "Preencha ao menos os Dados de Falhas para processar.";
+                errorMsg.classList.remove('hidden');
+                document.getElementById('indMes').focus();
+                return;
+            }
+            errorMsg.classList.add('hidden');
+
+            const textoOriginalBtn = btnProcessar.innerHTML;
+            btnProcessar.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analisando...</span>`;
+            lucide.createIcons();
+            btnProcessar.disabled = true;
+            btnProcessar.classList.add('opacity-80', 'cursor-not-allowed');
+
+            const resultadoParse = parseExcelData(indMesRaw);
+
+            if (resultadoParse.error) {
+                errorText.innerText = "Erro nos Indicadores do Mês: " + resultadoParse.error;
+                errorMsg.classList.remove('hidden');
+                btnProcessar.innerHTML = textoOriginalBtn;
+                lucide.createIcons();
+                btnProcessar.disabled = false;
+                btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
+                return;
+            }
+
+            const dadosMesCru = resultadoParse.data; 
+            let dadosParseados = [...dadosMesCru];
+            let dadosPassadosCru = [];
+
+            if (indPassadosRaw) {
+                const resultadoParsePassados = parseExcelData(indPassadosRaw);
+                
+                if (resultadoParsePassados.error) {
+                    errorText.innerText = "Erro nos Indicadores Passados: " + resultadoParsePassados.error;
+                    errorMsg.classList.remove('hidden');
+                    btnProcessar.innerHTML = textoOriginalBtn;
+                    lucide.createIcons();
+                    btnProcessar.disabled = false;
+                    btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
+                    return;
+                }
+                
+                dadosPassadosCru = resultadoParsePassados.data;
+                dadosParseados = dadosParseados.concat(dadosPassadosCru);
+            }
+
+            const strDataInicio = document.getElementById('dataInicio').value;
+            const strDataFim = document.getElementById('dataFim').value;
+            
+            const parseInputDate = (str) => {
+                if (!str) return null;
+                const parts = str.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            };
+
+            const dataInicioObj = parseInputDate(strDataInicio);
+            const dataFimObj = parseInputDate(strDataFim);
+            
+            let dadosFiltrados = dadosParseados;
+            let dadosPassadosFiltrados = dadosPassadosCru;
+
+            if (dataInicioObj && dataFimObj) {
+                dataInicioObj.setHours(0, 0, 0, 0);
+                dataFimObj.setHours(23, 59, 59, 999);
+
+                const dataInicioPassadoObj = new Date(dataInicioObj);
+                dataInicioPassadoObj.setFullYear(dataInicioObj.getFullYear() - 1);
+                
+                const dataFimPassadoObj = new Date(dataFimObj);
+                dataFimPassadoObj.setFullYear(dataFimObj.getFullYear() - 1);
+
+                dadosFiltrados = dadosParseados.filter(row => {
+                    if (!row.data) return false;
+                    const rowDate = parseExcelDate(row.data);
+                    if (!rowDate) return false;
+                    return rowDate >= dataInicioObj && rowDate <= dataFimObj;
+                });
+
+                dadosPassadosFiltrados = dadosPassadosCru.filter(row => {
+                    if (!row.data) return false;
+                    const rowDate = parseExcelDate(row.data);
+                    if (!rowDate) return false;
+                    return rowDate >= dataInicioPassadoObj && rowDate <= dataFimPassadoObj;
+                });
+            }
+
+            setTimeout(() => {
+                document.getElementById('emptyState').classList.add('hidden');
+                const btnExportar = document.getElementById('btnExportar');
+                
+                if (dadosFiltrados.length === 0) {
+                    document.getElementById('chartsContainer').classList.add('hidden');
+                    document.getElementById('noDataState').classList.remove('hidden');
+                    document.getElementById('noDataState').classList.add('flex');
+                    document.getElementById('dashboardSubtitle').innerText = "Não há ocorrências no período selecionado.";
+                    
+                    btnExportar.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    btnExportar.classList.remove('hover:bg-surface-container');
+                } else {
+                    document.getElementById('noDataState').classList.add('hidden');
+                    document.getElementById('noDataState').classList.remove('flex');
+                    document.getElementById('chartsContainer').classList.remove('hidden');
+                    
+                    const dI = strDataInicio.split('-');
+                    const dF = strDataFim.split('-');
+                    document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}/${dI[1]}/${dI[0]} a ${dF[2]}/${dF[1]}/${dF[0]}`;
+
+                    const recomendacoesRaw = document.getElementById('recomendacoesText').value.trim();
+                    const recContainer = document.getElementById('section-recomendacoes-container');
+                    const recElement = document.getElementById('dashboardRecomendacoes');
+                    
+                    if (recomendacoesRaw) {
+                        recElement.innerText = recomendacoesRaw;
+                        recContainer.classList.remove('hidden');
+                        recContainer.classList.add('flex'); 
+                    } else {
+                        recContainer.classList.add('hidden');
+                        recContainer.classList.remove('flex');
+                    }
+
+                    btnExportar.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    btnExportar.classList.add('hover:bg-surface-container');
+
+                    atualizarKPIs(dadosFiltrados);
+                    renderizarGraficos(dadosFiltrados, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados);
+                }
+
+                btnProcessar.innerHTML = textoOriginalBtn;
+                lucide.createIcons(); 
+                btnProcessar.disabled = false;
+                btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
+
+                document.querySelector('main > div').scrollTo({top: 0, behavior: 'smooth'});
+
+            }, 800);
+        }
+
+        function atualizarKPIs(dadosMes) {
+            document.getElementById('kpiFalhas').innerText = dadosMes.length;
+
+            const modelosParque = new Set(dadosParqueInstalado.map(item => item.modelo.trim().toLowerCase()));
+            const modelosEmFalha = new Set();
+            
+            dadosMes.forEach(row => {
+                if (row.modelo) {
+                    const modeloNormalizado = row.modelo.trim().toLowerCase();
+                    if (modelosParque.has(modeloNormalizado)) {
+                        modelosEmFalha.add(modeloNormalizado);
+                    }
+                }
+            });
+            
+            document.getElementById('kpiModelos').innerText = `${modelosEmFalha.size}/${modelosParque.size}`;
+        }
+
+        // 3. Renderização Dinâmica do Chart.js
+        function renderizarGraficos(dadosMes, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados) {
+            Object.keys(chartInstances).forEach(key => {
+                if (chartInstances[key]) {
+                    chartInstances[key].destroy();
+                }
+            });
+
+            // -----------------------------------------------------
+            // CHART 1: Locais
+            // -----------------------------------------------------
+            const contagemLocalidade = {};
+            dadosMes.forEach(row => {
+                if (row.localidade) {
+                    const loc = row.localidade.trim();
+                    contagemLocalidade[loc] = (contagemLocalidade[loc] || 0) + 1;
+                }
+            });
+            
+            const paretoData = Object.entries(contagemLocalidade)
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) return b[1] - a[1];
+                    return a[0].localeCompare(b[0]);       
+                })
+                .slice(0, 5); 
+            
+            const labelsLocais = paretoData.length > 0 ? paretoData.map(d => d[0]) : ['Nenhum dado'];
+            const dataLocais = paretoData.length > 0 ? paretoData.map(d => d[1]) : [0];
+
+            const ctxLocais = document.getElementById('chartLocais').getContext('2d');
+            chartInstances.locais = new Chart(ctxLocais, {
+                type: 'bar',
+                data: {
+                    labels: labelsLocais,
+                    datasets: [{
+                        label: 'Número de Ocorrências',
+                        data: dataLocais,
+                        backgroundColor: '#ff0000', 
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [dataLabelsPlugin]
+            });
+
+            // -----------------------------------------------------
+            // CHART 2: MCE
+            // -----------------------------------------------------
+            const contagemMce = {};
+            dadosMes.forEach(row => {
+                if (row.mce) {
+                    const mce = row.mce.trim();
+                    contagemMce[mce] = (contagemMce[mce] || 0) + 1;
+                }
+            });
+            
+            const paretoDataMce = Object.entries(contagemMce)
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) return b[1] - a[1];
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 5); 
+            
+            const labelsMce = paretoDataMce.length > 0 ? paretoDataMce.map(d => d[0]) : ['Nenhum dado'];
+            const dataMce = paretoDataMce.length > 0 ? paretoDataMce.map(d => d[1]) : [0];
+
+            const ctxMce = document.getElementById('chartMce').getContext('2d');
+            chartInstances.mce = new Chart(ctxMce, {
+                type: 'bar',
+                data: {
+                    labels: labelsMce,
+                    datasets: [{
+                        label: 'Número de Ocorrências',
+                        data: dataMce,
+                        backgroundColor: '#db0000', 
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [dataLabelsPlugin] 
+            });
+
+            // -----------------------------------------------------
+            // CHART 3: Causas
+            // -----------------------------------------------------
+            const contagemCausa = {};
+            dadosMes.forEach(row => {
+                if (row.causa) {
+                    const causa = row.causa.trim();
+                    contagemCausa[causa] = (contagemCausa[causa] || 0) + 1;
+                }
+            });
+            
+            const paretoDataCausa = Object.entries(contagemCausa)
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) return b[1] - a[1];
+                    return a[0].localeCompare(b[0]);       
+                })
+                .slice(0, 5);
+            
+            const formatarLabel = (texto) => {
+                if (texto.length > 25) {
+                    const palavras = texto.split(' ');
+                    const linhas = [];
+                    let linhaAtual = '';
+                    palavras.forEach(palavra => {
+                        if ((linhaAtual + palavra).length > 25) {
+                            linhas.push(linhaAtual.trim());
+                            linhaAtual = palavra + ' ';
+                        } else {
+                            linhaAtual += palavra + ' ';
+                        }
+                    });
+                    if (linhaAtual) linhas.push(linhaAtual.trim());
+                    return linhas;
+                }
+                return texto;
+            };
+
+            const labelsCausa = paretoDataCausa.length > 0 ? paretoDataCausa.map(d => formatarLabel(d[0])) : ['Nenhum dado'];
+            const dataCausa = paretoDataCausa.length > 0 ? paretoDataCausa.map(d => d[1]) : [0];
+
+            const dataLabelsHorizontalPlugin = {
+                id: 'customDataLabelsHorizontal',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                        const value = data.datasets[0].data[index];
+                        ctx.fillStyle = chartColors.text;
+                        ctx.font = '600 13px Inter';
+                        ctx.textAlign = 'left';       
+                        ctx.textBaseline = 'middle';  
+                        ctx.fillText(value, bar.x + 6, bar.y);
+                    });
+                    ctx.restore();
+                }
+            };
+
+            const ctxCausa = document.getElementById('chartCausa').getContext('2d');
+            chartInstances.causa = new Chart(ctxCausa, {
+                type: 'bar',
+                data: {
+                    labels: labelsCausa,
+                    datasets: [{
+                        label: 'Número de Ocorrências',
+                        data: dataCausa,
+                        backgroundColor: '#b80000',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: 35 } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [dataLabelsHorizontalPlugin]
+            });
+
+            // -----------------------------------------------------
+            // CHART 4: Acumulado do Ano
+            // -----------------------------------------------------
+            let anoReferencia = null;
+            if (dadosParseados && dadosParseados.length > 0) {
+                dadosParseados.forEach(row => {
+                    const rowDate = parseExcelDate(row.data);
+                    if (rowDate) {
+                        const year = rowDate.getFullYear();
+                        if (anoReferencia === null || year > anoReferencia) {
+                            anoReferencia = year;
+                        }
+                    }
+                });
+            }
+
+            const dadosDoAno = dadosParseados ? dadosParseados.filter(row => {
+                const rowDate = parseExcelDate(row.data);
+                return rowDate && rowDate.getFullYear() === anoReferencia;
+            }) : [];
+
+            const contagemAcumuladoModelo = {};
+            dadosDoAno.forEach(row => {
+                const valorModelo = row.modelo || row.mce; 
+                if (valorModelo) {
+                    const modelo = valorModelo.trim();
+                    contagemAcumuladoModelo[modelo] = (contagemAcumuladoModelo[modelo] || 0) + 1;
+                }
+            });
+            
+            const paretoDataAcumulado = Object.entries(contagemAcumuladoModelo)
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) return b[1] - a[1];
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 5);
+            
+            const labelsAcumulado = paretoDataAcumulado.length > 0 ? paretoDataAcumulado.map(d => formatarLabel(d[0])) : ['Nenhum dado'];
+            const dataAcumulado = paretoDataAcumulado.length > 0 ? paretoDataAcumulado.map(d => d[1]) : [0];
+
+            const ctxAcumulado = document.getElementById('chartAcumulado').getContext('2d');
+            chartInstances.acumulado = new Chart(ctxAcumulado, {
+                type: 'bar',
+                data: {
+                    labels: labelsAcumulado,
+                    datasets: [{
+                        label: `Acumulado de Falhas (${anoReferencia || 'Ano'})`,
+                        data: dataAcumulado,
+                        backgroundColor: '#960000', 
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: 35 } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [dataLabelsHorizontalPlugin]
+            });
+
+            // -----------------------------------------------------
+            // CHART 5: Evolução Semanal (Semanas ISO)
+            // -----------------------------------------------------
+            const getWeekNumber = (d) => {
+                const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                const dayNum = date.getUTCDay() || 7;
+                date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+                const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+                return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+            };
+
+            const getIsoYear = (d) => {
+                const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                const dayNum = date.getUTCDay() || 7;
+                date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+                return date.getUTCFullYear();
+            };
+
+            const strInicioEvol = document.getElementById('dataInicio').value;
+            const strFimEvol = document.getElementById('dataFim').value;
+            const parseDt = (str) => {
+                if (!str) return new Date();
+                const p = str.split('-');
+                return new Date(p[0], p[1] - 1, p[2]);
+            };
+            const dtUserInicio = parseDt(strInicioEvol);
+            const dtUserFim = parseDt(strFimEvol);
+            dtUserInicio.setHours(0,0,0,0);
+            dtUserFim.setHours(23,59,59,999);
+
+            const dtExpInicio = new Date(dtUserInicio);
+            const dayInicio = dtExpInicio.getDay(); 
+            const diffInicio = dtExpInicio.getDate() - dayInicio + (dayInicio === 0 ? -6 : 1);
+            dtExpInicio.setDate(diffInicio);
+            dtExpInicio.setHours(0,0,0,0);
+
+            const dtExpFim = new Date(dtUserFim);
+            const dayFim = dtExpFim.getDay();
+            const diffFim = dtExpFim.getDate() + (dayFim === 0 ? 0 : 7 - dayFim);
+            dtExpFim.setDate(diffFim);
+            dtExpFim.setHours(23,59,59,999);
+
+            const diasSelecionados = Math.round((dtUserFim - dtUserInicio) / (1000 * 60 * 60 * 24)) + 1;
+            const isMenorQue7Dias = diasSelecionados < 7;
+            const isExpandido = dtExpInicio < dtUserInicio || dtExpFim > dtUserFim;
+
+            const containerAviso = document.getElementById('avisoEvolucaoSemanal');
+            const containerRodape = document.getElementById('rodapeEvolucaoSemanal');
+
+            if (containerAviso && containerRodape) {
+                if (isMenorQue7Dias) {
+                    containerAviso.classList.remove('hidden');
+                    containerAviso.classList.add('flex');
+                    document.getElementById('textoAvisoEvolucaoSemanal').innerText = "O intervalo foi ampliado para contemplar a semana completa.";
+                } else {
+                    containerAviso.classList.add('hidden');
+                    containerAviso.classList.remove('flex');
+                }
+
+                if (isExpandido) {
+                    containerRodape.classList.remove('hidden');
+                } else {
+                    containerRodape.classList.add('hidden');
+                }
+            }
+
+            const semanasExibicao = [];
+            let currDate = new Date(dtExpInicio);
+            
+            while (currDate <= dtExpFim) {
+                const w = getWeekNumber(currDate);
+                const y = getIsoYear(currDate);
+                const key = `${y}-${String(w).padStart(2, '0')}`;
+                
+                if (!semanasExibicao.find(s => s.key === key)) {
+                    semanasExibicao.push({
+                        key: key,
+                        label: `Semana ${w}`,
+                        count: 0
+                    });
+                }
+                currDate.setDate(currDate.getDate() + 7);
+            }
+
+            if (dadosParseados && dadosParseados.length > 0) {
+                dadosParseados.forEach(row => {
+                    const rowDate = parseExcelDate(row.data);
+                    if (rowDate && rowDate >= dtExpInicio && rowDate <= dtExpFim) {
+                        const w = getWeekNumber(rowDate);
+                        const y = getIsoYear(rowDate);
+                        const key = `${y}-${String(w).padStart(2, '0')}`;
+                        
+                        const weekObj = semanasExibicao.find(s => s.key === key);
+                        if (weekObj) {
+                            weekObj.count += 1;
+                        }
+                    }
+                });
+            }
+
+            const labelsEvolucao = semanasExibicao.map(s => s.label);
+            const dataEvolucao = semanasExibicao.map(s => s.count);
+
+            const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+            chartInstances.evolucao = new Chart(ctxEvolucao, {
+                type: 'line',
+                data: {
+                    labels: labelsEvolucao,
+                    datasets: [{
+                        label: 'Número de Ocorrências',
+                        data: dataEvolucao,
+                        borderColor: '#db0000', 
+                        backgroundColor: '#db000020', 
+                        borderWidth: 2,
+                        pointBackgroundColor: '#db0000', 
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.3 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [dataLabelsPlugin] 
+            });
+
+            // -----------------------------------------------------
+            // CHART 6: Parque Instalado x Falhas (Mixed Chart)
+            // -----------------------------------------------------
+            const mixedChartLabelsPlugin = {
+                id: 'mixedChartLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        if (meta.hidden) return;
+                        
+                        meta.data.forEach((element, index) => {
+                            const value = dataset.data[index];
+                            if (value === undefined || value === null) return;
+                            
+                            let textToDraw = value;
+                            
+                            if (dataset.type === 'line') {
+                                textToDraw = value + '%';
+                                ctx.font = '700 12px Inter';
+                                
+                                const textWidth = ctx.measureText(textToDraw).width;
+                                const height = 20;
+                                const width = textWidth + 12; 
+                                const x = element.x - width / 2;
+                                const y = element.y - height - 8; 
+                                
+                                ctx.fillStyle = '#ffffff'; 
+                                ctx.beginPath();
+                                if (ctx.roundRect) {
+                                    ctx.roundRect(x, y, width, height, 4);
+                                } else {
+                                    ctx.rect(x, y, width, height); 
+                                }
+                                ctx.fill();
+                                
+                                ctx.strokeStyle = chartColors.error;
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
+                                
+                                ctx.fillStyle = chartColors.error;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(textToDraw, element.x, y + height / 2 + 1); 
+                                
+                            } else {
+                                ctx.font = '600 12px Inter';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.lineWidth = 4;
+                                ctx.lineJoin = 'round';
+                                ctx.strokeText(textToDraw, element.x, element.y - 6);
+                                
+                                ctx.fillStyle = chartColors.text;
+                                ctx.fillText(textToDraw, element.x, element.y - 6);
+                            }
+                        });
+                    });
+                    
+                    ctx.restore();
+                }
+            };
+
+            const mapaParque = {};
+            dadosParqueInstalado.forEach(item => {
+                const mceNormalizado = item.modelo.trim().toUpperCase();
+                mapaParque[mceNormalizado] = item.quantidade;
+            });
+
+            const mapaFalhasParaMix = {};
+            dadosMes.forEach(row => {
+                if (row.modelo) {
+                    const modeloNormalizado = row.modelo.trim().toUpperCase();
+                    mapaFalhasParaMix[modeloNormalizado] = (mapaFalhasParaMix[modeloNormalizado] || 0) + 1;
+                }
+            });
+
+            const dadosMixTemporario = [];
+            
+            Object.keys(mapaParque).forEach(modeloKey => {
+                const qtdParque = mapaParque[modeloKey] || 0;
+                const qtdFalhas = mapaFalhasParaMix[modeloKey] || 0;
+                const percent = qtdParque > 0 ? Math.round((qtdFalhas / qtdParque) * 100) : 0;
+                
+                dadosMixTemporario.push({
+                    modelo: modeloKey,
+                    qtdParque: qtdParque,
+                    qtdFalhas: qtdFalhas,
+                    percent: percent
+                });
+            });
+
+            dadosMixTemporario.sort((a, b) => {
+                if (b.percent !== a.percent) return b.percent - a.percent; 
+                return a.modelo.localeCompare(b.modelo);                   
+            });
+
+            const labelsMix = [];
+            const dataQtdParque = [];
+            const dataQtdFalhas = [];
+            const dataPercentual = [];
+
+            dadosMixTemporario.forEach(item => {
+                labelsMix.push(item.modelo);
+                dataQtdParque.push(item.qtdParque);
+                dataQtdFalhas.push(item.qtdFalhas);
+                dataPercentual.push(item.percent);
+            });
+
+            const ctxMix = document.getElementById('chartParqueFalhas').getContext('2d');
+            chartInstances.parqueFalhas = new Chart(ctxMix, {
+                type: 'bar',
+                data: {
+                    labels: labelsMix,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: '% de Falhas',
+                            data: dataPercentual,
+                            borderColor: '#1c1b1b',      
+                            backgroundColor: '#1c1b1b',
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            yAxisID: 'y1', 
+                            order: 1       
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Parque Instalado',
+                            data: dataQtdParque,
+                            backgroundColor: '#760000', 
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                            order: 2
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Falhas no Período',
+                            data: dataQtdFalhas,
+                            backgroundColor: '#ff0000', 
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                            order: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 45 } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { color: '#f0edec' },
+                            ticks: { precision: 0 }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: false, 
+                            position: 'right',
+                            beginAtZero: true,
+                            min: 0,
+                            grid: { drawOnChartArea: false }
+                        }
+                    },
+                    plugins: { 
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10
+                            }
+                        }
+                    }
+                },
+                plugins: [mixedChartLabelsPlugin]
+            });
+
+            // -----------------------------------------------------
+            // CHART 7: Evolução Mensal de Falhas (Fixo JAN-DEZ)
+            // -----------------------------------------------------
+            const mesesLabels = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+            
+            const contagemMesAtual = new Array(12).fill(null);
+            const contagemMesPassado = new Array(12).fill(null);
+
+            const contabilizarMeses = (dados, arrayContagem) => {
+                if (!dados || dados.length === 0) return;
+                dados.forEach(row => {
+                    if (row.data) {
+                        const rowDate = parseExcelDate(row.data);
+                        if (rowDate) {
+                            const mesIndex = rowDate.getMonth(); 
+                            if (arrayContagem[mesIndex] === null) {
+                                arrayContagem[mesIndex] = 0;
+                            }
+                            arrayContagem[mesIndex]++;
+                        }
+                    }
+                });
+            };
+
+            contabilizarMeses(dadosMesCru, contagemMesAtual);
+            contabilizarMeses(dadosPassadosCru, contagemMesPassado);
+
+            const ctxEvolucaoMensal = document.getElementById('chartEvolucaoMensal').getContext('2d');
+            chartInstances.evolucaoMensal = new Chart(ctxEvolucaoMensal, {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        {
+                            label: 'Indicadores do Mês',
+                            data: contagemMesAtual,
+                            backgroundColor: '#db0000', 
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Indicadores Passados',
+                            data: contagemMesPassado,
+                            backgroundColor: '#c6c6c6', 
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } }
+                    },
+                    plugins: { 
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10
+                            }
+                        }
+                    }
+                },
+                plugins: [dataLabelsPlugin] 
+            });
+
+            // -----------------------------------------------------
+            // LÓGICA KPI 1: Falhas por Localidade (Bloco 5.1)
+            // -----------------------------------------------------
+            const normalizarTexto = (str) => {
+                if (!str) return '';
+                return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            };
+
+            const contagemNormMes = {};
+            dadosMes.forEach(row => {
+                if (row.localidade) {
+                    const locNorm = normalizarTexto(row.localidade);
+                    if(!contagemNormMes[locNorm]) contagemNormMes[locNorm] = { qtd: 0, original: row.localidade.trim() };
+                    contagemNormMes[locNorm].qtd += 1;
+                }
+            });
+
+            const paretoKpiLocais = Object.entries(contagemNormMes)
+                .sort((a, b) => {
+                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd; 
+                    return a[0].localeCompare(b[0]);                       
+                })
+                .slice(0, 3); 
+
+            const contagemNormPassado = {};
+            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
+                dadosPassadosFiltrados.forEach(row => {
+                    if (row.localidade) {
+                        const locNorm = normalizarTexto(row.localidade);
+                        contagemNormPassado[locNorm] = (contagemNormPassado[locNorm] || 0) + 1;
+                    }
+                });
+            }
+
+            const kpiElement = document.getElementById('kpiFalhasLocalidade');
+            if (kpiElement) {
+                kpiElement.innerHTML = ''; 
+                if (paretoKpiLocais.length === 0) {
+                    kpiElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                } else {
+                    paretoKpiLocais.forEach((item) => {
+                        const locNorm = item[0];
+                        const qtdAtual = item[1].qtd;
+                        const locOriginal = item[1].original;
+                        const qtdPassado = contagemNormPassado[locNorm] || 0;
+
+                        let textoEvolucao = '';
+                        if (qtdPassado === 0) {
+                            textoEvolucao = "sem ocorrência ano passado";
+                        } else {
+                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
+                            if (qtdAtual < qtdPassado) {
+                                textoEvolucao = `${percentual}% de melhoria`;
+                            } else if (qtdAtual > qtdPassado) {
+                                textoEvolucao = `${percentual}% de piora`;
+                            } else {
+                                textoEvolucao = `0% de variação`; 
+                            }
+                        }
+
+                        const nomeAbreviado = locOriginal.length > 17 ? locOriginal.substring(0, 17) + '...' : locOriginal;
+
+                        kpiElement.innerHTML += `
+                            <div class="text-xs leading-normal w-full" title="${locOriginal}: ${textoEvolucao}">
+                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
+            // LÓGICA KPI 2: Falhas por Causa Crítica (Bloco 5.1)
+            // -----------------------------------------------------
+            const contagemNormMesCausa = {};
+            dadosMes.forEach(row => {
+                if (row.causa) {
+                    const causaNorm = normalizarTexto(row.causa);
+                    if(!contagemNormMesCausa[causaNorm]) contagemNormMesCausa[causaNorm] = { qtd: 0, original: row.causa.trim() };
+                    contagemNormMesCausa[causaNorm].qtd += 1;
+                }
+            });
+
+            const paretoKpiCausa = Object.entries(contagemNormMesCausa)
+                .sort((a, b) => {
+                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 3); 
+
+            const contagemNormPassadoCausa = {};
+            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
+                dadosPassadosFiltrados.forEach(row => {
+                    if (row.causa) {
+                        const causaNorm = normalizarTexto(row.causa);
+                        contagemNormPassadoCausa[causaNorm] = (contagemNormPassadoCausa[causaNorm] || 0) + 1;
+                    }
+                });
+            }
+
+            const kpiCausaElement = document.getElementById('kpiFalhasCausa');
+            if (kpiCausaElement) {
+                kpiCausaElement.innerHTML = ''; 
+                if (paretoKpiCausa.length === 0) {
+                    kpiCausaElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                } else {
+                    paretoKpiCausa.forEach((item) => {
+                        const causaNorm = item[0];
+                        const qtdAtual = item[1].qtd;
+                        const causaOriginal = item[1].original;
+                        const qtdPassado = contagemNormPassadoCausa[causaNorm] || 0;
+
+                        let textoEvolucao = '';
+                        if (qtdPassado === 0) {
+                            textoEvolucao = "sem ocorrência ano passado";
+                        } else {
+                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
+                            if (qtdAtual < qtdPassado) {
+                                textoEvolucao = `${percentual}% de melhoria`;
+                            } else if (qtdAtual > qtdPassado) {
+                                textoEvolucao = `${percentual}% de piora`;
+                            } else {
+                                textoEvolucao = `0% de variação`;
+                            }
+                        }
+
+                        const nomeAbreviado = causaOriginal.length > 17 ? causaOriginal.substring(0, 17) + '...' : causaOriginal;
+
+                        kpiCausaElement.innerHTML += `
+                            <div class="text-xs leading-normal w-full" title="${causaOriginal}: ${textoEvolucao}">
+                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
+            // LÓGICA KPI 3: Ranking de MCE's Críticas (Bloco 5.1)
+            // -----------------------------------------------------
+            const contagemNormMesMce = {};
+            dadosMes.forEach(row => {
+                if (row.mce) {
+                    const mceNorm = normalizarTexto(row.mce);
+                    if(!contagemNormMesMce[mceNorm]) contagemNormMesMce[mceNorm] = { qtd: 0, original: row.mce.trim() };
+                    contagemNormMesMce[mceNorm].qtd += 1;
+                }
+            });
+
+            const paretoKpiMce = Object.entries(contagemNormMesMce)
+                .sort((a, b) => {
+                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 3);
+
+            const contagemNormPassadoMce = {};
+            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
+                dadosPassadosFiltrados.forEach(row => {
+                    if (row.mce) {
+                        const mceNorm = normalizarTexto(row.mce);
+                        contagemNormPassadoMce[mceNorm] = (contagemNormPassadoMce[mceNorm] || 0) + 1;
+                    }
+                });
+            }
+
+            const kpiMceElement = document.getElementById('kpiRankingMce');
+            if (kpiMceElement) {
+                kpiMceElement.innerHTML = ''; 
+                if (paretoKpiMce.length === 0) {
+                    kpiMceElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                } else {
+                    paretoKpiMce.forEach((item) => {
+                        const mceNorm = item[0];
+                        const qtdAtual = item[1].qtd;
+                        const mceOriginal = item[1].original;
+                        const qtdPassado = contagemNormPassadoMce[mceNorm] || 0;
+
+                        let textoEvolucao = '';
+                        if (qtdPassado === 0) {
+                            textoEvolucao = "sem ocorrência ano passado";
+                        } else {
+                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
+                            if (qtdAtual < qtdPassado) {
+                                textoEvolucao = `${percentual}% de melhoria`;
+                            } else if (qtdAtual > qtdPassado) {
+                                textoEvolucao = `${percentual}% de piora`;
+                            } else {
+                                textoEvolucao = `0% de variação`;
+                            }
+                        }
+
+                        const nomeAbreviado = mceOriginal.length > 17 ? mceOriginal.substring(0, 17) + '...' : mceOriginal;
+
+                        kpiMceElement.innerHTML += `
+                            <div class="text-xs leading-normal w-full" title="${mceOriginal}: ${textoEvolucao}">
+                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
+            // LÓGICA KPI 4: Taxa de Falha por Modelo (Bloco 5.1)
+            // -----------------------------------------------------
+            const contagemNormMesTaxa = {};
+            dadosMes.forEach(row => {
+                const valorModelo = row.modelo || row.mce;
+                if (valorModelo) {
+                    const modNorm = normalizarTexto(valorModelo);
+                    if(!contagemNormMesTaxa[modNorm]) contagemNormMesTaxa[modNorm] = { qtd: 0, original: valorModelo.trim() };
+                    contagemNormMesTaxa[modNorm].qtd += 1;
+                }
+            });
+
+            const paretoKpiTaxa = Object.entries(contagemNormMesTaxa)
+                .sort((a, b) => {
+                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 3); 
+
+            const contagemNormPassadoTaxa = {};
+            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
+                dadosPassadosFiltrados.forEach(row => {
+                    const valorModelo = row.modelo || row.mce;
+                    if (valorModelo) {
+                        const modNorm = normalizarTexto(valorModelo);
+                        contagemNormPassadoTaxa[modNorm] = (contagemNormPassadoTaxa[modNorm] || 0) + 1;
+                    }
+                });
+            }
+
+            const kpiTaxaElement = document.getElementById('kpiTaxaFalhaModelo');
+            if (kpiTaxaElement) {
+                kpiTaxaElement.innerHTML = ''; 
+                if (paretoKpiTaxa.length === 0) {
+                    kpiTaxaElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                } else {
+                    paretoKpiTaxa.forEach((item) => {
+                        const modNorm = item[0];
+                        const qtdAtual = item[1].qtd;
+                        const modOriginal = item[1].original;
+                        const qtdPassado = contagemNormPassadoTaxa[modNorm] || 0;
+
+                        let textoEvolucao = '';
+                        if (qtdPassado === 0) {
+                            textoEvolucao = "sem ocorrência ano passado";
+                        } else {
+                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
+                            if (qtdAtual < qtdPassado) {
+                                textoEvolucao = `${percentual}% de melhoria`;
+                            } else if (qtdAtual > qtdPassado) {
+                                textoEvolucao = `${percentual}% de piora`;
+                            } else {
+                                textoEvolucao = `0% de variação`;
+                            }
+                        }
+
+                        const nomeAbreviado = modOriginal.length > 17 ? modOriginal.substring(0, 17) + '...' : modOriginal;
+
+                        kpiTaxaElement.innerHTML += `
+                            <div class="text-xs leading-normal w-full" title="${modOriginal}: ${textoEvolucao}">
+                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
+            // LÓGICA KPI 5: Índice de Confiabilidade por Modelo (Bloco 5.1)
+            // -----------------------------------------------------
+            const kpiConfiabilidadeElement = document.getElementById('kpiConfiabilidade');
+            if (kpiConfiabilidadeElement) {
+                if (dadosMixTemporario.length === 0) {
+                    kpiConfiabilidadeElement.innerHTML = '<span class="text-[11px] text-outline italic">Nenhum modelo analisado</span>';
+                } else {
+                    const piorDesempenho = dadosMixTemporario[0];
+                    const melhorDesempenho = dadosMixTemporario[dadosMixTemporario.length - 1];
+
+                    if (dadosMixTemporario.length === 1) {
+                         kpiConfiabilidadeElement.innerHTML = `
+                            <div class="text-[11px] leading-tight text-on-surface-variant">
+                                O modelo <span class="font-semibold text-error">${piorDesempenho.modelo}</span> apresentou o único registro de desempenho no período analisado.
+                            </div>
+                        `;
+                    } else {
+                        kpiConfiabilidadeElement.innerHTML = `
+                            <div class="text-[11px] leading-tight text-on-surface-variant mb-2">
+                                O modelo <span class="font-semibold text-error">${piorDesempenho.modelo}</span> apresentou o pior desempenho no período analisado.
+                            </div>
+                            <div class="text-[11px] leading-tight text-on-surface-variant">
+                                O modelo <span class="font-semibold text-secondary">${melhorDesempenho.modelo}</span> apresentou o melhor desempenho no período analisado.
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            // -----------------------------------------------------
+            // SEÇÃO: Indicadores Passados (4 Gráficos Filtrados)
+            // -----------------------------------------------------
+            const renderPassadosChart = (canvasId, property, color) => {
+                const contagem = {};
+                if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
+                    dadosPassadosFiltrados.forEach(row => {
+                        if (row[property]) {
+                            const val = row[property].trim();
+                            if (val) {
+                                contagem[val] = (contagem[val] || 0) + 1;
+                            }
+                        }
+                    });
+                }
+                
+                const pareto = Object.entries(contagem)
+                    .sort((a, b) => {
+                        if (b[1] !== a[1]) return b[1] - a[1];
+                        return a[0].localeCompare(b[0]);
+                    })
+                    .slice(0, 10);
+                
+                const labels = pareto.length > 0 ? pareto.map(d => d[0]) : ['Nenhum dado'];
+                const dataChart = pareto.length > 0 ? pareto.map(d => d[1]) : [0];
+
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                chartInstances[canvasId] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Número de Ocorrências',
+                            data: dataChart,
+                            backgroundColor: color,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 30 } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
+                            x: { grid: { display: false } }
+                        },
+                        plugins: { legend: { display: false } }
+                    },
+                    plugins: [dataLabelsPlugin] 
+                });
+            };
+
+            renderPassadosChart('chartPassadosMce', 'mce', '#5ab7d4');
+            renderPassadosChart('chartPassadosLocal', 'localidade', '#2b91ad');
+            renderPassadosChart('chartPassadosModelo', 'modelo', '#006e88');
+            renderPassadosChart('chartPassadosCausa', 'causa', '#004c65');
+
+            // -----------------------------------------------------
+            // LÓGICA KPIs INDICADORES PASSADOS (Bloco 7.1)
+            // -----------------------------------------------------
+            const kpiVarElement = document.getElementById('kpiVariacaoAnual');
+            if (kpiVarElement) {
+                const qtdAtualTotal = dadosMes.length;
+                const qtdPassadoTotal = dadosPassadosFiltrados ? dadosPassadosFiltrados.length : 0;
+
+                if (qtdAtualTotal === 0 && qtdPassadoTotal === 0) {
+                    kpiVarElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                } else {
+                    let percentualVar = 0;
+                    if (qtdPassadoTotal > 0) {
+                        percentualVar = Math.round(((qtdAtualTotal - qtdPassadoTotal) / qtdPassadoTotal) * 100);
+                    } else {
+                        percentualVar = 100; 
+                    }
+
+                    let colorClass = 'text-on-surface';
+                    let formattedVar = '';
+
+                    if (qtdAtualTotal < qtdPassadoTotal) {
+                        colorClass = 'text-secondary'; 
+                        formattedVar = `[${percentualVar}%]`; 
+                    } else if (qtdAtualTotal > qtdPassadoTotal) {
+                        colorClass = 'text-error'; 
+                        formattedVar = `[+${percentualVar}%]`;
+                    } else {
+                        colorClass = 'text-on-surface-variant';
+                        formattedVar = `[0%]`;
+                    }
+
+                    kpiVarElement.innerHTML = `
+                        <div class="text-xs leading-relaxed text-on-surface-variant">
+                            No período analisado foram registradas <span class="font-bold text-on-surface">${qtdAtualTotal} falhas</span> e no mesmo período do ano passado foram identificadas <span class="font-bold text-on-surface">${qtdPassadoTotal} falhas</span>, representando uma variação de <span class="font-bold ${colorClass}">${formattedVar}</span>.
+                        </div>
+                    `;
+                }
+            }
+
+            const kpiDiagElement = document.getElementById('kpiDiagnosticoEfetivo');
+            if (kpiDiagElement) {
+                const causaAlvo = "nada constatado";
+                
+                let qtdAtualNC = 0;
+                dadosMes.forEach(row => {
+                    if (row.causa && normalizarTexto(row.causa) === causaAlvo) {
+                        qtdAtualNC++;
+                    }
+                });
+
+                let qtdPassadoNC = 0;
+                if (dadosPassadosFiltrados) {
+                    dadosPassadosFiltrados.forEach(row => {
+                        if (row.causa && normalizarTexto(row.causa) === causaAlvo) {
+                            qtdPassadoNC++;
+                        }
+                    });
+                }
+
+                if (qtdAtualNC === 0 && qtdPassadoNC === 0) {
+                    kpiDiagElement.innerHTML = '<span class="text-xs text-outline italic">Sem registros de "Nada Constatado" em ambos os períodos.</span>';
+                } else {
+                    let percentualVarNC = 0;
+                    if (qtdPassadoNC > 0) {
+                        percentualVarNC = Math.round(((qtdAtualNC - qtdPassadoNC) / qtdPassadoNC) * 100);
+                    } else {
+                        percentualVarNC = 100; 
+                    }
+
+                    let colorClassNC = 'text-on-surface';
+                    let formattedVarNC = '';
+
+                    if (qtdAtualNC < qtdPassadoNC) {
+                        colorClassNC = 'text-secondary'; 
+                        formattedVarNC = `[${percentualVarNC}%]`; 
+                    } else if (qtdAtualNC > qtdPassadoNC) {
+                        colorClassNC = 'text-error'; 
+                        formattedVarNC = `[+${percentualVarNC}%]`;
+                    } else {
+                        colorClassNC = 'text-on-surface-variant';
+                        formattedVarNC = `[0%]`;
+                    }
+
+                    kpiDiagElement.innerHTML = `
+                        <div class="text-xs leading-relaxed text-on-surface-variant">
+                            No período analisado foram registradas <span class="font-bold text-on-surface">${qtdAtualNC} falhas</span> "nada constatado" e no mesmo período do ano passado foram identificadas <span class="font-bold text-on-surface">${qtdPassadoNC} falhas</span>, representando uma variação de <span class="font-bold ${colorClassNC}">${formattedVarNC}</span>.
+                        </div>
+                    `;
+                }
+            }
+
+            renderizarGraficoPreventiva();
+        }
+
+        // -----------------------------------------------------
+        // NOVO GRÁFICO: SEÇÃO DE PREVENTIVA (GRÁFICOS SEPARADOS)
+        // -----------------------------------------------------
+        function renderizarGraficoPreventiva() {
+            const kpiPmpElement = document.getElementById('kpiCumprimentoPmp');
+            if (kpiPmpElement) {
+                if (dadosPreventivaMensal.length === 0 || dadosParqueVP.length === 0) {
+                    kpiPmpElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado processado</span>';
+                } else {
+                    let totalParqueVP = 0;
+                    dadosParqueVP.forEach(eq => totalParqueVP += eq.quantidade);
+                    
+                    let totalRealizado = 0;
+                    dadosPreventivaMensal.forEach(mes => {
+                        mes.dados.forEach(d => totalRealizado += d.valor);
+                    });
+                    
+                    const totalMeta = totalParqueVP * dadosPreventivaMensal.length;
+                    
+                    const percentual = totalMeta > 0 ? Math.round((totalRealizado / totalMeta) * 100) : 0;
+                    
+                    kpiPmpElement.innerHTML = `
+                        <div class="text-xs leading-relaxed text-on-surface-variant mt-1">
+                            No período selecionado, a manutenção preventiva apresentou um indice de cumprimento de <span class="font-bold text-[#00886d]">[${percentual}%]</span> do Plano de Manutenção (PMP).
+                        </div>
+                    `;
+                }
+            }
+
+            if (chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
+            if (chartInstances.preventivaAbs) chartInstances.preventivaAbs.destroy();
+
+            const ctxPerc = document.getElementById('chartPreventivaPerc');
+            const ctxAbs = document.getElementById('chartPreventivaAbs');
+            if (!ctxPerc || !ctxAbs) return;
+
+            const datasetsPerc = [];
+            const datasetsAbs = [];
+
+            dadosParqueVP.forEach((equipeObj, index) => {
+                const equipeNome = equipeObj.equipe;
+                const qtdReferencia = equipeObj.quantidade;
+                
+                const dataPercents = new Array(12).fill(null);
+                const dataAbsolutos = new Array(12).fill(null); 
+
+                dadosPreventivaMensal.forEach(mesData => {
+                    const mesIndex = mesData.mesReferencia - 1; 
+                    const entradaEquipe = mesData.dados.find(d => d.equipe === equipeNome);
+
+                    if (entradaEquipe && qtdReferencia > 0) {
+                        const percentual = (entradaEquipe.valor / qtdReferencia) * 100;
+                        dataPercents[mesIndex] = Number(percentual.toFixed(2));
+                        dataAbsolutos[mesIndex] = entradaEquipe.valor;
+                    } else if (entradaEquipe && qtdReferencia === 0) {
+                        dataPercents[mesIndex] = 0;
+                        dataAbsolutos[mesIndex] = entradaEquipe.valor;
+                    }
+                });
+
+                const colorPalette = [
+                    chartColors.secondary, chartColors.primary, chartColors.tertiary,
+                    chartColors.error, chartColors.primaryContainer, chartColors.tertiaryContainer
+                ];
+                const color = colorPalette[index % colorPalette.length];
+
+                datasetsPerc.push({
+                    type: 'line',
+                    label: equipeNome,
+                    data: dataPercents,
+                    borderColor: color,
+                    backgroundColor: color,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                });
+
+                datasetsAbs.push({
+                    type: 'bar',
+                    label: equipeNome,
+                    data: dataAbsolutos,
+                    backgroundColor: color,
+                    borderRadius: 4
+                });
+            });
+
+            const percLabelsPlugin = {
+                id: 'percLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        if (meta.hidden) return;
+                        meta.data.forEach((element, index) => {
+                            const value = dataset.data[index];
+                            if (value === undefined || value === null) return;
+
+                            const textToDraw = value + '%';
+                            ctx.font = '700 11px Inter';
+                            
+                            const textWidth = ctx.measureText(textToDraw).width;
+                            const height = 18;
+                            const width = textWidth + 10;
+                            const x = element.x - width / 2;
+                            const y = element.y - height - 8;
+
+                            ctx.fillStyle = '#ffffff';
+                            ctx.beginPath();
+                            if (ctx.roundRect) ctx.roundRect(x, y, width, height, 4);
+                            else ctx.rect(x, y, width, height);
+                            ctx.fill();
+
+                            ctx.strokeStyle = dataset.borderColor;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+
+                            ctx.fillStyle = dataset.borderColor;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(textToDraw, element.x, y + height / 2 + 1);
+                        });
+                    });
+                    ctx.restore();
+                }
+            };
+
+            chartInstances.preventivaPerc = new Chart(ctxPerc.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: mesesDoAno,
+                    datasets: datasetsPerc
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30, right: 20, left: 10 } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            beginAtZero: true,
+                            suggestedMax: 100, 
+                            grid: { color: '#f0edec' },
+                            ticks: { callback: function(value) { return value + '%' } }
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                },
+                plugins: [percLabelsPlugin]
+            });
+
+            chartInstances.preventivaAbs = new Chart(ctxAbs.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: mesesDoAno,
+                    datasets: datasetsAbs
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } }
+                    },
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                },
+                plugins: [dataLabelsPlugin] 
+            });
+        }
+
+        // 4. Exportação para PDF (jsPDF + html2canvas)
+        async function exportarPDF() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.replace('hidden', 'flex'); 
+
+            await new Promise(r => setTimeout(r, 100)); 
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                const marginX = 7.5; 
+                const startY = 35; 
+                const marginBot = 15;
+                const maxAvailableWidth = pdfWidth - (marginX * 2);
+                const maxAvailableHeight = pdfHeight - startY - marginBot;
+
+                const allChunks = document.querySelectorAll('.pdf-export-chunk');
+                const chunks = Array.from(allChunks).filter(chunk => !chunk.classList.contains('hidden'));
+                
+                const pagesData = [];
+
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+
+                    const canvas = await html2canvas(chunk, {
+                        scale: 2, 
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#fcf9f8' 
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps = pdf.getImageProperties(imgData);
+                    
+                    const imgWidth = maxAvailableWidth;
+                    const imgHeight = (imgProps.height * maxAvailableWidth) / imgProps.width;
+                    
+                    pagesData.push({ imgData, imgWidth, imgHeight });
+                }
+
+                const pagesToPrint = [];
+                let currentPageItems = [];
+                let currentY = startY;
+                const gapBetweenChunks = 6; 
+
+                for (let i = 0; i < pagesData.length; i++) {
+                    const chunk = pagesData[i];
+                    
+                    if (currentY + chunk.imgHeight > pdfHeight - marginBot && currentPageItems.length > 0) {
+                        pagesToPrint.push(currentPageItems);
+                        currentPageItems = [];
+                        currentY = startY; 
+                    }
+                    
+                    currentPageItems.push({
+                        imgData: chunk.imgData,
+                        x: marginX,
+                        y: currentY,
+                        width: chunk.imgWidth,
+                        height: chunk.imgHeight
+                    });
+                    
+                    currentY += chunk.imgHeight + gapBetweenChunks;
+                }
+                
+                if (currentPageItems.length > 0) {
+                    pagesToPrint.push(currentPageItems);
+                }
+
+                const totalPDFPages = pagesToPrint.length;
+
+                for (let p = 0; p < totalPDFPages; p++) {
+                    if (p > 0) {
+                        pdf.addPage();
+                    }
+
+                    pdf.setFont("helvetica", "bold");
+                    pdf.setFontSize(16);
+                    pdf.setTextColor(0, 107, 95); 
+                    pdf.text("MCE Analytics - Relatório Consolidado GOT", marginX, 15);
+                    
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(28, 27, 27); 
+                    const dI = document.getElementById('dataInicio').value;
+                    const dF = document.getElementById('dataFim').value;
+                    pdf.text(`Período de Referência: ${dI} a ${dF}   |   Página ${p + 1} de ${totalPDFPages}`, marginX, 22);
+
+                    const items = pagesToPrint[p];
+                    for (let item of items) {
+                        pdf.addImage(item.imgData, 'PNG', item.x, item.y, item.width, item.height);
+                    }
+                }
+
+                const hoje = new Date();
+                const dataArquivo = `${hoje.getFullYear()}_${String(hoje.getMonth()+1).padStart(2,'0')}_${String(hoje.getDate()).padStart(2,'0')}`;
+                
+                pdf.save(`relatorio_mch_${dataArquivo}.pdf`);
+
+            } catch (error) {
+                console.error("Erro ao gerar PDF:", error);
+                alert("Ocorreu um erro ao gerar o relatório. Tente novamente.");
+            } finally {
+                overlay.classList.replace('flex', 'hidden');
+            }
+        }
+
+        // -----------------------------------------------------
+        // LÓGICA DE BACKUP E RESTAURAÇÃO (JSON)
+        // -----------------------------------------------------
+
+        function salvarDadosJSON() {
+            const estadoAplicacao = {
+                versao: "1.0",
+                dataBackup: new Date().toISOString(),
+                dados: {
+                    mch_indMes: document.getElementById('indMes').value,
+                    mch_indPassados: document.getElementById('indPassados').value,
+                    mch_recomendacoes: document.getElementById('recomendacoesText').value,
+                    mch_dataInicio: document.getElementById('dataInicio').value,
+                    mch_dataFim: document.getElementById('dataFim').value,
+                    mch_parque: dadosParqueInstalado,
+                    mch_parque_vp: dadosParqueVP,
+                    mch_preventiva_mensal: dadosPreventivaMensal
+                }
+            };
+
+            const jsonString = JSON.stringify(estadoAplicacao, null, 2);
+            
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.href = url;
+            
+            const hoje = new Date();
+            const dataArquivo = `${hoje.getFullYear()}_${String(hoje.getMonth()+1).padStart(2,'0')}_${String(hoje.getDate()).padStart(2,'0')}`;
+            
+            downloadAnchorNode.download = `backup_mch_${dataArquivo}.json`;
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerImportarDados() {
+            document.getElementById('fileImport').click();
+        }
+
+        function processarImportacao(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    
+                    if (!parsed.dados) throw new Error("Estrutura JSON inválida.");
+                    
+                    const estado = parsed.dados;
+
+                    if (estado.mch_indMes !== undefined) {
+                        document.getElementById('indMes').value = estado.mch_indMes;
+                        localStorage.setItem('mch_indMes', estado.mch_indMes);
+                    }
+                    if (estado.mch_indPassados !== undefined) {
+                        document.getElementById('indPassados').value = estado.mch_indPassados;
+                        localStorage.setItem('mch_indPassados', estado.mch_indPassados);
+                    }
+                    if (estado.mch_recomendacoes !== undefined) {
+                        document.getElementById('recomendacoesText').value = estado.mch_recomendacoes;
+                        localStorage.setItem('mch_recomendacoes', estado.mch_recomendacoes);
+                    }
+                    if (estado.mch_dataInicio !== undefined) {
+                        document.getElementById('dataInicio').value = estado.mch_dataInicio;
+                        localStorage.setItem('mch_dataInicio', estado.mch_dataInicio);
+                    }
+                    if (estado.mch_dataFim !== undefined) {
+                        document.getElementById('dataFim').value = estado.mch_dataFim;
+                        localStorage.setItem('mch_dataFim', estado.mch_dataFim);
+                    }
+
+                    if (estado.mch_parque !== undefined) {
+                        dadosParqueInstalado = estado.mch_parque;
+                        localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+                        renderizarListaParque();
+                    }
+                    if (estado.mch_parque_vp !== undefined) {
+                        dadosParqueVP = estado.mch_parque_vp;
+                        localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+                        renderizarListaParqueVP();
+                    }
+                    if (estado.mch_preventiva_mensal !== undefined) {
+                        dadosPreventivaMensal = estado.mch_preventiva_mensal;
+                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+                        atualizarProgressoPreventiva();
+                    }
+                    
+                    document.getElementById('errorMessage').classList.add('hidden');
+
+                    document.getElementById('chartsContainer').classList.add('hidden');
+                    document.getElementById('noDataState').classList.add('hidden');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    document.getElementById('dashboardSubtitle').innerText = "Dados restaurados. Aguardando processamento...";
+                    
+                    const btnExportar = document.getElementById('btnExportar');
+                    btnExportar.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    btnExportar.classList.remove('hover:bg-surface-container');
+
+                    alert("Backup restaurado com sucesso! Clique no botão 'Processar Dados' para recalcular o Dashboard.");
+                    
+                } catch (err) {
+                    console.error("Erro ao fazer parse do JSON", err);
+                    alert("O arquivo selecionado não é um backup compatível com a aplicação MCE Analytics.");
+                }
+                
+                event.target.value = "";
+            };
+            
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>

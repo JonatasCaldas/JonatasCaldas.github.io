@@ -107,10 +107,10 @@
         </div>
 
         <nav class="flex flex-col gap-2">
-            <a href="#" id="nav-biblioteca" class="flex items-center gap-3 px-4 py-3 bg-surface-container-lowest text-on-surface font-bold rounded-xl shadow-atmospheric transition-all translate-x-1">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-surface-container-lowest text-on-surface font-bold rounded-xl shadow-atmospheric transition-all translate-x-1">
                 <i data-lucide="book-open" class="w-5 h-5 text-secondary"></i> Biblioteca
             </a>
-            <a href="#" id="nav-desejos" class="flex items-center gap-3 px-4 py-3 text-primary hover:bg-surface-container hover:text-on-surface transition-all rounded-xl font-medium text-sm">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 text-primary hover:bg-surface-container hover:text-on-surface transition-all rounded-xl font-medium text-sm">
                 <i data-lucide="heart" class="w-5 h-5"></i> Desejos
             </a>
         </nav>
@@ -151,7 +151,7 @@
             <section class="mb-10 animate-fade-in-up">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <h2 id="view-title" class="text-4xl md:text-[40px] leading-tight font-black font-headline text-on-background tracking-tight mb-2">Biblioteca</h2>
+                        <h2 class="text-4xl md:text-[40px] leading-tight font-black font-headline text-on-background tracking-tight mb-2">Biblioteca</h2>
                         <p class="text-on-surface-variant font-body text-sm font-medium"><span id="total-volumes-count">0</span> volumes catalogados • Editorial Functionalism</p>
                     </div>
                     <button id="btn-add-item" class="bg-gradient-to-br from-primary to-primary-dim text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-atmospheric flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all w-full md:w-auto">
@@ -199,8 +199,9 @@
                 </div>
             </section>
 
-            <!-- View: Biblioteca -->
-            <div id="view-biblioteca" class="space-y-16">
+            <!-- Nested Sections -->
+            <div class="space-y-16">
+                
                 <!-- Section: Lendo -->
                 <section>
                     <div class="flex items-center gap-4 mb-8">
@@ -209,9 +210,6 @@
                     </div>
                     <div id="grid-lendo" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         <!-- Cards injetados via JS -->
-                    </div>
-                    <div id="show-all-lendo-container" class="mt-6 flex justify-center hidden">
-                        <button id="show-all-lendo-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
                     </div>
                 </section>
 
@@ -224,9 +222,6 @@
                     <div id="grid-concluidos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Cards injetados via JS -->
                     </div>
-                    <div id="show-all-lido-container" class="mt-6 flex justify-center hidden">
-                        <button id="show-all-lido-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
-                    </div>
                 </section>
 
                 <!-- Section: Incompletos -->
@@ -238,28 +233,8 @@
                     <div id="grid-incompletos" class="flex flex-col gap-3">
                         <!-- Cards injetados via JS -->
                     </div>
-                    <div id="show-all-incompleto-container" class="mt-6 flex justify-center hidden">
-                        <button id="show-all-incompleto-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
-                    </div>
                 </section>
             </div>
-            
-            <!-- View: Desejos -->
-            <div id="view-desejos" class="hidden space-y-16">
-                <section>
-                    <div class="flex items-center gap-4 mb-8">
-                        <h3 class="text-xl font-bold font-headline tracking-tight text-on-background">Lista de Desejos</h3>
-                        <div class="h-[1px] flex-1 bg-surface-container-highest"></div>
-                    </div>
-                    <div id="grid-desejos" class="flex flex-col gap-3">
-                        <!-- Cards injetados via JS -->
-                    </div>
-                    <div id="show-all-desejos-container" class="mt-6 flex justify-center hidden">
-                        <button id="show-all-desejos-btn" class="bg-surface-container-high border border-outline-variant/20 text-on-surface px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-surface-container-highest transition-colors shadow-sm">Exibir tudo</button>
-                    </div>
-                </section>
-            </div>
-
         </main>
     </div>
 
@@ -392,15 +367,6 @@
             const gridLendo = document.getElementById('grid-lendo');
             const gridConcluidos = document.getElementById('grid-concluidos');
             const gridIncompletoss = document.getElementById('grid-incompletos');
-            const gridDesejos = document.getElementById('grid-desejos');
-            
-            const viewBiblioteca = document.getElementById('view-biblioteca');
-            const viewDesejos = document.getElementById('view-desejos');
-            const viewTitle = document.getElementById('view-title');
-
-            const navBiblioteca = document.getElementById('nav-biblioteca');
-            const navDesejos = document.getElementById('nav-desejos');
-
             const countElement = document.getElementById('total-volumes-count');
             
             const btnAddItem = document.getElementById('btn-add-item');
@@ -430,51 +396,7 @@
             let activeFilters = [];
             let toastTimeout;
 
-            // Variável de estado para colapsos (seções com maximo de 4 itens visíveis)
-            const sectionsState = {
-                lendo: { expanded: false },
-                lido: { expanded: false },
-                incompleto: { expanded: false },
-                desejos: { expanded: false }
-            };
-
-            // Setup dos botões "Exibir tudo"
-            Object.keys(sectionsState).forEach(sec => {
-                const btn = document.getElementById(`show-all-${sec}-btn`);
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        sectionsState[sec].expanded = !sectionsState[sec].expanded;
-                        applySearchAndFilters();
-                    });
-                }
-            });
-
             lucide.createIcons();
-
-            // --- Lógica de Navegação (Views) ---
-            navBiblioteca.addEventListener('click', (e) => {
-                e.preventDefault();
-                viewBiblioteca.classList.remove('hidden');
-                viewDesejos.classList.add('hidden');
-                viewTitle.textContent = 'Biblioteca';
-                
-                navBiblioteca.className = "flex items-center gap-3 px-4 py-3 bg-surface-container-lowest text-on-surface font-bold rounded-xl shadow-atmospheric transition-all translate-x-1";
-                navDesejos.className = "flex items-center gap-3 px-4 py-3 text-primary hover:bg-surface-container hover:text-on-surface transition-all rounded-xl font-medium text-sm";
-                
-                if (window.innerWidth < 768) toggleSidebar();
-            });
-
-            navDesejos.addEventListener('click', (e) => {
-                e.preventDefault();
-                viewBiblioteca.classList.add('hidden');
-                viewDesejos.classList.remove('hidden');
-                viewTitle.textContent = 'Desejos';
-
-                navDesejos.className = "flex items-center gap-3 px-4 py-3 bg-surface-container-lowest text-on-surface font-bold rounded-xl shadow-atmospheric transition-all translate-x-1";
-                navBiblioteca.className = "flex items-center gap-3 px-4 py-3 text-primary hover:bg-surface-container hover:text-on-surface transition-all rounded-xl font-medium text-sm";
-                
-                if (window.innerWidth < 768) toggleSidebar();
-            });
 
             // --- Lógica de UI Global ---
             
@@ -506,7 +428,6 @@
                 if (gridLendo.children.length === 0) gridLendo.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 col-span-full empty-msg">Itens marcados como lendo aparecerão aqui.</div>';
                 if (gridConcluidos.children.length === 0) gridConcluidos.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 px-2 col-span-full empty-msg">Itens marcados como lidos aparecerão aqui.</div>';
                 if (gridIncompletoss.children.length === 0) gridIncompletoss.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 px-2 empty-msg">Itens marcados como incompletos aparecerão aqui.</div>';
-                if (gridDesejos.children.length === 0) gridDesejos.innerHTML = '<div class="text-xs font-medium text-outline-variant py-4 px-2 empty-msg">Itens marcados como desejo aparecerão aqui.</div>';
             }
 
             function removeEmptyMsgs() {
@@ -531,6 +452,14 @@
             if(btnCloseSidebar) btnCloseSidebar.addEventListener('click', toggleSidebar);
             if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', toggleSidebar);
 
+            sidebar.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                        toggleSidebar();
+                    }
+                });
+            });
+
             // --- Geradores de HTML (Templates) ---
             const getDropdownHTML = () => `
                 <div class="card-dropdown hidden absolute right-0 top-6 bg-white shadow-high-contrast border border-outline-variant/30 rounded-xl flex-col min-w-[120px] overflow-hidden z-40">
@@ -542,6 +471,7 @@
             function createLendoCard(m) {
                 const percentage = Math.round((m.read / m.volumes) * 100);
                 const genreTags = m.genres ? m.genres.split(',').map(g => `<span class="bg-tertiary-container text-on-tertiary-container px-2.5 py-1 rounded-full text-[9px] font-bold tracking-wider uppercase">${g}</span>`).join('') : '';
+                const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
                 
                 const displayTitle = m.title || 'Sem Título';
                 const displayAuthor = m.author ? ` • ${m.author}` : '';
@@ -555,7 +485,7 @@
                         <div class="flex flex-col justify-between py-1 flex-1">
                             <div>
                                 <div class="flex justify-between items-start gap-2">
-                                    <h4 class="font-bold text-on-background line-clamp-2 leading-snug group-hover:text-secondary transition-colors text-sm">${displayTitle}</h4>
+                                    <h4 class="font-bold text-on-background line-clamp-2 leading-snug group-hover:text-secondary transition-colors text-sm">${displayTitle} ${heartIcon}</h4>
                                     <div class="relative">
                                         <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors p-1 -mr-2 -mt-1"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
                                         ${getDropdownHTML()}
@@ -568,7 +498,7 @@
                                 <div class="flex justify-between items-center">
                                     <p class="progress-text text-[10px] text-outline font-bold tracking-wide">Progresso: ${percentage}%</p>
                                     <div class="flex items-center gap-3">
-                                        <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i> Vol</button>
+                                        <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i></button>
                                         <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
                                     </div>
                                 </div>
@@ -579,6 +509,8 @@
             }
 
             function createLidoCard(m) {
+                const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3 h-3 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
+                
                 const displayTitle = m.title || 'Sem Título';
                 const displayAuthor = m.author ? ` • ${m.author}` : '';
 
@@ -589,7 +521,7 @@
                         </div>
                         <div class="flex flex-col justify-center min-w-0 flex-1 relative">
                             <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-on-surface truncate group-hover:text-secondary transition-colors pr-4">${displayTitle}</h4>
+                                <h4 class="text-sm font-bold text-on-surface truncate group-hover:text-secondary transition-colors pr-4">${displayTitle} ${heartIcon}</h4>
                                 <div class="relative absolute right-0 top-0">
                                     <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors opacity-0 group-hover:opacity-100"><i data-lucide="more-vertical" class="w-3.5 h-3.5"></i></button>
                                     ${getDropdownHTML()}
@@ -602,32 +534,31 @@
 
             function createIncompletosCard(m) {
                 const heartIcon = m.isWishlist ? '<i data-lucide="heart" class="w-3.5 h-3.5 text-error fill-error inline-block ml-1" title="Desejo"></i>' : '';
-                const tagLabel = m.isWishlist ? 'DESEJO' : 'INCOMPLETO';
                 
                 const displayTitle = m.title || 'Sem Título';
                 const displayAuthor = m.author ? ` • ${m.author}` : '';
 
                 return `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up relative gap-4 sm:gap-0" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
-                        <div class="flex items-center gap-4 flex-1 pr-8 sm:pr-0">
-                            <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm flex-shrink-0">
+                    <div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-2xl hover:shadow-atmospheric transition-all group animate-fade-in-up" data-id="${m.id}" data-title="${m.title}" data-author="${m.author}" data-volumes="${m.volumes}" data-read="${m.read}" data-cover="${m.cover}" data-status="${m.status}" data-genres="${m.genres}" data-format="${m.format}" data-wishlist="${m.isWishlist}">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-10 h-14 bg-surface-container-highest rounded overflow-hidden shadow-sm">
                                 <img src="${m.cover}" alt="${displayTitle}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x140/e0e4de/5c605c?text=Capa'"/>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors line-clamp-1">${displayTitle} ${heartIcon}</h4>
+                                <h4 class="text-sm font-bold text-on-background group-hover:text-secondary transition-colors">${displayTitle} ${heartIcon}</h4>
                                 <p class="volume-text text-xs text-on-surface-variant font-medium mt-0.5">${m.format} • ${m.read} de ${m.volumes} Vols${displayAuthor}</p>
                             </div>
                         </div>
-                        <div class="flex flex-1 justify-between sm:justify-center items-center gap-4 border-t sm:border-t-0 border-outline-variant/10 pt-3 sm:pt-0">
-                            <span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">${tagLabel}</span>
+                        <div class="hidden sm:flex flex-1 justify-center items-center gap-4">
+                            <span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold tracking-wide">INCOMPLETO</span>
                             <div class="flex items-center gap-2">
-                                <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-4 h-4"></i> Vol</button>
-                                <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-4 h-4"></i> Vol</button>
+                                <button type="button" class="btn-decrement text-[10px] font-bold text-on-surface-variant flex items-center gap-1 hover:text-error transition-all ${m.read <= 0 ? 'hidden' : ''}"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i></button>
+                                <button type="button" class="btn-increment text-[10px] font-bold text-secondary flex items-center gap-1 hover:underline transition-all ${m.read >= m.volumes ? 'hidden' : ''}"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Vol</button>
                             </div>
                         </div>
-                        <div class="absolute top-4 right-4 sm:relative sm:top-0 sm:right-0">                   
+                        <div class="flex items-center gap-4">                   
                             <div class="relative">
-                                <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors p-1"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                                <button type="button" class="btn-card-options text-outline hover:text-on-surface transition-colors"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
                                 ${getDropdownHTML()}
                             </div>
                         </div>
@@ -687,20 +618,24 @@
                 } else {
                     state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
                 }
+                
+                if (!state || state.length === 0) {
+                    state = [{
+                        id: crypto.randomUUID(),
+                        title: "Vagabond - VizBig Ed.", author: "Takehiko Inoue",
+                        volumes: 37, read: 31, cover: "https://lh3.googleusercontent.com/aida-public/AB6AXuBwUr_PQUB6p11dhuuzbnVwN-vt81WAq_TDq4L13_uhLuXB6FbLD4-xK9PMaZaBD7QsrYc9GM44ymi0rt86pBE7IOyKilopj-tKyVKF2vcxFJKE1nxkbzDbDN4zHrpQ9udKel3Roco1RVpZQY1YuV_vZbqPSfEuv9_8NEKmsQlARWcrIl5vaJ1KBQ54UpDMWIG15Bj0rxPK5XFYNpppSXTLDt9OXVSj43h_Ohl9SFnaMGHNQE7eZ6Ms5gruroSTGwUW67Cm6Ja4hWe3",
+                        status: "lendo", genres: "Ação/Aventura", format: "Mangá", isWishlist: false
+                    }];
+                }
 
                 gridLendo.innerHTML = '';
                 gridConcluidos.innerHTML = '';
                 gridIncompletoss.innerHTML = '';
-                gridDesejos.innerHTML = '';
 
                 state.forEach(m => {
-                    if (m.isWishlist) {
-                        gridDesejos.insertAdjacentHTML('afterbegin', createIncompletosCard(m));
-                    } else {
-                        if (m.status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(m));
-                        else if (m.status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(m));
-                        else if (m.status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(m));
-                    }
+                    if (m.status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(m));
+                    else if (m.status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(m));
+                    else if (m.status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(m));
                 });
 
                 checkEmptyGrids();
@@ -715,10 +650,12 @@
                     let dataToExport = [];
                     
                     if (supabaseClient) {
+                        // Extrai todos os dados diretamente do Supabase, o "*" garante que TODOS os campos vêm
                         const { data, error } = await supabaseClient.from('collection_items').select('*');
                         if (error) throw error;
                         dataToExport = data || [];
                     } else {
+                        // Extrai do LocalStorage e padroniza para o modelo de Banco de Dados
                         saveLocalFallback();
                         const localData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
                         dataToExport = localData.map(item => ({
@@ -731,14 +668,17 @@
                             status: item.status,
                             genres: item.genres,
                             format: item.format,
-                            is_wishlist: item.isWishlist !== undefined ? item.isWishlist : (item.is_wishlist || false)
+                            is_wishlist: item.isWishlist !== undefined ? item.isWishlist : (item.is_wishlist || false),
+                            created_at: item.created_at || new Date().toISOString()
                         }));
                     }
                     
+                    // Gera o arquivo JSON formatado
                     const dataStr = JSON.stringify(dataToExport, null, 2);
                     const blob = new Blob([dataStr], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     
+                    // Força o Download
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `coleciona_backup_${new Date().toISOString().split('T')[0]}.json`;
@@ -766,42 +706,53 @@
                         const importedData = JSON.parse(event.target.result);
                         if (!Array.isArray(importedData)) throw new Error("O arquivo não possui o formato esperado.");
 
-                        const normalizedDB = importedData.map(item => ({
-                            id: item.id || crypto.randomUUID(),
-                            title: item.title || 'Sem Título',
-                            author: item.author || '',
-                            volumes: item.volumes || 1,
-                            read: item.read || 0,
-                            cover: item.cover || '',
-                            status: item.status || 'lido',
-                            genres: item.genres || '',
-                            format: item.format || 'Mangá',
-                            is_wishlist: item.is_wishlist !== undefined ? item.is_wishlist : (item.isWishlist || false)
-                        }));
+                        // Validação e padronização dos dados
+                        const normalizedDB = importedData.map(item => {
+                            const mapped = {
+                                id: item.id || crypto.randomUUID(),
+                                title: item.title || 'Sem Título',
+                                author: item.author || '',
+                                volumes: item.volumes || 1,
+                                read: item.read || 0,
+                                cover: item.cover || '',
+                                status: item.status || 'lido',
+                                genres: item.genres || '',
+                                format: item.format || 'Mangá',
+                                is_wishlist: item.is_wishlist !== undefined ? item.is_wishlist : (item.isWishlist || false)
+                            };
+                            // Preserva a data de criação original no JSON para manter a ordem da biblioteca!
+                            if (item.created_at) mapped.created_at = item.created_at;
+                            return mapped;
+                        });
 
                         const normalizedLocal = normalizedDB.map(item => ({
                             ...item,
-                            isWishlist: item.is_wishlist 
+                            isWishlist: item.is_wishlist // Mantém a compatibilidade com a leitura em LocalStorage
                         }));
 
                         if (supabaseClient) {
+                            // Limpa a base atual
                             const { error: delErr } = await supabaseClient.from('collection_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                             if (delErr) throw delErr;
                             
+                            // Insere a nova base
                             if (normalizedDB.length > 0) {
                                 const { error: insErr } = await supabaseClient.from('collection_items').insert(normalizedDB);
                                 if (insErr) throw insErr;
                             }
                         } 
                         
+                        // Atualiza a contingência local
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedLocal));
+                        
+                        // Recarrega a interface
                         loadState();
                         showNotification('Coleção restaurada com sucesso!');
                     } catch (err) {
                         console.error("Erro na importação:", err);
                         showNotification('Erro: Arquivo JSON inválido ou corrompido.');
                     } finally {
-                        importFile.value = ''; 
+                        importFile.value = ''; // Permite reimportar o mesmo arquivo se necessário
                     }
                 };
                 reader.readAsText(file);
@@ -820,6 +771,7 @@
             addItemForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Variáveis extraídas e tratadas para aceitar campos vazios
                 const titleInput = document.getElementById('item-title').value.trim();
                 const authorInput = document.getElementById('item-author').value.trim();
                 const volumesInput = document.getElementById('item-volumes').value;
@@ -827,7 +779,7 @@
 
                 const title = titleInput || ""; 
                 const author = authorInput || "";
-                const volumes = parseInt(volumesInput) || 1; 
+                const volumes = parseInt(volumesInput) || 1; // Default 1 para não quebrar a barra de progresso
                 const coverUrl = coverInput || 'https://placehold.co/100x140/e0e4de/5c605c?text=Sem+Capa';
                 
                 const status = document.querySelector('input[name="item-status"]:checked').value;
@@ -866,14 +818,9 @@
 
                 removeEmptyMsgs();
 
-                // Lógica Direcionamento
-                if (newManga.isWishlist) {
-                    gridDesejos.insertAdjacentHTML('afterbegin', createIncompletosCard(newManga));
-                } else {
-                    if (status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(newManga));
-                    else if (status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(newManga));
-                    else if (status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(newManga));
-                }
+                if (status === 'lendo') gridLendo.insertAdjacentHTML('afterbegin', createLendoCard(newManga));
+                else if (status === 'lido') gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(newManga));
+                else if (status === 'incompleto') gridIncompletoss.insertAdjacentHTML('afterbegin', createIncompletosCard(newManga));
                 
                 lucide.createIcons();
                 if (editingCard) editingCard.remove();
@@ -917,6 +864,7 @@
                     document.getElementById('item-author').value = editingCard.dataset.author || '';
                     document.getElementById('item-volumes').value = editingCard.dataset.volumes || '';
                     
+                    // Não carregar o link se for o placeholder automático
                     const currentCover = editingCard.dataset.cover || '';
                     document.getElementById('item-cover').value = currentCover.includes('placehold.co') ? '' : currentCover;
                     
@@ -967,11 +915,10 @@
                     if (read < total) {
                         read++;
                         const newStatus = read === total ? 'lido' : card.dataset.status;
-                        const newWishlist = read === total ? false : (card.dataset.wishlist === 'true');
 
                         if (supabaseClient) {
                             const { error } = await supabaseClient.from('collection_items')
-                                .update({ read: read, status: newStatus, is_wishlist: newWishlist })
+                                .update({ read: read, status: newStatus })
                                 .eq('id', card.dataset.id);
                                 
                             if (error) {
@@ -1000,7 +947,6 @@
                         
                         if (read === total) {
                             card.dataset.status = 'lido';
-                            card.dataset.wishlist = 'false';
                             card.style.transition = "all 0.3s ease";
                             card.style.opacity = "0";
                             card.style.transform = "scale(0.95)";
@@ -1011,7 +957,7 @@
                                 const m = {
                                     id: card.dataset.id, title: card.dataset.title, author: card.dataset.author,
                                     volumes: total, read: total, cover: card.dataset.cover, status: 'lido', genres: card.dataset.genres,
-                                    format: card.dataset.format, isWishlist: false
+                                    format: card.dataset.format, isWishlist: card.dataset.wishlist === 'true'
                                 };
                                 gridConcluidos.insertAdjacentHTML('afterbegin', createLidoCard(m));
                                 
@@ -1020,11 +966,11 @@
                                 lucide.createIcons();
                                 saveLocalFallback(); 
                                 applySearchAndFilters();
-                                showNotification('Parabéns! Obra concluída e movida para a Biblioteca.');
+                                showNotification('Parabéns! Obra concluída.');
                             }, 300);
                         } else {
                             saveLocalFallback();
-                            showNotification('Progresso atualizado!');
+                            showNotification('Progresso de leitura atualizado!');
                         }
                     }
                 }
@@ -1076,7 +1022,7 @@
                         if (incBtn) incBtn.classList.remove('hidden');
 
                         saveLocalFallback();
-                        showNotification('Progresso reduzido.');
+                        showNotification('Progresso de leitura reduzido.');
                     }
                 }
             });
@@ -1086,6 +1032,7 @@
             document.getElementById('delete-modal-backdrop').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
             document.getElementById('confirm-delete').addEventListener('click', async () => {
                 if (cardToDelete) {
+                    
                     if (supabaseClient) {
                         const { error } = await supabaseClient.from('collection_items')
                             .delete()
@@ -1115,14 +1062,10 @@
                 }
             });
 
-            // --- Lógica de Filtros e Colapso (Max 4 itens) ---
+            // --- Lógica de Filtros ---
             function applySearchAndFilters() {
                 const term = searchInput.value.toLowerCase().trim();
-                const isSearching = term !== '' || activeFilters.length > 0;
-                
                 const allCards = document.querySelectorAll('.group[data-title]');
-
-                const totalMatching = { lendo: 0, lido: 0, incompleto: 0, desejos: 0 };
 
                 allCards.forEach(card => {
                     const title = (card.dataset.title || '').toLowerCase();
@@ -1140,36 +1083,8 @@
                         });
                     }
 
-                    const isWishlist = card.dataset.wishlist === 'true';
-                    const status = card.dataset.status; 
-                    const section = isWishlist ? 'desejos' : status;
-
-                    if (matchesSearch && matchesFilters) {
-                        totalMatching[section]++;
-                        
-                        // Oculta caso não esteja no modo pesquisa, a sessão não foi expandida e seja maior que o quarto item.
-                        if (!isSearching && !sectionsState[section].expanded && totalMatching[section] > 4) {
-                            card.style.display = 'none';
-                        } else {
-                            card.style.display = '';
-                        }
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-
-                // Atualiza visualização dos botões "Exibir Tudo"
-                Object.keys(sectionsState).forEach(sec => {
-                    const container = document.getElementById(`show-all-${sec}-container`);
-                    if (container) {
-                        if (!isSearching && totalMatching[sec] > 4) {
-                            container.classList.remove('hidden');
-                            const btn = container.querySelector('button');
-                            btn.textContent = sectionsState[sec].expanded ? 'Mostrar menos' : `Exibir tudo (${totalMatching[sec]})`;
-                        } else {
-                            container.classList.add('hidden');
-                        }
-                    }
+                    if (matchesSearch && matchesFilters) card.style.display = '';
+                    else card.style.display = 'none';
                 });
             }
 

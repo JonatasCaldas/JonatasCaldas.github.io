@@ -39,8 +39,8 @@
                         error: '#ba1a1a',
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // Body
-                        heading: ['Space Grotesk', 'sans-serif'], // Headlines
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
                     },
                     borderRadius: {
                         'sm': '0.25rem',
@@ -59,14 +59,12 @@
 
     <!-- Estilos globais complementares -->
     <style>
-        /* Foco técnico para inputs */
         input:focus, textarea:focus {
             outline: none;
             box-shadow: 0 0 0 2px #fcf9f8, 0 0 0 4px #006b5f;
             border-color: #006b5f;
         }
         
-        /* Scrollbar customizada e minimalista */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -112,7 +110,7 @@
         <!-- Conteúdo Sidebar (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
 
-            <!-- Controle de Período (Global para os dados) -->
+            <!-- Controle de Período -->
             <section class="space-y-4">
                 <div class="flex items-center gap-2 text-on-surface">
                     <i data-lucide="calendar" class="w-5 h-5 text-tertiary"></i>
@@ -160,7 +158,7 @@
                 </div>
                 
                 <div class="flex flex-col gap-2">
-                    <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe (JAN a DEZ).</p>
+                    <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe.</p>
                     <button onclick="abrirModalPreventiva()" class="w-full bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline font-medium py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="list-plus" class="w-5 h-5"></i>
                         <span>Inserir Novo Mês</span>
@@ -170,7 +168,6 @@
                         <span class="text-xs font-bold text-primary" id="preventivaProgress">0/12</span>
                     </div>
                     
-                    <!-- Nova Lista de Registros Editáveis -->
                     <div id="listaPreventivaSidebar" class="flex flex-col gap-1 mt-1 max-h-[140px] overflow-y-auto pr-1">
                         <!-- JS injeta os meses preenchidos aqui -->
                     </div>
@@ -192,7 +189,6 @@
                 </div>
             </section>
 
-            <!-- Mensagem de Erro (Oculta por padrão) -->
             <div id="errorMessage" class="hidden bg-error-container text-on-error-container p-3 rounded-md text-sm flex items-start gap-2">
                 <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0"></i>
                 <span id="errorText">Preencha ao menos os Dados de Falhas para processar.</span>
@@ -215,11 +211,8 @@
     <!-- ÁREA PRINCIPAL -->
     <main class="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
         
-        <!-- ========================================== -->
-        <!-- VIEW 1: DASHBOARD (Padrão)                 -->
-        <!-- ========================================== -->
+        <!-- DASHBOARD VIEW -->
         <div id="dashboardView" class="flex-1 flex flex-col h-full overflow-hidden">
-            <!-- Header Main -->
             <header class="h-20 px-10 flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest shrink-0">
                 <div>
                     <h2 class="font-heading text-xl font-semibold text-on-surface">Dashboard Consolidado</h2>
@@ -227,20 +220,19 @@
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <!-- Input file oculto para a importação do JSON -->
                     <input type="file" id="fileImport" accept=".json" class="hidden" onchange="processarImportacao(event)">
                     
-                    <button onclick="triggerImportarDados()" class="bg-surface hover:bg-secondary/10 text-secondary border border-secondary px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200" title="Restaurar dados de um backup">
+                    <button onclick="triggerImportarDados()" class="bg-surface hover:bg-secondary/10 text-secondary border border-secondary px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i>
                         Importar Dados
                     </button>
 
-                    <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200" title="Fazer backup do estado atual">
+                    <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
                         <i data-lucide="save" class="w-4 h-4"></i>
                         Salvar Dados
                     </button>
 
-                    <div class="w-px h-6 bg-outline-variant mx-1"></div> <!-- Divisor visual -->
+                    <div class="w-px h-6 bg-outline-variant mx-1"></div>
 
                     <button id="btnExportar" onclick="exportarPDF()" class="opacity-50 cursor-not-allowed pointer-events-none bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
                         <i data-lucide="download" class="w-4 h-4"></i>
@@ -249,34 +241,25 @@
                 </div>
             </header>
 
-            <!-- Container Scrollável do Dashboard -->
             <div class="flex-1 overflow-y-auto p-10">
                 
-                <!-- ÁREA CAPTURADA PARA O PDF -->
                 <div id="pdf-content" class="max-w-[1200px] mx-auto space-y-8 bg-surface pb-10">
                     
-                    <!-- Estado Vazio Inicial -->
                     <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center opacity-60">
                         <i data-lucide="bar-chart-2" class="w-16 h-16 text-outline mb-4"></i>
                         <h3 class="font-heading text-lg font-medium">Nenhum dado processado</h3>
                         <p class="text-sm text-on-surface-variant max-w-md mt-2">Insira os dados copiados do Excel no painel lateral e clique em "Processar Dados" para visualizar os gráficos.</p>
                     </div>
 
-                    <!-- Estado Vazio (Fora do Período Selecionado) -->
                     <div id="noDataState" class="hidden flex-col items-center justify-center py-20 text-center opacity-80">
                         <i data-lucide="calendar-x" class="w-16 h-16 text-error mb-4"></i>
                         <h3 class="font-heading text-xl font-medium text-error">Nenhum dado dentro do período selecionado</h3>
                         <p class="text-sm text-on-surface-variant max-w-md mt-2">Ajuste as datas iniciais e finais no painel lateral para abranger o período dos registros inseridos.</p>
                     </div>
 
-                    <!-- Painel de Gráficos (Oculto por padrão) -->
                     <div id="chartsContainer" class="hidden space-y-6">
                         
-                        <!-- ========================================== -->
-                        <!-- SEÇÃO 1: Indicadores do Mês                -->
-                        <!-- ========================================== -->
-                        
-                        <!-- Bloco 1: Header, KPIs e Locais -->
+                        <!-- SEÇÃO 1: Indicadores do Mês -->
                         <div class="pdf-export-chunk bg-surface flex flex-col gap-6">
                             <div class="border-b border-outline-variant pb-3 mb-2">
                                 <h2 class="font-heading text-2xl font-bold text-[#db0000] flex items-center gap-2">
@@ -287,7 +270,6 @@
                             </div>
                             
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                                <!-- KPI Total de Falhas -->
                                 <div class="xl:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between">
                                     <div class="flex justify-between items-start mb-4">
                                         <span class="text-sm font-semibold tracking-wider text-on-surface-variant uppercase">Total de Falhas</span>
@@ -299,7 +281,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI Modelos em Falha -->
                                 <div class="xl:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between">
                                     <div class="flex justify-between items-start mb-4">
                                         <span class="text-sm font-semibold tracking-wider text-on-surface-variant uppercase">Modelos em Falha</span>
@@ -311,7 +292,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Gráfico: Locais -->
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
                                     <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Locais com Mais Falhas</h3>
                                     <div class="flex-1 relative min-h-[300px]">
@@ -321,7 +301,6 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 2: MCE e Causas -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
@@ -339,19 +318,17 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 3: Acumulado e Evolução Semanal -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Modelos com Mais Falhas</h3>
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Acumulado do Ano</h3>
                                     <div class="flex-1 relative min-h-[300px]">
                                         <canvas id="chartAcumulado"></canvas>
                                     </div>
                                 </div>
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col relative">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Semanas do Ano</h3>
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Evolução Semanal</h3>
                                     
-                                    <!-- Aviso de expansão em períodos menores que 7 dias -->
                                     <div id="avisoEvolucaoSemanal" class="hidden bg-surface-container-low border border-outline-variant text-on-surface-variant text-xs p-2.5 rounded-md mb-3 items-start gap-2">
                                         <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0 text-primary"></i>
                                         <span id="textoAvisoEvolucaoSemanal"></span>
@@ -361,13 +338,11 @@
                                         <canvas id="chartEvolucao"></canvas>
                                     </div>
                                     
-                                    <!-- Nota de rodapé explicativa sobre a completude de semanas -->
                                     <p id="rodapeEvolucaoSemanal" class="hidden text-[10px] text-on-surface-variant mt-2 text-right italic">Dados incluídos por completude da semana do ano</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Bloco 4: Parque Instalado x Falhas -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
@@ -379,7 +354,6 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 5: Evolução Mensal de Falhas -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
@@ -391,12 +365,10 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 5.1: KPIs Adicionais de Análise -->
+                        <!-- 5 KPIs Adicionais -->
                         <div class="pdf-export-chunk bg-surface mt-6">
-                            <!-- Grelha atualizada para 10 colunas no desktop para permitir dimensões fracionadas perfeitas -->
                             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-10 gap-6">
                                 
-                                <!-- KPI 1: Falhas por Localidade -->
                                 <div class="md:col-span-2 xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Falhas por Localidade</span>
@@ -407,7 +379,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI 2: Falhas por Causa Crítica -->
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Falhas por Causa Crítica</span>
@@ -418,7 +389,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI 3: Ranking de MCE's Críticas -->
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Ranking de MCE's Críticas</span>
@@ -429,7 +399,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI 4: Taxa de Falha por Modelo -->
                                 <div class="xl:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Taxa de Falha por Modelo</span>
@@ -440,7 +409,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI 5: Índice de Confiabilidade -->
                                 <div class="xl:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#db0000] uppercase mb-1 leading-normal">Índice de Confiabilidade por Modelo</span>
@@ -450,15 +418,10 @@
                                         <span class="text-xs text-outline italic font-medium">--</span>
                                     </div>
                                 </div>
-                                
                             </div>
                         </div>
 
-                        <!-- ========================================== -->
-                        <!-- SEÇÃO 2: Indicadores Passados              -->
-                        <!-- ========================================== -->
-                        
-                        <!-- Bloco 6: Header, Máquinas e Locais -->
+                        <!-- SEÇÃO 2: Indicadores Passados -->
                         <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
                             <div class="border-b border-outline-variant pb-3 mb-2">
                                 <h2 class="font-heading text-2xl font-bold text-[#006e88] flex items-center gap-2">
@@ -484,7 +447,6 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 7: Modelos e Causas -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                                 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
@@ -502,12 +464,10 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 7.1: KPIs Adicionais de Análise (Indicadores Passados) -->
+                        <!-- 2 KPIs Passados -->
                         <div class="pdf-export-chunk bg-surface mt-6">
-                            <!-- Grelha de 2 colunas para dividir perfeitamente a largura a 50% -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 
-                                <!-- KPI 1: Variação Anual de Falhas -->
                                 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#006e88] uppercase mb-1 leading-normal">Variação Anual de Falhas</span>
@@ -518,7 +478,6 @@
                                     </div>
                                 </div>
 
-                                <!-- KPI 2: Índice de Diagnóstico Efetivo -->
                                 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between h-[180px]">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold tracking-wider text-[#006e88] uppercase mb-1 leading-normal">Índice de Diagnóstico Efetivo</span>
@@ -532,11 +491,7 @@
                             </div>
                         </div>
 
-                        <!-- ========================================== -->
-                        <!-- SEÇÃO 3: Preventiva                        -->
-                        <!-- ========================================== -->
-                        
-                        <!-- Bloco 8: Header e Desempenho (%) -->
+                        <!-- SEÇÃO 3: Preventiva -->
                         <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
                             <div class="border-b border-outline-variant pb-3 mb-2">
                                 <h2 class="font-heading text-2xl font-bold text-secondary flex items-center gap-2">
@@ -546,7 +501,6 @@
                                 <p class="text-sm text-on-surface-variant">Acompanhamento do percentual de conclusão das manutenções programadas em relação ao parque base.</p>
                             </div>
                             
-                            <!-- KPI Cumprimento do PMP -->
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col">
                                 <div class="flex flex-col mb-1">
                                     <span class="text-xs font-semibold tracking-wider text-[#00886d] uppercase mb-1 leading-normal">Cumprimento do PMP</span>
@@ -565,7 +519,6 @@
                             </div>
                         </div>
 
-                        <!-- Bloco 9: Volume Absoluto (Qtd) -->
                         <div class="pdf-export-chunk bg-surface">
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
                                 <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Volume Absoluto de Preventivas Realizadas (Qtd)</h3>
@@ -575,11 +528,7 @@
                             </div>
                         </div>
 
-                        <!-- ========================================== -->
-                        <!-- SEÇÃO 4: Recomendações GOT                 -->
-                        <!-- ========================================== -->
-                        
-                        <!-- Bloco 10: Recomendações da Engenharia -->
+                        <!-- SEÇÃO 4: Recomendações GOT -->
                         <div class="pdf-export-chunk bg-surface flex-col gap-6 mt-8 hidden" id="section-recomendacoes-container">
                             <div class="border-b border-outline-variant pb-3 mb-2">
                                 <h2 class="font-heading text-2xl font-bold text-primary flex items-center gap-2">
@@ -600,11 +549,8 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW 2: CONFIGURAÇÕES (Oculta por padrão)  -->
-        <!-- ========================================== -->
+        <!-- SETTINGS VIEW -->
         <div id="settingsView" class="hidden flex-1 flex flex-col h-full overflow-hidden bg-surface">
-            <!-- Header Settings -->
             <header class="h-20 px-10 flex items-center gap-4 border-b border-outline-variant bg-surface-container-lowest shrink-0">
                 <button onclick="toggleConfiguracoes()" class="p-2 -ml-2 text-on-surface-variant hover:bg-surface-container hover:text-primary rounded-md transition-colors" title="Voltar ao Dashboard">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
@@ -615,13 +561,10 @@
                 </div>
             </header>
 
-            <!-- Container Scrollável de Configurações -->
             <div class="flex-1 overflow-y-auto p-10">
                 <div class="max-w-[800px] mx-auto space-y-8">
                     
-                    <!-- Card de Configuração: Base de Cálculo -->
                     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
-                        
                         <div class="flex justify-between items-center mb-6">
                             <div>
                                 <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
@@ -635,8 +578,6 @@
                                 Novo
                             </button>
                         </div>
-                        
-                        <!-- Lista Dinâmica Não Editável -->
                         <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
                             <table class="w-full text-left text-sm text-on-surface">
                                 <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
@@ -646,21 +587,15 @@
                                         <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody id="listaParque" class="divide-y divide-outline-variant/50">
-                                    <!-- JS preenche aqui -->
-                                </tbody>
+                                <tbody id="listaParque" class="divide-y divide-outline-variant/50"></tbody>
                             </table>
-                            <!-- Feedback de Estado Vazio -->
                             <div id="listaParqueVazia" class="hidden p-8 text-center text-on-surface-variant">
                                 Nenhum modelo cadastrado. Clique em "Novo" para adicionar.
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- Card de Configuração: Parque VP -->
                     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
-                        
                         <div class="flex justify-between items-center mb-6">
                             <div>
                                 <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
@@ -674,8 +609,6 @@
                                 Novo
                             </button>
                         </div>
-                        
-                        <!-- Lista Dinâmica Não Editável -->
                         <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
                             <table class="w-full text-left text-sm text-on-surface">
                                 <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
@@ -685,16 +618,12 @@
                                         <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody id="listaParqueVP" class="divide-y divide-outline-variant/50">
-                                    <!-- JS preenche aqui -->
-                                </tbody>
+                                <tbody id="listaParqueVP" class="divide-y divide-outline-variant/50"></tbody>
                             </table>
-                            <!-- Feedback de Estado Vazio -->
                             <div id="listaParqueVPVazia" class="hidden p-8 text-center text-on-surface-variant">
                                 Nenhuma equipe cadastrada. Clique em "Novo" para adicionar.
                             </div>
                         </div>
-
                     </div>
 
                 </div>
@@ -703,18 +632,15 @@
 
     </main>
 
-    <!-- Modal Parque Instalado (Oculto por padrão) -->
+    <!-- Modals -->
     <div id="modalParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
-        <!-- Container do Modal -->
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueContent">
-            
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueTitle">Novo Modelo</h3>
                 <button onclick="fecharModalParque()" class="text-on-surface-variant hover:text-error transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="p-6 space-y-4">
                 <input type="hidden" id="parqueIndex" value="-1">
                 <div class="flex flex-col gap-1.5">
@@ -726,7 +652,6 @@
                     <input type="number" id="parqueQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 5">
                 </div>
             </div>
-            
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
                 <button onclick="fecharModalParque()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
                 <button onclick="salvarParque()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
@@ -734,18 +659,14 @@
         </div>
     </div>
 
-    <!-- Modal Parque Equipe VP (Oculto por padrão) -->
     <div id="modalParqueVP" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
-        <!-- Container do Modal -->
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueVPContent">
-            
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueVPTitle">Nova Equipe</h3>
                 <button onclick="fecharModalParqueVP()" class="text-on-surface-variant hover:text-error transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="p-6 space-y-4">
                 <input type="hidden" id="parqueVPIndex" value="-1">
                 <div class="flex flex-col gap-1.5">
@@ -757,7 +678,6 @@
                     <input type="number" id="parqueVPQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 12">
                 </div>
             </div>
-            
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
                 <button onclick="fecharModalParqueVP()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
                 <button onclick="salvarParqueVP()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
@@ -765,24 +685,16 @@
         </div>
     </div>
 
-    <!-- Modal Entrada de Preventiva (Oculto por padrão) -->
     <div id="modalPreventiva" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
-        <!-- Container do Modal -->
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalPreventivaContent">
-            
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalPreventivaTitle">Inserir Preventiva</h3>
                 <button onclick="fecharModalPreventiva()" class="text-on-surface-variant hover:text-error transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <input type="hidden" id="preventivaIndex" value="-1">
-            
-            <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto" id="modalPreventivaBody">
-                <!-- JS injeta os inputs de cada equipe dinamicamente aqui -->
-            </div>
-            
+            <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto" id="modalPreventivaBody"></div>
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
                 <button onclick="fecharModalPreventiva()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
                 <button onclick="salvarPreventiva()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
@@ -790,32 +702,23 @@
         </div>
     </div>
 
-    <!-- Overlay de Loading (PDF) -->
+    <!-- Overlay Loading -->
     <div id="loadingOverlay" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-surface-container-lowest">
         <i data-lucide="loader-2" class="w-12 h-12 animate-spin mb-4"></i>
         <h2 class="font-heading text-xl font-medium">Gerando Documento Técnico...</h2>
         <p class="text-sm opacity-80 mt-2">Isso pode levar alguns segundos.</p>
     </div>
 
-    <!-- Scripts da Lógica da Aplicação -->
+    <!-- SCRIPTS CORE -->
     <script>
-        // Inicialização global de gráficos e dados locais
         let chartInstances = {};
-        
         let dadosParqueInstalado = [];
         let dadosParqueVP = []; 
         let dadosPreventivaMensal = []; 
 
         const mesesDoAno = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-
         const chartColors = {
-            primary: '#006b5f',
-            primaryContainer: '#14b8a6',
-            secondary: '#006e14',
-            tertiary: '#39618c',
-            error: '#ba1a1a',
-            surfaceVariant: '#e5e2e1',
-            text: '#1c1b1b'
+            primary: '#006b5f', primaryContainer: '#14b8a6', secondary: '#006e14', tertiary: '#39618c', error: '#ba1a1a', surfaceVariant: '#e5e2e1', text: '#1c1b1b'
         };
 
         Chart.defaults.font.family = "'Inter', sans-serif";
@@ -834,20 +737,36 @@
                     if (meta.hidden) return;
                     meta.data.forEach((element, index) => {
                         const value = dataset.data[index];
-                        if (value === undefined || value === null) return;
+                        if (value === undefined || value === null || value === 0) return;
                         
                         ctx.font = '600 13px Inter';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'bottom';
-                        
                         ctx.strokeStyle = '#ffffff';
                         ctx.lineWidth = 3;
                         ctx.lineJoin = 'round';
                         ctx.strokeText(value, element.x, element.y - 6);
-                        
                         ctx.fillStyle = chartColors.text;
                         ctx.fillText(value, element.x, element.y - 6);
                     });
+                });
+                ctx.restore();
+            }
+        };
+
+        const dataLabelsHorizontalPlugin = {
+            id: 'customDataLabelsHorizontal',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const value = data.datasets[0].data[index];
+                    if(value === 0) return;
+                    ctx.fillStyle = chartColors.text;
+                    ctx.font = '600 13px Inter';
+                    ctx.textAlign = 'left';       
+                    ctx.textBaseline = 'middle';  
+                    ctx.fillText(value, bar.x + 6, bar.y);
                 });
                 ctx.restore();
             }
@@ -861,45 +780,26 @@
             configurarAutoSave();
         });
 
-        // -----------------------------------------------------
-        // LÓGICA DE LOCAL STORAGE (Persistência)
-        // -----------------------------------------------------
-
+        // 1. LOCAL STORAGE
         function carregarLocalStorage() {
             const parqueSalvo = localStorage.getItem('mch_parque');
-            if (parqueSalvo) {
-                try {
-                    dadosParqueInstalado = JSON.parse(parqueSalvo);
-                } catch (e) {
-                    console.error("Erro ao carregar parque do Local Storage", e);
-                }
-            }
+            if (parqueSalvo) try { dadosParqueInstalado = JSON.parse(parqueSalvo); } catch (e) {}
 
             const parqueVPSalvo = localStorage.getItem('mch_parque_vp');
-            if (parqueVPSalvo) {
-                try {
-                    dadosParqueVP = JSON.parse(parqueVPSalvo);
-                } catch (e) {
-                    console.error("Erro ao carregar parque VP do Local Storage", e);
-                }
-            }
+            if (parqueVPSalvo) try { dadosParqueVP = JSON.parse(parqueVPSalvo); } catch (e) {}
 
             const prevMensalSalva = localStorage.getItem('mch_preventiva_mensal');
             if (prevMensalSalva) {
                 try {
                     dadosPreventivaMensal = JSON.parse(prevMensalSalva);
                     atualizarProgressoPreventiva();
-                } catch (e) {
-                    console.error("Erro ao carregar Preventiva Mensal", e);
-                }
+                } catch (e) {}
             }
 
             const textMes = localStorage.getItem('mch_indMes');
             if (textMes) document.getElementById('indMes').value = textMes;
-            
             const textPassado = localStorage.getItem('mch_indPassados');
             if (textPassado) document.getElementById('indPassados').value = textPassado;
-
             const textRec = localStorage.getItem('mch_recomendacoes');
             if (textRec) document.getElementById('recomendacoesText').value = textRec;
 
@@ -917,31 +817,18 @@
             document.getElementById('indMes').addEventListener('input', (e) => localStorage.setItem('mch_indMes', e.target.value));
             document.getElementById('indPassados').addEventListener('input', (e) => localStorage.setItem('mch_indPassados', e.target.value));
             document.getElementById('recomendacoesText').addEventListener('input', (e) => localStorage.setItem('mch_recomendacoes', e.target.value));
-            
             document.getElementById('dataInicio').addEventListener('change', (e) => localStorage.setItem('mch_dataInicio', e.target.value));
             document.getElementById('dataFim').addEventListener('change', (e) => localStorage.setItem('mch_dataFim', e.target.value));
         }
 
-        // -----------------------------------------------------
-        // LÓGICA DO CRUD: Parque Instalado (Modal e Listagem)
-        // -----------------------------------------------------
-
+        // 2. PARQUE INSTALADO
         function renderizarListaParque() {
             const tbody = document.getElementById('listaParque');
             const emptyState = document.getElementById('listaParqueVazia');
             const table = tbody.parentElement;
-            
             tbody.innerHTML = '';
-            
-            if (dadosParqueInstalado.length === 0) {
-                table.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            
-            table.classList.remove('hidden');
-            emptyState.classList.add('hidden');
-            
+            if (dadosParqueInstalado.length === 0) { table.classList.add('hidden'); emptyState.classList.remove('hidden'); return; }
+            table.classList.remove('hidden'); emptyState.classList.add('hidden');
             dadosParqueInstalado.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-tertiary/5 transition-colors group'; 
@@ -950,15 +837,10 @@
                     <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="abrirModalParque(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="excluirParque(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <button onclick="abrirModalParque(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="excluirParque(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                    </td>
-                `;
+                    </td>`;
                 tbody.appendChild(tr);
             });
             lucide.createIcons();
@@ -967,103 +849,53 @@
         function abrirModalParque(index = -1) {
             const modal = document.getElementById('modalParque');
             const content = document.getElementById('modalParqueContent');
-            const title = document.getElementById('modalParqueTitle');
-            const idxInput = document.getElementById('parqueIndex');
-            const modInput = document.getElementById('parqueModelo');
-            const qtdInput = document.getElementById('parqueQuantidade');
-
-            idxInput.value = index;
-
+            document.getElementById('parqueIndex').value = index;
             if (index >= 0) {
-                title.innerText = 'Editar Modelo';
-                modInput.value = dadosParqueInstalado[index].modelo;
-                qtdInput.value = dadosParqueInstalado[index].quantidade;
+                document.getElementById('modalParqueTitle').innerText = 'Editar Modelo';
+                document.getElementById('parqueModelo').value = dadosParqueInstalado[index].modelo;
+                document.getElementById('parqueQuantidade').value = dadosParqueInstalado[index].quantidade;
             } else {
-                title.innerText = 'Novo Modelo';
-                modInput.value = '';
-                qtdInput.value = '';
+                document.getElementById('modalParqueTitle').innerText = 'Novo Modelo';
+                document.getElementById('parqueModelo').value = '';
+                document.getElementById('parqueQuantidade').value = '';
             }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-            
-            setTimeout(() => modInput.focus(), 200);
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+            setTimeout(() => document.getElementById('parqueModelo').focus(), 200);
         }
 
         function fecharModalParque() {
             const modal = document.getElementById('modalParque');
             const content = document.getElementById('modalParqueContent');
-            
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 200);
+            content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
         }
 
         function salvarParque() {
             const idx = parseInt(document.getElementById('parqueIndex').value);
-            const modeloInput = document.getElementById('parqueModelo');
-            const quantidadeInput = document.getElementById('parqueQuantidade');
-            
-            const modelo = modeloInput.value.trim();
-            const quantidade = parseInt(quantidadeInput.value);
-
-            if (!modelo) {
-                modeloInput.focus();
-                return;
-            }
-            if (isNaN(quantidade) || quantidade <= 0) {
-                quantidadeInput.focus();
-                return;
-            }
-
-            if (idx >= 0) {
-                dadosParqueInstalado[idx] = { modelo, quantidade };
-            } else {
-                dadosParqueInstalado.push({ modelo, quantidade });
-            }
-
+            const modelo = document.getElementById('parqueModelo').value.trim();
+            const quantidade = parseInt(document.getElementById('parqueQuantidade').value);
+            if (!modelo || isNaN(quantidade) || quantidade <= 0) return;
+            if (idx >= 0) dadosParqueInstalado[idx] = { modelo, quantidade }; else dadosParqueInstalado.push({ modelo, quantidade });
             localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
-            fecharModalParque();
-            renderizarListaParque();
+            fecharModalParque(); renderizarListaParque();
         }
 
         function excluirParque(index) {
-            if (confirm(`Tem certeza que deseja excluir o modelo "${dadosParqueInstalado[index].modelo}"?`)) {
+            if (confirm(`Excluir o modelo "${dadosParqueInstalado[index].modelo}"?`)) {
                 dadosParqueInstalado.splice(index, 1);
-                localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
-                renderizarListaParque();
+                localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado)); renderizarListaParque();
             }
         }
 
-        // -----------------------------------------------------
-        // LÓGICA DO CRUD: Parque Equipe VP (Modal e Listagem)
-        // -----------------------------------------------------
-
+        // 3. PARQUE EQUIPE VP
         function renderizarListaParqueVP() {
             const tbody = document.getElementById('listaParqueVP');
             const emptyState = document.getElementById('listaParqueVPVazia');
             const table = tbody.parentElement;
-            
             tbody.innerHTML = '';
-            
-            if (dadosParqueVP.length === 0) {
-                table.classList.add('hidden');
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            
-            table.classList.remove('hidden');
-            emptyState.classList.add('hidden');
-            
+            if (dadosParqueVP.length === 0) { table.classList.add('hidden'); emptyState.classList.remove('hidden'); return; }
+            table.classList.remove('hidden'); emptyState.classList.add('hidden');
             dadosParqueVP.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-tertiary/5 transition-colors group'; 
@@ -1072,15 +904,10 @@
                     <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="abrirModalParqueVP(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="excluirParqueVP(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <button onclick="abrirModalParqueVP(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="excluirParqueVP(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                    </td>
-                `;
+                    </td>`;
                 tbody.appendChild(tr);
             });
             lucide.createIcons();
@@ -1089,89 +916,48 @@
         function abrirModalParqueVP(index = -1) {
             const modal = document.getElementById('modalParqueVP');
             const content = document.getElementById('modalParqueVPContent');
-            const title = document.getElementById('modalParqueVPTitle');
-            const idxInput = document.getElementById('parqueVPIndex');
-            const equipeInput = document.getElementById('parqueVPEquipe');
-            const qtdInput = document.getElementById('parqueVPQuantidade');
-
-            idxInput.value = index;
-
+            document.getElementById('parqueVPIndex').value = index;
             if (index >= 0) {
-                title.innerText = 'Editar Equipe';
-                equipeInput.value = dadosParqueVP[index].equipe;
-                qtdInput.value = dadosParqueVP[index].quantidade;
+                document.getElementById('modalParqueVPTitle').innerText = 'Editar Equipe';
+                document.getElementById('parqueVPEquipe').value = dadosParqueVP[index].equipe;
+                document.getElementById('parqueVPQuantidade').value = dadosParqueVP[index].quantidade;
             } else {
-                title.innerText = 'Nova Equipe';
-                equipeInput.value = '';
-                qtdInput.value = '';
+                document.getElementById('modalParqueVPTitle').innerText = 'Nova Equipe';
+                document.getElementById('parqueVPEquipe').value = '';
+                document.getElementById('parqueVPQuantidade').value = '';
             }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-            
-            setTimeout(() => equipeInput.focus(), 200);
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+            setTimeout(() => document.getElementById('parqueVPEquipe').focus(), 200);
         }
 
         function fecharModalParqueVP() {
             const modal = document.getElementById('modalParqueVP');
             const content = document.getElementById('modalParqueVPContent');
-            
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 200);
+            content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
         }
 
         function salvarParqueVP() {
             const idx = parseInt(document.getElementById('parqueVPIndex').value);
-            const equipeInput = document.getElementById('parqueVPEquipe');
-            const quantidadeInput = document.getElementById('parqueVPQuantidade');
-            
-            const equipe = equipeInput.value.trim();
-            const quantidade = parseInt(quantidadeInput.value);
-
-            if (!equipe) {
-                equipeInput.focus();
-                return;
-            }
-            if (isNaN(quantidade) || quantidade <= 0) {
-                quantidadeInput.focus();
-                return;
-            }
-
-            if (idx >= 0) {
-                dadosParqueVP[idx] = { equipe, quantidade };
-            } else {
-                dadosParqueVP.push({ equipe, quantidade });
-            }
-
+            const equipe = document.getElementById('parqueVPEquipe').value.trim();
+            const quantidade = parseInt(document.getElementById('parqueVPQuantidade').value);
+            if (!equipe || isNaN(quantidade) || quantidade <= 0) return;
+            if (idx >= 0) dadosParqueVP[idx] = { equipe, quantidade }; else dadosParqueVP.push({ equipe, quantidade });
             localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
-            fecharModalParqueVP();
-            renderizarListaParqueVP();
+            fecharModalParqueVP(); renderizarListaParqueVP();
             if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
         }
 
         function excluirParqueVP(index) {
-            if (confirm(`Tem certeza que deseja excluir a equipe "${dadosParqueVP[index].equipe}"?`)) {
+            if (confirm(`Excluir a equipe "${dadosParqueVP[index].equipe}"?`)) {
                 dadosParqueVP.splice(index, 1);
-                localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
-                renderizarListaParqueVP();
+                localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP)); renderizarListaParqueVP();
                 if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
             }
         }
 
-        // -----------------------------------------------------
-        // LÓGICA DO CRUD: Inserção de Preventiva Mensal
-        // -----------------------------------------------------
-
+        // 4. PREVENTIVA MENSAL
         function atualizarProgressoPreventiva() {
             document.getElementById('preventivaProgress').innerText = `${dadosPreventivaMensal.length}/12`;
             renderizarListaPreventivaSidebar();
@@ -1180,34 +966,23 @@
         function renderizarListaPreventivaSidebar() {
             const container = document.getElementById('listaPreventivaSidebar');
             container.innerHTML = '';
-            
             dadosPreventivaMensal.forEach((mesObj, index) => {
                 container.innerHTML += `
                     <div class="flex justify-between items-center bg-surface-container-low border border-outline-variant/50 px-2.5 py-2 rounded text-xs group transition-colors hover:bg-surface-container">
                         <span class="font-medium text-on-surface-variant">${mesObj.mesNome} <span class="opacity-60 font-normal">(Mês ${mesObj.mesReferencia})</span></span>
                         <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="abrirModalPreventiva(${index})" class="text-tertiary hover:text-tertiary-container transition-colors" title="Editar este mês">
-                                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-                            </button>
-                            <button onclick="excluirPreventiva(${index})" class="text-error hover:text-error/80 transition-colors" title="Excluir este mês">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
+                            <button onclick="abrirModalPreventiva(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="excluirPreventiva(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
             lucide.createIcons();
         }
 
         function excluirPreventiva(index) {
-            if (confirm(`Excluir os registros de ${dadosPreventivaMensal[index].mesNome}? Os meses subsequentes serão reajustados para manter a sequência.`)) {
+            if (confirm(`Excluir ${dadosPreventivaMensal[index].mesNome}?`)) {
                 dadosPreventivaMensal.splice(index, 1);
-                
-                dadosPreventivaMensal.forEach((item, i) => {
-                    item.mesReferencia = i + 1;
-                    item.mesNome = mesesDoAno[i];
-                });
-                
+                dadosPreventivaMensal.forEach((item, i) => { item.mesReferencia = i + 1; item.mesNome = mesesDoAno[i]; });
                 localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
                 atualizarProgressoPreventiva();
                 if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
@@ -1215,128 +990,71 @@
         }
 
         function abrirModalPreventiva(index = -1) {
-            if (dadosParqueVP.length === 0) {
-                alert("Atenção: Cadastre as equipes VP na aba de Configurações antes de inserir os dados de preventiva.");
-                return;
-            }
-            
-            if (index === -1 && dadosPreventivaMensal.length >= 12) {
-                alert("O ano já está completo (12 meses inseridos). Para reiniciar um novo ciclo, utilize o botão 'Limpar Campos'.");
-                return;
-            }
+            if (dadosParqueVP.length === 0) { alert("Cadastre as equipes VP em Configurações antes de inserir preventiva."); return; }
+            if (index === -1 && dadosPreventivaMensal.length >= 12) { alert("O ano já está completo."); return; }
 
             const isEdicao = index >= 0;
             const targetIndex = isEdicao ? index : dadosPreventivaMensal.length;
-            const mesAtual = mesesDoAno[targetIndex];
-            
-            document.getElementById('modalPreventivaTitle').innerText = isEdicao ? `Editar Preventiva - ${mesAtual}` : `Inserir Preventiva - Mês ${targetIndex + 1} (${mesAtual})`;
+            document.getElementById('modalPreventivaTitle').innerText = isEdicao ? `Editar Preventiva - ${mesesDoAno[targetIndex]}` : `Inserir Preventiva - Mês ${targetIndex + 1} (${mesesDoAno[targetIndex]})`;
             document.getElementById('preventivaIndex').value = index;
             
             const body = document.getElementById('modalPreventivaBody');
             body.innerHTML = '';
             
             let valoresEdicao = {};
-            if (isEdicao) {
-                dadosPreventivaMensal[index].dados.forEach(d => {
-                    valoresEdicao[d.equipe] = d.valor;
-                });
-            }
+            if (isEdicao) dadosPreventivaMensal[index].dados.forEach(d => valoresEdicao[d.equipe] = d.valor);
 
             dadosParqueVP.forEach((item, i) => {
                 const val = isEdicao && valoresEdicao[item.equipe] !== undefined ? valoresEdicao[item.equipe] : '';
-                
                 body.innerHTML += `
                     <div class="flex flex-col gap-1.5">
                         <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe: ${item.equipe}</label>
-                        <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Insira o valor numérico">
-                    </div>
-                `;
+                        <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">
+                    </div>`;
             });
 
             const modal = document.getElementById('modalPreventiva');
             const content = document.getElementById('modalPreventivaContent');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-            
-            setTimeout(() => {
-                const firstInput = document.getElementById('prev_equipe_0');
-                if (firstInput) firstInput.focus();
-            }, 200);
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+            setTimeout(() => { const f = document.getElementById('prev_equipe_0'); if(f) f.focus(); }, 200);
         }
 
         function fecharModalPreventiva() {
             const modal = document.getElementById('modalPreventiva');
             const content = document.getElementById('modalPreventivaContent');
-            
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 200);
+            content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
         }
 
         function salvarPreventiva() {
             const entradas = [];
             let possuiErro = false;
-            
             dadosParqueVP.forEach((item, index) => {
                 const input = document.getElementById(`prev_equipe_${index}`);
                 const valor = parseInt(input.value, 10);
-                
-                if (isNaN(valor) || valor < 0) {
-                    input.focus();
-                    possuiErro = true;
-                } else {
-                    entradas.push({ equipe: item.equipe, valor: valor });
-                }
+                if (isNaN(valor) || valor < 0) { input.focus(); possuiErro = true; } 
+                else entradas.push({ equipe: item.equipe, valor: valor });
             });
             
             if (possuiErro) return;
-
             const idx = parseInt(document.getElementById('preventivaIndex').value, 10);
             
-            if (idx >= 0) {
-                dadosPreventivaMensal[idx].dados = entradas;
-            } else {
-                const mesIndex = dadosPreventivaMensal.length;
-                dadosPreventivaMensal.push({
-                    mesReferencia: mesIndex + 1, 
-                    mesNome: mesesDoAno[mesIndex], 
-                    dados: entradas
-                });
-            }
+            if (idx >= 0) dadosPreventivaMensal[idx].dados = entradas;
+            else dadosPreventivaMensal.push({ mesReferencia: dadosPreventivaMensal.length + 1, mesNome: mesesDoAno[dadosPreventivaMensal.length], dados: entradas });
 
             localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
-            
-            atualizarProgressoPreventiva(); 
-            fecharModalPreventiva();
+            atualizarProgressoPreventiva(); fecharModalPreventiva();
             if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
         }
 
-        // -----------------------------------------------------
-        // RESTANTE DA LÓGICA CORE
-        // -----------------------------------------------------
-
+        // 5. PARSERS E PROCESSAMENTO BASE
         function definirDatasPadrao() {
             const hoje = new Date();
             const dataMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
             const primeiroDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth(), 1);
             const ultimoDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth() + 1, 0);
-
-            const formatarData = (data) => {
-                const ano = data.getFullYear();
-                const mes = String(data.getMonth() + 1).padStart(2, '0');
-                const dia = String(data.getDate()).padStart(2, '0');
-                return `${ano}-${mes}-${dia}`;
-            };
-
+            const formatarData = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             document.getElementById('dataInicio').value = formatarData(primeiroDia);
             document.getElementById('dataFim').value = formatarData(ultimoDia);
         }
@@ -1346,100 +1064,59 @@
             document.getElementById('indPassados').value = '';
             document.getElementById('recomendacoesText').value = '';
             document.getElementById('errorMessage').classList.add('hidden');
-
-            localStorage.removeItem('mch_indMes');
-            localStorage.removeItem('mch_indPassados');
-            localStorage.removeItem('mch_recomendacoes');
-            
-            dadosPreventivaMensal = [];
-            localStorage.removeItem('mch_preventiva_mensal');
-            atualizarProgressoPreventiva();
+            localStorage.removeItem('mch_indMes'); localStorage.removeItem('mch_indPassados'); localStorage.removeItem('mch_recomendacoes');
+            dadosPreventivaMensal = []; localStorage.removeItem('mch_preventiva_mensal'); atualizarProgressoPreventiva();
         }
 
         function toggleConfiguracoes() {
-            const dashView = document.getElementById('dashboardView');
-            const settView = document.getElementById('settingsView');
-            
-            if (settView.classList.contains('hidden')) {
-                dashView.classList.add('hidden');
-                settView.classList.remove('hidden');
-            } else {
-                settView.classList.add('hidden');
-                dashView.classList.remove('hidden');
-            }
+            const dash = document.getElementById('dashboardView');
+            const sett = document.getElementById('settingsView');
+            if (sett.classList.contains('hidden')) { dash.classList.add('hidden'); sett.classList.remove('hidden'); } 
+            else { sett.classList.add('hidden'); dash.classList.remove('hidden'); }
         }
 
         function parseExcelData(text) {
             if (!text) return { data: [], error: null };
             const lines = text.trim().split(/\r?\n/);
-            if (lines.length < 2) return { data: [], error: "Formato inválido. Insira os dados contendo pelo menos cabeçalho e uma linha de valores." }; 
+            if (lines.length < 2) return { data: [], error: "Formato inválido." }; 
             
             const headersLine = lines.shift(); 
             const delimiter = headersLine.includes('\t') ? '\t' : ',';
             
             const parseLine = (line) => {
                 if (delimiter === '\t') return line.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
-                
-                const result = [];
-                let inQuotes = false;
-                let current = '';
+                const result = []; let inQuotes = false; let current = '';
                 for (let i = 0; i < line.length; i++) {
                     const char = line[i];
                     if (char === '"') {
-                        if (inQuotes && line[i+1] === '"') {
-                            current += '"';
-                            i++; 
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        result.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+                        if (inQuotes && line[i+1] === '"') { current += '"'; i++; } else inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; } 
+                    else current += char;
                 }
                 result.push(current.trim());
                 return result.map(c => c.replace(/^"|"$/g, ''));
             };
 
-            const headersOriginais = parseLine(headersLine);
-            const headers = headersOriginais.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'));
-
-            const missingHeaders = [];
-            if (!headers.includes('modelo')) missingHeaders.push('modelo');
-            if (!headers.includes('localidade')) missingHeaders.push('localidade');
-
-            if (missingHeaders.length > 0) {
-                return { 
-                    data: [], 
-                    error: `Erro estrutural: As colunas obrigatórias [ ${missingHeaders.join(', ')} ] não foram encontradas no cabeçalho dos dados colados.` 
-                };
-            }
+            const headers = parseLine(headersLine).map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_'));
+            if (!headers.includes('modelo') || !headers.includes('localidade')) return { data: [], error: "Colunas 'modelo' ou 'localidade' ausentes." };
 
             const data = lines.map(line => {
                 if(!line.trim()) return null;
                 const values = parseLine(line);
                 const obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = values[index] || '';
-                });
+                headers.forEach((h, i) => obj[h] = values[i] || '');
                 return obj;
             }).filter(obj => obj !== null); 
-
             return { data, error: null };
         }
 
         const parseExcelDate = (str) => {
             if (!str) return null;
             const parts = str.trim().split('/');
-            if (parts.length === 3) {
-                return new Date(parts[2], parts[1] - 1, parts[0]);
-            }
+            if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
             return null;
         };
 
-        // 2. Processamento Real dos Dados Dinâmicos
         function processarDados() {
             const indMesRaw = document.getElementById('indMes').value.trim();
             const indPassadosRaw = document.getElementById('indPassados').value.trim();
@@ -1447,29 +1124,17 @@
             const errorText = document.getElementById('errorText');
             const btnProcessar = document.getElementById('btnProcessar');
 
-            if (!indMesRaw) {
-                errorText.innerText = "Preencha ao menos os Dados de Falhas para processar.";
-                errorMsg.classList.remove('hidden');
-                document.getElementById('indMes').focus();
-                return;
-            }
+            if (!indMesRaw) { errorText.innerText = "Preencha os Dados de Falhas."; errorMsg.classList.remove('hidden'); return; }
             errorMsg.classList.add('hidden');
 
             const textoOriginalBtn = btnProcessar.innerHTML;
             btnProcessar.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analisando...</span>`;
-            lucide.createIcons();
-            btnProcessar.disabled = true;
-            btnProcessar.classList.add('opacity-80', 'cursor-not-allowed');
+            lucide.createIcons(); btnProcessar.disabled = true; btnProcessar.classList.add('opacity-80', 'cursor-not-allowed');
 
             const resultadoParse = parseExcelData(indMesRaw);
-
             if (resultadoParse.error) {
-                errorText.innerText = "Erro nos Indicadores do Mês: " + resultadoParse.error;
-                errorMsg.classList.remove('hidden');
-                btnProcessar.innerHTML = textoOriginalBtn;
-                lucide.createIcons();
-                btnProcessar.disabled = false;
-                btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
+                errorText.innerText = resultadoParse.error; errorMsg.classList.remove('hidden');
+                btnProcessar.innerHTML = textoOriginalBtn; lucide.createIcons(); btnProcessar.disabled = false; btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
                 return;
             }
 
@@ -1478,59 +1143,36 @@
             let dadosPassadosCru = [];
 
             if (indPassadosRaw) {
-                const resultadoParsePassados = parseExcelData(indPassadosRaw);
-                
-                if (resultadoParsePassados.error) {
-                    errorText.innerText = "Erro nos Indicadores Passados: " + resultadoParsePassados.error;
-                    errorMsg.classList.remove('hidden');
-                    btnProcessar.innerHTML = textoOriginalBtn;
-                    lucide.createIcons();
-                    btnProcessar.disabled = false;
-                    btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
-                    return;
+                const resPassados = parseExcelData(indPassadosRaw);
+                if (!resPassados.error) {
+                    dadosPassadosCru = resPassados.data;
+                    dadosParseados = dadosParseados.concat(dadosPassadosCru);
                 }
-                
-                dadosPassadosCru = resultadoParsePassados.data;
-                dadosParseados = dadosParseados.concat(dadosPassadosCru);
             }
 
-            const strDataInicio = document.getElementById('dataInicio').value;
-            const strDataFim = document.getElementById('dataFim').value;
+            const strInicio = document.getElementById('dataInicio').value;
+            const strFim = document.getElementById('dataFim').value;
+            const parseDt = (str) => { if (!str) return null; const p = str.split('-'); return new Date(p[0], p[1] - 1, p[2]); };
             
-            const parseInputDate = (str) => {
-                if (!str) return null;
-                const parts = str.split('-');
-                return new Date(parts[0], parts[1] - 1, parts[2]);
-            };
-
-            const dataInicioObj = parseInputDate(strDataInicio);
-            const dataFimObj = parseInputDate(strDataFim);
+            const dtInicioObj = parseDt(strInicio);
+            const dtFimObj = parseDt(strFim);
             
             let dadosFiltrados = dadosParseados;
             let dadosPassadosFiltrados = dadosPassadosCru;
 
-            if (dataInicioObj && dataFimObj) {
-                dataInicioObj.setHours(0, 0, 0, 0);
-                dataFimObj.setHours(23, 59, 59, 999);
-
-                const dataInicioPassadoObj = new Date(dataInicioObj);
-                dataInicioPassadoObj.setFullYear(dataInicioObj.getFullYear() - 1);
-                
-                const dataFimPassadoObj = new Date(dataFimObj);
-                dataFimPassadoObj.setFullYear(dataFimObj.getFullYear() - 1);
+            if (dtInicioObj && dtFimObj) {
+                dtInicioObj.setHours(0, 0, 0, 0); dtFimObj.setHours(23, 59, 59, 999);
+                const dtIniPassado = new Date(dtInicioObj); dtIniPassado.setFullYear(dtInicioObj.getFullYear() - 1);
+                const dtFimPassado = new Date(dtFimObj); dtFimPassado.setFullYear(dtFimObj.getFullYear() - 1);
 
                 dadosFiltrados = dadosParseados.filter(row => {
-                    if (!row.data) return false;
-                    const rowDate = parseExcelDate(row.data);
-                    if (!rowDate) return false;
-                    return rowDate >= dataInicioObj && rowDate <= dataFimObj;
+                    const d = parseExcelDate(row.data);
+                    return d && d >= dtInicioObj && d <= dtFimObj;
                 });
 
                 dadosPassadosFiltrados = dadosPassadosCru.filter(row => {
-                    if (!row.data) return false;
-                    const rowDate = parseExcelDate(row.data);
-                    if (!rowDate) return false;
-                    return rowDate >= dataInicioPassadoObj && rowDate <= dataFimPassadoObj;
+                    const d = parseExcelDate(row.data);
+                    return d && d >= dtIniPassado && d <= dtFimPassado;
                 });
             }
 
@@ -1540,1156 +1182,236 @@
                 
                 if (dadosFiltrados.length === 0) {
                     document.getElementById('chartsContainer').classList.add('hidden');
-                    document.getElementById('noDataState').classList.remove('hidden');
-                    document.getElementById('noDataState').classList.add('flex');
+                    document.getElementById('noDataState').classList.remove('hidden'); document.getElementById('noDataState').classList.add('flex');
                     document.getElementById('dashboardSubtitle').innerText = "Não há ocorrências no período selecionado.";
-                    
                     btnExportar.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-                    btnExportar.classList.remove('hover:bg-surface-container');
                 } else {
-                    document.getElementById('noDataState').classList.add('hidden');
-                    document.getElementById('noDataState').classList.remove('flex');
+                    document.getElementById('noDataState').classList.add('hidden'); document.getElementById('noDataState').classList.remove('flex');
                     document.getElementById('chartsContainer').classList.remove('hidden');
                     
-                    const dI = strDataInicio.split('-');
-                    const dF = strDataFim.split('-');
+                    const dI = strInicio.split('-'); const dF = strFim.split('-');
                     document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}/${dI[1]}/${dI[0]} a ${dF[2]}/${dF[1]}/${dF[0]}`;
 
-                    const recomendacoesRaw = document.getElementById('recomendacoesText').value.trim();
-                    const recContainer = document.getElementById('section-recomendacoes-container');
-                    const recElement = document.getElementById('dashboardRecomendacoes');
-                    
-                    if (recomendacoesRaw) {
-                        recElement.innerText = recomendacoesRaw;
-                        recContainer.classList.remove('hidden');
-                        recContainer.classList.add('flex'); 
+                    const recRaw = document.getElementById('recomendacoesText').value.trim();
+                    const recCont = document.getElementById('section-recomendacoes-container');
+                    if (recRaw) {
+                        document.getElementById('dashboardRecomendacoes').innerText = recRaw;
+                        recCont.classList.remove('hidden'); recCont.classList.add('flex'); 
                     } else {
-                        recContainer.classList.add('hidden');
-                        recContainer.classList.remove('flex');
+                        recCont.classList.add('hidden'); recCont.classList.remove('flex');
                     }
 
                     btnExportar.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
                     btnExportar.classList.add('hover:bg-surface-container');
 
-                    atualizarKPIs(dadosFiltrados);
-                    renderizarGraficos(dadosFiltrados, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados);
+                    // UPDATE KPIs TOP
+                    document.getElementById('kpiFalhas').innerText = dadosFiltrados.length;
+                    const modParque = new Set(dadosParqueInstalado.map(i => i.modelo.trim().toLowerCase()));
+                    const modFalha = new Set();
+                    dadosFiltrados.forEach(r => { if (r.modelo && modParque.has(r.modelo.trim().toLowerCase())) modFalha.add(r.modelo.trim().toLowerCase()); });
+                    document.getElementById('kpiModelos').innerText = `${modFalha.size}/${modParque.size}`;
+
+                    renderizarGraficos(dadosFiltrados, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados, dtInicioObj, dtFimObj);
                 }
 
-                btnProcessar.innerHTML = textoOriginalBtn;
-                lucide.createIcons(); 
-                btnProcessar.disabled = false;
-                btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
-
+                btnProcessar.innerHTML = textoOriginalBtn; lucide.createIcons(); btnProcessar.disabled = false; btnProcessar.classList.remove('opacity-80', 'cursor-not-allowed');
                 document.querySelector('main > div').scrollTo({top: 0, behavior: 'smooth'});
-
             }, 800);
         }
 
-        function atualizarKPIs(dadosMes) {
-            document.getElementById('kpiFalhas').innerText = dadosMes.length;
-
-            const modelosParque = new Set(dadosParqueInstalado.map(item => item.modelo.trim().toLowerCase()));
-            const modelosEmFalha = new Set();
-            
-            dadosMes.forEach(row => {
-                if (row.modelo) {
-                    const modeloNormalizado = row.modelo.trim().toLowerCase();
-                    if (modelosParque.has(modeloNormalizado)) {
-                        modelosEmFalha.add(modeloNormalizado);
-                    }
-                }
-            });
-            
-            document.getElementById('kpiModelos').innerText = `${modelosEmFalha.size}/${modelosParque.size}`;
+        function normalizarTexto(str) {
+            if (!str) return '';
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         }
 
-        // 3. Renderização Dinâmica do Chart.js
-        function renderizarGraficos(dadosMes, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados) {
-            Object.keys(chartInstances).forEach(key => {
-                if (chartInstances[key]) {
-                    chartInstances[key].destroy();
-                }
-            });
+        // 6. RENDERIZAÇÃO DE GRÁFICOS E KPIS
+        function renderizarGraficos(dadosMes, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados, dtUserInicio, dtUserFim) {
+            Object.keys(chartInstances).forEach(key => { if (chartInstances[key]) chartInstances[key].destroy(); });
 
-            // -----------------------------------------------------
-            // CHART 1: Locais
-            // -----------------------------------------------------
-            const contagemLocalidade = {};
-            dadosMes.forEach(row => {
-                if (row.localidade) {
-                    const loc = row.localidade.trim();
-                    contagemLocalidade[loc] = (contagemLocalidade[loc] || 0) + 1;
-                }
-            });
-            
-            const paretoData = Object.entries(contagemLocalidade)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) return b[1] - a[1];
-                    return a[0].localeCompare(b[0]);       
-                })
-                .slice(0, 5); 
-            
-            const labelsLocais = paretoData.length > 0 ? paretoData.map(d => d[0]) : ['Nenhum dado'];
-            const dataLocais = paretoData.length > 0 ? paretoData.map(d => d[1]) : [0];
-
-            const ctxLocais = document.getElementById('chartLocais').getContext('2d');
-            chartInstances.locais = new Chart(ctxLocais, {
+            // C1: LOCAIS
+            const contLoc = {}; dadosMes.forEach(r => { if (r.localidade) contLoc[r.localidade.trim()] = (contLoc[r.localidade.trim()] || 0) + 1; });
+            const pLoc = Object.entries(contLoc).sort((a,b) => b[1] !== a[1] ? b[1] - a[1] : a[0].localeCompare(b[0])).slice(0, 5); 
+            chartInstances.locais = new Chart(document.getElementById('chartLocais').getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: labelsLocais,
-                    datasets: [{
-                        label: 'Número de Ocorrências',
-                        data: dataLocais,
-                        backgroundColor: '#ff0000', 
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                },
+                data: { labels: pLoc.length?pLoc.map(d=>d[0]):['Nenhum'], datasets: [{ data: pLoc.length?pLoc.map(d=>d[1]):[0], backgroundColor: '#ff0000', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } }, scales: { y: { beginAtZero: true, grid: { color: '#f0edec' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } },
+                plugins: [dataLabelsPlugin]
+            });
+
+            // C2: MCE
+            const contMce = {}; dadosMes.forEach(r => { if (r.mce) contMce[r.mce.trim()] = (contMce[r.mce.trim()] || 0) + 1; });
+            const pMce = Object.entries(contMce).sort((a,b) => b[1] !== a[1] ? b[1] - a[1] : a[0].localeCompare(b[0])).slice(0, 5); 
+            chartInstances.mce = new Chart(document.getElementById('chartMce').getContext('2d'), {
+                type: 'bar',
+                data: { labels: pMce.length?pMce.map(d=>d[0]):['Nenhum'], datasets: [{ data: pMce.length?pMce.map(d=>d[1]):[0], backgroundColor: '#db0000', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } }, scales: { y: { beginAtZero: true, grid: { color: '#f0edec' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } },
+                plugins: [dataLabelsPlugin] 
+            });
+
+            // C3: CAUSAS (HORIZONTAL)
+            const contCausa = {}; dadosMes.forEach(r => { if (r.causa) contCausa[r.causa.trim()] = (contCausa[r.causa.trim()] || 0) + 1; });
+            const pCausa = Object.entries(contCausa).sort((a,b) => b[1] !== a[1] ? b[1] - a[1] : a[0].localeCompare(b[0])).slice(0, 5);
+            chartInstances.causa = new Chart(document.getElementById('chartCausa').getContext('2d'), {
+                type: 'bar',
+                data: { labels: pCausa.length?pCausa.map(d=>d[0]):['Nenhum'], datasets: [{ data: pCausa.length?pCausa.map(d=>d[1]):[0], backgroundColor: '#b80000', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 35 } }, scales: { x: { beginAtZero: true, grid: { color: '#f0edec' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } },
+                plugins: [dataLabelsHorizontalPlugin]
+            });
+
+            // C4: ACUMULADO (HORIZONTAL)
+            let anoRef = null; dadosParseados.forEach(r => { const d = parseExcelDate(r.data); if (d && (anoRef === null || d.getFullYear() > anoRef)) anoRef = d.getFullYear(); });
+            const dadosAno = dadosParseados.filter(r => { const d = parseExcelDate(r.data); return d && d.getFullYear() === anoRef; });
+            const contAcum = {}; dadosAno.forEach(r => { const m = r.modelo || r.mce; if (m) contAcum[m.trim()] = (contAcum[m.trim()] || 0) + 1; });
+            const pAcum = Object.entries(contAcum).sort((a,b) => b[1] !== a[1] ? b[1] - a[1] : a[0].localeCompare(b[0])).slice(0, 5);
+            chartInstances.acumulado = new Chart(document.getElementById('chartAcumulado').getContext('2d'), {
+                type: 'bar',
+                data: { labels: pAcum.length?pAcum.map(d=>d[0]):['Nenhum'], datasets: [{ label: `Acumulado (${anoRef||''})`, data: pAcum.length?pAcum.map(d=>d[1]):[0], backgroundColor: '#960000', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 35 } }, scales: { x: { beginAtZero: true, grid: { color: '#f0edec' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } },
+                plugins: [dataLabelsHorizontalPlugin]
+            });
+
+            // C5: EVOLUÇÃO SEMANAL (ISO WEEKS)
+            const getIsoW = (d) => { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dn = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - dn); const ys = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); return Math.ceil((((dt - ys) / 86400000) + 1) / 7); };
+            const getIsoY = (d) => { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dn = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - dn); return dt.getUTCFullYear(); };
+            
+            const dtEIni = new Date(dtUserInicio); const di = dtEIni.getDay(); dtEIni.setDate(dtEIni.getDate() - di + (di === 0 ? -6 : 1)); dtEIni.setHours(0,0,0,0);
+            const dtEFim = new Date(dtUserFim); const df = dtEFim.getDay(); dtEFim.setDate(dtEFim.getDate() + (df === 0 ? 0 : 7 - df)); dtEFim.setHours(23,59,59,999);
+            
+            const dSel = Math.round((dtUserFim - dtUserInicio) / 86400000) + 1;
+            const cAv = document.getElementById('avisoEvolucaoSemanal'); const cRod = document.getElementById('rodapeEvolucaoSemanal');
+            if (cAv) {
+                if(dSel < 7) { cAv.classList.replace('hidden','flex'); document.getElementById('textoAvisoEvolucaoSemanal').innerText = "O intervalo foi ampliado para contemplar a semana completa."; } else cAv.classList.replace('flex','hidden');
+                if(dtEIni < dtUserInicio || dtEFim > dtUserFim) cRod.classList.remove('hidden'); else cRod.classList.add('hidden');
+            }
+
+            const semEx = []; let cD = new Date(dtEIni);
+            while (cD <= dtEFim) { const k = `${getIsoY(cD)}-${String(getIsoW(cD)).padStart(2,'0')}`; if(!semEx.find(s=>s.key===k)) semEx.push({key:k, label:`Sem ${getIsoW(cD)}`, count:0}); cD.setDate(cD.getDate()+7); }
+            dadosParseados.forEach(r => { const d = parseExcelDate(r.data); if (d && d >= dtEIni && d <= dtEFim) { const k = `${getIsoY(d)}-${String(getIsoW(d)).padStart(2,'0')}`; const o = semEx.find(s=>s.key===k); if(o) o.count++; } });
+
+            chartInstances.evolucao = new Chart(document.getElementById('chartEvolucao').getContext('2d'), {
+                type: 'line',
+                data: { labels: semEx.map(s=>s.label), datasets: [{ data: semEx.map(s=>s.count), borderColor: '#db0000', backgroundColor: '#db000020', borderWidth: 2, pointBackgroundColor: '#db0000', pointRadius: 4, fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } }, scales: { y: { beginAtZero: true, grid: { color: '#f0edec' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } },
+                plugins: [dataLabelsPlugin] 
+            });
+
+            // C6: PARQUE MIX
+            const mapPq = {}; dadosParqueInstalado.forEach(i => mapPq[i.modelo.trim().toUpperCase()] = i.quantidade);
+            const mapFa = {}; dadosMes.forEach(r => { if(r.modelo) mapFa[r.modelo.trim().toUpperCase()] = (mapFa[r.modelo.trim().toUpperCase()] || 0) + 1; });
+            const mix = Object.keys(mapPq).map(k => ({ modelo: k, pq: mapPq[k], fa: mapFa[k]||0, perc: mapPq[k]>0?Math.round(((mapFa[k]||0)/mapPq[k])*100):0 })).sort((a,b) => b.perc!==a.perc?b.perc-a.perc:a.modelo.localeCompare(b.modelo));
+            
+            chartInstances.parqueFalhas = new Chart(document.getElementById('chartParqueFalhas').getContext('2d'), {
+                type: 'bar',
+                data: { labels: mix.map(m=>m.modelo), datasets: [
+                    { type: 'line', label: '% de Falhas', data: mix.map(m=>m.perc), borderColor: '#1c1b1b', backgroundColor: '#1c1b1b', borderWidth: 2, pointRadius: 4, yAxisID: 'y1', order: 1 },
+                    { type: 'bar', label: 'Parque', data: mix.map(m=>m.pq), backgroundColor: '#760000', borderRadius: 4, yAxisID: 'y', order: 2 },
+                    { type: 'bar', label: 'Falhas', data: mix.map(m=>m.fa), backgroundColor: '#ff0000', borderRadius: 4, yAxisID: 'y', order: 3 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 45 } }, scales: { x: { grid: { display: false } }, y: { type: 'linear', display: true, position: 'left', beginAtZero: true }, y1: { type: 'linear', display: false, position: 'right', beginAtZero: true, min: 0 } }, plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 10 } } } },
+                plugins: [{
+                    id: 'mixL',
+                    afterDatasetsDraw(c) {
+                        const ctx = c.ctx; ctx.save();
+                        c.data.datasets.forEach((ds, i) => {
+                            if (c.getDatasetMeta(i).hidden) return;
+                            c.getDatasetMeta(i).data.forEach((el, idx) => {
+                                const v = ds.data[idx]; if (v == null) return;
+                                if (ds.type === 'line') {
+                                    const t = v + '%'; ctx.font = '700 12px Inter';
+                                    const w = ctx.measureText(t).width + 12; const x = el.x - w/2; const y = el.y - 28;
+                                    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect?ctx.roundRect(x,y,w,20,4):ctx.rect(x,y,w,20); ctx.fill();
+                                    ctx.strokeStyle = chartColors.error; ctx.lineWidth = 1; ctx.stroke();
+                                    ctx.fillStyle = chartColors.error; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, el.x, y + 11);
+                                } else {
+                                    ctx.font = '600 12px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+                                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeText(v, el.x, el.y - 6);
+                                    ctx.fillStyle = chartColors.text; ctx.fillText(v, el.x, el.y - 6);
+                                }
+                            });
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
+
+            // C7: EVOLUCAO MENSAL JAN-DEZ
+            const cMA = new Array(12).fill(null); const cMP = new Array(12).fill(null);
+            dadosMesCru.forEach(r => { const d = parseExcelDate(r.data); if(d) { if(cMA[d.getMonth()]===null) cMA[d.getMonth()]=0; cMA[d.getMonth()]++; } });
+            dadosPassadosCru.forEach(r => { const d = parseExcelDate(r.data); if(d) { if(cMP[d.getMonth()]===null) cMP[d.getMonth()]=0; cMP[d.getMonth()]++; } });
+            chartInstances.evolucaoMensal = new Chart(document.getElementById('chartEvolucaoMensal').getContext('2d'), {
+                type: 'bar',
+                data: { labels: mesesDoAno, datasets: [{ label: 'Mês', data: cMA, backgroundColor: '#db0000', borderRadius: 4 }, { label: 'Passados', data: cMP, backgroundColor: '#c6c6c6', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }, plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 10 } } } },
                 plugins: [dataLabelsPlugin]
             });
 
             // -----------------------------------------------------
-            // CHART 2: MCE
+            // LÓGICA DOS 5 KPIS DE ANÁLISE TOP
             // -----------------------------------------------------
-            const contagemMce = {};
-            dadosMes.forEach(row => {
-                if (row.mce) {
-                    const mce = row.mce.trim();
-                    contagemMce[mce] = (contagemMce[mce] || 0) + 1;
-                }
-            });
-            
-            const paretoDataMce = Object.entries(contagemMce)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) return b[1] - a[1];
-                    return a[0].localeCompare(b[0]);
-                })
-                .slice(0, 5); 
-            
-            const labelsMce = paretoDataMce.length > 0 ? paretoDataMce.map(d => d[0]) : ['Nenhum dado'];
-            const dataMce = paretoDataMce.length > 0 ? paretoDataMce.map(d => d[1]) : [0];
-
-            const ctxMce = document.getElementById('chartMce').getContext('2d');
-            chartInstances.mce = new Chart(ctxMce, {
-                type: 'bar',
-                data: {
-                    labels: labelsMce,
-                    datasets: [{
-                        label: 'Número de Ocorrências',
-                        data: dataMce,
-                        backgroundColor: '#db0000', 
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                },
-                plugins: [dataLabelsPlugin] 
-            });
-
-            // -----------------------------------------------------
-            // CHART 3: Causas
-            // -----------------------------------------------------
-            const contagemCausa = {};
-            dadosMes.forEach(row => {
-                if (row.causa) {
-                    const causa = row.causa.trim();
-                    contagemCausa[causa] = (contagemCausa[causa] || 0) + 1;
-                }
-            });
-            
-            const paretoDataCausa = Object.entries(contagemCausa)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) return b[1] - a[1];
-                    return a[0].localeCompare(b[0]);       
-                })
-                .slice(0, 5);
-            
-            const formatarLabel = (texto) => {
-                if (texto.length > 25) {
-                    const palavras = texto.split(' ');
-                    const linhas = [];
-                    let linhaAtual = '';
-                    palavras.forEach(palavra => {
-                        if ((linhaAtual + palavra).length > 25) {
-                            linhas.push(linhaAtual.trim());
-                            linhaAtual = palavra + ' ';
-                        } else {
-                            linhaAtual += palavra + ' ';
-                        }
-                    });
-                    if (linhaAtual) linhas.push(linhaAtual.trim());
-                    return linhas;
-                }
-                return texto;
-            };
-
-            const labelsCausa = paretoDataCausa.length > 0 ? paretoDataCausa.map(d => formatarLabel(d[0])) : ['Nenhum dado'];
-            const dataCausa = paretoDataCausa.length > 0 ? paretoDataCausa.map(d => d[1]) : [0];
-
-            const dataLabelsHorizontalPlugin = {
-                id: 'customDataLabelsHorizontal',
-                afterDatasetsDraw(chart) {
-                    const { ctx, data } = chart;
-                    ctx.save();
-                    chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                        const value = data.datasets[0].data[index];
-                        ctx.fillStyle = chartColors.text;
-                        ctx.font = '600 13px Inter';
-                        ctx.textAlign = 'left';       
-                        ctx.textBaseline = 'middle';  
-                        ctx.fillText(value, bar.x + 6, bar.y);
-                    });
-                    ctx.restore();
-                }
-            };
-
-            const ctxCausa = document.getElementById('chartCausa').getContext('2d');
-            chartInstances.causa = new Chart(ctxCausa, {
-                type: 'bar',
-                data: {
-                    labels: labelsCausa,
-                    datasets: [{
-                        label: 'Número de Ocorrências',
-                        data: dataCausa,
-                        backgroundColor: '#b80000',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { right: 35 } },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                        y: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                },
-                plugins: [dataLabelsHorizontalPlugin]
-            });
-
-            // -----------------------------------------------------
-            // CHART 4: Acumulado do Ano
-            // -----------------------------------------------------
-            let anoReferencia = null;
-            if (dadosParseados && dadosParseados.length > 0) {
-                dadosParseados.forEach(row => {
-                    const rowDate = parseExcelDate(row.data);
-                    if (rowDate) {
-                        const year = rowDate.getFullYear();
-                        if (anoReferencia === null || year > anoReferencia) {
-                            anoReferencia = year;
-                        }
-                    }
-                });
-            }
-
-            const dadosDoAno = dadosParseados ? dadosParseados.filter(row => {
-                const rowDate = parseExcelDate(row.data);
-                return rowDate && rowDate.getFullYear() === anoReferencia;
-            }) : [];
-
-            const contagemAcumuladoModelo = {};
-            dadosDoAno.forEach(row => {
-                const valorModelo = row.modelo || row.mce; 
-                if (valorModelo) {
-                    const modelo = valorModelo.trim();
-                    contagemAcumuladoModelo[modelo] = (contagemAcumuladoModelo[modelo] || 0) + 1;
-                }
-            });
-            
-            const paretoDataAcumulado = Object.entries(contagemAcumuladoModelo)
-                .sort((a, b) => {
-                    if (b[1] !== a[1]) return b[1] - a[1];
-                    return a[0].localeCompare(b[0]);
-                })
-                .slice(0, 5);
-            
-            const labelsAcumulado = paretoDataAcumulado.length > 0 ? paretoDataAcumulado.map(d => formatarLabel(d[0])) : ['Nenhum dado'];
-            const dataAcumulado = paretoDataAcumulado.length > 0 ? paretoDataAcumulado.map(d => d[1]) : [0];
-
-            const ctxAcumulado = document.getElementById('chartAcumulado').getContext('2d');
-            chartInstances.acumulado = new Chart(ctxAcumulado, {
-                type: 'bar',
-                data: {
-                    labels: labelsAcumulado,
-                    datasets: [{
-                        label: `Acumulado de Falhas (${anoReferencia || 'Ano'})`,
-                        data: dataAcumulado,
-                        backgroundColor: '#960000', 
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { right: 35 } },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                        y: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                },
-                plugins: [dataLabelsHorizontalPlugin]
-            });
-
-            // -----------------------------------------------------
-            // CHART 5: Evolução Semanal (Semanas ISO)
-            // -----------------------------------------------------
-            const getWeekNumber = (d) => {
-                const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                const dayNum = date.getUTCDay() || 7;
-                date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-                const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-                return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-            };
-
-            const getIsoYear = (d) => {
-                const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                const dayNum = date.getUTCDay() || 7;
-                date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-                return date.getUTCFullYear();
-            };
-
-            const strInicioEvol = document.getElementById('dataInicio').value;
-            const strFimEvol = document.getElementById('dataFim').value;
-            const parseDt = (str) => {
-                if (!str) return new Date();
-                const p = str.split('-');
-                return new Date(p[0], p[1] - 1, p[2]);
-            };
-            const dtUserInicio = parseDt(strInicioEvol);
-            const dtUserFim = parseDt(strFimEvol);
-            dtUserInicio.setHours(0,0,0,0);
-            dtUserFim.setHours(23,59,59,999);
-
-            const dtExpInicio = new Date(dtUserInicio);
-            const dayInicio = dtExpInicio.getDay(); 
-            const diffInicio = dtExpInicio.getDate() - dayInicio + (dayInicio === 0 ? -6 : 1);
-            dtExpInicio.setDate(diffInicio);
-            dtExpInicio.setHours(0,0,0,0);
-
-            const dtExpFim = new Date(dtUserFim);
-            const dayFim = dtExpFim.getDay();
-            const diffFim = dtExpFim.getDate() + (dayFim === 0 ? 0 : 7 - dayFim);
-            dtExpFim.setDate(diffFim);
-            dtExpFim.setHours(23,59,59,999);
-
-            const diasSelecionados = Math.round((dtUserFim - dtUserInicio) / (1000 * 60 * 60 * 24)) + 1;
-            const isMenorQue7Dias = diasSelecionados < 7;
-            const isExpandido = dtExpInicio < dtUserInicio || dtExpFim > dtUserFim;
-
-            const containerAviso = document.getElementById('avisoEvolucaoSemanal');
-            const containerRodape = document.getElementById('rodapeEvolucaoSemanal');
-
-            if (containerAviso && containerRodape) {
-                if (isMenorQue7Dias) {
-                    containerAviso.classList.remove('hidden');
-                    containerAviso.classList.add('flex');
-                    document.getElementById('textoAvisoEvolucaoSemanal').innerText = "O intervalo foi ampliado para contemplar a semana completa.";
-                } else {
-                    containerAviso.classList.add('hidden');
-                    containerAviso.classList.remove('flex');
-                }
-
-                if (isExpandido) {
-                    containerRodape.classList.remove('hidden');
-                } else {
-                    containerRodape.classList.add('hidden');
-                }
-            }
-
-            const semanasExibicao = [];
-            let currDate = new Date(dtExpInicio);
-            
-            while (currDate <= dtExpFim) {
-                const w = getWeekNumber(currDate);
-                const y = getIsoYear(currDate);
-                const key = `${y}-${String(w).padStart(2, '0')}`;
+            const makeKpi = (arrA, arrP, col, id) => {
+                const cA = {}; arrA.forEach(r => { const v = r[col] || (col==='modelo'?r['mce']:null); if(v){ const n = normalizarTexto(v); if(!cA[n]) cA[n]={q:0, o:v.trim()}; cA[n].q++; } });
+                const pT = Object.entries(cA).sort((a,b)=>b[1].q!==a[1].q?b[1].q-a[1].q:a[0].localeCompare(b[0])).slice(0,3);
+                const cP = {}; if(arrP) arrP.forEach(r => { const v = r[col] || (col==='modelo'?r['mce']:null); if(v){ const n = normalizarTexto(v); cP[n] = (cP[n]||0)+1; } });
                 
-                if (!semanasExibicao.find(s => s.key === key)) {
-                    semanasExibicao.push({
-                        key: key,
-                        label: `Semana ${w}`,
-                        count: 0
-                    });
-                }
-                currDate.setDate(currDate.getDate() + 7);
-            }
-
-            if (dadosParseados && dadosParseados.length > 0) {
-                dadosParseados.forEach(row => {
-                    const rowDate = parseExcelDate(row.data);
-                    if (rowDate && rowDate >= dtExpInicio && rowDate <= dtExpFim) {
-                        const w = getWeekNumber(rowDate);
-                        const y = getIsoYear(rowDate);
-                        const key = `${y}-${String(w).padStart(2, '0')}`;
-                        
-                        const weekObj = semanasExibicao.find(s => s.key === key);
-                        if (weekObj) {
-                            weekObj.count += 1;
-                        }
-                    }
-                });
-            }
-
-            const labelsEvolucao = semanasExibicao.map(s => s.label);
-            const dataEvolucao = semanasExibicao.map(s => s.count);
-
-            const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
-            chartInstances.evolucao = new Chart(ctxEvolucao, {
-                type: 'line',
-                data: {
-                    labels: labelsEvolucao,
-                    datasets: [{
-                        label: 'Número de Ocorrências',
-                        data: dataEvolucao,
-                        borderColor: '#db0000', 
-                        backgroundColor: '#db000020', 
-                        borderWidth: 2,
-                        pointBackgroundColor: '#db0000', 
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.3 
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                },
-                plugins: [dataLabelsPlugin] 
-            });
-
-            // -----------------------------------------------------
-            // CHART 6: Parque Instalado x Falhas (Mixed Chart)
-            // -----------------------------------------------------
-            const mixedChartLabelsPlugin = {
-                id: 'mixedChartLabels',
-                afterDatasetsDraw(chart) {
-                    const { ctx, data } = chart;
-                    ctx.save();
-                    
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        if (meta.hidden) return;
-                        
-                        meta.data.forEach((element, index) => {
-                            const value = dataset.data[index];
-                            if (value === undefined || value === null) return;
-                            
-                            let textToDraw = value;
-                            
-                            if (dataset.type === 'line') {
-                                textToDraw = value + '%';
-                                ctx.font = '700 12px Inter';
-                                
-                                const textWidth = ctx.measureText(textToDraw).width;
-                                const height = 20;
-                                const width = textWidth + 12; 
-                                const x = element.x - width / 2;
-                                const y = element.y - height - 8; 
-                                
-                                ctx.fillStyle = '#ffffff'; 
-                                ctx.beginPath();
-                                if (ctx.roundRect) {
-                                    ctx.roundRect(x, y, width, height, 4);
-                                } else {
-                                    ctx.rect(x, y, width, height); 
-                                }
-                                ctx.fill();
-                                
-                                ctx.strokeStyle = chartColors.error;
-                                ctx.lineWidth = 1;
-                                ctx.stroke();
-                                
-                                ctx.fillStyle = chartColors.error;
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(textToDraw, element.x, y + height / 2 + 1); 
-                                
-                            } else {
-                                ctx.font = '600 12px Inter';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                
-                                ctx.strokeStyle = '#ffffff';
-                                ctx.lineWidth = 4;
-                                ctx.lineJoin = 'round';
-                                ctx.strokeText(textToDraw, element.x, element.y - 6);
-                                
-                                ctx.fillStyle = chartColors.text;
-                                ctx.fillText(textToDraw, element.x, element.y - 6);
-                            }
-                        });
-                    });
-                    
-                    ctx.restore();
-                }
-            };
-
-            const mapaParque = {};
-            dadosParqueInstalado.forEach(item => {
-                const mceNormalizado = item.modelo.trim().toUpperCase();
-                mapaParque[mceNormalizado] = item.quantidade;
-            });
-
-            const mapaFalhasParaMix = {};
-            dadosMes.forEach(row => {
-                if (row.modelo) {
-                    const modeloNormalizado = row.modelo.trim().toUpperCase();
-                    mapaFalhasParaMix[modeloNormalizado] = (mapaFalhasParaMix[modeloNormalizado] || 0) + 1;
-                }
-            });
-
-            const dadosMixTemporario = [];
-            
-            Object.keys(mapaParque).forEach(modeloKey => {
-                const qtdParque = mapaParque[modeloKey] || 0;
-                const qtdFalhas = mapaFalhasParaMix[modeloKey] || 0;
-                const percent = qtdParque > 0 ? Math.round((qtdFalhas / qtdParque) * 100) : 0;
-                
-                dadosMixTemporario.push({
-                    modelo: modeloKey,
-                    qtdParque: qtdParque,
-                    qtdFalhas: qtdFalhas,
-                    percent: percent
-                });
-            });
-
-            dadosMixTemporario.sort((a, b) => {
-                if (b.percent !== a.percent) return b.percent - a.percent; 
-                return a.modelo.localeCompare(b.modelo);                   
-            });
-
-            const labelsMix = [];
-            const dataQtdParque = [];
-            const dataQtdFalhas = [];
-            const dataPercentual = [];
-
-            dadosMixTemporario.forEach(item => {
-                labelsMix.push(item.modelo);
-                dataQtdParque.push(item.qtdParque);
-                dataQtdFalhas.push(item.qtdFalhas);
-                dataPercentual.push(item.percent);
-            });
-
-            const ctxMix = document.getElementById('chartParqueFalhas').getContext('2d');
-            chartInstances.parqueFalhas = new Chart(ctxMix, {
-                type: 'bar',
-                data: {
-                    labels: labelsMix,
-                    datasets: [
-                        {
-                            type: 'line',
-                            label: '% de Falhas',
-                            data: dataPercentual,
-                            borderColor: '#1c1b1b',      
-                            backgroundColor: '#1c1b1b',
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            yAxisID: 'y1', 
-                            order: 1       
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Parque Instalado',
-                            data: dataQtdParque,
-                            backgroundColor: '#760000', 
-                            borderRadius: 4,
-                            yAxisID: 'y',
-                            order: 2
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Falhas no Período',
-                            data: dataQtdFalhas,
-                            backgroundColor: '#ff0000', 
-                            borderRadius: 4,
-                            yAxisID: 'y',
-                            order: 3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 45 } },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { 
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            beginAtZero: true,
-                            grid: { color: '#f0edec' },
-                            ticks: { precision: 0 }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: false, 
-                            position: 'right',
-                            beginAtZero: true,
-                            min: 0,
-                            grid: { drawOnChartArea: false }
-                        }
-                    },
-                    plugins: { 
-                        legend: { 
-                            display: true,
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                usePointStyle: true,
-                                boxWidth: 10
-                            }
-                        }
-                    }
-                },
-                plugins: [mixedChartLabelsPlugin]
-            });
-
-            // -----------------------------------------------------
-            // CHART 7: Evolução Mensal de Falhas (Fixo JAN-DEZ)
-            // -----------------------------------------------------
-            const mesesLabels = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-            
-            const contagemMesAtual = new Array(12).fill(null);
-            const contagemMesPassado = new Array(12).fill(null);
-
-            const contabilizarMeses = (dados, arrayContagem) => {
-                if (!dados || dados.length === 0) return;
-                dados.forEach(row => {
-                    if (row.data) {
-                        const rowDate = parseExcelDate(row.data);
-                        if (rowDate) {
-                            const mesIndex = rowDate.getMonth(); 
-                            if (arrayContagem[mesIndex] === null) {
-                                arrayContagem[mesIndex] = 0;
-                            }
-                            arrayContagem[mesIndex]++;
-                        }
-                    }
+                const el = document.getElementById(id); if(!el) return;
+                el.innerHTML = ''; if(!pT.length) { el.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>'; return; }
+                pT.forEach(i => {
+                    const qA = i[1].q; const qP = cP[i[0]] || 0;
+                    let t = ''; if(qP===0) t = "sem ocorrência ano passado"; else { const p = Math.round(Math.abs(((qA-qP)/qP)*100)); if(qA<qP) t=`${p}% melhoria`; else if(qA>qP) t=`${p}% piora`; else t=`0% variação`; }
+                    const n = i[1].o.length>17 ? i[1].o.substring(0,17)+'...' : i[1].o;
+                    el.innerHTML += `<div class="text-xs leading-normal w-full"><span class="font-semibold">${n}:</span> <span class="${qP===0?'text-outline italic':(qA<qP?'text-secondary font-medium':(qA>qP?'text-error font-medium':'text-on-surface-variant font-medium'))}">${t}</span></div>`;
                 });
             };
+            makeKpi(dadosMes, dadosPassadosFiltrados, 'localidade', 'kpiFalhasLocalidade');
+            makeKpi(dadosMes, dadosPassadosFiltrados, 'causa', 'kpiFalhasCausa');
+            makeKpi(dadosMes, dadosPassadosFiltrados, 'mce', 'kpiRankingMce');
+            makeKpi(dadosMes, dadosPassadosFiltrados, 'modelo', 'kpiTaxaFalhaModelo');
 
-            contabilizarMeses(dadosMesCru, contagemMesAtual);
-            contabilizarMeses(dadosPassadosCru, contagemMesPassado);
-
-            const ctxEvolucaoMensal = document.getElementById('chartEvolucaoMensal').getContext('2d');
-            chartInstances.evolucaoMensal = new Chart(ctxEvolucaoMensal, {
-                type: 'bar',
-                data: {
-                    labels: mesesLabels,
-                    datasets: [
-                        {
-                            label: 'Indicadores do Mês',
-                            data: contagemMesAtual,
-                            backgroundColor: '#db0000', 
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Indicadores Passados',
-                            data: contagemMesPassado,
-                            backgroundColor: '#c6c6c6', 
-                            borderRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } }
-                    },
-                    plugins: { 
-                        legend: { 
-                            display: true,
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                usePointStyle: true,
-                                boxWidth: 10
-                            }
-                        }
-                    }
-                },
-                plugins: [dataLabelsPlugin] 
-            });
-
-            // -----------------------------------------------------
-            // LÓGICA KPI 1: Falhas por Localidade (Bloco 5.1)
-            // -----------------------------------------------------
-            const normalizarTexto = (str) => {
-                if (!str) return '';
-                return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            };
-
-            const contagemNormMes = {};
-            dadosMes.forEach(row => {
-                if (row.localidade) {
-                    const locNorm = normalizarTexto(row.localidade);
-                    if(!contagemNormMes[locNorm]) contagemNormMes[locNorm] = { qtd: 0, original: row.localidade.trim() };
-                    contagemNormMes[locNorm].qtd += 1;
-                }
-            });
-
-            const paretoKpiLocais = Object.entries(contagemNormMes)
-                .sort((a, b) => {
-                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd; 
-                    return a[0].localeCompare(b[0]);                       
-                })
-                .slice(0, 3); 
-
-            const contagemNormPassado = {};
-            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
-                dadosPassadosFiltrados.forEach(row => {
-                    if (row.localidade) {
-                        const locNorm = normalizarTexto(row.localidade);
-                        contagemNormPassado[locNorm] = (contagemNormPassado[locNorm] || 0) + 1;
-                    }
-                });
-            }
-
-            const kpiElement = document.getElementById('kpiFalhasLocalidade');
-            if (kpiElement) {
-                kpiElement.innerHTML = ''; 
-                if (paretoKpiLocais.length === 0) {
-                    kpiElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                } else {
-                    paretoKpiLocais.forEach((item) => {
-                        const locNorm = item[0];
-                        const qtdAtual = item[1].qtd;
-                        const locOriginal = item[1].original;
-                        const qtdPassado = contagemNormPassado[locNorm] || 0;
-
-                        let textoEvolucao = '';
-                        if (qtdPassado === 0) {
-                            textoEvolucao = "sem ocorrência ano passado";
-                        } else {
-                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
-                            if (qtdAtual < qtdPassado) {
-                                textoEvolucao = `${percentual}% de melhoria`;
-                            } else if (qtdAtual > qtdPassado) {
-                                textoEvolucao = `${percentual}% de piora`;
-                            } else {
-                                textoEvolucao = `0% de variação`; 
-                            }
-                        }
-
-                        const nomeAbreviado = locOriginal.length > 17 ? locOriginal.substring(0, 17) + '...' : locOriginal;
-
-                        kpiElement.innerHTML += `
-                            <div class="text-xs leading-normal w-full" title="${locOriginal}: ${textoEvolucao}">
-                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
-                            </div>
-                        `;
-                    });
-                }
+            const eConf = document.getElementById('kpiConfiabilidade');
+            if(eConf) {
+                if(!mix.length) eConf.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                else if(mix.length===1) eConf.innerHTML = `<div class="text-xs leading-normal text-on-surface-variant">Modelo <span class="font-semibold text-error">${mix[0].modelo}</span> é o único.</div>`;
+                else eConf.innerHTML = `<div class="text-xs leading-normal text-on-surface-variant mb-2">Pior desempenho: <span class="font-semibold text-error">${mix[0].modelo}</span></div><div class="text-xs leading-normal text-on-surface-variant">Melhor desempenho: <span class="font-semibold text-secondary">${mix[mix.length-1].modelo}</span></div>`;
             }
 
             // -----------------------------------------------------
-            // LÓGICA KPI 2: Falhas por Causa Crítica (Bloco 5.1)
+            // CHARTS PASSADOS
             // -----------------------------------------------------
-            const contagemNormMesCausa = {};
-            dadosMes.forEach(row => {
-                if (row.causa) {
-                    const causaNorm = normalizarTexto(row.causa);
-                    if(!contagemNormMesCausa[causaNorm]) contagemNormMesCausa[causaNorm] = { qtd: 0, original: row.causa.trim() };
-                    contagemNormMesCausa[causaNorm].qtd += 1;
-                }
-            });
-
-            const paretoKpiCausa = Object.entries(contagemNormMesCausa)
-                .sort((a, b) => {
-                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
-                    return a[0].localeCompare(b[0]);
-                })
-                .slice(0, 3); 
-
-            const contagemNormPassadoCausa = {};
-            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
-                dadosPassadosFiltrados.forEach(row => {
-                    if (row.causa) {
-                        const causaNorm = normalizarTexto(row.causa);
-                        contagemNormPassadoCausa[causaNorm] = (contagemNormPassadoCausa[causaNorm] || 0) + 1;
-                    }
-                });
-            }
-
-            const kpiCausaElement = document.getElementById('kpiFalhasCausa');
-            if (kpiCausaElement) {
-                kpiCausaElement.innerHTML = ''; 
-                if (paretoKpiCausa.length === 0) {
-                    kpiCausaElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                } else {
-                    paretoKpiCausa.forEach((item) => {
-                        const causaNorm = item[0];
-                        const qtdAtual = item[1].qtd;
-                        const causaOriginal = item[1].original;
-                        const qtdPassado = contagemNormPassadoCausa[causaNorm] || 0;
-
-                        let textoEvolucao = '';
-                        if (qtdPassado === 0) {
-                            textoEvolucao = "sem ocorrência ano passado";
-                        } else {
-                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
-                            if (qtdAtual < qtdPassado) {
-                                textoEvolucao = `${percentual}% de melhoria`;
-                            } else if (qtdAtual > qtdPassado) {
-                                textoEvolucao = `${percentual}% de piora`;
-                            } else {
-                                textoEvolucao = `0% de variação`;
-                            }
-                        }
-
-                        const nomeAbreviado = causaOriginal.length > 17 ? causaOriginal.substring(0, 17) + '...' : causaOriginal;
-
-                        kpiCausaElement.innerHTML += `
-                            <div class="text-xs leading-normal w-full" title="${causaOriginal}: ${textoEvolucao}">
-                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            // -----------------------------------------------------
-            // LÓGICA KPI 3: Ranking de MCE's Críticas (Bloco 5.1)
-            // -----------------------------------------------------
-            const contagemNormMesMce = {};
-            dadosMes.forEach(row => {
-                if (row.mce) {
-                    const mceNorm = normalizarTexto(row.mce);
-                    if(!contagemNormMesMce[mceNorm]) contagemNormMesMce[mceNorm] = { qtd: 0, original: row.mce.trim() };
-                    contagemNormMesMce[mceNorm].qtd += 1;
-                }
-            });
-
-            const paretoKpiMce = Object.entries(contagemNormMesMce)
-                .sort((a, b) => {
-                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
-                    return a[0].localeCompare(b[0]);
-                })
-                .slice(0, 3);
-
-            const contagemNormPassadoMce = {};
-            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
-                dadosPassadosFiltrados.forEach(row => {
-                    if (row.mce) {
-                        const mceNorm = normalizarTexto(row.mce);
-                        contagemNormPassadoMce[mceNorm] = (contagemNormPassadoMce[mceNorm] || 0) + 1;
-                    }
-                });
-            }
-
-            const kpiMceElement = document.getElementById('kpiRankingMce');
-            if (kpiMceElement) {
-                kpiMceElement.innerHTML = ''; 
-                if (paretoKpiMce.length === 0) {
-                    kpiMceElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                } else {
-                    paretoKpiMce.forEach((item) => {
-                        const mceNorm = item[0];
-                        const qtdAtual = item[1].qtd;
-                        const mceOriginal = item[1].original;
-                        const qtdPassado = contagemNormPassadoMce[mceNorm] || 0;
-
-                        let textoEvolucao = '';
-                        if (qtdPassado === 0) {
-                            textoEvolucao = "sem ocorrência ano passado";
-                        } else {
-                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
-                            if (qtdAtual < qtdPassado) {
-                                textoEvolucao = `${percentual}% de melhoria`;
-                            } else if (qtdAtual > qtdPassado) {
-                                textoEvolucao = `${percentual}% de piora`;
-                            } else {
-                                textoEvolucao = `0% de variação`;
-                            }
-                        }
-
-                        const nomeAbreviado = mceOriginal.length > 17 ? mceOriginal.substring(0, 17) + '...' : mceOriginal;
-
-                        kpiMceElement.innerHTML += `
-                            <div class="text-xs leading-normal w-full" title="${mceOriginal}: ${textoEvolucao}">
-                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            // -----------------------------------------------------
-            // LÓGICA KPI 4: Taxa de Falha por Modelo (Bloco 5.1)
-            // -----------------------------------------------------
-            const contagemNormMesTaxa = {};
-            dadosMes.forEach(row => {
-                const valorModelo = row.modelo || row.mce;
-                if (valorModelo) {
-                    const modNorm = normalizarTexto(valorModelo);
-                    if(!contagemNormMesTaxa[modNorm]) contagemNormMesTaxa[modNorm] = { qtd: 0, original: valorModelo.trim() };
-                    contagemNormMesTaxa[modNorm].qtd += 1;
-                }
-            });
-
-            const paretoKpiTaxa = Object.entries(contagemNormMesTaxa)
-                .sort((a, b) => {
-                    if (b[1].qtd !== a[1].qtd) return b[1].qtd - a[1].qtd;
-                    return a[0].localeCompare(b[0]);
-                })
-                .slice(0, 3); 
-
-            const contagemNormPassadoTaxa = {};
-            if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
-                dadosPassadosFiltrados.forEach(row => {
-                    const valorModelo = row.modelo || row.mce;
-                    if (valorModelo) {
-                        const modNorm = normalizarTexto(valorModelo);
-                        contagemNormPassadoTaxa[modNorm] = (contagemNormPassadoTaxa[modNorm] || 0) + 1;
-                    }
-                });
-            }
-
-            const kpiTaxaElement = document.getElementById('kpiTaxaFalhaModelo');
-            if (kpiTaxaElement) {
-                kpiTaxaElement.innerHTML = ''; 
-                if (paretoKpiTaxa.length === 0) {
-                    kpiTaxaElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                } else {
-                    paretoKpiTaxa.forEach((item) => {
-                        const modNorm = item[0];
-                        const qtdAtual = item[1].qtd;
-                        const modOriginal = item[1].original;
-                        const qtdPassado = contagemNormPassadoTaxa[modNorm] || 0;
-
-                        let textoEvolucao = '';
-                        if (qtdPassado === 0) {
-                            textoEvolucao = "sem ocorrência ano passado";
-                        } else {
-                            const percentual = Math.round(Math.abs(((qtdAtual - qtdPassado) / qtdPassado) * 100));
-                            if (qtdAtual < qtdPassado) {
-                                textoEvolucao = `${percentual}% de melhoria`;
-                            } else if (qtdAtual > qtdPassado) {
-                                textoEvolucao = `${percentual}% de piora`;
-                            } else {
-                                textoEvolucao = `0% de variação`;
-                            }
-                        }
-
-                        const nomeAbreviado = modOriginal.length > 17 ? modOriginal.substring(0, 17) + '...' : modOriginal;
-
-                        kpiTaxaElement.innerHTML += `
-                            <div class="text-xs leading-normal w-full" title="${modOriginal}: ${textoEvolucao}">
-                                <span class="font-semibold">${nomeAbreviado}:</span> <span class="${qtdPassado === 0 ? 'text-outline italic' : (qtdAtual < qtdPassado ? 'text-secondary font-medium' : (qtdAtual > qtdPassado ? 'text-error font-medium' : 'text-on-surface-variant font-medium'))}">${textoEvolucao}</span>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            // -----------------------------------------------------
-            // LÓGICA KPI 5: Índice de Confiabilidade por Modelo (Bloco 5.1)
-            // -----------------------------------------------------
-            const kpiConfiabilidadeElement = document.getElementById('kpiConfiabilidade');
-            if (kpiConfiabilidadeElement) {
-                if (dadosMixTemporario.length === 0) {
-                    kpiConfiabilidadeElement.innerHTML = '<span class="text-[11px] text-outline italic">Nenhum modelo analisado</span>';
-                } else {
-                    const piorDesempenho = dadosMixTemporario[0];
-                    const melhorDesempenho = dadosMixTemporario[dadosMixTemporario.length - 1];
-
-                    if (dadosMixTemporario.length === 1) {
-                         kpiConfiabilidadeElement.innerHTML = `
-                            <div class="text-[11px] leading-tight text-on-surface-variant">
-                                O modelo <span class="font-semibold text-error">${piorDesempenho.modelo}</span> apresentou o único registro de desempenho no período analisado.
-                            </div>
-                        `;
-                    } else {
-                        kpiConfiabilidadeElement.innerHTML = `
-                            <div class="text-[11px] leading-tight text-on-surface-variant mb-2">
-                                O modelo <span class="font-semibold text-error">${piorDesempenho.modelo}</span> apresentou o pior desempenho no período analisado.
-                            </div>
-                            <div class="text-[11px] leading-tight text-on-surface-variant">
-                                O modelo <span class="font-semibold text-secondary">${melhorDesempenho.modelo}</span> apresentou o melhor desempenho no período analisado.
-                            </div>
-                        `;
-                    }
-                }
-            }
-
-            // -----------------------------------------------------
-            // SEÇÃO: Indicadores Passados (4 Gráficos Filtrados)
-            // -----------------------------------------------------
-            const renderPassadosChart = (canvasId, property, color) => {
-                const contagem = {};
-                if (dadosPassadosFiltrados && dadosPassadosFiltrados.length > 0) {
-                    dadosPassadosFiltrados.forEach(row => {
-                        if (row[property]) {
-                            const val = row[property].trim();
-                            if (val) {
-                                contagem[val] = (contagem[val] || 0) + 1;
-                            }
-                        }
-                    });
-                }
-                
-                const pareto = Object.entries(contagem)
-                    .sort((a, b) => {
-                        if (b[1] !== a[1]) return b[1] - a[1];
-                        return a[0].localeCompare(b[0]);
-                    })
-                    .slice(0, 10);
-                
-                const labels = pareto.length > 0 ? pareto.map(d => d[0]) : ['Nenhum dado'];
-                const dataChart = pareto.length > 0 ? pareto.map(d => d[1]) : [0];
-
-                const ctx = document.getElementById(canvasId).getContext('2d');
-                chartInstances[canvasId] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Número de Ocorrências',
-                            data: dataChart,
-                            backgroundColor: color,
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: { padding: { top: 30 } },
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } },
-                            x: { grid: { display: false } }
-                        },
-                        plugins: { legend: { display: false } }
-                    },
-                    plugins: [dataLabelsPlugin] 
+            const makePC = (id, prop, color) => {
+                const c = {}; if(dadosPassadosFiltrados) dadosPassadosFiltrados.forEach(r => { if(r[prop]&&r[prop].trim()) c[r[prop].trim()]=(c[r[prop].trim()]||0)+1; });
+                const p = Object.entries(c).sort((a,b)=>b[1]!==a[1]?b[1]-a[1]:a[0].localeCompare(b[0])).slice(0,10);
+                chartInstances[id] = new Chart(document.getElementById(id).getContext('2d'), {
+                    type:'bar', data:{labels:p.length?p.map(d=>d[0]):['Nenhum'], datasets:[{data:p.length?p.map(d=>d[1]):[0], backgroundColor:color, borderRadius:4}]},
+                    options:{responsive:true, maintainAspectRatio:false, layout:{padding:{top:30}}, scales:{y:{beginAtZero:true},x:{grid:{display:false}}}, plugins:{legend:{display:false}}}, plugins:[dataLabelsPlugin]
                 });
             };
-
-            renderPassadosChart('chartPassadosMce', 'mce', '#5ab7d4');
-            renderPassadosChart('chartPassadosLocal', 'localidade', '#2b91ad');
-            renderPassadosChart('chartPassadosModelo', 'modelo', '#006e88');
-            renderPassadosChart('chartPassadosCausa', 'causa', '#004c65');
+            makePC('chartPassadosMce', 'mce', '#5ab7d4'); makePC('chartPassadosLocal', 'localidade', '#2b91ad'); makePC('chartPassadosModelo', 'modelo', '#006e88'); makePC('chartPassadosCausa', 'causa', '#004c65');
 
             // -----------------------------------------------------
-            // LÓGICA KPIs INDICADORES PASSADOS (Bloco 7.1)
+            // 2 KPIS PASSADOS
             // -----------------------------------------------------
-            const kpiVarElement = document.getElementById('kpiVariacaoAnual');
-            if (kpiVarElement) {
-                const qtdAtualTotal = dadosMes.length;
-                const qtdPassadoTotal = dadosPassadosFiltrados ? dadosPassadosFiltrados.length : 0;
-
-                if (qtdAtualTotal === 0 && qtdPassadoTotal === 0) {
-                    kpiVarElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                } else {
-                    let percentualVar = 0;
-                    if (qtdPassadoTotal > 0) {
-                        percentualVar = Math.round(((qtdAtualTotal - qtdPassadoTotal) / qtdPassadoTotal) * 100);
-                    } else {
-                        percentualVar = 100; 
-                    }
-
-                    let colorClass = 'text-on-surface';
-                    let formattedVar = '';
-
-                    if (qtdAtualTotal < qtdPassadoTotal) {
-                        colorClass = 'text-secondary'; 
-                        formattedVar = `[${percentualVar}%]`; 
-                    } else if (qtdAtualTotal > qtdPassadoTotal) {
-                        colorClass = 'text-error'; 
-                        formattedVar = `[+${percentualVar}%]`;
-                    } else {
-                        colorClass = 'text-on-surface-variant';
-                        formattedVar = `[0%]`;
-                    }
-
-                    kpiVarElement.innerHTML = `
-                        <div class="text-xs leading-relaxed text-on-surface-variant">
-                            No período analisado foram registradas <span class="font-bold text-on-surface">${qtdAtualTotal} falhas</span> e no mesmo período do ano passado foram identificadas <span class="font-bold text-on-surface">${qtdPassadoTotal} falhas</span>, representando uma variação de <span class="font-bold ${colorClass}">${formattedVar}</span>.
-                        </div>
-                    `;
+            const evV = document.getElementById('kpiVariacaoAnual');
+            if(evV){
+                const qA = dadosMes.length; const qP = dadosPassadosFiltrados?dadosPassadosFiltrados.length:0;
+                if(qA===0&&qP===0) evV.innerHTML='<span class="text-xs text-outline italic">Nenhum dado</span>';
+                else {
+                    const pV = qP>0?Math.round(((qA-qP)/qP)*100):100;
+                    const cC = qA<qP?'text-secondary':(qA>qP?'text-error':'text-on-surface-variant');
+                    const fV = qA<qP?`[${pV}%]`:qA>qP?`[+${pV}%]`:`[0%]`;
+                    evV.innerHTML=`<div class="text-xs leading-relaxed text-on-surface-variant">No período analisado foram registradas <span class="font-bold text-on-surface">${qA} falhas</span> e no ano passado <span class="font-bold text-on-surface">${qP} falhas</span>. Variação: <span class="font-bold ${cC}">${fV}</span>.</div>`;
                 }
             }
 
-            const kpiDiagElement = document.getElementById('kpiDiagnosticoEfetivo');
-            if (kpiDiagElement) {
-                const causaAlvo = "nada constatado";
-                
-                let qtdAtualNC = 0;
-                dadosMes.forEach(row => {
-                    if (row.causa && normalizarTexto(row.causa) === causaAlvo) {
-                        qtdAtualNC++;
-                    }
-                });
-
-                let qtdPassadoNC = 0;
-                if (dadosPassadosFiltrados) {
-                    dadosPassadosFiltrados.forEach(row => {
-                        if (row.causa && normalizarTexto(row.causa) === causaAlvo) {
-                            qtdPassadoNC++;
-                        }
-                    });
-                }
-
-                if (qtdAtualNC === 0 && qtdPassadoNC === 0) {
-                    kpiDiagElement.innerHTML = '<span class="text-xs text-outline italic">Sem registros de "Nada Constatado" em ambos os períodos.</span>';
-                } else {
-                    let percentualVarNC = 0;
-                    if (qtdPassadoNC > 0) {
-                        percentualVarNC = Math.round(((qtdAtualNC - qtdPassadoNC) / qtdPassadoNC) * 100);
-                    } else {
-                        percentualVarNC = 100; 
-                    }
-
-                    let colorClassNC = 'text-on-surface';
-                    let formattedVarNC = '';
-
-                    if (qtdAtualNC < qtdPassadoNC) {
-                        colorClassNC = 'text-secondary'; 
-                        formattedVarNC = `[${percentualVarNC}%]`; 
-                    } else if (qtdAtualNC > qtdPassadoNC) {
-                        colorClassNC = 'text-error'; 
-                        formattedVarNC = `[+${percentualVarNC}%]`;
-                    } else {
-                        colorClassNC = 'text-on-surface-variant';
-                        formattedVarNC = `[0%]`;
-                    }
-
-                    kpiDiagElement.innerHTML = `
-                        <div class="text-xs leading-relaxed text-on-surface-variant">
-                            No período analisado foram registradas <span class="font-bold text-on-surface">${qtdAtualNC} falhas</span> "nada constatado" e no mesmo período do ano passado foram identificadas <span class="font-bold text-on-surface">${qtdPassadoNC} falhas</span>, representando uma variação de <span class="font-bold ${colorClassNC}">${formattedVarNC}</span>.
-                        </div>
-                    `;
+            const evD = document.getElementById('kpiDiagnosticoEfetivo');
+            if(evD){
+                const qA = dadosMes.filter(r=>r.causa&&normalizarTexto(r.causa)==="nada constatado").length;
+                const qP = dadosPassadosFiltrados?dadosPassadosFiltrados.filter(r=>r.causa&&normalizarTexto(r.causa)==="nada constatado").length:0;
+                if(qA===0&&qP===0) evD.innerHTML='<span class="text-xs text-outline italic">Sem registros de "Nada Constatado".</span>';
+                else {
+                    const pV = qP>0?Math.round(((qA-qP)/qP)*100):100;
+                    const cC = qA<qP?'text-secondary':(qA>qP?'text-error':'text-on-surface-variant');
+                    const fV = qA<qP?`[${pV}%]`:qA>qP?`[+${pV}%]`:`[0%]`;
+                    evD.innerHTML=`<div class="text-xs leading-relaxed text-on-surface-variant">Falhas "nada constatado": <span class="font-bold text-on-surface">${qA} atual</span> vs <span class="font-bold text-on-surface">${qP} ano passado</span>. Variação: <span class="font-bold ${cC}">${fV}</span>.</div>`;
                 }
             }
 
@@ -2697,96 +1419,50 @@
         }
 
         // -----------------------------------------------------
-        // NOVO GRÁFICO: SEÇÃO DE PREVENTIVA (GRÁFICOS SEPARADOS)
+        // SEÇÃO DE PREVENTIVA (GRÁFICOS SEPARADOS)
         // -----------------------------------------------------
         function renderizarGraficoPreventiva() {
-            const kpiPmpElement = document.getElementById('kpiCumprimentoPmp');
-            if (kpiPmpElement) {
-                if (dadosPreventivaMensal.length === 0 || dadosParqueVP.length === 0) {
-                    kpiPmpElement.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado processado</span>';
-                } else {
-                    let totalParqueVP = 0;
-                    dadosParqueVP.forEach(eq => totalParqueVP += eq.quantidade);
-                    
-                    let totalRealizado = 0;
-                    dadosPreventivaMensal.forEach(mes => {
-                        mes.dados.forEach(d => totalRealizado += d.valor);
-                    });
-                    
-                    const totalMeta = totalParqueVP * dadosPreventivaMensal.length;
-                    
-                    const percentual = totalMeta > 0 ? Math.round((totalRealizado / totalMeta) * 100) : 0;
-                    
-                    kpiPmpElement.innerHTML = `
-                        <div class="text-xs leading-relaxed text-on-surface-variant mt-1">
-                            No período selecionado, a manutenção preventiva apresentou um indice de cumprimento de <span class="font-bold text-[#00886d]">[${percentual}%]</span> do Plano de Manutenção (PMP).
-                        </div>
-                    `;
+            // KPI Cumprimento PMP
+            const kP = document.getElementById('kpiCumprimentoPmp');
+            if(kP) {
+                if(!dadosPreventivaMensal.length || !dadosParqueVP.length) kP.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                else {
+                    let tP = 0; dadosParqueVP.forEach(e => tP += e.quantidade);
+                    let tR = 0; dadosPreventivaMensal.forEach(m => m.dados.forEach(d => tR += d.valor));
+                    const tM = tP * dadosPreventivaMensal.length;
+                    const pC = tM>0 ? Math.round((tR/tM)*100) : 0;
+                    kP.innerHTML = `<div class="text-xs leading-relaxed text-on-surface-variant mt-1">Cumprimento de <span class="font-bold text-[#00886d]">[${pC}%]</span> do Plano de Manutenção (PMP).</div>`;
                 }
             }
 
-            if (chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
-            if (chartInstances.preventivaAbs) chartInstances.preventivaAbs.destroy();
+            if(chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
+            if(chartInstances.preventivaAbs) chartInstances.preventivaAbs.destroy();
 
-            const ctxPerc = document.getElementById('chartPreventivaPerc');
-            const ctxAbs = document.getElementById('chartPreventivaAbs');
-            if (!ctxPerc || !ctxAbs) return;
+            const cP = document.getElementById('chartPreventivaPerc');
+            const cA = document.getElementById('chartPreventivaAbs');
+            if(!cP || !cA) return;
 
-            const datasetsPerc = [];
-            const datasetsAbs = [];
-
-            dadosParqueVP.forEach((equipeObj, index) => {
-                const equipeNome = equipeObj.equipe;
-                const qtdReferencia = equipeObj.quantidade;
-                
-                const dataPercents = new Array(12).fill(null);
-                const dataAbsolutos = new Array(12).fill(null); 
-
-                dadosPreventivaMensal.forEach(mesData => {
-                    const mesIndex = mesData.mesReferencia - 1; 
-                    const entradaEquipe = mesData.dados.find(d => d.equipe === equipeNome);
-
-                    if (entradaEquipe && qtdReferencia > 0) {
-                        const percentual = (entradaEquipe.valor / qtdReferencia) * 100;
-                        dataPercents[mesIndex] = Number(percentual.toFixed(2));
-                        dataAbsolutos[mesIndex] = entradaEquipe.valor;
-                    } else if (entradaEquipe && qtdReferencia === 0) {
-                        dataPercents[mesIndex] = 0;
-                        dataAbsolutos[mesIndex] = entradaEquipe.valor;
-                    }
+            // --- Lógica Chart % e Absoluto ---
+            const mStats = mesesDoAno.map((mes, idx) => {
+                let mPerc = 0; const eqP = {}; const eqA = {};
+                dadosParqueVP.forEach(eq => {
+                    let perc=0; let abs=0;
+                    const md = dadosPreventivaMensal.find(m=>m.mesReferencia===idx+1);
+                    if(md){ const e = md.dados.find(d=>d.equipe===eq.equipe); if(e){ abs=e.valor; if(eq.quantidade>0) perc=Math.min(100, Math.round((abs/eq.quantidade)*100)); } }
+                    eqP[eq.equipe]=perc; eqA[eq.equipe]=abs; if(perc>mPerc) mPerc=perc;
                 });
-
-                const colorPalette = [
-                    chartColors.secondary, chartColors.primary, chartColors.tertiary,
-                    chartColors.error, chartColors.primaryContainer, chartColors.tertiaryContainer
-                ];
-                const color = colorPalette[index % colorPalette.length];
-
-                datasetsPerc.push({
-                    type: 'line',
-                    label: equipeNome,
-                    data: dataPercents,
-                    borderColor: color,
-                    backgroundColor: color,
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    fill: false,
-                    tension: 0.3
-                });
-
-                datasetsAbs.push({
-                    type: 'bar',
-                    label: equipeNome,
-                    data: dataAbsolutos,
-                    backgroundColor: color,
-                    borderRadius: 4
-                });
+                return { mes, max: mPerc, eqP, eqA };
             });
 
-            const percLabelsPlugin = {
-                id: 'percLabels',
+            const pal = [chartColors.secondary, chartColors.primary, chartColors.tertiary, chartColors.error, chartColors.primaryContainer, chartColors.tertiaryContainer];
+            
+            // Usando ordem cronológica (mesesDoAno e mStats) para os dois gráficos
+            const dPerc = dadosParqueVP.map((eq,i) => ({ type:'bar', label:eq.equipe, data:mStats.map(m=>m.eqP[eq.equipe]), backgroundColor:pal[i%pal.length], borderRadius:4 }));
+            const dAbs = dadosParqueVP.map((eq,i) => ({ type:'bar', label:eq.equipe, data:mStats.map(m=>m.eqA[eq.equipe]), backgroundColor:pal[i%pal.length], borderRadius:4 }));
+
+            // Plugin para escrever % em cima da barra
+            const customDataLabelsPercPlugin = {
+                id: 'customDataLabelsPerc',
                 afterDatasetsDraw(chart) {
                     const { ctx, data } = chart;
                     ctx.save();
@@ -2795,309 +1471,116 @@
                         if (meta.hidden) return;
                         meta.data.forEach((element, index) => {
                             const value = dataset.data[index];
-                            if (value === undefined || value === null) return;
-
-                            const textToDraw = value + '%';
-                            ctx.font = '700 11px Inter';
+                            if (value === undefined || value === null || value === 0) return;
                             
-                            const textWidth = ctx.measureText(textToDraw).width;
-                            const height = 18;
-                            const width = textWidth + 10;
-                            const x = element.x - width / 2;
-                            const y = element.y - height - 8;
-
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            if (ctx.roundRect) ctx.roundRect(x, y, width, height, 4);
-                            else ctx.rect(x, y, width, height);
-                            ctx.fill();
-
-                            ctx.strokeStyle = dataset.borderColor;
-                            ctx.lineWidth = 1;
-                            ctx.stroke();
-
-                            ctx.fillStyle = dataset.borderColor;
+                            const text = value + '%';
+                            ctx.font = '600 13px Inter';
                             ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText(textToDraw, element.x, y + height / 2 + 1);
+                            ctx.textBaseline = 'bottom';
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 3;
+                            ctx.lineJoin = 'round';
+                            ctx.strokeText(text, element.x, element.y - 6);
+                            ctx.fillStyle = chartColors.text;
+                            ctx.fillText(text, element.x, element.y - 6);
                         });
                     });
                     ctx.restore();
                 }
             };
 
-            chartInstances.preventivaPerc = new Chart(ctxPerc.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: mesesDoAno,
-                    datasets: datasetsPerc
+            chartInstances.preventivaPerc = new Chart(cP.getContext('2d'), {
+                type: 'bar', 
+                data: { labels: mesesDoAno, datasets: dPerc },
+                options: { 
+                    responsive:true, 
+                    maintainAspectRatio:false, 
+                    layout:{padding:{top:30}}, 
+                    scales:{x:{grid:{display:false}}, y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}}}, 
+                    plugins:{legend:{position:'bottom', labels:{usePointStyle:true, boxWidth:8}}} 
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30, right: 20, left: 10 } },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { 
-                            beginAtZero: true,
-                            suggestedMax: 100, 
-                            grid: { color: '#f0edec' },
-                            ticks: { callback: function(value) { return value + '%' } }
-                        }
-                    },
-                    plugins: { 
-                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
-                    }
-                },
-                plugins: [percLabelsPlugin]
+                plugins: [customDataLabelsPercPlugin]
             });
 
-            chartInstances.preventivaAbs = new Chart(ctxAbs.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: mesesDoAno,
-                    datasets: datasetsAbs
+            chartInstances.preventivaAbs = new Chart(cA.getContext('2d'), {
+                type: 'bar', 
+                data: { labels: mesesDoAno, datasets: dAbs },
+                options: { 
+                    responsive:true, 
+                    maintainAspectRatio:false, 
+                    layout:{padding:{top:30}}, 
+                    scales:{x:{grid:{display:false}}, y:{beginAtZero:true}}, 
+                    plugins:{legend:{position:'bottom', labels:{usePointStyle:true, boxWidth:8}}} 
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { color: '#f0edec' }, ticks: { precision: 0 } }
-                    },
-                    plugins: { 
-                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
-                    }
-                },
-                plugins: [dataLabelsPlugin] 
+                plugins: [dataLabelsPlugin]
             });
         }
 
-        // 4. Exportação para PDF (jsPDF + html2canvas)
+        // 7. EXPORTAÇÃO E BACKUP
         async function exportarPDF() {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.replace('hidden', 'flex'); 
-
+            const ol = document.getElementById('loadingOverlay'); ol.classList.replace('hidden', 'flex'); 
             await new Promise(r => setTimeout(r, 100)); 
-
             try {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                const mW = pdf.internal.pageSize.getWidth() - 15; const mH = pdf.internal.pageSize.getHeight() - 50;
+                const chunks = Array.from(document.querySelectorAll('.pdf-export-chunk')).filter(c => !c.classList.contains('hidden'));
                 
-                const marginX = 7.5; 
-                const startY = 35; 
-                const marginBot = 15;
-                const maxAvailableWidth = pdfWidth - (marginX * 2);
-                const maxAvailableHeight = pdfHeight - startY - marginBot;
-
-                const allChunks = document.querySelectorAll('.pdf-export-chunk');
-                const chunks = Array.from(allChunks).filter(chunk => !chunk.classList.contains('hidden'));
-                
-                const pagesData = [];
-
-                for (let i = 0; i < chunks.length; i++) {
-                    const chunk = chunks[i];
-
-                    const canvas = await html2canvas(chunk, {
-                        scale: 2, 
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#fcf9f8' 
-                    });
-
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgProps = pdf.getImageProperties(imgData);
-                    
-                    const imgWidth = maxAvailableWidth;
-                    const imgHeight = (imgProps.height * maxAvailableWidth) / imgProps.width;
-                    
-                    pagesData.push({ imgData, imgWidth, imgHeight });
+                const pData = [];
+                for (let c of chunks) {
+                    const canvas = await html2canvas(c, { scale: 2, useCORS: true, logging: false, backgroundColor: '#fcf9f8' });
+                    const img = canvas.toDataURL('image/png'); const prop = pdf.getImageProperties(img);
+                    pData.push({ img, w: mW, h: (prop.height * mW) / prop.width });
                 }
 
-                const pagesToPrint = [];
-                let currentPageItems = [];
-                let currentY = startY;
-                const gapBetweenChunks = 6; 
-
-                for (let i = 0; i < pagesData.length; i++) {
-                    const chunk = pagesData[i];
-                    
-                    if (currentY + chunk.imgHeight > pdfHeight - marginBot && currentPageItems.length > 0) {
-                        pagesToPrint.push(currentPageItems);
-                        currentPageItems = [];
-                        currentY = startY; 
-                    }
-                    
-                    currentPageItems.push({
-                        imgData: chunk.imgData,
-                        x: marginX,
-                        y: currentY,
-                        width: chunk.imgWidth,
-                        height: chunk.imgHeight
-                    });
-                    
-                    currentY += chunk.imgHeight + gapBetweenChunks;
+                const pages = []; let cur = []; let cY = 35;
+                for (let c of pData) {
+                    if (cY + c.h > mH && cur.length) { pages.push(cur); cur = []; cY = 35; }
+                    cur.push({ img: c.img, x: 7.5, y: cY, w: c.w, h: c.h }); cY += c.h + 6;
                 }
-                
-                if (currentPageItems.length > 0) {
-                    pagesToPrint.push(currentPageItems);
+                if (cur.length) pages.push(cur);
+
+                for (let i = 0; i < pages.length; i++) {
+                    if (i > 0) pdf.addPage();
+                    pdf.setFont("helvetica", "bold"); pdf.setFontSize(16); pdf.setTextColor(0, 107, 95); 
+                    pdf.text("MCE Analytics - Relatório Consolidado GOT", 7.5, 15);
+                    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(28, 27, 27); 
+                    pdf.text(`Período de Referência: ${document.getElementById('dataInicio').value} a ${document.getElementById('dataFim').value}   |   Página ${i + 1} de ${pages.length}`, 7.5, 22);
+                    for (let it of pages[i]) pdf.addImage(it.img, 'PNG', it.x, it.y, it.w, it.h);
                 }
-
-                const totalPDFPages = pagesToPrint.length;
-
-                for (let p = 0; p < totalPDFPages; p++) {
-                    if (p > 0) {
-                        pdf.addPage();
-                    }
-
-                    pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(16);
-                    pdf.setTextColor(0, 107, 95); 
-                    pdf.text("MCE Analytics - Relatório Consolidado GOT", marginX, 15);
-                    
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(28, 27, 27); 
-                    const dI = document.getElementById('dataInicio').value;
-                    const dF = document.getElementById('dataFim').value;
-                    pdf.text(`Período de Referência: ${dI} a ${dF}   |   Página ${p + 1} de ${totalPDFPages}`, marginX, 22);
-
-                    const items = pagesToPrint[p];
-                    for (let item of items) {
-                        pdf.addImage(item.imgData, 'PNG', item.x, item.y, item.width, item.height);
-                    }
-                }
-
-                const hoje = new Date();
-                const dataArquivo = `${hoje.getFullYear()}_${String(hoje.getMonth()+1).padStart(2,'0')}_${String(hoje.getDate()).padStart(2,'0')}`;
-                
-                pdf.save(`relatorio_mch_${dataArquivo}.pdf`);
-
-            } catch (error) {
-                console.error("Erro ao gerar PDF:", error);
-                alert("Ocorreu um erro ao gerar o relatório. Tente novamente.");
-            } finally {
-                overlay.classList.replace('flex', 'hidden');
-            }
+                const d = new Date(); pdf.save(`relatorio_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.pdf`);
+            } catch (e) { alert("Erro ao gerar PDF."); } finally { ol.classList.replace('flex', 'hidden'); }
         }
-
-        // -----------------------------------------------------
-        // LÓGICA DE BACKUP E RESTAURAÇÃO (JSON)
-        // -----------------------------------------------------
 
         function salvarDadosJSON() {
-            const estadoAplicacao = {
-                versao: "1.0",
-                dataBackup: new Date().toISOString(),
-                dados: {
-                    mch_indMes: document.getElementById('indMes').value,
-                    mch_indPassados: document.getElementById('indPassados').value,
-                    mch_recomendacoes: document.getElementById('recomendacoesText').value,
-                    mch_dataInicio: document.getElementById('dataInicio').value,
-                    mch_dataFim: document.getElementById('dataFim').value,
-                    mch_parque: dadosParqueInstalado,
-                    mch_parque_vp: dadosParqueVP,
-                    mch_preventiva_mensal: dadosPreventivaMensal
-                }
-            };
-
-            const jsonString = JSON.stringify(estadoAplicacao, null, 2);
-            
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.href = url;
-            
-            const hoje = new Date();
-            const dataArquivo = `${hoje.getFullYear()}_${String(hoje.getMonth()+1).padStart(2,'0')}_${String(hoje.getDate()).padStart(2,'0')}`;
-            
-            downloadAnchorNode.download = `backup_mch_${dataArquivo}.json`;
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-            URL.revokeObjectURL(url);
+            const blob = new Blob([JSON.stringify({ versao: "1.0", dados: { mch_indMes: document.getElementById('indMes').value, mch_indPassados: document.getElementById('indPassados').value, mch_recomendacoes: document.getElementById('recomendacoesText').value, mch_dataInicio: document.getElementById('dataInicio').value, mch_dataFim: document.getElementById('dataFim').value, mch_parque: dadosParqueInstalado, mch_parque_vp: dadosParqueVP, mch_preventiva_mensal: dadosPreventivaMensal } }, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            const d = new Date(); a.download = `backup_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
         }
 
-        function triggerImportarDados() {
-            document.getElementById('fileImport').click();
-        }
+        function triggerImportarDados() { document.getElementById('fileImport').click(); }
 
         function processarImportacao(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            const f = event.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(e.target.result);
+                    const est = JSON.parse(e.target.result).dados; if (!est) throw new Error();
+                    if(est.mch_indMes) { document.getElementById('indMes').value=est.mch_indMes; localStorage.setItem('mch_indMes',est.mch_indMes); }
+                    if(est.mch_indPassados) { document.getElementById('indPassados').value=est.mch_indPassados; localStorage.setItem('mch_indPassados',est.mch_indPassados); }
+                    if(est.mch_recomendacoes) { document.getElementById('recomendacoesText').value=est.mch_recomendacoes; localStorage.setItem('mch_recomendacoes',est.mch_recomendacoes); }
+                    if(est.mch_dataInicio) { document.getElementById('dataInicio').value=est.mch_dataInicio; localStorage.setItem('mch_dataInicio',est.mch_dataInicio); }
+                    if(est.mch_dataFim) { document.getElementById('dataFim').value=est.mch_dataFim; localStorage.setItem('mch_dataFim',est.mch_dataFim); }
+                    if(est.mch_parque) { dadosParqueInstalado=est.mch_parque; localStorage.setItem('mch_parque',JSON.stringify(dadosParqueInstalado)); renderizarListaParque(); }
+                    if(est.mch_parque_vp) { dadosParqueVP=est.mch_parque_vp; localStorage.setItem('mch_parque_vp',JSON.stringify(dadosParqueVP)); renderizarListaParqueVP(); }
+                    if(est.mch_preventiva_mensal) { dadosPreventivaMensal=est.mch_preventiva_mensal; localStorage.setItem('mch_preventiva_mensal',JSON.stringify(dadosPreventivaMensal)); atualizarProgressoPreventiva(); }
                     
-                    if (!parsed.dados) throw new Error("Estrutura JSON inválida.");
-                    
-                    const estado = parsed.dados;
-
-                    if (estado.mch_indMes !== undefined) {
-                        document.getElementById('indMes').value = estado.mch_indMes;
-                        localStorage.setItem('mch_indMes', estado.mch_indMes);
-                    }
-                    if (estado.mch_indPassados !== undefined) {
-                        document.getElementById('indPassados').value = estado.mch_indPassados;
-                        localStorage.setItem('mch_indPassados', estado.mch_indPassados);
-                    }
-                    if (estado.mch_recomendacoes !== undefined) {
-                        document.getElementById('recomendacoesText').value = estado.mch_recomendacoes;
-                        localStorage.setItem('mch_recomendacoes', estado.mch_recomendacoes);
-                    }
-                    if (estado.mch_dataInicio !== undefined) {
-                        document.getElementById('dataInicio').value = estado.mch_dataInicio;
-                        localStorage.setItem('mch_dataInicio', estado.mch_dataInicio);
-                    }
-                    if (estado.mch_dataFim !== undefined) {
-                        document.getElementById('dataFim').value = estado.mch_dataFim;
-                        localStorage.setItem('mch_dataFim', estado.mch_dataFim);
-                    }
-
-                    if (estado.mch_parque !== undefined) {
-                        dadosParqueInstalado = estado.mch_parque;
-                        localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
-                        renderizarListaParque();
-                    }
-                    if (estado.mch_parque_vp !== undefined) {
-                        dadosParqueVP = estado.mch_parque_vp;
-                        localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
-                        renderizarListaParqueVP();
-                    }
-                    if (estado.mch_preventiva_mensal !== undefined) {
-                        dadosPreventivaMensal = estado.mch_preventiva_mensal;
-                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
-                        atualizarProgressoPreventiva();
-                    }
-                    
-                    document.getElementById('errorMessage').classList.add('hidden');
-
-                    document.getElementById('chartsContainer').classList.add('hidden');
-                    document.getElementById('noDataState').classList.add('hidden');
-                    document.getElementById('emptyState').classList.remove('hidden');
-                    document.getElementById('dashboardSubtitle').innerText = "Dados restaurados. Aguardando processamento...";
-                    
-                    const btnExportar = document.getElementById('btnExportar');
-                    btnExportar.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-                    btnExportar.classList.remove('hover:bg-surface-container');
-
-                    alert("Backup restaurado com sucesso! Clique no botão 'Processar Dados' para recalcular o Dashboard.");
-                    
-                } catch (err) {
-                    console.error("Erro ao fazer parse do JSON", err);
-                    alert("O arquivo selecionado não é um backup compatível com a aplicação MCE Analytics.");
-                }
-                
+                    document.getElementById('errorMessage').classList.add('hidden'); document.getElementById('chartsContainer').classList.add('hidden'); document.getElementById('noDataState').classList.add('hidden'); document.getElementById('emptyState').classList.remove('hidden'); document.getElementById('dashboardSubtitle').innerText = "Dados restaurados.";
+                    document.getElementById('btnExportar').classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    alert("Backup restaurado. Clique em Processar Dados.");
+                } catch(err) { alert("Arquivo inválido."); }
                 event.target.value = "";
-            };
-            
-            reader.readAsText(file);
+            }; r.readAsText(f);
         }
     </script>
 </body>

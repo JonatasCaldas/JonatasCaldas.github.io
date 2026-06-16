@@ -349,19 +349,6 @@
 
     <!-- App Logic -->
     <script type="module">
-        // Importando o Supabase Client via ES Module para evitar poluição do escopo global
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-        // =========================================================================
-        // CONFIGURAÇÃO SUPABASE
-        // =========================================================================
-        const SUPABASE_URL = 'https://zfavgcysudfnnwkswwjv.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_8QhjGpY0kxiYlKedxtyr5w_m7nVDHld'; 
-        
-        const supabaseClient = (SUPABASE_URL && SUPABASE_KEY) 
-            ? createClient(SUPABASE_URL, SUPABASE_KEY) 
-            : null;
-        
         const STORAGE_KEY = 'coleciona_mangas_data';
 
         // ELEMENTOS DO DOM (Lendo removido)
@@ -570,10 +557,8 @@
                 </div>`;
         }
 
-        // --- Lógica de Persistência (Local Storage Primário / Supabase Secundário) ---
+        // --- Lógica de Persistência (Apenas Local Storage) ---
         function saveLocalFallback() {
-            // Removemos a interrupção do supabaseClient para GARANTIR que o localStorage 
-            // SEMPRE tenha a cópia mais recente do que está na tela (fonte da verdade do backup).
             const allCards = document.querySelectorAll('.group[data-id]');
             const state = Array.from(allCards).map(card => ({
                 id: card.dataset.id,
@@ -590,44 +575,8 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         }
 
-        async function loadState() {
-            let state = [];
-            let useLocal = true;
-            
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('collection_items')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                        
-                    if (error) throw error;
-                    
-                    if (data && data.length > 0) {
-                        state = data.map(item => ({
-                            id: item.id,
-                            title: item.title,
-                            author: item.author,
-                            volumes: item.volumes,
-                            read: item.read,
-                            cover: item.cover,
-                            status: item.status,
-                            genres: item.genres,
-                            format: item.format,
-                            isWishlist: item.is_wishlist
-                        }));
-                        useLocal = false;
-                        // Se a nuvem funcionou, atualiza o cache local para mantê-lo sincronizado
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                    }
-                } catch (err) {
-                    console.warn("Modo Offline: Usando LocalStorage. Supabase indisponível.", err);
-                }
-            }
-
-            if (useLocal) {
-                state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            }
+        function loadState() {
+            let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
             gridConcluidos.innerHTML = '';
             gridIncompletoss.innerHTML = '';
@@ -695,7 +644,7 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async (event) => {
+            reader.onload = (event) => {
                 try {
                     const importedData = JSON.parse(event.target.result);
                     if (!Array.isArray(importedData)) throw new Error("O arquivo não possui o formato esperado.");
@@ -717,19 +666,6 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedLocal));
                     loadState();
                     showNotification('Coleção restaurada com sucesso!');
-
-                    // 2. Tenta sincronizar com a nuvem de forma secundária (Sem bloquear)
-                    if (supabaseClient) {
-                        try {
-                            const normalizedDB = normalizedLocal.map(item => ({ ...item, is_wishlist: item.isWishlist }));
-                            await supabaseClient.from('collection_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                            if (normalizedDB.length > 0) {
-                                await supabaseClient.from('collection_items').insert(normalizedDB);
-                            }
-                        } catch (supaErr) {
-                            console.warn("Backup restaurado localmente, mas erro na sincronização em nuvem.", supaErr);
-                        }
-                    } 
                 } catch (err) {
                     console.error("Erro na importação:", err);
                     showNotification('Erro: Arquivo JSON inválido ou corrompido.');
@@ -750,7 +686,7 @@
         closeModalBtns.forEach(btn => btn.addEventListener('click', toggleModal));
 
         // Formulário Adicionar/Editar
-        addItemForm.addEventListener('submit', async (e) => {
+        addItemForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
             const titleInput = document.getElementById('item-title').value.trim();
@@ -778,26 +714,6 @@
                 title, author, volumes, read: currentRead, cover: coverUrl, status, genres, format, isWishlist
             };
 
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('collection_items').upsert([{
-                    id: newManga.id,
-                    title: newManga.title,
-                    author: newManga.author,
-                    volumes: newManga.volumes,
-                    read: newManga.read,
-                    cover: newManga.cover,
-                    status: newManga.status,
-                    genres: newManga.genres,
-                    format: newManga.format,
-                    is_wishlist: newManga.isWishlist
-                }]);
-
-                if (error) {
-                    console.warn("Erro no DB. Salvando item apenas no LocalStorage.", error);
-                    // O return prematuro foi removido para não quebrar a lógica local
-                }
-            }
-
             removeEmptyMsgs();
 
             // Lógica Direcionamento (Lendo removido)
@@ -822,7 +738,7 @@
         });
 
         // Delegação Global para Ações dos Cards
-        document.addEventListener('click', async (e) => {
+        document.addEventListener('click', (e) => {
             const isBtnOptions = e.target.closest('.btn-card-options');
             const isDropdown = e.target.closest('.card-dropdown');
             
@@ -903,16 +819,6 @@
                     const newStatus = read === total ? 'lido' : card.dataset.status;
                     const newWishlist = read === total ? false : (card.dataset.wishlist === 'true');
 
-                    if (supabaseClient) {
-                        const { error } = await supabaseClient.from('collection_items')
-                            .update({ read: read, status: newStatus, is_wishlist: newWishlist })
-                            .eq('id', card.dataset.id);
-                            
-                        if (error) {
-                            console.warn("Falha na sincronização. Atualizando apenas no LocalStorage.");
-                        }
-                    }
-
                     card.dataset.read = read; 
                     
                     const displayAuthor = author ? ` • ${author}` : '';
@@ -967,16 +873,6 @@
                 if (read > 0) {
                     read--;
 
-                    if (supabaseClient) {
-                        const { error } = await supabaseClient.from('collection_items')
-                            .update({ read: read })
-                            .eq('id', card.dataset.id);
-                            
-                        if (error) {
-                            console.warn("Falha na sincronização. Reduzindo apenas no LocalStorage.");
-                        }
-                    }
-
                     card.dataset.read = read; 
                     
                     const displayAuthor = author ? ` • ${author}` : '';
@@ -1000,18 +896,8 @@
         // Processar Modal de Exclusão
         document.getElementById('cancel-delete').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
         document.getElementById('delete-modal-backdrop').addEventListener('click', () => { deleteModal.classList.add('hidden'); cardToDelete = null; });
-        document.getElementById('confirm-delete').addEventListener('click', async () => {
+        document.getElementById('confirm-delete').addEventListener('click', () => {
             if (cardToDelete) {
-                if (supabaseClient) {
-                    const { error } = await supabaseClient.from('collection_items')
-                        .delete()
-                        .eq('id', cardToDelete.dataset.id);
-                        
-                    if (error) {
-                        console.warn("Erro ao excluir da nuvem. Removendo do LocalStorage.", error);
-                    }
-                }
-
                 cardToDelete.style.transition = "all 0.3s ease";
                 cardToDelete.style.opacity = "0";
                 cardToDelete.style.transform = "scale(0.95)";

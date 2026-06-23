@@ -97,7 +97,7 @@
             <div>
                 <div class="flex items-center gap-3 text-primary mb-1">
                     <i data-lucide="cpu" class="w-6 h-6"></i>
-                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.0.9</h1>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.1.9</h1>
                 </div>
                 <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
             </div>
@@ -226,6 +226,14 @@
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i>
                         Importar Dados
                     </button>
+
+                    <label class="flex items-center gap-2 text-sm font-medium text-on-surface-variant cursor-pointer select-none mx-1 hover:text-primary transition-colors">
+                        <div class="relative flex items-center justify-center">
+                            <input type="checkbox" id="checkExclusivoL10" class="peer appearance-none w-[18px] h-[18px] border-2 border-outline-variant rounded-full checked:bg-primary checked:border-primary cursor-pointer transition-colors outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 focus:ring-offset-surface">
+                            <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                        </div>
+                        Exclusivo Linha 10
+                    </label>
 
                     <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
                         <i data-lucide="save" class="w-4 h-4"></i>
@@ -515,15 +523,6 @@
                                 <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
                                 <div class="flex-1 relative min-h-[350px]">
                                     <canvas id="chartPreventivaPerc"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pdf-export-chunk bg-surface">
-                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Volume Absoluto de Preventivas Realizadas (Qtd)</h3>
-                                <div class="flex-1 relative min-h-[350px]">
-                                    <canvas id="chartPreventivaAbs"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -1436,29 +1435,25 @@
             }
 
             if(chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
-            if(chartInstances.preventivaAbs) chartInstances.preventivaAbs.destroy();
 
             const cP = document.getElementById('chartPreventivaPerc');
-            const cA = document.getElementById('chartPreventivaAbs');
-            if(!cP || !cA) return;
+            if(!cP) return;
 
-            // --- Lógica Chart % e Absoluto ---
+            // --- Lógica Chart % ---
             const mStats = mesesDoAno.map((mes, idx) => {
-                let mPerc = 0; const eqP = {}; const eqA = {};
+                let mPerc = 0; const eqP = {}; 
                 dadosParqueVP.forEach(eq => {
-                    let perc=0; let abs=0;
+                    let perc=0; 
                     const md = dadosPreventivaMensal.find(m=>m.mesReferencia===idx+1);
-                    if(md){ const e = md.dados.find(d=>d.equipe===eq.equipe); if(e){ abs=e.valor; if(eq.quantidade>0) perc=Math.min(100, Math.round((abs/eq.quantidade)*100)); } }
-                    eqP[eq.equipe]=perc; eqA[eq.equipe]=abs; if(perc>mPerc) mPerc=perc;
+                    if(md){ const e = md.dados.find(d=>d.equipe===eq.equipe); if(e){ if(eq.quantidade>0) perc=Math.min(100, Math.round((e.valor/eq.quantidade)*100)); } }
+                    eqP[eq.equipe]=perc; if(perc>mPerc) mPerc=perc;
                 });
-                return { mes, max: mPerc, eqP, eqA };
+                return { mes, max: mPerc, eqP };
             });
 
             const pal = [chartColors.secondary, chartColors.primary, chartColors.tertiary, chartColors.error, chartColors.primaryContainer, chartColors.tertiaryContainer];
             
-            // Usando ordem cronológica (mesesDoAno e mStats) para os dois gráficos
             const dPerc = dadosParqueVP.map((eq,i) => ({ type:'bar', label:eq.equipe, data:mStats.map(m=>m.eqP[eq.equipe]), backgroundColor:pal[i%pal.length], borderRadius:4 }));
-            const dAbs = dadosParqueVP.map((eq,i) => ({ type:'bar', label:eq.equipe, data:mStats.map(m=>m.eqA[eq.equipe]), backgroundColor:pal[i%pal.length], borderRadius:4 }));
 
             // Plugin para escrever % em cima da barra
             const customDataLabelsPercPlugin = {
@@ -1501,19 +1496,6 @@
                 },
                 plugins: [customDataLabelsPercPlugin]
             });
-
-            chartInstances.preventivaAbs = new Chart(cA.getContext('2d'), {
-                type: 'bar', 
-                data: { labels: mesesDoAno, datasets: dAbs },
-                options: { 
-                    responsive:true, 
-                    maintainAspectRatio:false, 
-                    layout:{padding:{top:30}}, 
-                    scales:{x:{grid:{display:false}}, y:{beginAtZero:true}}, 
-                    plugins:{legend:{position:'bottom', labels:{usePointStyle:true, boxWidth:8}}} 
-                },
-                plugins: [dataLabelsPlugin]
-            });
         }
 
         // 7. EXPORTAÇÃO E BACKUP
@@ -1539,12 +1521,13 @@
                 }
                 if (cur.length) pages.push(cur);
 
+                const isExclusivoL10 = document.getElementById('checkExclusivoL10').checked;
+                const pdfTitle = isExclusivoL10 ? "Exclusivo Linha 10 - MCE Analytics - Relatório Consolidado GOT" : "MCE Analytics - Relatório Consolidado GOT";
+
                 for (let i = 0; i < pages.length; i++) {
                     if (i > 0) pdf.addPage();
                     pdf.setFont("helvetica", "bold"); pdf.setFontSize(16); pdf.setTextColor(0, 107, 95); 
-                    pdf.text("MCE Analytics - Relatório Consolidado GOT", 7.5, 15);
-                    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(28, 27, 27); 
-                    pdf.text(`Período de Referência: ${document.getElementById('dataInicio').value} a ${document.getElementById('dataFim').value}   |   Página ${i + 1} de ${pages.length}`, 7.5, 22);
+                    pdf.text(pdfTitle, 7.5, 15);
                     for (let it of pages[i]) pdf.addImage(it.img, 'PNG', it.x, it.y, it.w, it.h);
                 }
                 const d = new Date(); pdf.save(`relatorio_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.pdf`);

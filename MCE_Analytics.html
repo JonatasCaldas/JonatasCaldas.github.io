@@ -97,7 +97,7 @@
             <div>
                 <div class="flex items-center gap-3 text-primary mb-1">
                     <i data-lucide="cpu" class="w-6 h-6"></i>
-                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.1.9</h1>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.2.9</h1>
                 </div>
                 <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
             </div>
@@ -275,6 +275,7 @@
                                     Indicadores do Mês
                                 </h2>
                                 <p class="text-sm text-on-surface-variant">Visão geral e detalhada das avarias no período selecionado.</p>
+                                <p id="periodoReferenciaDisplay" class="text-sm font-semibold text-on-surface mt-1 hidden"></p>
                             </div>
                             
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -436,7 +437,7 @@
                                     <i data-lucide="history" class="w-6 h-6"></i>
                                     Indicadores Passados
                                 </h2>
-                                <p class="text-sm text-on-surface-variant">Análise retrospectiva e comparações históricas de longo prazo.</p>
+                                <p class="text-sm text-on-surface-variant">Análise retrospectiva e comparações históricas referentes ao ano anterior.</p>
                             </div>
                             
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -506,7 +507,7 @@
                                     <i data-lucide="shield-check" class="w-6 h-6"></i>
                                     Preventiva
                                 </h2>
-                                <p class="text-sm text-on-surface-variant">Acompanhamento do percentual de conclusão das manutenções programadas em relação ao parque base.</p>
+                                <p class="text-sm text-on-surface-variant">Acompanhamento do percentual de conclusão das manutenções preventivas no ano vigente.</p>
                             </div>
                             
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col">
@@ -1190,6 +1191,12 @@
                     
                     const dI = strInicio.split('-'); const dF = strFim.split('-');
                     document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}/${dI[1]}/${dI[0]} a ${dF[2]}/${dF[1]}/${dF[0]}`;
+
+                    const displayRef = document.getElementById('periodoReferenciaDisplay');
+                    if (displayRef) {
+                        displayRef.innerText = `Período de Referência: ${strInicio} a ${strFim}`;
+                        displayRef.classList.remove('hidden');
+                    }
 
                     const recRaw = document.getElementById('recomendacoesText').value.trim();
                     const recCont = document.getElementById('section-recomendacoes-container');

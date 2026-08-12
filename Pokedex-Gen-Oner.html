@@ -1055,9 +1055,6 @@
             }
         };
 
-        // Regex para garantir que não mandamos IDs defeituosos para colunas UUID
-        const isValidUUID = (uuid) => typeof uuid === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-
         const restoreData = async (importedData) => {
             try {
                 showToast('Restaurando banco de dados... (não feche a aba)', false);
@@ -1071,125 +1068,134 @@
                 await db.from('cards').delete().not('id', 'is', null);
                 await db.from('milestones').delete().not('id', 'is', null);
 
-                // 2. Insere Coleções e Cartas (Mapeamento cirúrgico para evitar rejeição do Supabase)
+                // Mapeamentos de IDs temporários para garantir integridade e resolver Falha 2
+                const mapaColecoes = {};
+                const mapaFicharios = {};
+                const mapaTracker = {};
+
+                // 2. Insere Coleções e Cartas gerando novos UUIDs em cadeia
                 if (importedData.collections && importedData.collections.length > 0) {
-                    const colsToInsert = importedData.collections.map(c => {
-                        const payload = {
+                    const colsToInsert = [];
+                    const colCardsToInsert = [];
+
+                    importedData.collections.forEach(c => {
+                        const newColId = crypto.randomUUID();
+                        if (c.id) mapaColecoes[c.id] = newColId;
+
+                        const payloadCol = {
+                            id: newColId,
                             created_at: c.created_at || new Date().toISOString(),
                             name: c.name || 'Sem Nome',
                             category: c.category || 'Geral',
                             image: c.image || ''
                         };
-                        if (isValidUUID(c.id)) payload.id = c.id;
-                        if (c.logo_url !== undefined) payload.logo_url = c.logo_url;
-                        return payload;
-                    });
-                    await insertInChunks('collections', colsToInsert);
-                    
-                    const colCards = importedData.collections.flatMap(c => {
-                        if (!isValidUUID(c.id)) return [];
-                        const arr = c.cards || c.collection_cards || [];
-                        return arr.map(cc => {
-                            const payload = {
+                        if (c.logo_url !== undefined) payloadCol.logo_url = c.logo_url;
+                        colsToInsert.push(payloadCol);
+
+                        const arrCards = c.cards || c.collection_cards || [];
+                        arrCards.forEach(cc => {
+                            colCardsToInsert.push({
+                                id: crypto.randomUUID(), // Novo ID pra carta
                                 created_at: cc.created_at || new Date().toISOString(),
-                                collection_id: c.id,
+                                collection_id: newColId, // Vincula ao novo ID gerado da coleção
                                 num: cc.num || '-',
                                 name: cc.name || 'Carta sem título',
                                 image: cc.image || '',
                                 rarity: cc.rarity || 'COMUM',
                                 collected: cc.collected === true
-                            };
-                            if (isValidUUID(cc.id)) payload.id = cc.id;
-                            return payload;
+                            });
                         });
                     });
-                    if (colCards.length > 0) await insertInChunks('collection_cards', colCards);
+
+                    if (colsToInsert.length > 0) await insertInChunks('collections', colsToInsert);
+                    if (colCardsToInsert.length > 0) await insertInChunks('collection_cards', colCardsToInsert);
                 }
 
-                // 3. Insere Fichários e Cartas
+                // 3. Insere Fichários e Cartas gerando novos UUIDs em cadeia
                 if (importedData.binders && importedData.binders.length > 0) {
-                    const bindersToInsert = importedData.binders.map(b => {
-                        const payload = {
+                    const bindersToInsert = [];
+                    const binderCardsToInsert = [];
+
+                    importedData.binders.forEach(b => {
+                        const newBinderId = crypto.randomUUID();
+                        if (b.id) mapaFicharios[b.id] = newBinderId;
+
+                        const payloadBinder = {
+                            id: newBinderId,
                             created_at: b.created_at || new Date().toISOString(),
                             name: b.name || 'Sem Nome',
                             category: b.category || 'Geral',
                             image: b.image || ''
                         };
-                        if (isValidUUID(b.id)) payload.id = b.id;
-                        if (b.page_count !== undefined) payload.page_count = b.page_count;
-                        if (b.page_names !== undefined) payload.page_names = Array.isArray(b.page_names) ? b.page_names : null;
-                        if (b.page_logos !== undefined) payload.page_logos = Array.isArray(b.page_logos) ? b.page_logos : null;
-                        return payload;
-                    });
-                    await insertInChunks('binders', bindersToInsert);
+                        if (b.page_count !== undefined) payloadBinder.page_count = b.page_count;
+                        if (b.page_names !== undefined) payloadBinder.page_names = Array.isArray(b.page_names) ? b.page_names : null;
+                        if (b.page_logos !== undefined) payloadBinder.page_logos = Array.isArray(b.page_logos) ? b.page_logos : null;
+                        bindersToInsert.push(payloadBinder);
 
-                    const binderCards = importedData.binders.flatMap(b => {
-                        if (!isValidUUID(b.id)) return [];
-                        const arr = b.cards || b.binder_cards || [];
-                        return arr.map(bc => {
-                            const payload = {
+                        const arrCards = b.cards || b.binder_cards || [];
+                        arrCards.forEach(bc => {
+                            binderCardsToInsert.push({
+                                id: crypto.randomUUID(),
                                 created_at: bc.created_at || new Date().toISOString(),
-                                binder_id: b.id,
+                                binder_id: newBinderId, // Vincula ao novo ID gerado do fichário
                                 slot_index: bc.slot_index !== undefined ? bc.slot_index : 0,
                                 num: bc.num || '-',
                                 name: bc.name || 'Carta sem título',
                                 image: bc.image || '',
                                 rarity: bc.rarity || 'COMUM',
                                 collected: bc.collected === true
-                            };
-                            if (isValidUUID(bc.id)) payload.id = bc.id;
-                            return payload;
+                            });
                         });
                     });
-                    if (binderCards.length > 0) await insertInChunks('binder_cards', binderCards);
+
+                    if (bindersToInsert.length > 0) await insertInChunks('binders', bindersToInsert);
+                    if (binderCardsToInsert.length > 0) await insertInChunks('binder_cards', binderCardsToInsert);
                 }
 
-                // 4. Insere Tracker
+                // 4. Insere Tracker gerando novos UUIDs em cadeia
                 if (importedData.tracker_cards && importedData.tracker_cards.length > 0) {
-                    const tCardsToInsert = importedData.tracker_cards.map(tc => {
-                        const payload = {
+                    const tCardsToInsert = [];
+                    const tHistoryToInsert = [];
+
+                    importedData.tracker_cards.forEach(tc => {
+                        const newCardId = crypto.randomUUID();
+                        if (tc.id) mapaTracker[tc.id] = newCardId;
+
+                        tCardsToInsert.push({
+                            id: newCardId,
                             created_at: tc.created_at || new Date().toISOString(),
                             name: tc.name || 'Sem título',
                             subtitle: tc.subtitle || '',
                             image_url: tc.image_url || tc.image || '',
                             is_wishlist: tc.is_wishlist || false
-                        };
-                        if (isValidUUID(tc.id)) payload.id = tc.id;
-                        return payload;
-                    });
-                    await insertInChunks('cards', tCardsToInsert);
+                        });
 
-                    const tHistory = importedData.tracker_cards.flatMap(tc => {
-                        if (!isValidUUID(tc.id)) return [];
-                        const arr = tc.history || tc.price_history || [];
-                        return arr.map(h => {
-                            const payload = {
-                                card_id: tc.id,
+                        const arrHistory = tc.history || tc.price_history || [];
+                        arrHistory.forEach(h => {
+                            tHistoryToInsert.push({
+                                id: crypto.randomUUID(),
+                                card_id: newCardId,
                                 value: h.value || 0,
                                 recorded_at: h.recorded_at || h.date || new Date().toISOString()
-                            };
-                            if (isValidUUID(h.id)) payload.id = h.id;
-                            return payload;
+                            });
                         });
                     });
-                    if (tHistory.length > 0) await insertInChunks('price_history', tHistory);
+
+                    if (tCardsToInsert.length > 0) await insertInChunks('cards', tCardsToInsert);
+                    if (tHistoryToInsert.length > 0) await insertInChunks('price_history', tHistoryToInsert);
                 }
 
-                // 5. Insere Destaques (Milestones)
+                // 5. Insere Destaques (Milestones) gerando novos UUIDs
                 if (importedData.milestones && importedData.milestones.length > 0) {
-                    const milestonesToInsert = importedData.milestones.map(m => {
-                        const payload = {
-                            name: m.name || 'Sem título',
-                            subtitle: m.subtitle || '',
-                            image_url: m.image_url || m.image || '',
-                            recorded_date: m.recorded_date || m.date || new Date().toISOString().split('T')[0],
-                            description: m.description || m.text || ''
-                        };
-                        // Filtra rigorosamente os IDs falsos como 'm_123'
-                        if (isValidUUID(m.id)) payload.id = m.id;
-                        return payload;
-                    });
-                    await insertInChunks('milestones', milestonesToInsert);
+                    const milestonesToInsert = importedData.milestones.map(m => ({
+                        id: crypto.randomUUID(),
+                        name: m.name || 'Sem título',
+                        subtitle: m.subtitle || '',
+                        image_url: m.image_url || m.image || '',
+                        recorded_date: m.recorded_date || m.date || new Date().toISOString().split('T')[0],
+                        description: m.description || m.text || ''
+                    }));
+                    if (milestonesToInsert.length > 0) await insertInChunks('milestones', milestonesToInsert);
                 }
 
                 // Limpa totalmente a memória local para forçar nova busca do banco
@@ -1215,21 +1221,50 @@
             }
         };
 
-        const saveBackup = () => {
+        const saveBackup = async () => {
+            const backupBtn = document.querySelector('button[onclick="saveBackup()"]');
+            const originalBtnHtml = backupBtn ? backupBtn.innerHTML : '';
+            if (backupBtn) {
+                backupBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Preparando...`;
+                backupBtn.disabled = true;
+                lucide.createIcons({ root: backupBtn });
+            }
+            
             try {
-                const today = new Date();
-                const dd = String(today.getDate()).padStart(2, '0');
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const filename = `backup-tcg-${dd}-${mm}-${today.getFullYear()}.json`;
-                
-                // Garantindo a exportação limpa, retirando objetos aninhados invisíveis
-                const cleanCols = appState.collections.map(c => {
+                showToast('Gerando backup atualizado da nuvem...', false);
+
+                // Busca paralela e rigorosa de todos os dados frescos do Supabase
+                const [
+                    { data: colsData, error: colsErr },
+                    { data: bndsData, error: bndsErr },
+                    { data: trackerData, error: trackerErr },
+                    { data: milestonesData, error: milestonesErr }
+                ] = await Promise.all([
+                    db.from('collections').select('*, collection_cards(*)').order('created_at', { ascending: false }),
+                    db.from('binders').select('*, binder_cards(*)').order('created_at', { ascending: false }),
+                    db.from('cards').select('*, price_history(*)').order('created_at', { ascending: false }),
+                    db.from('milestones').select('*').order('recorded_date', { ascending: false })
+                ]);
+
+                if (colsErr) throw colsErr;
+                if (bndsErr) throw bndsErr;
+                if (trackerErr) throw trackerErr;
+                if (milestonesErr) throw milestonesErr;
+
+                // Formatação estrutural exigida pela rotina de restauração
+                const formattedCollections = (colsData || []).map(c => {
                     const { collection_cards, ...cleanC } = c;
-                    return cleanC;
+                    return { ...cleanC, cards: collection_cards || [] };
                 });
-                const cleanBnds = appState.binders.map(b => {
+
+                const formattedBinders = (bndsData || []).map(b => {
                     const { binder_cards, ...cleanB } = b;
-                    return cleanB;
+                    return { ...cleanB, cards: binder_cards || [] };
+                });
+
+                const formattedTrackerCards = (trackerData || []).map(tc => {
+                    const { price_history, ...cleanTC } = tc;
+                    return { ...cleanTC, history: price_history || [] };
                 });
 
                 const fullBackupData = {
@@ -1237,11 +1272,16 @@
                         export_date: new Date().toISOString(),
                         app: "TCG Curator"
                     },
-                    collections: cleanCols,
-                    binders: cleanBnds,
-                    tracker_cards: typeof tCards !== 'undefined' ? tCards : [],
-                    milestones: typeof mMilestones !== 'undefined' ? mMilestones : []
+                    collections: formattedCollections,
+                    binders: formattedBinders,
+                    tracker_cards: formattedTrackerCards,
+                    milestones: milestonesData || []
                 };
+
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const filename = `backup-tcg-${dd}-${mm}-${today.getFullYear()}.json`;
 
                 const dataStr = JSON.stringify(fullBackupData, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
@@ -1255,8 +1295,14 @@
                 URL.revokeObjectURL(url);
                 showToast('Backup gerado e baixado com sucesso!');
             } catch (err) {
-                console.error(err);
-                showToast('Erro ao gerar o arquivo de backup.', true);
+                console.error("Erro no download do backup do banco de dados:", err);
+                showToast('Erro ao gerar o arquivo de backup da nuvem.', true);
+            } finally {
+                if (backupBtn) {
+                    backupBtn.innerHTML = originalBtnHtml;
+                    backupBtn.disabled = false;
+                    lucide.createIcons({ root: backupBtn });
+                }
             }
         };
 

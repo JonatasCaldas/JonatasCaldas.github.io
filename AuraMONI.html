@@ -141,6 +141,43 @@
             return body;
         }
 
+        async function pcdsGetPaginado(endpoint, { limiteTotal = 500, tamanhoPagina = 100, extraHeaders = {} } = {}) {
+            const registros = [];
+            const cursoresUtilizados = new Set();
+            let pageCursor = null;
+
+            while (registros.length < limiteTotal) {
+                const headers = {
+                    ...extraHeaders,
+                    'Page-Size': String(Math.min(tamanhoPagina, limiteTotal - registros.length)),
+                    'Request-Count': 'true'
+                };
+                if (pageCursor) headers['Page-Cursor'] = pageCursor;
+
+                if (!PCDS_API_KEY || PCDS_API_KEY === 'COLE_SUA_API_KEY_AQUI') throw new Error('Configure PCDS_API_KEY no código.');
+                const requestHeaders = { Accept: 'application/json', 'api-key': PCDS_API_KEY, ...headers };
+                if (PCDS_ORGANISATIONS) requestHeaders.organisations = PCDS_ORGANISATIONS;
+
+                const response = await fetch(`${PCDS_API_BASE}${endpoint}`, { method: 'GET', headers: requestHeaders, mode: 'cors' });
+                const contentType = response.headers.get('content-type') || '';
+                const body = contentType.includes('application/json') ? await response.json() : await response.text();
+                if (!response.ok) throw new Error(body?.message || `Erro HTTP ${response.status}`);
+                if (!Array.isArray(body)) throw new Error('A API não retornou uma lista de registros.');
+                if (body.length === 0) break;
+
+                registros.push(...body.slice(0, limiteTotal - registros.length));
+                if (registros.length >= limiteTotal) break;
+
+                const proximoCursor = response.headers.get('Page-Cursor');
+                if (!proximoCursor || cursoresUtilizados.has(proximoCursor)) break;
+
+                cursoresUtilizados.add(proximoCursor);
+                pageCursor = proximoCursor;
+            }
+
+            return registros;
+        }
+
         function classificarNivelPorMaiorImpacto(valor) {
             const impacto = Number(valor) || 0;
             if (impacto >= 4500) return 'Nível 1';
@@ -198,8 +235,16 @@
             if (mockAlarmes.length > 0) return mockAlarmes;
             if (!carregamentoAlarmesPromise) {
                 carregamentoAlarmesPromise = Promise.all([
-                    pcdsGet('/data/pcds/site-summaries', { sort: '<metrics.most_recent_event' }),
-                    pcdsGet('/data/pcds/site-event-summaries', { sort: '<timestamp' })
+                    pcdsGetPaginado('/data/pcds/site-summaries', {
+                        limiteTotal: 500,
+                        tamanhoPagina: 100,
+                        extraHeaders: { sort: '<metrics.most_recent_event' }
+                    }),
+                    pcdsGetPaginado('/data/pcds/site-event-summaries', {
+                        limiteTotal: 500,
+                        tamanhoPagina: 100,
+                        extraHeaders: { sort: '<timestamp' }
+                    })
                 ]).then(([sites, eventos]) => {
                     const dados = combinarDadosDeAlarmes(sites, eventos);
                     mockAlarmes.splice(0, mockAlarmes.length, ...dados);
@@ -214,6 +259,57 @@
                 if (Object.prototype.hasOwnProperty.call(contagem, registro.nivel)) contagem[registro.nivel]++;
             }
             return contagem;
+        }
+        let carregamentoSaudePromise = null;
+        async function carregarDadosSaude() {
+            if (!carregamentoSaudePromise) {
+                carregamentoSaudePromise = pcdsGet('/pcds/vehicles', {
+                    'Page-Size': '100',
+                    'Fields': JSON.stringify([
+                        'id', 'name', 'battery_level', 'last_checkin', 'health_status',
+                        'pantograph_status.position', 'pantograph_status.position_updated_at'
+                    ])
+                }).catch(error => { carregamentoSaudePromise = null; throw error; });
+            }
+            return carregamentoSaudePromise;
+        }
+        function formatarTempoRelativo(valor) {
+            if (!valor) return 'Não informado';
+            const data = new Date(valor);
+            if (Number.isNaN(data.getTime())) return 'Não informado';
+            const segundos = Math.max(0, Math.floor((Date.now() - data.getTime()) / 1000));
+            if (segundos < 60) return 'há menos de 1 minuto';
+            const minutos = Math.floor(segundos / 60);
+            if (minutos < 60) return `há ${minutos} minuto${minutos === 1 ? '' : 's'}`;
+            const horas = Math.floor(minutos / 60);
+            if (horas < 24) return `há cerca de ${horas} hora${horas === 1 ? '' : 's'}`;
+            const dias = Math.floor(horas / 24);
+            if (dias < 30) return `há cerca de ${dias} dia${dias === 1 ? '' : 's'}`;
+            const meses = Math.floor(dias / 30);
+            if (meses < 12) return `há cerca de ${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+            const anos = Math.floor(dias / 365);
+            return `há cerca de ${anos} ano${anos === 1 ? '' : 's'}`;
+        }
+        function renderizarLinhasSaude(veiculos) {
+            const registros = Array.isArray(veiculos) ? veiculos : [];
+            if (!registros.length) return '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum veículo encontrado.</td></tr>';
+            return registros.map(veiculo => {
+                const posicao = String(veiculo?.pantograph_status?.position || '').toUpperCase();
+                const pantografoLevantado = posicao === 'UP';
+                const bateria = Number.isFinite(Number(veiculo?.battery_level)) ? `${Number(veiculo.battery_level)}%` : 'Não informado';
+                const status = veiculo?.health_status || 'Não informado';
+                const posicaoExibicao = pantografoLevantado ? 'LEVANTADO' : (posicao ? 'ABAIXADO' : 'NÃO INFORMADO');
+                const corIndicador = pantografoLevantado ? 'bg-[#16A34A]' : 'bg-[#FF0000]';
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors bg-white">
+                        <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full ${corIndicador}"></div><span class="text-gray-800 font-medium">${veiculo?.name || veiculo?.id || 'Não informado'}</span></div></td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${bateria}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${formatarTempoRelativo(veiculo?.last_checkin)}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${status}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${posicaoExibicao}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${formatarTempoRelativo(veiculo?.pantograph_status?.position_updated_at)}</td>
+                    </tr>`;
+            }).join('');
         }
         // =================================================================================
         // ESTADO E NAVEGAÇÃO
@@ -370,23 +466,8 @@
                                             <th class="px-4 py-3 whitespace-nowrap leading-tight">Posição do Pantógrafo<br>Atualizada Em</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-[#E5E7EB]">
-                                        <tr class="hover:bg-gray-50 transition-colors bg-white">
-                                            <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[#16A34A]"></div><span class="text-gray-800 font-medium">N090-N056</span></div></td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">18%</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">há 21 minutos</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">OK</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">LEVANTADO</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">há cerca de 3 horas</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50 transition-colors bg-white">
-                                            <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[#FF0000]"></div><span class="text-gray-800 font-medium">H620-H619</span></div></td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">98%</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">há 8 minutos</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">SEM COMUNICAÇÃO</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">ABAIXADO</td>
-                                            <td class="px-4 py-3 text-gray-600 whitespace-nowrap">há 37 minutos</td>
-                                        </tr>
+                                    <tbody id="saude-sistema-tbody" class="divide-y divide-[#E5E7EB]">
+                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Carregando dados da plataforma...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -407,6 +488,16 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
             activeCharts.push(niveisChart);
+            carregarDadosSaude().then(veiculos => {
+                if (activeScreen !== 'dashboard') return;
+                const tbody = document.getElementById('saude-sistema-tbody');
+                if (tbody) tbody.innerHTML = renderizarLinhasSaude(veiculos);
+            }).catch(error => {
+                console.error('Erro ao carregar saúde do sistema:', error);
+                if (activeScreen !== 'dashboard') return;
+                const tbody = document.getElementById('saude-sistema-tbody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-red-700 bg-red-50"><strong>Falha ao consultar a API:</strong> ${error.message}. Verifique a chave, as permissões e o CORS.</td></tr>`;
+            });
             carregarDadosAlarmes().then(registros => {
                 if (activeScreen !== 'dashboard') return;
                 const contagem = contarAlarmesPorNivel(registros);

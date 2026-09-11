@@ -20,6 +20,8 @@
     <!-- Leaflet Heatmap -->
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Configuração do Tailwind -->
     <script>
         tailwind.config = {
@@ -44,47 +46,58 @@
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col items-center pt-12 pb-12">
-
-    <main class="w-full max-w-6xl px-6">
+<body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+    <div class="flex min-h-screen w-full">
+        <!-- Sidebar / Navegação Lateral -->
+        <aside id="sidebar" class="bg-white border-r border-gray-200 text-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-shrink-0 shadow-sm flex flex-col">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 text-center">
+                        <img src="https://www.cptm.sp.gov.br/wcm/connect/1ba276a6-20bd-4f27-99be-f87a016b471d/logo_cptm3.png?MOD=AJPERES&ContentCache=none&CACHE=none&CACHEID=ROOTWORKSPACE-1ba276a6-20bd-4f27-99be-f87a016b471d-pxyIk9k" alt="Logo CPTM" class="h-12 w-auto max-w-full object-contain mb-4" referrerpolicy="no-referrer">
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Aura</h2>
+                        <p class="text-xs text-gray-500 font-medium">Análise Unificada de Rede Aérea</p>
+                    </div>
+                    <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-gray-700 flex-shrink-0" aria-label="Fechar menu"><i data-lucide="x"></i></button>
+                </div>
+            </div>
+            <nav class="p-4 flex-1 overflow-y-auto">
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">MONITORAMENTO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#dashboard" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Dashboard</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#tabela" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Eventos</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#historico" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Histórico</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">AVANÇADO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraALARM.aspx" aria-current="page" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold bg-accent text-gray-900 shadow-sm transition-all duration-200">Alarmes</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraLOC.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Localidade</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraTREC.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Trecho</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <footer class="px-5 py-4 border-t border-gray-100 bg-gray-50 text-center">
+                <p class="text-[11px] leading-relaxed text-gray-500 font-medium">Desenvolvido internamente pela engenharia de manutenção</p>
+            </footer>
+        </aside>
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Cabeçalho Superior Mobile -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-20 md:hidden">
+                <div class="flex items-center justify-between h-16 px-4">
+                    <button id="open-sidebar-btn" class="text-gray-600 hover:text-gray-900" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                    <span class="font-bold text-gray-900 text-lg">Aura</span>
+                    <div class="w-6"></div>
+                </div>
+            </header>
+            <main class="flex-1 p-6 md:p-10 max-w-none w-full mx-auto">
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraALARM 2.8.0</h1>
-            <p class="text-gray-500 mt-1 text-lg">Monitore anomalias e faça triagem de alertas críticos para resposta rápida a falhas</p>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Aura ALARME</h1>
+            <p class="text-gray-500 mt-1 text-lg">Análise específica de alarmes</p>
         </header>
-
-        <!-- Stepper de Progresso -->
-        <nav aria-label="Progress" class="mb-10 w-full max-w-2xl mx-auto px-4">
-            <div class="relative flex justify-between items-center">
-                <!-- Linha de conexão -->
-                <div class="absolute left-0 top-5 transform w-full h-1 bg-gray-200 z-0 rounded-full"></div>
-
-                <!-- Etapa 1: ALARM (Atual) -->
-                <a href="https://jonatascaldas.github.io/AuraALARM.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-gray-900 font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110">
-                        1
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-bold text-gray-900 tracking-wide">ALARM</span>
-                </a>
-
-                <!-- Etapa 2: ROUTE (Futura) -->
-                <a href="https://jonatascaldas.github.io/AuraROUTE.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-gray-300 group-hover:text-gray-700">
-                        2
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-medium text-gray-400 tracking-wide transition-colors duration-300 group-hover:text-gray-600">ROUTE</span>
-                </a>
-
-                <!-- Etapa 3: LOC (Futura) -->
-                <a href="https://jonatascaldas.github.io/AuraLOC.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-gray-300 group-hover:text-gray-700">
-                        3
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-medium text-gray-400 tracking-wide transition-colors duration-300 group-hover:text-gray-600">LOC</span>
-                </a>
-            </div>
-        </nav>
 
         <!-- Seção de Entrada -->
         <section id="inputSection" class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-300 relative overflow-hidden">
@@ -95,7 +108,7 @@
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV Principal</h2>
-                        <p class="text-xs text-gray-500 mt-1">Base central da análise. Obrigatório (1 arquivo).</p>
+                        <p class="text-xs text-gray-500 mt-1">Ex: PCDS_sites_2026-09-04T12_38_38.989Z.csv</p>
                     </div>
                 </div>
                 
@@ -355,8 +368,9 @@
         <div id="emptyState" class="text-center py-20 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg mt-6">
             <p>Carregue o arquivo CSV Principal para iniciar.</p>
         </div>
-    </main>
-
+            </main>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- ESTADO GLOBAL ---
@@ -1466,6 +1480,18 @@
             if(els.btnMapHeat) els.btnMapHeat.addEventListener('click', () => setMapMode('heat'));
 
         });
+    </script>
+    <script>
+        (() => {
+            const sidebar = document.getElementById('sidebar');
+            const openButton = document.getElementById('open-sidebar-btn');
+            const closeButton = document.getElementById('close-sidebar-btn');
+            const openSidebar = () => sidebar && sidebar.classList.remove('-translate-x-full');
+            const closeSidebar = () => sidebar && sidebar.classList.add('-translate-x-full');
+            if (openButton) openButton.addEventListener('click', openSidebar);
+            if (closeButton) closeButton.addEventListener('click', closeSidebar);
+            if (window.lucide) lucide.createIcons();
+        })();
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura | ROUTE</title>
+    <title>Aura | TREC</title>
     
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,15 +23,17 @@
     <!-- Leaflet Heatmap -->
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Configuração do Tailwind -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'accent': '#FFE599',        /* Cor de ênfase solicitada */
-                        'accent-dark': '#F5D366',   /* Tom escuro para hover */
-                        'accent-light': '#FFF5D6',  /* Tom claro para backgrounds suaves */
+                        'accent': '#6FE6FC',        /* Cor de ênfase solicitada */
+                        'accent-dark': '#5ACCE0',   /* Tom escuro para hover */
+                        'accent-light': '#E8FAFE',  /* Tom claro para backgrounds suaves */
                     }
                 }
             }
@@ -46,44 +48,57 @@
         .leaflet-container { z-index: 0; }
     </style>
 </head>
-<body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col items-center pt-12 pb-12">
-
-    <main class="w-full max-w-6xl px-6">
+<body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+    <div class="flex min-h-screen w-full">
+        <!-- Sidebar / Navegação Lateral -->
+        <aside id="sidebar" class="bg-white border-r border-gray-200 text-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-shrink-0 shadow-sm flex flex-col">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 text-center">
+                        <img src="https://www.cptm.sp.gov.br/wcm/connect/1ba276a6-20bd-4f27-99be-f87a016b471d/logo_cptm3.png?MOD=AJPERES&ContentCache=none&CACHE=none&CACHEID=ROOTWORKSPACE-1ba276a6-20bd-4f27-99be-f87a016b471d-pxyIk9k" alt="Logo CPTM" class="h-12 w-auto max-w-full object-contain mb-4" referrerpolicy="no-referrer">
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Aura</h2>
+                        <p class="text-xs text-gray-500 font-medium">Análise Unificada de Rede Aérea</p>
+                    </div>
+                    <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-gray-700 flex-shrink-0" aria-label="Fechar menu"><i data-lucide="x"></i></button>
+                </div>
+            </div>
+            <nav class="p-4 flex-1 overflow-y-auto">
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">MONITORAMENTO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#dashboard" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Dashboard</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#tabela" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Eventos</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#historico" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Histórico</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">AVANÇADO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraALARM.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Alarmes</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraLOC.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Localidade</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraTREC.aspx" aria-current="page" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold bg-accent text-gray-900 shadow-sm transition-all duration-200">Trecho</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <footer class="px-5 py-4 border-t border-gray-100 bg-gray-50 text-center">
+                <p class="text-[11px] leading-relaxed text-gray-500 font-medium">Desenvolvido internamente pela engenharia de manutenção</p>
+            </footer>
+        </aside>
+        <div class="flex-1 flex flex-col min-w-0">
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-20 md:hidden">
+                <div class="flex items-center justify-between h-16 px-4">
+                    <button id="open-sidebar-btn" class="text-gray-600 hover:text-gray-900" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                    <span class="font-bold text-gray-900 text-lg">Aura</span>
+                    <div class="w-6"></div>
+                </div>
+            </header>
+            <main class="flex-1 p-6 md:p-10 max-w-none w-full mx-auto">
         
         <!-- Cabeçalho -->
         <header class="mb-8 border-b border-gray-200 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">AuraROUTE 2.2.2</h1>
-            <p class="text-gray-500 mt-1 text-lg">Centralize e prepare os dados de criticidade e eventos principais para a análise de roteamento</p>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Aura TRECHO</h1>
+            <p class="text-gray-500 mt-1 text-lg">Análise de alarmes em um trecho</p>
         </header>
-
-        <!-- Stepper de Progresso -->
-        <nav aria-label="Progress" class="mb-10 w-full max-w-2xl mx-auto px-4">
-            <div class="relative flex justify-between items-center">
-                <div class="absolute left-0 top-5 transform w-full h-1 bg-gray-200 z-0 rounded-full"></div>
-                <div class="absolute left-0 top-5 transform w-1/2 h-1 bg-accent z-0 rounded-full transition-all duration-500"></div>
-
-                <a href="https://jonatascaldas.github.io/AuraALARM.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-gray-900 font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-bold text-gray-900 tracking-wide">ALARM</span>
-                </a>
-
-                <a href="#" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-accent text-gray-900 font-bold border-4 border-[#f8fafc] shadow-md ring-4 ring-accent-light transition-all duration-300 scale-110">
-                        2
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-bold text-gray-900 tracking-wide">ROUTE</span>
-                </a>
-
-                <a href="https://jonatascaldas.github.io/AuraLOC.html" class="relative z-10 flex flex-col items-center group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold border-4 border-[#f8fafc] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-gray-300 group-hover:text-gray-700">
-                        3
-                    </div>
-                    <span class="mt-2 text-xs md:text-sm font-medium text-gray-400 tracking-wide transition-colors duration-300 group-hover:text-gray-600">LOC</span>
-                </a>
-            </div>
-        </nav>
 
         <!-- Mensagens de Erro Globais -->
         <div id="errorMsg" class="hidden mb-6 p-4 bg-red-50 text-red-700 text-sm rounded-md border border-red-200 animate-fade-in flex items-center gap-3">
@@ -104,7 +119,7 @@
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV Principal</h2>
-                        <p class="text-xs text-gray-500 mt-1">Base central do roteamento. Obrigatório (1 arquivo).</p>
+                        <p class="text-xs text-gray-500 mt-1">Ex: PCDS_sites_2026-09-04T12_38_38.989Z.csv</p>
                     </div>
                 </div>
                 
@@ -128,7 +143,7 @@
                 <div class="pl-2 flex flex-col h-full">
                     <h2 class="text-md font-semibold text-gray-800">Selecione os arquivos CSV de Maiores Criticidades</h2>
                     <p class="text-xs text-gray-500 mt-1 mb-4 flex justify-between items-center">
-                        <span>Eventos prioritários. Formato .csv.</span>
+                        <span>Ex: site_data_681d6b14670fa4c0d1bd3d6b.csv</span>
                         <span id="highCritCounter" class="font-bold px-2 py-0.5 bg-gray-100 rounded text-gray-600">0 / 5</span>
                     </p>
                     <input type="file" id="csvHighCrit" accept=".csv" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent-light file:text-gray-800 hover:file:bg-accent focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2 transition-colors mb-4">
@@ -144,7 +159,7 @@
                 <div class="pl-2 flex flex-col h-full">
                     <h2 class="text-md font-semibold text-gray-800">Selecione os arquivos CSV de Menores Criticidades</h2>
                     <p class="text-xs text-gray-500 mt-1 mb-4 flex justify-between items-center">
-                        <span>Eventos secundários. Formato .csv.</span>
+                        <span>Ex: site_data_681d6b14670fa4c0d1bd3d6b.csv</span>
                         <span id="lowCritCounter" class="font-bold px-2 py-0.5 bg-gray-100 rounded text-gray-600">0 / 5</span>
                     </p>
                     <input type="file" id="csvLowCrit" accept=".csv" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2 transition-colors mb-4">
@@ -313,7 +328,7 @@
 
                         <!-- Alternador de Visualização -->
                         <div class="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
-                            <button id="btnMapCircle" class="px-3 py-1 text-xs font-semibold rounded shadow-sm bg-white text-yellow-600 transition-all">Círculos</button>
+                            <button id="btnMapCircle" class="px-3 py-1 text-xs font-semibold rounded shadow-sm bg-white text-gray-900 transition-all">Círculos</button>
                             <button id="btnMapCluster" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Cluster</button>
                             <button id="btnMapHeat" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Heatmap</button>
                         </div>
@@ -322,7 +337,7 @@
 
                 <!-- Container do Mapa -->
                 <div class="w-full relative border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                    <div id="routeMap" class="w-full h-[400px] md:h-[600px] z-0"></div>
+                    <div id="TRECMap" class="w-full h-[400px] md:h-[600px] z-0"></div>
                 </div>
                 
                 <div id="noDataMap" class="hidden text-center py-10 text-gray-500 border border-dashed border-gray-200 rounded bg-gray-50 mt-4">
@@ -419,7 +434,9 @@
             </div>
         </section>
 
-    </main>
+            </main>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -434,10 +451,10 @@
             let isMainProcessed = false;
 
             // Map State
-            let mapInstanceRoute = null;
-            let mapLayerGroupRoute = null;
-            let mapDataRoute = [];
-            let currentMapModeRoute = 'circle';
+            let mapInstanceTREC = null;
+            let mapLayerGroupTREC = null;
+            let mapDataTREC = [];
+            let currentMapModeTREC = 'circle';
 
             // Faixa State
             let globalFaixaRefLat = null;
@@ -1680,11 +1697,11 @@
                     {
                         label: 'Severidade Média',
                         data: weeks.map(w => w.avgSev),
-                        borderColor: '#F5D366', 
-                        backgroundColor: '#FFE599', 
+                        borderColor: '#5ACCE0', 
+                        backgroundColor: '#6FE6FC', 
                         borderWidth: 3,
                         pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#F5D366',
+                        pointBorderColor: '#5ACCE0',
                         pointRadius: 4,
                         pointHoverRadius: 6,
                         tension: 0.3,
@@ -1792,7 +1809,7 @@
 
             // --- POSICIONAMENTO GEOGRÁFICO ---
             function processMapData(fileObj) {
-                mapDataRoute = [];
+                mapDataTREC = [];
                 const lines = fileObj.text.split(/\r?\n/).filter(l => l.trim() !== '');
                 if (lines.length < 2) return;
 
@@ -1833,7 +1850,7 @@
 
                     const criticidade = calculateCriticidade(largestImpact, recentSeverity, eventsSince, dropOff, dateObj, dataAtualNavegador);
 
-                    mapDataRoute.push({
+                    mapDataTREC.push({
                         siteName: site,
                         lat: lat,
                         lon: lon,
@@ -1843,21 +1860,21 @@
                 }
 
                 els.mapSection.classList.remove('hidden');
-                updateMapRoute();
+                updateMapTREC();
             }
 
-            function initMapRoute() {
-                if (typeof L === 'undefined' || mapInstanceRoute) return;
-                mapInstanceRoute = L.map('routeMap').setView([-23.55, -46.63], 4);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceRoute);
-                mapLayerGroupRoute = L.layerGroup().addTo(mapInstanceRoute);
+            function initMapTREC() {
+                if (typeof L === 'undefined' || mapInstanceTREC) return;
+                mapInstanceTREC = L.map('TRECMap').setView([-23.55, -46.63], 4);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstanceTREC);
+                mapLayerGroupTREC = L.layerGroup().addTo(mapInstanceTREC);
             }
 
-            function updateMapRoute() {
-                if (!mapInstanceRoute) initMapRoute();
-                if (!mapInstanceRoute) return;
+            function updateMapTREC() {
+                if (!mapInstanceTREC) initMapTREC();
+                if (!mapInstanceTREC) return;
 
-                mapLayerGroupRoute.clearLayers();
+                mapLayerGroupTREC.clearLayers();
 
                 const startStr = els.mapStartDate.value;
                 const endStr = els.mapEndDate.value;
@@ -1869,7 +1886,7 @@
                 const endDate = new Date(endStr);
                 endDate.setHours(23,59,59,999);
 
-                const filtered = mapDataRoute.filter(pt => pt.date >= startDate && pt.date <= endDate);
+                const filtered = mapDataTREC.filter(pt => pt.date >= startDate && pt.date <= endDate);
 
                 if (filtered.length === 0) {
                     els.noDataMap.classList.remove('hidden');
@@ -1878,26 +1895,26 @@
                     els.noDataMap.classList.add('hidden');
                 }
 
-                setTimeout(() => mapInstanceRoute.invalidateSize(), 100);
+                setTimeout(() => mapInstanceTREC.invalidateSize(), 100);
 
-                if (currentMapModeRoute === 'circle') {
+                if (currentMapModeTREC === 'circle') {
                     const renderer = L.canvas({ padding: 0.5 });
                     filtered.forEach(pt => {
                         L.circleMarker([pt.lat, pt.lon], {
                             renderer: renderer, radius: 7,
-                            fillColor: '#F5D366', color: '#B45309', weight: 1, opacity: 0.8, fillOpacity: 0.8
+                            fillColor: '#5ACCE0', color: '#B45309', weight: 1, opacity: 0.8, fillOpacity: 0.8
                         }).bindTooltip(`
                             <div class="font-sans text-sm">
                                 <b>Site:</b> ${pt.siteName}<br>
                                 <b>Data:</b> ${pt.date.toLocaleDateString('pt-BR')}<br>
                                 <b>Criticidade:</b> ${pt.criticidade.toLocaleString('pt-BR', {maximumFractionDigits: 1})} pontos
                             </div>
-                        `, { direction: 'top' }).addTo(mapLayerGroupRoute);
+                        `, { direction: 'top' }).addTo(mapLayerGroupTREC);
                     });
-                } else if (currentMapModeRoute === 'cluster') {
+                } else if (currentMapModeTREC === 'cluster') {
                     const markers = L.markerClusterGroup();
                     filtered.forEach(pt => {
-                        const m = L.circleMarker([pt.lat, pt.lon], { radius: 7, fillColor: '#F5D366', color: '#B45309', weight: 1, fillOpacity: 0.8 });
+                        const m = L.circleMarker([pt.lat, pt.lon], { radius: 7, fillColor: '#5ACCE0', color: '#B45309', weight: 1, fillOpacity: 0.8 });
                         m.bindTooltip(`
                             <div class="font-sans text-sm">
                                 <b>Site:</b> ${pt.siteName}<br>
@@ -1906,41 +1923,54 @@
                         `);
                         markers.addLayer(m);
                     });
-                    mapLayerGroupRoute.addLayer(markers);
-                } else if (currentMapModeRoute === 'heat') {
+                    mapLayerGroupTREC.addLayer(markers);
+                } else if (currentMapModeTREC === 'heat') {
                     const maxCrit = Math.max(...filtered.map(p => p.criticidade), 1);
                     const points = filtered.map(pt => [pt.lat, pt.lon, pt.criticidade / maxCrit]);
-                    L.heatLayer(points, { radius: 25, blur: 15 }).addTo(mapLayerGroupRoute);
+                    L.heatLayer(points, { radius: 25, blur: 15 }).addTo(mapLayerGroupTREC);
                 }
 
-                mapInstanceRoute.fitBounds(L.latLngBounds(filtered.map(p => [p.lat, p.lon])), { padding: [50,50] });
+                mapInstanceTREC.fitBounds(L.latLngBounds(filtered.map(p => [p.lat, p.lon])), { padding: [50,50] });
             }
 
-            els.mapStartDate.addEventListener('change', updateMapRoute);
-            els.mapEndDate.addEventListener('change', updateMapRoute);
+            els.mapStartDate.addEventListener('change', updateMapTREC);
+            els.mapEndDate.addEventListener('change', updateMapTREC);
 
-            const setMapModeRoute = (mode) => {
-                currentMapModeRoute = mode;
+            const setMapModeTREC = (mode) => {
+                currentMapModeTREC = mode;
                 ['btnMapCircle', 'btnMapCluster', 'btnMapHeat'].forEach(id => {
                     const btn = document.getElementById(id);
                     if(btn) {
                         if (id.toLowerCase().includes(mode)) {
-                            btn.classList.add('bg-white', 'text-yellow-600', 'shadow-sm');
+                            btn.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
                             btn.classList.remove('text-gray-500');
                         } else {
-                            btn.classList.remove('bg-white', 'text-yellow-600', 'shadow-sm');
+                            btn.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
                             btn.classList.add('text-gray-500');
                         }
                     }
                 });
-                updateMapRoute(); 
+                updateMapTREC(); 
             };
 
-            if(els.btnMapCircle) els.btnMapCircle.addEventListener('click', () => setMapModeRoute('circle'));
-            if(els.btnMapCluster) els.btnMapCluster.addEventListener('click', () => setMapModeRoute('cluster'));
-            if(els.btnMapHeat) els.btnMapHeat.addEventListener('click', () => setMapModeRoute('heat'));
+            if(els.btnMapCircle) els.btnMapCircle.addEventListener('click', () => setMapModeTREC('circle'));
+            if(els.btnMapCluster) els.btnMapCluster.addEventListener('click', () => setMapModeTREC('cluster'));
+            if(els.btnMapHeat) els.btnMapHeat.addEventListener('click', () => setMapModeTREC('heat'));
 
         });
+    </script>
+
+    <script>
+        (() => {
+            const sidebar = document.getElementById('sidebar');
+            const openButton = document.getElementById('open-sidebar-btn');
+            const closeButton = document.getElementById('close-sidebar-btn');
+            const openSidebar = () => sidebar && sidebar.classList.remove('-translate-x-full');
+            const closeSidebar = () => sidebar && sidebar.classList.add('-translate-x-full');
+            if (openButton) openButton.addEventListener('click', openSidebar);
+            if (closeButton) closeButton.addEventListener('click', closeSidebar);
+            if (window.lucide) lucide.createIcons();
+        })();
     </script>
 </body>
 </html>

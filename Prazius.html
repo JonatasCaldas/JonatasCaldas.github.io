@@ -97,13 +97,16 @@
             </button>
 
             <button onclick="app.exportData()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors" title="Download JSON Backup">
-                <span class="material-symbols-outlined text-lg">code</span> JSON
+                <span class="material-symbols-outlined text-lg">code</span> Exportar
             </button>
             <button onclick="document.getElementById('fileInput').click()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-lg">upload</span> Importar
             </button>
-            <input type="file" id="fileInput" class="hidden" accept=".json" onchange="app.importData(this)">
+            <input type="file" id="fileInput" class="hidden" accept=".txt,.json" onchange="app.importData(this)">
             
+            <button id="btnUpdate" onclick="app.updateFromBackup()" class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-lg transition-colors" title="Atualizar dados pelo backup do SharePoint">
+                <span class="material-symbols-outlined text-lg">sync</span> Atualizar
+            </button>
             <button onclick="app.openModal()" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm shadow-primary/30">
                 <span class="material-symbols-outlined text-xl">add</span> Nova Seção
             </button>
@@ -139,17 +142,14 @@
                 </div>
                 <!-- Color Legend Filters -->
                 <div class="h-8 px-4 flex items-center gap-3 border-t border-slate-200/50 bg-slate-100/50 shrink-0">
-                    <button onclick="app.toggleColorFilter('red')" data-filter="red" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
-                        <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Problema</span>
-                    </button>
-                    <button onclick="app.toggleColorFilter('orange')" data-filter="orange" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
-                        <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Alerta</span>
-                    </button>
                     <button onclick="app.toggleColorFilter('green')" data-filter="green" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">OK</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Em gestão</span>
                     </button>
-                    <button onclick="app.toggleColorFilter('black')" data-filter="black" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
-                        <div class="w-2.5 h-2.5 rounded-full bg-black"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Stand-by</span>
+                    <button onclick="app.toggleColorFilter('yellow')" data-filter="yellow" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Em produção</span>
+                    </button>
+                    <button onclick="app.toggleColorFilter('blue')" data-filter="blue" class="color-filter-btn flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent opacity-60 hover:opacity-100 transition-all cursor-pointer">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div><span class="text-[9px] font-bold text-slate-600 uppercase">Aguardando</span>
                     </button>
                 </div>
             </div>
@@ -180,6 +180,13 @@
         </div>
     </main>
 
+    <!-- Aviso temporário -->
+    <div id="appToast" class="fixed top-5 right-5 hidden z-[110] min-w-[280px] max-w-md rounded-lg border px-4 py-3 shadow-xl transition-all" role="status" aria-live="polite">
+        <div class="flex items-center gap-3">
+            <span id="appToastIcon" class="material-symbols-outlined text-xl">info</span>
+            <span id="appToastMessage" class="text-sm font-semibold"></span>
+        </div>
+    </div>
     <!-- Tooltip Global (Histórico Rápido) -->
     <div id="globalTooltip" class="fixed hidden z-[100] bg-white border border-slate-200 shadow-xl rounded-lg p-3 text-xs text-slate-700 pointer-events-none max-w-sm break-words"></div>
 
@@ -218,6 +225,7 @@
                         <select id="taskPosition" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-primary text-slate-700">
                             <option value="Em produção">Em produção</option>
                             <option value="Em gestão">Em gestão</option>
+                            <option value="Aguardando">Aguardando</option>
                         </select>
                     </div>
                     <div>
@@ -348,18 +356,18 @@
         const app = (() => {
             let tasks = [];
             let visibleTasks = [];
-            let groupByTeam = localStorage.getItem('gantt_group_by_team') === 'true';
-            let groupByPosition = localStorage.getItem('gantt_group_by_position') === 'true';
+            let groupByTeam = false;
+            let groupByPosition = false;
             let activeColorFilter = null;
             
             let sortConfig = {
-                milestone: null,
+                milestone: 'Valoração',
                 direction: 'asc'
             };
 
             let config = {
-                viewMode: 'day', 
-                zoom: 40, 
+                viewMode: 'month', 
+                zoom: 3, 
                 headerHeight: 48,
                 rowHeight: 48,
                 barHeight: 32,
@@ -385,6 +393,8 @@
 
             let currentHistoryTaskId = null;
             let editingHistoryIndex = null;
+            let toastTimer = null;
+            const BACKUP_URL = 'https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/FERRAMENTAS/PRAZIUS_TIMELINE_ECS/BACKUP/Prazius_Backup.txt';
 
             const dom = {
                 taskList: document.getElementById('taskList'),
@@ -412,6 +422,10 @@
                 historyInput: document.getElementById('historyInput'),
                 btnSaveHistory: document.getElementById('btnSaveHistory'),
                 historyList: document.getElementById('historyList'),
+                updateButton: document.getElementById('btnUpdate'),
+                toast: document.getElementById('appToast'),
+                toastIcon: document.getElementById('appToastIcon'),
+                toastMessage: document.getElementById('appToastMessage'),
                 globalTooltip: document.getElementById('globalTooltip')
             };
 
@@ -468,6 +482,7 @@
             };
 
             function getExportFilename(extension) {
+                if (extension === 'txt') return 'Prazius_Backup.txt';
                 const now = new Date();
                 const y = now.getFullYear();
                 const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -509,7 +524,12 @@
                 const savedWidth = localStorage.getItem('gantt_sidebar_width');
                 if (savedWidth) dom.sidebar.style.width = savedWidth;
 
-                setViewMode('day', true);
+                groupByTeam = false;
+                groupByPosition = false;
+                sortConfig = { milestone: 'Valoração', direction: 'asc' };
+                localStorage.setItem('gantt_group_by_team', 'false');
+                localStorage.setItem('gantt_group_by_position', 'false');
+                setViewMode('month', true);
 
                 dom.milestoneList.addEventListener('dragover', e => {
                     e.preventDefault();
@@ -1129,10 +1149,13 @@
             function renderColorGrid(selectedColor) {
                 const grid = document.getElementById('colorGrid');
                 const input = document.getElementById('taskColor');
+                const allowedColors = ['green', 'yellow', 'blue'];
+                selectedColor = allowedColors.includes(selectedColor) ? selectedColor : 'green';
                 input.value = selectedColor;
+                dom.taskPosition.value = { green: 'Em gestão', yellow: 'Em produção', blue: 'Aguardando' }[selectedColor];
                 grid.innerHTML = '';
                 
-                Object.keys(colors).forEach(colorKey => {
+                allowedColors.forEach(colorKey => {
                     const colorObj = colors[colorKey];
                     const btn = document.createElement('button');
                     btn.type = 'button';
@@ -1170,7 +1193,7 @@
                     document.getElementById('taskStart').value = dateUtils.format(new Date());
                     document.getElementById('taskEnd').value = dateUtils.format(dateUtils.addDays(new Date(), 3));
                     
-                    renderColorGrid('gray');
+                    renderColorGrid('green');
                 } else {
                     const task = tasks.find(t => t.id == taskId);
                     
@@ -1184,7 +1207,7 @@
                     document.getElementById('taskEnd').value = task.end;
                     dom.taskPosition.value = task.position || 'Em gestão';
                     
-                    renderColorGrid(task.color || 'gray');
+                    renderColorGrid(task.color || 'green');
                     dom.taskTeam.value = task.team || '';
                 }
             }
@@ -1540,6 +1563,60 @@
                 }
             }
 
+            function showToast(message, type = 'success') {
+                clearTimeout(toastTimer);
+                const success = type === 'success';
+                dom.toastMessage.textContent = message;
+                dom.toastIcon.textContent = success ? 'check_circle' : 'error';
+                dom.toast.className = `fixed top-5 right-5 z-[110] min-w-[280px] max-w-md rounded-lg border px-4 py-3 shadow-xl transition-all ${success ? 'border-green-200 text-green-700 bg-green-50' : 'border-red-200 text-red-700 bg-red-50'}`;
+                toastTimer = setTimeout(() => dom.toast.classList.add('hidden'), 3000);
+            }
+
+            function applyBackupData(json) {
+                if (Array.isArray(json)) tasks = json;
+                else if (json && Array.isArray(json.tasks)) tasks = json.tasks;
+                else throw new Error('Formato de backup incompatível.');
+
+                tasks.forEach(t => {
+                    if (t.parentId !== undefined) delete t.parentId;
+                    if (t.dependencies !== undefined) delete t.dependencies;
+                    if (t.progress !== undefined) delete t.progress;
+                    if (t.expanded !== undefined) delete t.expanded;
+                    if (!t.position) t.position = 'Em gestão';
+                });
+                saveToStorage();
+                activeColorFilter = null;
+                groupByTeam = false;
+                groupByPosition = false;
+                sortConfig = { milestone: 'Valoração', direction: 'asc' };
+                setViewMode('month');
+            }
+
+            async function updateFromBackup() {
+                const originalContent = dom.updateButton.innerHTML;
+                dom.updateButton.disabled = true;
+                dom.updateButton.classList.add('opacity-60', 'cursor-wait');
+                dom.updateButton.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">sync</span> Atualizando';
+                try {
+                    const response = await fetch(`${BACKUP_URL}?v=${Date.now()}`, {
+                        credentials: 'include',
+                        cache: 'no-store',
+                        headers: { Accept: 'text/plain, application/json' }
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const content = await response.text();
+                    applyBackupData(JSON.parse(content.replace(/^\uFEFF/, '')));
+                    showToast(`Atualização concluída: ${tasks.length} registro(s) carregado(s).`, 'success');
+                } catch (error) {
+                    console.error('Erro ao atualizar pelo backup:', error);
+                    showToast('Não foi possível carregar o backup do SharePoint. Verifique acesso e permissões.', 'error');
+                } finally {
+                    dom.updateButton.disabled = false;
+                    dom.updateButton.classList.remove('opacity-60', 'cursor-wait');
+                    dom.updateButton.innerHTML = originalContent;
+                }
+            }
+
             function exportData() {
                 // Wrapper de metadados
                 const backup = {
@@ -1556,11 +1633,11 @@
                 };
                 
                 const jsonStr = JSON.stringify(backup, null, 2);
-                const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+                const blob = new Blob([jsonStr], { type: "text/plain;charset=utf-8;" });
                 const url = URL.createObjectURL(blob);
                 
                 const link = document.createElement("a");
-                const filename = getExportFilename('json');
+                const filename = getExportFilename('txt');
                 
                 link.setAttribute("href", url);
                 link.setAttribute("download", filename);
@@ -1627,49 +1704,16 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
-                        const json = JSON.parse(e.target.result);
-                        
-                        // Retrocompatibilidade e Wrapper Format
-                        if (Array.isArray(json)) {
-                            tasks = json;
-                        } else if (json.metadata && json.tasks) {
-                            tasks = json.tasks;
-                            
-                            if (json.settings) {
-                                groupByTeam = !!json.settings.groupByTeam;
-                                groupByPosition = !!json.settings.groupByPosition;
-                                localStorage.setItem('gantt_group_by_team', groupByTeam);
-                                localStorage.setItem('gantt_group_by_position', groupByPosition);
-                                
-                                if (json.settings.sidebarWidth) {
-                                    dom.sidebar.style.width = json.settings.sidebarWidth;
-                                    localStorage.setItem('gantt_sidebar_width', json.settings.sidebarWidth);
-                                }
-                            }
-                        } else {
-                            alert('Formato JSON não compatível com este aplicativo.');
-                            return;
-                        }
-                        
-                        // Cleanup
-                        tasks.forEach(t => {
-                            if(t.parentId !== undefined) delete t.parentId;
-                            if(t.dependencies !== undefined) delete t.dependencies;
-                            if(t.progress !== undefined) delete t.progress;
-                            if(t.expanded !== undefined) delete t.expanded;
-                            if(!t.position) t.position = "Em gestão";
-                        });
-
-                        saveToStorage();
-                        setViewMode('day');
-                    } catch (err) {
-                        alert('Erro ao processar arquivo JSON importado.');
+                        applyBackupData(JSON.parse(e.target.result.replace(/^\uFEFF/, '')));
+                        showToast(`Importação concluída: ${tasks.length} registro(s) carregado(s).`, 'success');
+                    } catch (error) {
+                        console.error('Erro ao importar backup:', error);
+                        showToast('Erro ao processar o arquivo de backup importado.', 'error');
                     }
                 };
                 reader.readAsText(file);
-                input.value = ''; 
+                input.value = '';
             }
-
             return {
                 init,
                 openModal,
@@ -1681,6 +1725,7 @@
                 toggleGroupPosition,
                 toggleColorFilter,
                 exportData,
+                updateFromBackup,
                 importData,
                 exportToCSV,
                 openMilestoneModal,

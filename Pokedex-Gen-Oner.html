@@ -2556,11 +2556,11 @@
             if (history && history.length > 0) {
                 const lowestVal = Math.min(...history.map(h => h.value));
                 lowestPriceEl.textContent = tFormatBRL(lowestVal);
-                lowestPriceEl.className = "font-headline text-lg md:text-2xl font-extrabold text-primary truncate";
+                lowestPriceEl.className = "font-headline text-base md:text-xl font-extrabold text-primary truncate";
                 
                 const latestVal = history[history.length - 1].value;
                 latestPriceEl.textContent = tFormatBRL(latestVal);
-                latestPriceEl.className = "font-headline text-lg md:text-2xl font-extrabold text-on-surface truncate";
+                latestPriceEl.className = "font-headline text-base md:text-xl font-extrabold text-on-surface truncate";
             } else {
                 lowestPriceEl.textContent = "Sem registro";
                 lowestPriceEl.className = "font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold truncate";

@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analisador Pokédex vs Setlist TCG</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            poke: {
+              red: '#EE1515',
+              darkred: '#B30000',
+              blue: '#2A75BB',
+              yellow: '#FFDE00',
+              gold: '#B3A125',
+              dark: '#0F172A',
+              card: '#1E293B'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Custom scrollbar for data tables */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .pulse-opportunity {
+      animation: pulseGlow 2s infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); }
+      50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.35); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between">
+
+  <!-- Header Navbar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-yellow-400 flex items-center justify-center shadow-lg shadow-red-500/20">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            PokéSet Comparator
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">versão 1.0</span>
+          </h1>
+          <p class="text-xs text-slate-400">Cruze sua Pokédex com a Setlist e descubra oportunidades de captura no TCG</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons in Header -->
+      <div class="flex items-center gap-2">
+        <button id="btnLoadSample" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
+          Carregar Exemplo (Voltorb, etc)
+        </button>
+        <button id="btnClearAll" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 border border-slate-700 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          Limpar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8">
+
+    <!-- Input Section: Two Tabular Data Fields -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Field 1: Pokédex TSV Data (Referência Principal) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+            <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+              Cartas da Pokédex
+            </h2>
+          </div>
+          <span id="pokedexLineCount" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md font-mono">0 linhas</span>
+        </div>
+
+        <p class="text-xs text-slate-400 mb-3">
+          Cole os dados do Excel/Sheets (colunas <code class="text-amber-300">Pokémon | Número | Geração | Capturado?</code>).
+        </p>
+
+        <textarea 
+          id="inputPokedex"
+          placeholder="Cole aqui a sua Pokédex..."
+          class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 resize-y transition"
+        ></textarea>
+      </div>
+
+      <!-- Field 2: Setlist TSV Data -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+            <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+              Setlist das Expansões
+            </h2>
+          </div>
+          <span id="setlistLineCount" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md font-mono">0 linhas</span>
+        </div>
+
+        <p class="text-xs text-slate-400 mb-3">
+          Cole os dados do Excel/Sheets (colunas <code class="text-amber-300">No. | Mark | Card name | Type | Rarity</code>).
+        </p>
+
+        <textarea 
+          id="inputSetlist"
+          placeholder="Cole aqui os dados da Setlist TCG..."
+          class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition"
+        ></textarea>
+      </div>
+    </section>
+
+    <!-- Matching Engine Configuration Drawer -->
+    <section class="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+      <details class="group">
+        <summary class="cursor-pointer text-xs font-semibold text-slate-300 flex items-center justify-between select-none">
+          <span class="flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4 text-blue-400"></i>
+            Configurações Avançadas de Busca & Mapeamento
+          </span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform"></i>
+        </summary>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-800 text-xs">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Sensibilidade de Correspondência de Nomes</label>
+            <select id="matchSensitivity" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+              <option value="smart" selected>Inteligente (Detecta Voltorb, Voltorb ex, Pikachu VMAX, etc.)</option>
+              <option value="exact">Exata (Apenas se o nome for idêntico)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Modo de Exibição Padrão</label>
+            <select id="defaultViewMode" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+              <option value="pokedex" selected>Matriz Pokédex (Foco na Coleção)</option>
+              <option value="setlist">Matriz Setlist (Foco nas Cartas TCG)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Priorizar Oportunidades de Captura</label>
+            <select id="prioritizeOpportunities" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200">
+              <option value="yes" selected>Sim (Mostrar Pokémons "Não" capturados com cartas no Setlist no topo)</option>
+              <option value="no">Não (Manter ordem original)</option>
+            </select>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Trigger Action Button -->
+    <div class="flex justify-center pt-2">
+      <button 
+        id="btnAnalyze"
+        class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-base shadow-xl shadow-red-600/25 hover:shadow-red-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+      >
+        <i data-lucide="play-circle" class="w-6 h-6"></i>
+        Comparar Pokédex vs Setlist
+      </button>
+    </div>
+
+    <!-- Dashboard Results Section -->
+    <section id="resultsSection" class="hidden space-y-8 pt-4">
+      
+      <div class="border-t border-slate-800 pt-8">
+        <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <i data-lucide="bar-chart-3" class="w-6 h-6 text-amber-400"></i>
+          Resumo do Diagnóstico da Pokédex
+        </h2>
+
+        <!-- KPI Metrics Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Highlight KPI: Oportunidades no Setlist -->
+          <div class="bg-slate-900 border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl p-5 relative overflow-hidden pulse-opportunity">
+            <div class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="target" class="w-4 h-4"></i> Oportunidades no Setlist
+            </div>
+            <div id="statOpportunities" class="text-3xl font-extrabold text-amber-300 mt-2">0</div>
+            <div id="statOpportunitiesSub" class="text-xs text-amber-200/80 mt-1">Pokémons "Não" com carta no Setlist</div>
+            <div class="absolute -right-2 -bottom-2 opacity-10">
+              <i data-lucide="sparkles" class="w-20 h-20 text-amber-400"></i>
+            </div>
+          </div>
+
+          <!-- Total Pokémons Pokédex -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+            <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total de Cartas da Pokédex</div>
+            <div id="statTotalDex" class="text-3xl font-extrabold text-white mt-2">0</div>
+            <div class="text-xs text-slate-500 mt-1">Analisados da sua coleção</div>
+            <div class="absolute -right-2 -bottom-2 opacity-10">
+              <i data-lucide="book-open" class="w-20 h-20 text-white"></i>
+            </div>
+          </div>
+
+          <!-- Já Capturados na Pokédex -->
+          <div class="bg-slate-900 border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent rounded-2xl p-5 relative overflow-hidden">
+            <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Já Capturados (SIM)</div>
+            <div id="statCapturedDex" class="text-3xl font-extrabold text-emerald-400 mt-2">0</div>
+            <div id="statCapturedPct" class="text-xs text-emerald-300/80 mt-1">0% da Pokédex informada</div>
+            <div class="absolute -right-2 -bottom-2 opacity-10">
+              <i data-lucide="check-circle-2" class="w-20 h-20 text-emerald-500"></i>
+            </div>
+          </div>
+
+          <!-- Faltando e Sem Carta na Setlist -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+            <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Pokedéx e Setlist "Não"</div>
+            <div id="statMissingNoSet" class="text-3xl font-extrabold text-slate-400 mt-2">0</div>
+            <div class="text-xs text-slate-500 mt-1">Não constam nesta expansão</div>
+            <div class="absolute -right-2 -bottom-2 opacity-10">
+              <i data-lucide="slash" class="w-20 h-20 text-slate-500"></i>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Chart 1: Proporção Pokédex vs Setlist -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-amber-400"></i>
+            Oportunidades de Captura no Set
+          </h3>
+          <div class="relative flex-grow flex items-center justify-center min-h-[220px]">
+            <canvas id="chartStatus"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Oportunidades por Raridade -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between">
+          <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+            Raridade das Cartas Faltantes Encontradas
+          </h3>
+          <div class="relative flex-grow min-h-[220px]">
+            <canvas id="chartRarity"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Interactive Table Section -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+        
+        <!-- Header Controls & Mode Switcher -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="table" class="w-5 h-5 text-amber-400"></i>
+              Detalhamento de Referência
+            </h3>
+            <p class="text-xs text-slate-400">Veja exatamente os Pokémons da sua Pokédex que possuem carta no Setlist</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <button id="btnCopyMissing" class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-amber-400"></i>
+              Copiar Oportunidades
+            </button>
+            <button id="btnExportCSV" class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i>
+              Exportar CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Tabs & Search Bar -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          
+          <!-- Status Filter Pills -->
+          <div id="filterPillsContainer" class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800 self-start flex-wrap gap-1">
+            <button data-filter="opportunity" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-amber-300 bg-amber-500/20 border border-amber-500/30 transition shadow flex items-center gap-1">
+              🎯 Oportunidades no Set (<span id="cntOpportunity">0</span>)
+            </button>
+            <button data-filter="missing" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
+              ❌ Faltando na Pokédex (<span id="cntMissing">0</span>)
+            </button>
+            <button data-filter="captured" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
+              ✅ Já Capturados (<span id="cntCaptured">0</span>)
+            </button>
+            <button data-filter="all" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
+              Todos (<span id="cntAll">0</span>)
+            </button>
+          </div>
+
+          <!-- Table Search Input -->
+          <div class="relative sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+            <input 
+              type="text" 
+              id="searchTable"
+              placeholder="Buscar Pokémon, Voltorb, nº..."
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+            >
+          </div>
+
+        </div>
+
+        <!-- Data Table Container -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead id="tableHead" class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider select-none">
+              <!-- Rendered dynamically depending on View Mode -->
+            </thead>
+            <tbody id="tableResultsBody" class="divide-y divide-slate-800/60 bg-slate-900/40">
+              <!-- Dynamic rows rendered via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 text-xs text-slate-400">
+          <div id="paginationInfo">Mostrando 0 de 0 registros</div>
+          <div class="flex items-center gap-2">
+            <button id="btnPrevPage" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">
+              Anterior
+            </button>
+
+            <span id="pageIndicator" class="font-mono text-slate-200 px-2">Página 1</span>
+
+            <button id="btnNextPage" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">
+              Próxima
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
+    <p>Analisador Pokédex vs Setlist TCG &bull; Foco na Coleção & Oportunidades de Captura</p>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* Application State */
+    const appState = {
+      pokedexList: [],      // Pokédex entries array
+      pokedexMap: new Map(), // Key: normalized name -> Pokédex entry
+      setlistCards: [],     // Raw parsed setlist cards
+      matchedResults: [],   // Pokédex-centric matched list
+      setlistResults: [],   // Setlist-centric matched list
+      activeViewMode: 'pokedex', // 'pokedex' | 'setlist'
+      activeFilter: 'opportunity', // 'opportunity' | 'missing' | 'captured' | 'all'
+      searchQuery: '',
+      currentPage: 1,
+      pageSize: 30,
+      charts: {
+        status: null,
+        rarity: null
+      }
+    };
+
+    // Updated Sample Datasets (Includes Voltorb explicitly for user testing)
+    const SAMPLE_POKEDEX_TSV = 
+`Pokémon\tNúmero\tGeração\tCapturado?
+Bulbasaur\t1\t1 - Kanto\tNão
+Ivysaur\t2\t1 - Kanto\tNão
+Venusaur\t3\t1 - Kanto\tNão
+Charmander\t4\t1 - Kanto\tNão
+Charmeleon\t5\t1 - Kanto\tNão
+Charizard\t6\t1 - Kanto\tNão
+Squirtle\t7\t1 - Kanto\tNão
+Wartortle\t8\t1 - Kanto\tNão
+Blastoise\t9\t1 - Kanto\tNão
+Weedle\t13\t1 - Kanto\tSIM
+Pikachu\t25\t1 - Kanto\tSIM
+Voltorb\t100\t1 - Kanto\tNão
+Electrode\t101\t1 - Kanto\tNão
+Vulpix\t37\t1 - Kanto\tNão
+Gengar\t94\t1 - Kanto\tSIM`;
+
+    const SAMPLE_SETLIST_TSV = 
+`No.\tMark\tCard name\tType\tRarity
+001/132\tI\tBulbasaur\tGrass\tCommon
+002/132\tI\tIvysaur\tGrass\tCommon
+003/132\tI\tMega Venusaurex\tGrass\tDouble Rare
+007/132\tI\tCharmander\tFire\tCommon
+008/132\tI\tCharizard EX\tFire\tUltra Rare
+009/132\tI\tPikachu VMAX\tLightning\tSecret Rare
+045/132\tI\tVoltorb\tLightning\tCommon
+046/132\tI\tElectrode ex\tLightning\tDouble Rare
+010/132\tI\tAlolan Vulpix V\tWater\tDouble Rare
+011/132\tI\tWeedle\tGrass\tCommon
+013/132\tI\tGengar VSTAR\tPsychic\tUltra Rare
+014/132\tI\tSnorlax\tColorless\tRare`;
+
+    /**
+     * Cleans and normalizes Pokémon names to extract the core species name.
+     * Example: "Voltorb", "Voltorb ex" -> "voltorb"
+     */
+    function normalizeName(rawName) {
+      if (!rawName) return '';
+      let name = rawName.toString().trim().toLowerCase();
+      name = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      name = name
+        .replace(/\balolan\b/g, 'alola')
+        .replace(/\bgalarian\b/g, 'galar')
+        .replace(/\bhisui\b/g, 'hisui')
+        .replace(/\bhisuian\b/g, 'hisui')
+        .replace(/\bpaldean\b/g, 'paldea')
+        .replace(/\b(vmax|vstar|tag team|break|lv\.x|prime|legend|radiant|shining|ultra)\b/g, '')
+        .replace(/\b(mega|primal|dark|light|rocket's|team)\b/g, '')
+        .replace(/(ex|gx|v|star)$/i, '')
+        .replace(/ex$/i, '')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim();
+
+      return name;
+    }
+
+    /**
+     * TSV/CSV Line Parser
+     */
+    function parseDelimitedText(text) {
+      if (!text || !text.trim()) return [];
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length === 0) return [];
+
+      const firstLine = lines[0];
+      let delimiter = '\t';
+      if (firstLine.includes('\t')) delimiter = '\t';
+      else if (firstLine.includes(';')) delimiter = ';';
+      else if (firstLine.includes(',')) delimiter = ',';
+
+      return lines.map(line => line.split(delimiter).map(cell => cell.trim()));
+    }
+
+    /**
+     * Runs analysis with Pokédex as Primary Matrix Reference
+     */
+    function runAnalysis() {
+      const pokedexRaw = document.getElementById('inputPokedex').value;
+      const setlistRaw = document.getElementById('inputSetlist').value;
+
+      if (!pokedexRaw.trim() || !setlistRaw.trim()) {
+        showToast('Por favor, preencha os dois campos (Pokédex e Setlist).', 'warning');
+        return;
+      }
+
+      const pokedexRows = parseDelimitedText(pokedexRaw);
+      const setlistRows = parseDelimitedText(setlistRaw);
+
+      if (pokedexRows.length === 0 || setlistRows.length === 0) {
+        showToast('Erro ao ler as linhas das tabelas. Verifique a formatação.', 'error');
+        return;
+      }
+
+      // Step 1: Process Pokédex Entries
+      appState.pokedexList = [];
+      appState.pokedexMap.clear();
+
+      let dexNameCol = 0;
+      let dexNoCol = 1;
+      let dexStatusCol = pokedexRows[0].length - 1;
+
+      pokedexRows[0].forEach((col, idx) => {
+        const lower = col.toLowerCase();
+        if (lower.includes('pokémon') || lower.includes('pokemon') || lower.includes('nome')) dexNameCol = idx;
+        if (lower.includes('número') || lower.includes('numero') || lower.includes('no') || lower.includes('#')) dexNoCol = idx;
+        if (lower.includes('capturado') || lower.includes('status') || lower.includes('caught')) dexStatusCol = idx;
+      });
+
+      const dexStartIndex = (pokedexRows[0][dexNameCol].toLowerCase().includes('poké') || 
+                             pokedexRows[0][dexNameCol].toLowerCase().includes('nome')) ? 1 : 0;
+
+      for (let i = dexStartIndex; i < pokedexRows.length; i++) {
+        const row = pokedexRows[i];
+        if (!row || row.length <= dexNameCol) continue;
+
+        const dexName = row[dexNameCol];
+        const dexNo = row[dexNoCol] || `#${i}`;
+        const statusVal = row[dexStatusCol] ? row[dexStatusCol].toUpperCase() : '';
+        const isCaptured = ['SIM', 'S', 'YES', 'TRUE', '1', 'OK', 'JÁ'].includes(statusVal);
+        const normName = normalizeName(dexName);
+
+        if (normName) {
+          const dexEntry = {
+            dexNo,
+            dexName,
+            normName,
+            isCaptured,
+            matchedCards: [] // Will hold cards from Setlist
+          };
+          appState.pokedexList.push(dexEntry);
+          appState.pokedexMap.set(normName, dexEntry);
+        }
+      }
+
+      // Step 2: Process Setlist Cards and Map to Pokédex
+      let setNoCol = 0;
+      let setNameCol = 2;
+      let setTypeCol = 3;
+      let setRarityCol = 4;
+
+      setlistRows[0].forEach((col, idx) => {
+        const lower = col.toLowerCase();
+        if (lower.includes('no') || lower.includes('num')) setNoCol = idx;
+        if (lower.includes('card name') || lower.includes('nome') || lower.includes('carta')) setNameCol = idx;
+        if (lower.includes('type') || lower.includes('tipo')) setTypeCol = idx;
+        if (lower.includes('rarity') || lower.includes('raridade')) setRarityCol = idx;
+      });
+
+      const setStartIndex = (setlistRows[0][setNameCol] && setlistRows[0][setNameCol].toLowerCase().includes('card')) ? 1 : 0;
+      appState.setlistCards = [];
+
+      for (let i = setStartIndex; i < setlistRows.length; i++) {
+        const row = setlistRows[i];
+        if (!row || row.length === 0) continue;
+
+        const cardNo = row[setNoCol] || `#${i}`;
+        const cardName = row[setNameCol] || row[0] || 'Desconhecido';
+        const cardType = row[setTypeCol] || 'Outro';
+        const cardRarity = row[setRarityCol] || 'Comum';
+        const normCard = normalizeName(cardName);
+
+        const cardObj = { cardNo, cardName, cardType, cardRarity, normCard };
+        appState.setlistCards.push(cardObj);
+
+        // Find match in Pokédex Map
+        let matchedDex = null;
+        if (appState.pokedexMap.has(normCard)) {
+          matchedDex = appState.pokedexMap.get(normCard);
+        } else {
+          // Fallback token matching
+          for (let [dexKey, dexVal] of appState.pokedexMap.entries()) {
+            if (normCard.includes(dexKey) || dexKey.includes(normCard)) {
+              matchedDex = dexVal;
+              break;
+            }
+          }
+        }
+
+        if (matchedDex) {
+          matchedDex.matchedCards.push(cardObj);
+        }
+      }
+
+      // Step 3: Compute Pokédex Matches & Categorize
+      appState.matchedResults = appState.pokedexList.map(dex => {
+        const hasCardsInSet = dex.matchedCards.length > 0;
+        
+        let statusTag = '';
+        if (!dex.isCaptured && hasCardsInSet) {
+          statusTag = 'OPPORTUNITY'; // Marked 'Não' in Pokédex, BUT card exists in Setlist!
+        } else if (dex.isCaptured && hasCardsInSet) {
+          statusTag = 'CAPTURED_AND_IN_SET';
+        } else if (dex.isCaptured && !hasCardsInSet) {
+          statusTag = 'CAPTURED_NOT_IN_SET';
+        } else {
+          statusTag = 'MISSING_NOT_IN_SET';
+        }
+
+        return {
+          ...dex,
+          hasCardsInSet,
+          statusTag
+        };
+      });
+
+      // Sort: Prioritize Opportunities first (Não + Tem na Setlist)
+      appState.matchedResults.sort((a, b) => {
+        if (a.statusTag === 'OPPORTUNITY' && b.statusTag !== 'OPPORTUNITY') return -1;
+        if (a.statusTag !== 'OPPORTUNITY' && b.statusTag === 'OPPORTUNITY') return 1;
+        return 0;
+      });
+
+      renderDashboard();
+      showToast('Análise concluída com sucesso!', 'success');
+    }
+
+    /**
+     * Renders Stats Dashboard and Charts
+     */
+    function renderDashboard() {
+      const dexData = appState.matchedResults;
+      const totalDex = dexData.length;
+
+      const opportunities = dexData.filter(d => d.statusTag === 'OPPORTUNITY');
+      const captured = dexData.filter(d => d.isCaptured);
+      const missingNoSet = dexData.filter(d => d.statusTag === 'MISSING_NOT_IN_SET');
+
+      // Update KPI Elements
+      document.getElementById('statOpportunities').textContent = opportunities.length.toLocaleString();
+      document.getElementById('statTotalDex').textContent = totalDex.toLocaleString();
+      document.getElementById('statCapturedDex').textContent = captured.length.toLocaleString();
+      document.getElementById('statCapturedPct').textContent = totalDex > 0 ? `${((captured.length / totalDex) * 100).toFixed(1)}% da Pokédex` : '0%';
+      document.getElementById('statMissingNoSet').textContent = missingNoSet.length.toLocaleString();
+
+      // Update Filter Counter Badges
+      document.getElementById('cntOpportunity').textContent = opportunities.length;
+      document.getElementById('cntMissing').textContent = dexData.filter(d => !d.isCaptured).length;
+      document.getElementById('cntCaptured').textContent = captured.length;
+      document.getElementById('cntAll').textContent = totalDex;
+
+      // Render Visual Charts
+      renderCharts(opportunities.length, captured.length, missingNoSet.length, opportunities);
+
+      // Unhide Dashboard
+      document.getElementById('resultsSection').classList.remove('hidden');
+
+      // Render Table
+      filterAndRenderTable();
+
+      // Scroll to results
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /**
+     * Renders Chart.js visuals
+     */
+    function renderCharts(oppsCount, capturedCount, missingNoSetCount, opportunitiesList) {
+      // Donut Chart
+      const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+      if (appState.charts.status) appState.charts.status.destroy();
+
+      appState.charts.status = new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+          labels: ['🎯 Oportunidades no Set', '✅ Já Capturados', '⚠️ Faltando e Sem Carta no Set'],
+          datasets: [{
+            data: [oppsCount, capturedCount, missingNoSetCount],
+            backgroundColor: ['#F59E0B', '#10B981', '#475569'],
+            borderColor: '#0F172A',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#94A3B8', font: { size: 11 } }
+            }
+          },
+          cutout: '68%'
+        }
+      });
+
+      // Rarity Chart of Opportunities
+      const rarityCounts = {};
+      opportunitiesList.forEach(opp => {
+        opp.matchedCards.forEach(c => {
+          const r = c.cardRarity || 'Outras';
+          rarityCounts[r] = (rarityCounts[r] || 0) + 1;
+        });
+      });
+
+      const ctxRarity = document.getElementById('chartRarity').getContext('2d');
+      if (appState.charts.rarity) appState.charts.rarity.destroy();
+
+      appState.charts.rarity = new Chart(ctxRarity, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(rarityCounts).length > 0 ? Object.keys(rarityCounts) : ['Sem Cartas'],
+          datasets: [{
+            label: 'Cartas Disponíveis para Pokémons Faltantes',
+            data: Object.values(rarityCounts).length > 0 ? Object.values(rarityCounts) : [0],
+            backgroundColor: '#F59E0B',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94A3B8' }, grid: { display: false } },
+            y: { ticks: { color: '#94A3B8' }, grid: { color: '#1E293B' } }
+          }
+        }
+      });
+    }
+
+    /**
+     * Filters Pokédex results and renders dynamic HTML table
+     */
+    function filterAndRenderTable() {
+      let data = [...appState.matchedResults];
+
+      // Filter logic
+      if (appState.activeFilter === 'opportunity') {
+        data = data.filter(d => d.statusTag === 'OPPORTUNITY');
+      } else if (appState.activeFilter === 'missing') {
+        data = data.filter(d => !d.isCaptured);
+      } else if (appState.activeFilter === 'captured') {
+        data = data.filter(d => d.isCaptured);
+      }
+
+      // Search query filter
+      if (appState.searchQuery) {
+        const q = appState.searchQuery.toLowerCase();
+        data = data.filter(d => 
+          d.dexName.toLowerCase().includes(q) || 
+          d.dexNo.toLowerCase().includes(q) ||
+          d.matchedCards.some(c => c.cardName.toLowerCase().includes(q) || c.cardNo.toLowerCase().includes(q))
+        );
+      }
+
+      // Pagination
+      const totalPages = Math.ceil(data.length / appState.pageSize) || 1;
+      if (appState.currentPage > totalPages) appState.currentPage = totalPages;
+
+      const startIndex = (appState.currentPage - 1) * appState.pageSize;
+      const paginatedData = data.slice(startIndex, startIndex + appState.pageSize);
+
+      const tableHead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableResultsBody');
+
+      // Set Table Headers for Pokédex View
+      tableHead.innerHTML = `
+        <tr>
+          <th class="p-3.5 w-20">Nº Dex</th>
+          <th class="p-3.5">Pokémon (Pokédex)</th>
+          <th class="p-3.5 text-center">Status Pokédex</th>
+          <th class="p-3.5">Cartas Encontradas no Setlist</th>
+          <th class="p-3.5 text-center">Diagnóstico / Ação</th>
+        </tr>
+      `;
+
+      tbody.innerHTML = '';
+
+      if (paginatedData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="p-8 text-center text-slate-500">
+              Nenhum registro encontrado para este filtro ou busca.
+            </td>
+          </tr>`;
+      } else {
+        paginatedData.forEach(item => {
+          const tr = document.createElement('tr');
+          
+          // Highlight Oportunidade (Não capturado + Tem no set)
+          if (item.statusTag === 'OPPORTUNITY') {
+            tr.className = 'bg-amber-500/10 hover:bg-amber-500/20 transition border-l-4 border-l-amber-500';
+          } else {
+            tr.className = 'hover:bg-slate-800/40 transition';
+          }
+
+          // Badge Pokédex Status
+          const dexStatusBadge = item.isCaptured
+            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> SIM (Capturado)
+               </span>`
+            : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> NÃO (Faltando)
+               </span>`;
+
+          // Matched Setlist Cards details
+          let cardsDetailHTML = '';
+          if (item.matchedCards.length > 0) {
+            cardsDetailHTML = item.matchedCards.map(c => `
+              <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800 text-slate-200 border border-slate-700 text-[11px] mr-1.5 mb-1">
+                <span class="font-mono text-amber-400 font-bold">${c.cardNo}</span>
+                <span class="font-medium">${c.cardName}</span>
+                <span class="text-slate-400">(${c.cardRarity})</span>
+              </div>
+            `).join('');
+          } else {
+            cardsDetailHTML = `<span class="text-slate-500 italic text-xs">Nenhuma carta nesta expansão</span>`;
+          }
+
+          // Diagnostic Tag
+          let diagBadge = '';
+          if (item.statusTag === 'OPPORTUNITY') {
+            diagBadge = `<span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20">
+                          <i data-lucide="sparkles" class="w-4 h-4"></i> Oportunidade de Captura!
+                         </span>`;
+          } else if (item.statusTag === 'CAPTURED_AND_IN_SET') {
+            diagBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <i data-lucide="check" class="w-3.5 h-3.5"></i> Já Possui na Dex
+                         </span>`;
+          } else {
+            diagBadge = `<span class="text-slate-500 text-xs">-</span>`;
+          }
+
+          tr.innerHTML = `
+            <td class="p-3.5 font-mono text-amber-400 font-bold">${item.dexNo}</td>
+            <td class="p-3.5 font-bold text-white text-sm">${item.dexName}</td>
+            <td class="p-3.5 text-center">${dexStatusBadge}</td>
+            <td class="p-3.5">${cardsDetailHTML}</td>
+            <td class="p-3.5 text-center">${diagBadge}</td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Re-initialize icons
+      lucide.createIcons();
+
+      // Update Pagination UI
+      document.getElementById('paginationInfo').textContent = 
+        `Mostrando ${data.length > 0 ? startIndex + 1 : 0} até ${Math.min(startIndex + appState.pageSize, data.length)} de ${data.length} Pokémons da Pokédex`;
+      
+      document.getElementById('pageIndicator').textContent = `Página ${appState.currentPage} de ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = appState.currentPage === 1;
+      document.getElementById('btnNextPage').disabled = appState.currentPage === totalPages;
+    }
+
+    // Event Listeners Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const inputPokedex = document.getElementById('inputPokedex');
+      const inputSetlist = document.getElementById('inputSetlist');
+
+      function updateLineCounts() {
+        const pLines = inputPokedex.value.trim() ? inputPokedex.value.trim().split('\n').length : 0;
+        const sLines = inputSetlist.value.trim() ? inputSetlist.value.trim().split('\n').length : 0;
+        document.getElementById('pokedexLineCount').textContent = `${pLines.toLocaleString()} linhas`;
+        document.getElementById('setlistLineCount').textContent = `${sLines.toLocaleString()} linhas`;
+      }
+
+      inputPokedex.addEventListener('input', updateLineCounts);
+      inputSetlist.addEventListener('input', updateLineCounts);
+
+      // Analyze Button
+      document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
+
+      // Load Sample Data
+      document.getElementById('btnLoadSample').addEventListener('click', () => {
+        inputPokedex.value = SAMPLE_POKEDEX_TSV;
+        inputSetlist.value = SAMPLE_SETLIST_TSV;
+        updateLineCounts();
+        showToast('Exemplo com Voltorb carregado! Clique em "Analisar".', 'info');
+      });
+
+      // Clear All
+      document.getElementById('btnClearAll').addEventListener('click', () => {
+        inputPokedex.value = '';
+        inputSetlist.value = '';
+        updateLineCounts();
+        document.getElementById('resultsSection').classList.add('hidden');
+        showToast('Campos limpos com sucesso.', 'info');
+      });
+
+      // Filter Pills
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            b.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+          });
+          e.currentTarget.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 transition shadow';
+          
+          appState.activeFilter = e.currentTarget.getAttribute('data-filter');
+          appState.currentPage = 1;
+          filterAndRenderTable();
+        });
+      });
+
+      // Search Bar
+      document.getElementById('searchTable').addEventListener('input', (e) => {
+        appState.searchQuery = e.target.value.trim();
+        appState.currentPage = 1;
+        filterAndRenderTable();
+      });
+
+      // Pagination
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (appState.currentPage > 1) {
+          appState.currentPage--;
+          filterAndRenderTable();
+        }
+      });
+
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(appState.matchedResults.length / appState.pageSize);
+        if (appState.currentPage < totalPages) {
+          appState.currentPage++;
+          filterAndRenderTable();
+        }
+      });
+
+      // Copy Opportunities
+      document.getElementById('btnCopyMissing').addEventListener('click', () => {
+        const opps = appState.matchedResults.filter(d => d.statusTag === 'OPPORTUNITY');
+        if (opps.length === 0) {
+          showToast('Nenhuma oportunidade de captura para copiar.', 'warning');
+          return;
+        }
+
+        let text = "Nº Dex\tPokémon\tCartas no Setlist\n";
+        opps.forEach(o => {
+          const cardsStr = o.matchedCards.map(c => `${c.cardNo} ${c.cardName} (${c.cardRarity})`).join(' | ');
+          text += `${o.dexNo}\t${o.dexName}\t${cardsStr}\n`;
+        });
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        showToast(`${opps.length} Pokémons faltantes encontrados copiados!`, 'success');
+      });
+
+      // Export CSV
+      document.getElementById('btnExportCSV').addEventListener('click', () => {
+        if (appState.matchedResults.length === 0) return;
+
+        let csv = "No Dex,Pokemon,Status Dex,Cartas Encontradas no Set,Diagnostico\n";
+        appState.matchedResults.forEach(r => {
+          const cardsStr = r.matchedCards.map(c => `${c.cardNo} ${c.cardName}`).join(' ; ');
+          const statusTxt = r.isCaptured ? "SIM" : "NAO";
+          const diagTxt = r.statusTag === 'OPPORTUNITY' ? "OPORTUNIDADE DE CAPTURA" : "OK";
+          csv += `"${r.dexNo}","${r.dexName}","${statusTxt}","${cardsStr}","${diagTxt}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'pokedex_oportunidades_setlist.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast('Relatório CSV baixado com sucesso!', 'success');
+      });
+    });
+
+    /**
+     * Custom Toast Notification system
+     */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let colors = 'bg-slate-800 text-slate-100 border-slate-700';
+      if (type === 'success') colors = 'bg-emerald-950 text-emerald-200 border-emerald-800';
+      if (type === 'warning') colors = 'bg-amber-950 text-amber-200 border-amber-800';
+      if (type === 'error') colors = 'bg-red-950 text-red-200 border-red-800';
+
+      toast.className = `px-4 py-3 rounded-xl border ${colors} shadow-xl text-xs font-medium flex items-center gap-2 pointer-events-auto transform transition-all duration-300 opacity-0 translate-y-2`;
+      toast.innerHTML = `<span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

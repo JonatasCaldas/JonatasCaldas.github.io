@@ -79,10 +79,15 @@
 
       <!-- Action Buttons in Header -->
       <div class="flex items-center gap-2">
-        <button id="btnLoadSample" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-          <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
-          Carregar Exemplo (Voltorb, etc)
+        <button id="btnImportJSON" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="upload" class="w-4 h-4 text-blue-400"></i>
+          Importar
         </button>
+        <button id="btnExportJSON" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+          Exportar
+        </button>
+        <input id="inputImportJSON" type="file" accept=".json,application/json" class="hidden">
         <button id="btnClearAll" class="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 border border-slate-700 transition">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
           Limpar
@@ -865,12 +870,64 @@ Gengar\t94\t1 - Kanto\tSIM`;
       // Analyze Button
       document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
 
-      // Load Sample Data
-      document.getElementById('btnLoadSample').addEventListener('click', () => {
-        inputPokedex.value = SAMPLE_POKEDEX_TSV;
-        inputSetlist.value = SAMPLE_SETLIST_TSV;
-        updateLineCounts();
-        showToast('Exemplo com Voltorb carregado! Clique em "Analisar".', 'info');
+      // Exporta os dois campos exatamente como foram preenchidos
+      document.getElementById('btnExportJSON').addEventListener('click', () => {
+        const backup = {
+          schema: 'pokeset-comparator-backup',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          data: {
+            pokedex: inputPokedex.value,
+            setlist: inputSetlist.value
+          }
+        };
+
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        link.href = url;
+        link.download = `backup_pokedex_setlist_${date}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Dados da Pokédex e da Setlist exportados com sucesso!', 'success');
+      });
+
+      // Abre o seletor e importa um backup JSON sem alterar o conteúdo dos campos
+      const inputImportJSON = document.getElementById('inputImportJSON');
+      document.getElementById('btnImportJSON').addEventListener('click', () => {
+        inputImportJSON.value = '';
+        inputImportJSON.click();
+      });
+
+      inputImportJSON.addEventListener('change', async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        try {
+          const backup = JSON.parse(await file.text());
+          const pokedex = backup?.data?.pokedex;
+          const setlist = backup?.data?.setlist;
+
+          if (backup?.schema !== 'pokeset-comparator-backup' ||
+              backup?.version !== 1 ||
+              typeof pokedex !== 'string' ||
+              typeof setlist !== 'string') {
+            throw new Error('Formato de backup inválido');
+          }
+
+          inputPokedex.value = pokedex;
+          inputSetlist.value = setlist;
+          updateLineCounts();
+          document.getElementById('resultsSection').classList.add('hidden');
+          showToast('Backup importado sem perda de dados. Clique em "Comparar" para processar.', 'success');
+        } catch (error) {
+          console.error('Falha ao importar backup:', error);
+          showToast('Não foi possível importar. Selecione um backup JSON válido desta aplicação.', 'error');
+        }
       });
 
       // Clear All

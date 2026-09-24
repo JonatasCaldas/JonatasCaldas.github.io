@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ProjetoVolt - SPA</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700;900&display=swap" rel="stylesheet"/>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#ebe7e7",
+                        "primary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#0a3c65",
+                        "outline-variant": "#bbcac6",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#00201c",
+                        "secondary-fixed-dim": "#3ce448",
+                        "background": "#fcf9f8",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#5cfe5f",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#4fdbc8",
+                        "on-background": "#1c1b1b",
+                        "outline": "#6c7a77",
+                        "on-tertiary-fixed": "#001d36",
+                        "surface-container-low": "#f6f3f2",
+                        "on-surface": "#1c1b1b",
+                        "on-secondary-fixed-variant": "#00530d",
+                        "secondary-fixed": "#73ff6f",
+                        "primary-container": "#14b8a6",
+                        "on-tertiary-fixed-variant": "#1d4973",
+                        "on-primary-fixed-variant": "#005048",
+                        "tertiary-container": "#80a7d6",
+                        "on-secondary-container": "#007316",
+                        "surface-tint": "#006b5f",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#39618c",
+                        "surface": "#fcf9f8",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-surface": "#313030",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#d1e4ff",
+                        "primary": "#006b5f",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "secondary": "#006e14",
+                        "on-surface-variant": "#3c4947",
+                        "tertiary-fixed-dim": "#a2c9fb",
+                        "primary-fixed-dim": "#4fdbc8",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary-container": "#00423b",
+                        "surface-container": "#f0edec",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-secondary-fixed": "#002202",
+                        "on-error": "#ffffff",
+                        "brand": "#006b5f",
+                        "brand-light": "#14b8a6",
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                    },
+                    fontFamily: {
+                        "body-sm": ["Inter", "sans-serif"],
+                        "headline-sm": ["Space Grotesk", "sans-serif"],
+                        "headline-lg": ["Space Grotesk", "sans-serif"],
+                        "label-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "mono-data": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-md": ["Space Grotesk", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex font-body-md text-[16px] overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 left-0 w-full h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4">
+        <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-brand tracking-tighter">ProjetoVolt</h1>
+        </div>
+        <button id="btn-mobile-menu" class="text-slate-500 hover:text-brand transition-colors p-2 -mr-2">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
+
+    <!-- SideNavBar -->
+    <nav id="sidebar" class="h-screen w-64 fixed left-0 top-0 border-r border-slate-200 bg-white font-['Space_Grotesk'] antialiased tracking-tight flex flex-col py-8 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <button id="btn-close-menu" class="md:hidden absolute top-4 right-4 text-slate-400 hover:text-red-500 p-2">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="mb-10 px-8">
+            <h1 class="text-2xl font-bold text-brand tracking-tighter">ProjetoVolt</h1>
+            <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-wider font-semibold">Suíte de Utilidades Técnicas</p>
+        </div>
+        
+        <ul class="flex-1 flex flex-col space-y-1" id="nav-menu">
+            <li class="pl-4">
+                <a class="nav-link flex items-center gap-3 pl-4 pr-4 py-3 rounded-l-lg text-brand font-bold bg-brand/5 border-r-4 border-brand hover:bg-brand/10 transition-colors cursor-pointer" data-target="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Início</span>
+                </a>
+            </li>
+            <li class="px-4">
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-brand hover:bg-slate-50 border-r-4 border-transparent transition-colors duration-200 cursor-pointer">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                    <span>Projeto Novo</span>
+                </a>
+            </li>
+            <li class="px-4">
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-brand hover:bg-slate-50 border-r-4 border-transparent transition-colors duration-200 cursor-pointer" data-target="dimensionamento">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    <span>Dimensionamento</span>
+                </a>
+            </li>
+            <li class="px-4">
+                <a class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-brand hover:bg-slate-50 border-r-4 border-transparent transition-colors duration-200 cursor-pointer" data-target="configuracoes">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="mt-auto px-6 flex flex-col gap-3">
+            <button class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold text-sm tracking-wide transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i data-lucide="download" class="w-5 h-5"></i> Exportar
+            </button>
+            <button class="w-full py-3 px-4 bg-brand hover:bg-brand/90 text-white rounded font-bold text-sm tracking-wide transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i data-lucide="upload" class="w-5 h-5"></i> Importar
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-1 ml-0 md:ml-64 pt-24 md:pt-10 pb-32 md:pb-20 px-4 md:px-8 lg:px-12 overflow-y-auto h-screen relative w-full">
+        
+        <!-- ============================================== -->
+        <!-- VIEW: DASHBOARD -->
+        <!-- ============================================== -->
+        <div id="view-dashboard" class="view-section max-w-5xl mx-auto py-6 animate-fade-in block">
+            <div class="mb-10">
+                <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Visão Geral</h2>
+                <p class="font-body-md text-on-surface-variant">Selecione uma ação para começar um projeto elétrico ou revisar um dimensionamento</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <!-- Card Novo Projeto -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 flex flex-col hover:border-brand/40 transition-all duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-brand/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="w-12 h-12 bg-brand-light text-white rounded-lg flex items-center justify-center mb-6 relative z-10 shadow-sm">
+                        <i data-lucide="compass" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold font-['Space_Grotesk'] text-on-surface mb-3 relative z-10">Novo Projeto</h3>
+                    <p class="text-[15px] leading-relaxed text-on-surface-variant mb-8 flex-1 relative z-10">
+                        Projete uma instalação elétrica nova com base na NBR5410 de maneira simples e rápida, sem complicações.
+                    </p>
+                    <button class="bg-brand text-white font-semibold text-sm py-3.5 px-6 rounded inline-flex items-center justify-between w-full hover:bg-brand/90 transition-colors group/btn relative z-10 shadow-sm">
+                        Comece um Projeto Novo
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover/btn:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+                
+                <!-- Card Novo Dimensionamento -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 flex flex-col hover:border-secondary-container/60 transition-all duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-secondary-container/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="w-12 h-12 bg-[#bbf7d0] text-secondary border border-[#86efac] rounded-lg flex items-center justify-center mb-6 relative z-10 shadow-sm">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold font-['Space_Grotesk'] text-on-surface mb-3 relative z-10">Novo Dimensionamento</h3>
+                    <p class="text-[15px] leading-relaxed text-on-surface-variant mb-8 flex-1 relative z-10">
+                        Calcule a carga de uma instalação existente, crie uma lista de material e gere orçamentos
+                    </p>
+                    <button id="btn-start-dimensionamento" class="border border-brand text-brand font-semibold text-sm py-3.5 px-6 rounded inline-flex items-center justify-between w-full hover:bg-brand/5 transition-colors group/btn relative z-10">
+                        Calcule Carga da Instalação
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover/btn:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-medium font-['Space_Grotesk'] text-on-surface">Atividade Recente</h3>
+                </div>
+                <div class="bg-white border border-outline-variant rounded-lg overflow-hidden shadow-sm">
+                    <div class="grid grid-cols-12 gap-4 px-6 py-3.5 bg-slate-50 border-b border-outline-variant text-[12px] font-semibold text-slate-500 uppercase tracking-wider">
+                        <div class="col-span-6">Nome do Projeto</div>
+                        <div class="col-span-3">Tipo</div>
+                        <div class="col-span-3 text-right">Status</div>
+                    </div>
+                    
+                    <div id="container-atividade-recente" class="divide-y divide-slate-100">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: DIMENSIONAMENTO -->
+        <!-- ============================================== -->
+        <div id="view-dimensionamento" class="view-section max-w-6xl mx-auto py-6 hidden">
+            
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 gap-6">
+                <div>
+                    <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Dimensionamento</h2>
+                    <p class="font-body-md text-on-surface-variant max-w-2xl">
+                        Foque no dimensionamento de cargas para instalações existentes. Insira os componentes abaixo para calcular a carga total e os requisitos do disjuntor.
+                    </p>
+                </div>
+                <div class="flex gap-4 w-full lg:w-auto">
+                    <button id="btn-open-modal-servicos" class="flex-1 lg:flex-none px-4 py-2 border border-brand text-brand rounded font-semibold text-sm hover:bg-brand/5 transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i> Lista de Serviços
+                    </button>
+                    <button id="btn-open-orcamento" class="flex-1 lg:flex-none px-4 py-2 bg-brand text-white rounded font-semibold text-sm hover:bg-brand/90 transition-colors shadow-sm flex items-center justify-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5"></i> Orçamento Final
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left Column -->
+                <div class="xl:col-span-8 flex flex-col gap-8">
+                    
+                    <!-- Tabela de Entrada de Cargas -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface">Entrada de Cargas</h3>
+                            <button id="btn-open-modal" class="text-brand font-semibold text-sm hover:underline flex items-center gap-1.5 transition-all">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Entrada
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr class="border-b border-outline-variant text-on-surface-variant text-[12px] font-semibold uppercase tracking-wider">
+                                        <th class="pb-3 font-medium">Obs / Tipo</th>
+                                        <th class="pb-3 font-medium text-right">Potência (VA)</th>
+                                        <th class="pb-3 font-medium text-right">Tensão (V)</th>
+                                        <th class="pb-3 font-medium text-center">Qtd</th>
+                                        <th class="pb-3 font-medium text-right">Corrente (A)</th>
+                                        <th class="pb-3 font-medium text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <!-- Tbody Gerenciado Dinamicamente -->
+                                <tbody id="tbody-cargas" class="text-sm text-on-surface">
+                                    <tr class="border-b border-surface-variant">
+                                        <td colspan="6" class="py-8 text-center text-slate-400">Nenhuma carga cadastrada. Clique em "Adicionar Entrada".</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Materials (Estimativa de Proteções) -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+                        <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface mb-6">Estimativa de Proteções</h3>
+                        
+                        <div id="protecoes-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-start gap-2">
+                            <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                            <span>Acima do limite de referência</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr class="border-b border-outline-variant text-on-surface-variant text-[12px] font-semibold uppercase tracking-wider">
+                                        <th class="pb-3 font-medium">ID</th>
+                                        <th class="pb-3 font-medium">Descrição</th>
+                                        <th class="pb-3 font-medium text-center">Seção do Cabo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-protecoes" class="text-sm text-on-surface">
+                                    <tr class="border-b border-surface-variant">
+                                        <td colspan="3" class="py-8 text-center text-slate-400">Nenhuma proteção calculada. Adicione cargas primeiro.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Resumo Estático) -->
+                <div class="xl:col-span-4 flex flex-col gap-6">
+                    <div class="bg-brand-light text-white rounded-xl p-8 relative overflow-hidden shadow-sm">
+                        <div class="absolute -top-4 -right-4 p-4 opacity-20"><i data-lucide="zap" class="w-32 h-32"></i></div>
+                        <p class="text-xs font-bold uppercase tracking-widest opacity-90 mb-2 relative z-10">Carga Total do Sistema</p>
+                        <div id="resumo-carga-total" class="text-[56px] font-['Space_Grotesk'] font-bold tracking-tighter mb-8 leading-none relative z-10">--<span class="text-2xl font-medium ml-1">W</span></div>
+                        <div class="bg-white/20 rounded-lg p-4 flex justify-between items-center backdrop-blur-md relative z-10 border border-white/10">
+                            <span class="text-sm font-medium">Fator de Demanda (80%)</span>
+                            <span id="resumo-demanda" class="font-mono font-bold text-lg">-- W</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface">Dimensionamento do Disjuntor Principal</h3>
+                                <p class="text-sm text-slate-500 mt-1">Calculado com base no sistema de 220V</p>
+                            </div>
+                            <span id="resumo-status" class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider border border-slate-200">Aguardando</span>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex justify-between items-end border-b border-slate-100 pb-3">
+                                <span class="text-sm text-slate-600">Corrente Calculada (In)</span>
+                                <span id="resumo-corrente" class="font-mono font-medium text-lg text-slate-800">-- A</span>
+                            </div>
+                            <div class="flex justify-between items-end border-b border-slate-100 pb-3">
+                                <span class="text-sm text-slate-600">Fator de Carga Contínua (1.25x)</span>
+                                <span id="resumo-continua" class="font-mono font-medium text-lg text-slate-800">-- A</span>
+                            </div>
+                            <div class="mt-2 bg-slate-50 p-5 rounded-lg border-l-4 border-brand">
+                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Disjuntor Recomendado</p>
+                                <div class="flex items-baseline gap-3">
+                                    <span id="resumo-disjuntor" class="text-3xl font-['Space_Grotesk'] font-bold text-brand">-- A</span>
+                                    <span class="text-sm font-medium text-slate-600">Curva C / Bipolar</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-5 flex gap-4 items-start shadow-sm">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 shrink-0 mt-0.5"></i>
+                        <div>
+                            <h4 class="text-sm font-bold text-red-800">Verificação de Queda de Tensão</h4>
+                            <p class="text-sm text-red-600/90 mt-1.5 leading-relaxed">
+                                Certifique-se de que o comprimento do condutor não exceda 30m para o fio de 2.5mm² recomendado para manter a queda de tensão &lt;3%.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: ORÇAMENTO E MATERIAIS                    -->
+        <!-- ============================================== -->
+        <div id="view-orcamento" class="view-section max-w-5xl mx-auto py-6 hidden">
+            
+            <div class="mb-10">
+                <button onclick="switchView('dimensionamento')" class="text-sm font-semibold text-brand hover:underline flex items-center gap-1.5 mb-4">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Dimensionamento
+                </button>
+                <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Orçamento e Materiais</h2>
+                <p class="font-body-md text-on-surface-variant max-w-2xl">Resumo consolidado dos serviços selecionados e estimativa de materiais.</p>
+            </div>
+
+            <!-- Dados do Cliente -->
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm mb-8">
+                <div class="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100">
+                    <i data-lucide="building-2" class="w-5 h-5 text-slate-500"></i>
+                    <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface">Dados do Cliente</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">Cliente</span>
+                        <span id="orc-cliente-nome" class="font-semibold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">CPF/CNPJ</span>
+                        <span id="orc-cliente-doc" class="font-mono text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">Contato</span>
+                        <span id="orc-cliente-contato" class="font-semibold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">E-mail</span>
+                        <span id="orc-cliente-email" class="font-semibold text-brand truncate block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Serviços -->
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm mb-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-5 h-5 text-slate-500"></i>
+                        <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface">Serviços e Mão de Obra</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-slate-500 uppercase">Utilizar Preço:</label>
+                        <select id="orc-tipo-preco" class="bg-slate-50 border border-slate-200 rounded p-1.5 text-sm font-bold text-brand outline-none cursor-pointer">
+                            <option value="medio" selected>Médio</option>
+                            <option value="minimo">Mínimo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-outline-variant text-on-surface-variant text-[12px] font-semibold uppercase tracking-wider">
+                                <th class="pb-3 font-medium">Serviço Selecionado</th>
+                                <th class="pb-3 font-medium text-center w-24">Qtd</th>
+                                <th class="pb-3 font-medium text-right w-32">Valor Unit.</th>
+                                <th class="pb-3 font-medium text-right w-32">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-orc-servicos" class="text-sm text-slate-800 divide-y divide-slate-100">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-slate-50 border-t border-slate-200">
+                                <td colspan="3" class="py-4 px-4 text-right text-sm font-bold uppercase tracking-wider text-slate-600">Total de Serviços:</td>
+                                <td id="orc-total-servicos" class="py-4 px-4 text-right font-mono font-bold text-brand text-lg">R$ 0,00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Materiais -->
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm mb-8">
+                <div class="flex items-center gap-2 mb-6">
+                    <i data-lucide="package" class="w-5 h-5 text-slate-500"></i>
+                    <h3 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface">Lista de Materiais</h3>
+                </div>
+
+                <!-- Proteções Automáticas -->
+                <div class="mb-8">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-2">1. Proteções Dimensionadas (Automático)</h4>
+                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-2.5 px-4 font-medium">Componente</th>
+                                    <th class="py-2.5 px-4 font-medium text-center w-24">Qtd</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-orc-protecoes" class="text-sm text-slate-800 divide-y divide-slate-100">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Materiais Avulsos -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-2">2. Materiais Adicionais (Entrada Livre)</h4>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <input type="text" id="orc-mat-desc" placeholder="Ex: Rolo de Cabo Flexível 2.5mm Preto" class="flex-1 bg-white border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none">
+                        <div class="flex gap-2">
+                            <input type="number" id="orc-mat-qtd" placeholder="Qtd" min="1" class="w-24 bg-white border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm text-center outline-none">
+                            <button type="button" id="btn-add-mat-avulso" class="bg-brand text-white px-4 py-2 rounded text-sm font-semibold hover:bg-brand/90 transition-colors shadow-sm flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-2.5 px-4 font-medium">Descrição do Item Adicional</th>
+                                    <th class="py-2.5 px-4 font-medium text-center w-24">Qtd</th>
+                                    <th class="py-2.5 px-4 font-medium text-center w-16">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-orc-mat-avulso" class="text-sm text-slate-800 divide-y divide-slate-100">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: CONFIGURACOES -->
+        <!-- ============================================== -->
+        <div id="view-configuracoes" class="view-section max-w-6xl mx-auto py-6 hidden">
+            
+            <!-- Page Header -->
+            <div class="mb-10">
+                <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Configurações</h2>
+                <p class="font-body-md text-on-surface-variant">Gerencie parâmetros da aplicação, perfil da empresa e normas de referência.</p>
+            </div>
+
+            <!-- Settings Layout: Sidebar + Content Panel -->
+            <div class="flex flex-col lg:flex-row items-start gap-12">
+                
+                <!-- Vertical Tab Navigation -->
+                <nav class="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+                    <button class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-surface-container text-brand font-semibold text-sm text-left transition-colors border-l-4 border-brand">
+                        <i data-lucide="building-2" class="w-5 h-5"></i> Perfil do Cliente
+                    </button>
+                    <button onclick="switchView('tabelas')" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 text-sm font-medium text-left transition-colors border-l-4 border-transparent">
+                        <i data-lucide="table" class="w-5 h-5"></i> Tabelas de Referência
+                    </button>
+                    <button onclick="switchView('precos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 text-sm font-medium text-left transition-colors border-l-4 border-transparent">
+                        <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i> Valores e Preços
+                    </button>
+                </nav>
+
+                <!-- Content Panel -->
+                <div class="flex-1 w-full space-y-8">
+                    
+                    <!-- Panel Header -->
+                    <div class="border-b border-outline-variant pb-6">
+                        <h3 class="text-2xl font-semibold font-['Space_Grotesk'] text-on-surface">Perfil do Cliente</h3>
+                        <p class="text-sm text-on-surface-variant mt-1">Informações básicas do cliente da instalação</p>
+                    </div>
+
+                    <!-- Card: Basic Information Form -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm">
+                        <h4 class="text-xl font-semibold font-['Space_Grotesk'] text-on-surface mb-6">Informações de Contato</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Nome do Cliente</label>
+                                <input id="config-nome" class="w-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-800 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-shadow" type="text" placeholder="Nome do Cliente"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">CPF/CNPJ</label>
+                                <input id="config-cpf" class="w-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-800 text-sm font-mono focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-shadow" type="text" placeholder="000.000.000-00"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Pessoa de Contato</label>
+                                <input id="config-contato" class="w-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-800 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-shadow" type="text" placeholder="Nome do contato"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">E-mail</label>
+                                <input id="config-email" class="w-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-800 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-shadow" type="email" placeholder="email@exemplo.com"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Telefone</label>
+                                <input id="config-telefone" class="w-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-800 text-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none transition-shadow" type="tel" placeholder="(00) 00000-0000"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="flex justify-end gap-3 pt-6 border-t border-outline-variant">
+                        <button id="btn-discard-config" class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded hover:bg-slate-50 transition-colors">Descartar Alterações</button>
+                        <button id="btn-save-config" class="px-6 py-2.5 bg-brand text-white text-sm font-semibold rounded hover:bg-brand/90 transition-colors shadow-sm flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Salvar Configurações</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: TABELAS DE REFERÊNCIA -->
+        <!-- ============================================== -->
+        <div id="view-tabelas" class="view-section max-w-6xl mx-auto py-6 hidden">
+            
+            <!-- Page Header -->
+            <div class="mb-10">
+                <button onclick="switchView('configuracoes')" class="text-sm font-semibold text-brand hover:underline flex items-center gap-1.5 mb-4">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Configurações
+                </button>
+                <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Tabelas de Referência</h2>
+                <p class="font-body-md text-on-surface-variant max-w-2xl">Gerencie e audite especificações técnicas padronizadas usadas nos dimensionamentos e cálculos de projeto.</p>
+            </div>
+
+            <!-- Card: Tabela Disjuntores -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+                <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h3 class="text-lg font-bold font-['Space_Grotesk'] text-brand flex items-center gap-2">
+                        <i data-lucide="zap" class="w-5 h-5"></i> Disjuntores
+                    </h3>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button id="btn-open-modal-disjuntor" class="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand/90 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Referência
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-200">
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Corrente (A)</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Curva B Monopolar</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Curva B Bipolar</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Curva C Monopolar</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Curva C Bipolar</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-disjuntores" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Os dados serão injetados aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="border-t border-slate-200 bg-slate-50/50 px-6 py-3 flex items-center justify-between">
+                    <span id="label-total-disjuntores" class="text-sm text-slate-500">Mostrando registros</span>
+                </div>
+            </div>
+
+            <!-- Card: Tabela Cabos -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h3 class="text-lg font-bold font-['Space_Grotesk'] text-brand flex items-center gap-2">
+                        <i data-lucide="ruler" class="w-5 h-5"></i> Seção de Cabos
+                    </h3>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button id="btn-open-modal-cabo" class="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand/90 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Referência
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-200">
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Seção (mm²)</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">Corrente Máxima (A)</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-cabos" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Os dados serão injetados aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="border-t border-slate-200 bg-slate-50/50 px-6 py-3 flex items-center justify-between">
+                    <span id="label-total-cabos" class="text-sm text-slate-500">Mostrando registros</span>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW: VALORES E PREÇOS -->
+        <!-- ============================================== -->
+        <div id="view-precos" class="view-section max-w-6xl mx-auto py-6 hidden">
+            
+            <!-- Page Header -->
+            <div class="mb-10">
+                <button onclick="switchView('configuracoes')" class="text-sm font-semibold text-brand hover:underline flex items-center gap-1.5 mb-4">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para Configurações
+                </button>
+                <h2 class="text-[32px] leading-tight tracking-tight font-semibold font-['Space_Grotesk'] text-on-background mb-2">Valores e Preços</h2>
+                <p class="font-body-md text-on-surface-variant max-w-2xl">Gerencie sua tabela de preços de serviços para orçamentos padronizados.</p>
+            </div>
+
+            <!-- Card: Tabela Valores e Preços -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+                <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h3 class="text-lg font-bold font-['Space_Grotesk'] text-brand flex items-center gap-2">
+                        <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i> Tabela de Serviços
+                    </h3>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button id="btn-open-modal-preco" class="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand/90 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Serviço
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-200">
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider w-2/5">Descrição do Serviço</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Preço Mínimo</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Preço Médio</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Preço Máximo</th>
+                                <th class="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-precos" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Os dados serão injetados aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="border-t border-slate-200 bg-slate-50/50 px-6 py-3 flex items-center justify-between">
+                    <span id="label-total-precos" class="text-sm text-slate-500">Mostrando registros</span>
+                </div>
+            </div>
+            
+        </div>
+        
+    </main>
+
+    <!-- ============================================== -->
+    <!-- MODALS                                         -->
+    <!-- ============================================== -->
+
+    <!-- MODAL CADASTRO DE CARGA -->
+    <div id="modal-carga" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <h3 class="text-lg font-bold font-['Space_Grotesk'] text-slate-800" id="modal-title">Nova Entrada de Carga</h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Error Banner -->
+                <div id="form-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                    <span id="form-error-text">Mensagem de erro aqui.</span>
+                </div>
+
+                <form id="form-carga" class="flex flex-col gap-4">
+                    <input type="hidden" id="carga-id" value="">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Disparo -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Disparo *</label>
+                            <select id="carga-disparo" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="Curva B (resistivo)">Curva B (resistivo)</option>
+                                <option value="Curva C (indutivo)">Curva C (indutivo)</option>
+                            </select>
+                        </div>
+                        <!-- Obs -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Obs</label>
+                            <input type="text" id="carga-obs" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors" placeholder="Ex: Equipamento extra...">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Local -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Local *</label>
+                            <select id="carga-local" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="Banheiro">Banheiro</option>
+                                <option value="Cozinha">Cozinha</option>
+                                <option value="Área de Serviço">Área de Serviço</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <!-- Tipo -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo *</label>
+                            <select id="carga-tipo" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="TUG">TUG</option>
+                                <option value="TUE">TUE</option>
+                                <option value="ILUM">ILUM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Quantidade -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Quantidade *</label>
+                            <input type="number" id="carga-qtd" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors" min="1" step="1" required>
+                        </div>
+                        <!-- Tensão -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tensão (V) *</label>
+                            <select id="carga-tensao" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="110">110V</option>
+                                <option value="220">220V</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 border border-slate-100 rounded-lg">
+                        <!-- Potência -->
+                        <div class="flex flex-col gap-1.5 relative">
+                            <label class="text-xs font-semibold text-brand uppercase tracking-wider flex items-center gap-1">
+                                Potência Aparente (VA) <i data-lucide="info" class="w-3 h-3 text-slate-400" title="Calculado automaticamente exceto para TUE"></i>
+                            </label>
+                            <input type="number" id="carga-potencia" class="w-full bg-white border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors read-only:bg-slate-100 read-only:text-slate-500" readonly required>
+                        </div>
+                        <!-- Corrente -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Corrente Aparente (A)</label>
+                            <input type="text" id="carga-corrente" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded p-2 text-sm font-mono outline-none cursor-not-allowed" readonly placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <button type="button" id="btn-cancel-modal" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded transition-colors">Cancelar</button>
+                        <button type="button" id="btn-save-carga" class="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-sm transition-colors flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REFERÊNCIA DE DISJUNTOR -->
+    <div id="modal-ref-disjuntor" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-ref-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <h3 class="text-lg font-bold font-['Space_Grotesk'] text-slate-800" id="modal-ref-title">Nova Referência de Disjuntor</h3>
+                <button id="btn-close-modal-ref" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Error Banner -->
+                <div id="form-ref-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                    <span id="form-ref-error-text">Mensagem de erro aqui.</span>
+                </div>
+
+                <form id="form-ref-disjuntor" class="flex flex-col gap-4">
+                    <input type="hidden" id="ref-id" value="">
+                    
+                    <div class="flex flex-col gap-1.5 mb-2">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Corrente Nominal (A) *</label>
+                        <input type="number" id="ref-corrente" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors" min="1" step="1" required placeholder="Ex: 20">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Curva B Monopolar</label>
+                            <select id="ref-b-mono" class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded p-2 text-sm outline-none transition-colors">
+                                <option value="Sim">Sim</option>
+                                <option value="Não" selected>Não</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Curva B Bipolar</label>
+                            <select id="ref-b-bi" class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded p-2 text-sm outline-none transition-colors">
+                                <option value="Sim">Sim</option>
+                                <option value="Não" selected>Não</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Curva C Monopolar</label>
+                            <select id="ref-c-mono" class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded p-2 text-sm outline-none transition-colors">
+                                <option value="Sim" selected>Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Curva C Bipolar</label>
+                            <select id="ref-c-bi" class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded p-2 text-sm outline-none transition-colors">
+                                <option value="Sim" selected>Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <button type="button" id="btn-cancel-modal-ref" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded transition-colors">Cancelar</button>
+                        <button type="button" id="btn-save-ref" class="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-sm transition-colors flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REFERÊNCIA DE CABO -->
+    <div id="modal-ref-cabo" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-cabo-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <h3 class="text-lg font-bold font-['Space_Grotesk'] text-slate-800" id="modal-cabo-title">Nova Referência de Cabo</h3>
+                <button id="btn-close-modal-cabo" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Error Banner -->
+                <div id="form-cabo-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                    <span id="form-cabo-error-text">Mensagem de erro aqui.</span>
+                </div>
+
+                <form id="form-ref-cabo" class="flex flex-col gap-4">
+                    <input type="hidden" id="cabo-id" value="">
+                    
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Seção (mm²) *</label>
+                        <input type="number" id="cabo-secao" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors" min="0" step="any" required placeholder="Ex: 2.5">
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Corrente Máxima (A) *</label>
+                        <input type="number" id="cabo-corrente" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors" min="1" step="1" required placeholder="Ex: 21">
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <button type="button" id="btn-cancel-modal-cabo" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded transition-colors">Cancelar</button>
+                        <button type="button" id="btn-save-cabo" class="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-sm transition-colors flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PREÇOS E SERVIÇOS -->
+    <div id="modal-preco" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-preco-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <h3 class="text-lg font-bold font-['Space_Grotesk'] text-slate-800" id="modal-preco-title">Novo Serviço</h3>
+                <button id="btn-close-modal-preco" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Error Banner -->
+                <div id="form-preco-error" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                    <span id="form-preco-error-text">Mensagem de erro aqui.</span>
+                </div>
+
+                <form id="form-preco" class="flex flex-col gap-4">
+                    <input type="hidden" id="preco-id" value="">
+                    
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Categoria / Grupo *</label>
+                        <select id="preco-categoria" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors" required>
+                            <option value="ILUMINAÇÃO">ILUMINAÇÃO</option>
+                            <option value="PONTO DE UTILIZAÇÃO">PONTO DE UTILIZAÇÃO</option>
+                            <option value="QUADROS DE DISTRIBUIÇÃO / PAINEL">QUADROS DE DISTRIBUIÇÃO / PAINEL</option>
+                            <option value="PASSAGEM DE CABOS">PASSAGEM DE CABOS</option>
+                            <option value="SOLUÇÃO DE PROBLEMAS ELÉTRICOS">SOLUÇÃO DE PROBLEMAS ELÉTRICOS</option>
+                            <option value="PADRÃO DE ENTRADA">PADRÃO DE ENTRADA</option>
+                            <option value="CARREGADOR VEICULAR">CARREGADOR VEICULAR</option>
+                            <option value="AUTOMAÇÃO RESIDENCIAL">AUTOMAÇÃO RESIDENCIAL</option>
+                            <option value="OUTROS">OUTROS</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Descrição do Serviço *</label>
+                        <input type="text" id="preco-servico" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm outline-none transition-colors" required placeholder="Ex: INSTALAÇÃO DE TOMADA SIMPLES">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider text-center">Mínimo (R$)</label>
+                            <input type="number" id="preco-min" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors text-center" min="0" step="0.01" required>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-brand uppercase tracking-wider text-center">Médio (R$)</label>
+                            <input type="number" id="preco-medio" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors text-center font-bold text-brand" min="0" step="0.01" required>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider text-center">Máximo (R$)</label>
+                            <input type="number" id="preco-max" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded p-2 text-sm font-mono outline-none transition-colors text-center" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <button type="button" id="btn-cancel-modal-preco" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded transition-colors">Cancelar</button>
+                        <button type="button" id="btn-save-preco" class="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-sm transition-colors flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LISTA DE SERVIÇOS DO PROJETO -->
+    <div id="modal-servicos" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col" id="modal-servicos-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="text-lg font-bold font-['Space_Grotesk'] text-slate-800">Lista de Serviços do Projeto</h3>
+                <button id="btn-close-modal-servicos" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
+                <!-- Search Input -->
+                <div class="relative">
+                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Buscar Serviço</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-servico-input" class="w-full bg-slate-50 border border-slate-200 focus:border-brand focus:ring-1 focus:ring-brand rounded-lg py-2.5 pl-9 pr-4 text-sm outline-none transition-colors" placeholder="Digite o nome do serviço ou categoria...">
+                    </div>
+                    <!-- Dropdown de Resultados -->
+                    <ul id="search-servico-results" class="absolute z-20 w-full bg-white border border-slate-200 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto hidden">
+                        <!-- JS injects here -->
+                    </ul>
+                </div>
+                
+                <!-- Selected Items -->
+                <div class="flex flex-col flex-1 min-h-[200px]">
+                    <h4 class="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">Serviços Selecionados</h4>
+                    <div class="border border-slate-200 rounded-lg overflow-hidden flex-1 bg-slate-50">
+                        <ul id="list-servicos-selecionados" class="divide-y divide-slate-200 h-full overflow-y-auto max-h-64 bg-white">
+                            <!-- JS injects here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
+                <button type="button" id="btn-cancel-modal-servicos" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded transition-colors">Fechar</button>
+                <button type="button" id="btn-save-servicos" class="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-sm transition-colors flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Salvar na Estimativa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="fixed bottom-0 right-0 w-full md:w-[calc(100%-16rem)] border-t border-slate-200 bg-slate-50 font-['Space_Grotesk'] text-[11px] uppercase tracking-widest flex flex-col md:flex-row justify-center md:justify-between items-center px-4 md:px-8 py-3 z-30 gap-2 md:gap-0 pb-safe">
+        <div class="text-slate-500 font-semibold text-center md:text-left">
+            © 2026 ProjetoVolt Engenharia Elétrica
+        </div>
+    </footer>
+
+    <!-- Logic para SPA e Lógica de Negócios -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // Formatação de Moeda
+            const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+            // ==========================================
+            // Mobile Menu Logic
+            // ==========================================
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const btnMobileMenu = document.getElementById('btn-mobile-menu');
+            const btnCloseMenu = document.getElementById('btn-close-menu');
+
+            function toggleMobileMenu() {
+                if (!sidebar) return;
+                const isOpen = !sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay?.classList.remove('opacity-100');
+                    sidebarOverlay?.classList.add('opacity-0');
+                    setTimeout(() => sidebarOverlay?.classList.add('hidden'), 300);
+                } else {
+                    sidebarOverlay?.classList.remove('hidden');
+                    void sidebarOverlay?.offsetWidth;
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebarOverlay?.classList.remove('opacity-0');
+                    sidebarOverlay?.classList.add('opacity-100');
+                }
+            }
+
+            btnMobileMenu?.addEventListener('click', toggleMobileMenu);
+            btnCloseMenu?.addEventListener('click', toggleMobileMenu);
+            sidebarOverlay?.addEventListener('click', toggleMobileMenu);
+
+            // ==========================================
+            // SPA Navigation Logic
+            // ==========================================
+            const activeClasses = "nav-link flex items-center gap-3 pl-4 pr-4 py-3 rounded-l-lg text-brand font-bold bg-brand/5 border-r-4 border-brand hover:bg-brand/10 transition-colors cursor-pointer";
+            const inactiveClasses = "nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:text-brand hover:bg-slate-50 border-r-4 border-transparent transition-colors duration-200 cursor-pointer";
+            const navLinks = document.querySelectorAll('.nav-link');
+            const views = document.querySelectorAll('.view-section');
+
+            window.switchView = function(targetId) {
+                views.forEach(view => {
+                    if (view.id === 'view-' + targetId) {
+                        view.classList.remove('hidden');
+                        view.classList.add('block', 'animate-fade-in');
+                    } else {
+                        view.classList.add('hidden');
+                        view.classList.remove('block', 'animate-fade-in');
+                    }
+                });
+
+                // Mapping para navegação principal
+                const activeNavTarget = ['tabelas', 'precos'].includes(targetId) 
+                                        ? 'configuracoes' 
+                                        : (targetId === 'orcamento' ? 'dimensionamento' : targetId);
+
+                navLinks.forEach(link => {
+                    if (link.dataset.target === activeNavTarget) {
+                        link.className = activeClasses;
+                        link.parentElement.classList.replace('px-4', 'pl-4');
+                    } else if (link.dataset.target) {
+                        link.className = inactiveClasses;
+                        link.parentElement.classList.replace('pl-4', 'px-4');
+                    }
+                });
+
+                lucide.createIcons();
+
+                if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    toggleMobileMenu();
+                }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (link.dataset.target) window.switchView(link.dataset.target);
+                });
+            });
+
+            document.getElementById('btn-start-dimensionamento')?.addEventListener('click', () => {
+                window.switchView('dimensionamento');
+            });
+            
+            document.getElementById('btn-open-orcamento')?.addEventListener('click', () => {
+                window.switchView('orcamento');
+                renderOrcamento();
+            });
+
+
+            // ==========================================
+            // Lógica de Tabelas de Referência (Disjuntores)
+            // ==========================================
+            const defaultDisjuntores = [
+                { id: 1, corrente: 2, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 2, corrente: 4, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 3, corrente: 6, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 4, corrente: 10, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 5, corrente: 16, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 6, corrente: 20, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 7, corrente: 25, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 8, corrente: 32, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 9, corrente: 40, bMono: 'Sim', bBi: 'Sim', cMono: 'Sim', cBi: 'Sim' },
+                { id: 10, corrente: 50, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 11, corrente: 63, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 12, corrente: 70, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 13, corrente: 80, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 14, corrente: 100, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' },
+                { id: 15, corrente: 125, bMono: 'Não', bBi: 'Não', cMono: 'Sim', cBi: 'Sim' }
+            ];
+
+            let disjuntores = JSON.parse(localStorage.getItem('projetoVolt_disjuntores')) || defaultDisjuntores;
+            let currentRefIdCounter = disjuntores.length > 0 ? Math.max(...disjuntores.map(d => d.id)) + 1 : 1;
+
+            const modalRef = document.getElementById('modal-ref-disjuntor');
+            const modalRefContent = document.getElementById('modal-ref-content');
+            const tbodyDisjuntores = document.getElementById('tbody-disjuntores');
+            
+            function renderTableDisjuntores() {
+                if (!tbodyDisjuntores) return;
+                tbodyDisjuntores.innerHTML = "";
+                const labelTotal = document.getElementById('label-total-disjuntores');
+                if (labelTotal) labelTotal.textContent = `Mostrando ${disjuntores.length} registros`;
+                
+                disjuntores.sort((a, b) => a.corrente - b.corrente);
+
+                disjuntores.forEach(d => {
+                    const renderBadge = (valor) => {
+                        return valor === 'Sim' 
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-100 text-green-700 text-xs font-semibold"><i data-lucide="check" class="w-3 h-3"></i> Sim</span>`
+                            : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-xs font-semibold"><i data-lucide="minus" class="w-3 h-3"></i> Não</span>`;
+                    };
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors group";
+                    tr.innerHTML = `
+                        <td class="py-4 px-6 font-mono text-brand font-bold text-base">${d.corrente} A</td>
+                        <td class="py-4 px-6 text-center">${renderBadge(d.bMono)}</td>
+                        <td class="py-4 px-6 text-center">${renderBadge(d.bBi)}</td>
+                        <td class="py-4 px-6 text-center">${renderBadge(d.cMono)}</td>
+                        <td class="py-4 px-6 text-center">${renderBadge(d.cBi)}</td>
+                        <td class="py-4 px-6 text-right space-x-1">
+                            <button onclick="editDisjuntor(${d.id})" class="text-slate-400 hover:text-brand transition-colors p-1.5 rounded-md hover:bg-brand/10 inline-flex">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteDisjuntor(${d.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 inline-flex">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyDisjuntores.appendChild(tr);
+                });
+                lucide.createIcons();
+            }
+
+            function openModalRef(editMode = false, refData = null) {
+                document.getElementById('form-ref-error')?.classList.add('hidden');
+                
+                if (editMode && refData) {
+                    const title = document.getElementById('modal-ref-title');
+                    if(title) title.textContent = "Editar Disjuntor";
+                    document.getElementById('ref-id').value = refData.id;
+                    document.getElementById('ref-corrente').value = refData.corrente;
+                    document.getElementById('ref-b-mono').value = refData.bMono;
+                    document.getElementById('ref-b-bi').value = refData.bBi;
+                    document.getElementById('ref-c-mono').value = refData.cMono;
+                    document.getElementById('ref-c-bi').value = refData.cBi;
+                } else {
+                    const title = document.getElementById('modal-ref-title');
+                    if(title) title.textContent = "Nova Referência de Disjuntor";
+                    document.getElementById('form-ref-disjuntor')?.reset();
+                    document.getElementById('ref-id').value = "";
+                }
+                
+                modalRef?.classList.remove('hidden');
+                setTimeout(() => {
+                    modalRef?.classList.remove('opacity-0');
+                    modalRefContent?.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModalRef() {
+                modalRef?.classList.add('opacity-0');
+                modalRefContent?.classList.add('scale-95');
+                setTimeout(() => {
+                    modalRef?.classList.add('hidden');
+                }, 300);
+            }
+
+            document.getElementById('btn-open-modal-disjuntor')?.addEventListener('click', () => openModalRef(false));
+            document.getElementById('btn-close-modal-ref')?.addEventListener('click', closeModalRef);
+            document.getElementById('btn-cancel-modal-ref')?.addEventListener('click', closeModalRef);
+
+            document.getElementById('btn-save-ref')?.addEventListener('click', () => {
+                const idEdit = document.getElementById('ref-id').value;
+                const corrente = parseInt(document.getElementById('ref-corrente').value);
+                const bMono = document.getElementById('ref-b-mono').value;
+                const bBi = document.getElementById('ref-b-bi').value;
+                const cMono = document.getElementById('ref-c-mono').value;
+                const cBi = document.getElementById('ref-c-bi').value;
+
+                if (isNaN(corrente) || corrente <= 0) {
+                    document.getElementById('form-ref-error-text').textContent = "A corrente deve ser um número inteiro positivo.";
+                    document.getElementById('form-ref-error')?.classList.remove('hidden');
+                    return;
+                }
+
+                const novoDisjuntor = {
+                    id: idEdit ? parseInt(idEdit) : currentRefIdCounter++,
+                    corrente, bMono, bBi, cMono, cBi
+                };
+
+                if (idEdit) {
+                    const index = disjuntores.findIndex(d => d.id == idEdit);
+                    if (index > -1) disjuntores[index] = novoDisjuntor;
+                } else {
+                    if(disjuntores.some(d => d.corrente === corrente)) {
+                        document.getElementById('form-ref-error-text').textContent = "Já existe uma referência para esta corrente.";
+                        document.getElementById('form-ref-error')?.classList.remove('hidden');
+                        return;
+                    }
+                    disjuntores.push(novoDisjuntor);
+                }
+
+                localStorage.setItem('projetoVolt_disjuntores', JSON.stringify(disjuntores));
+                closeModalRef();
+                renderTableDisjuntores();
+                renderTableProtecoes(); 
+            });
+
+            window.editDisjuntor = function(id) {
+                const item = disjuntores.find(d => d.id == id);
+                if (item) openModalRef(true, item);
+            }
+
+            window.deleteDisjuntor = function(id) {
+                if (window.confirm("Excluir esta referência de disjuntor?")) {
+                    disjuntores = disjuntores.filter(d => d.id != id);
+                    localStorage.setItem('projetoVolt_disjuntores', JSON.stringify(disjuntores));
+                    renderTableDisjuntores();
+                    renderTableProtecoes(); 
+                }
+            }
+
+
+            // ==========================================
+            // Lógica de Tabelas de Referência (Cabos)
+            // ==========================================
+            const defaultCabos = [
+                { id: 1, secao: 0.5, corrente: 7 },
+                { id: 2, secao: 0.75, corrente: 9 },
+                { id: 3, secao: 1, corrente: 12 },
+                { id: 4, secao: 1.5, corrente: 15 },
+                { id: 5, secao: 2.5, corrente: 21 },
+                { id: 6, secao: 4, corrente: 28 },
+                { id: 7, secao: 6, corrente: 36 },
+                { id: 8, secao: 10, corrente: 50 },
+                { id: 9, secao: 16, corrente: 68 },
+                { id: 10, secao: 25, corrente: 89 },
+                { id: 11, secao: 35, corrente: 110 },
+                { id: 12, secao: 50, corrente: 134 },
+                { id: 13, secao: 70, corrente: 171 },
+                { id: 14, secao: 95, corrente: 207 },
+                { id: 15, secao: 120, corrente: 240 }
+            ];
+
+            let cabos = JSON.parse(localStorage.getItem('projetoVolt_cabos')) || defaultCabos;
+            let currentCaboIdCounter = cabos.length > 0 ? Math.max(...cabos.map(c => c.id)) + 1 : 1;
+
+            const modalCabo = document.getElementById('modal-ref-cabo');
+            const modalCaboContent = document.getElementById('modal-cabo-content');
+            const tbodyCabos = document.getElementById('tbody-cabos');
+
+            function renderTableCabos() {
+                if (!tbodyCabos) return;
+                tbodyCabos.innerHTML = "";
+                const labelTotal = document.getElementById('label-total-cabos');
+                if (labelTotal) labelTotal.textContent = `Mostrando ${cabos.length} registros`;
+
+                cabos.sort((a, b) => a.secao - b.secao);
+
+                cabos.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors group";
+                    tr.innerHTML = `
+                        <td class="py-4 px-6 font-mono font-semibold text-slate-800 text-base">${c.secao.toString().replace('.', ',')} mm²</td>
+                        <td class="py-4 px-6 font-mono text-brand font-bold text-base">${c.corrente} A</td>
+                        <td class="py-4 px-6 text-right space-x-1">
+                            <button onclick="editCabo(${c.id})" class="text-slate-400 hover:text-brand transition-colors p-1.5 rounded-md hover:bg-brand/10 inline-flex">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteCabo(${c.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 inline-flex">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyCabos.appendChild(tr);
+                });
+                lucide.createIcons();
+            }
+
+            function openModalCabo(editMode = false, caboData = null) {
+                document.getElementById('form-cabo-error')?.classList.add('hidden');
+
+                if (editMode && caboData) {
+                    const title = document.getElementById('modal-cabo-title');
+                    if(title) title.textContent = "Editar Referência de Cabo";
+                    document.getElementById('cabo-id').value = caboData.id;
+                    document.getElementById('cabo-secao').value = caboData.secao;
+                    document.getElementById('cabo-corrente').value = caboData.corrente;
+                } else {
+                    const title = document.getElementById('modal-cabo-title');
+                    if(title) title.textContent = "Nova Referência de Cabo";
+                    document.getElementById('form-ref-cabo')?.reset();
+                    document.getElementById('cabo-id').value = "";
+                }
+
+                modalCabo?.classList.remove('hidden');
+                setTimeout(() => {
+                    modalCabo?.classList.remove('opacity-0');
+                    modalCaboContent?.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModalCabo() {
+                modalCabo?.classList.add('opacity-0');
+                modalCaboContent?.classList.add('scale-95');
+                setTimeout(() => {
+                    modalCabo?.classList.add('hidden');
+                }, 300);
+            }
+
+            document.getElementById('btn-open-modal-cabo')?.addEventListener('click', () => openModalCabo(false));
+            document.getElementById('btn-close-modal-cabo')?.addEventListener('click', closeModalCabo);
+            document.getElementById('btn-cancel-modal-cabo')?.addEventListener('click', closeModalCabo);
+
+            document.getElementById('btn-save-cabo')?.addEventListener('click', () => {
+                const idEdit = document.getElementById('cabo-id').value;
+                const secao = parseFloat(document.getElementById('cabo-secao').value);
+                const corrente = parseInt(document.getElementById('cabo-corrente').value);
+
+                if (isNaN(secao) || secao <= 0 || isNaN(corrente) || corrente <= 0) {
+                    document.getElementById('form-cabo-error-text').textContent = "Preencha todos os campos com valores válidos.";
+                    document.getElementById('form-cabo-error')?.classList.remove('hidden');
+                    return;
+                }
+
+                const novoCabo = {
+                    id: idEdit ? parseInt(idEdit) : currentCaboIdCounter++,
+                    secao,
+                    corrente
+                };
+
+                if (idEdit) {
+                    const index = cabos.findIndex(c => c.id == parseInt(idEdit));
+                    if (index > -1) cabos[index] = novoCabo;
+                } else {
+                    if(cabos.some(c => c.secao === secao)) {
+                        document.getElementById('form-cabo-error-text').textContent = "Já existe uma referência para esta seção.";
+                        document.getElementById('form-cabo-error')?.classList.remove('hidden');
+                        return;
+                    }
+                    cabos.push(novoCabo);
+                }
+
+                localStorage.setItem('projetoVolt_cabos', JSON.stringify(cabos));
+                closeModalCabo();
+                renderTableCabos();
+                renderTableProtecoes();
+            });
+
+            window.editCabo = function(id) {
+                const item = cabos.find(c => c.id == id);
+                if (item) openModalCabo(true, item);
+            }
+
+            window.deleteCabo = function(id) {
+                if (window.confirm("Excluir esta referência de cabo?")) {
+                    cabos = cabos.filter(c => c.id != id);
+                    localStorage.setItem('projetoVolt_cabos', JSON.stringify(cabos));
+                    renderTableCabos();
+                    renderTableProtecoes();
+                }
+            }
+
+
+            // ==========================================
+            // Lógica de Valores e Preços
+            // ==========================================
+            const defaultPrecos = [
+                { id: 1, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE INTERRUPTOR SIMPLES ou PULSADOR', min: 45, max: 65, medio: 55 },
+                { id: 2, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE INTERRUPTOR TREE-WAY ou FOUR WAY', min: 55, max: 75, medio: 65 },
+                { id: 3, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE INTERRUPTOR DUPLO ou BIPOLAR', min: 55, max: 75, medio: 65 },
+                { id: 4, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE INTERRUPTOR E TOMADA ( Juntos )', min: 55, max: 75, medio: 65 },
+                { id: 5, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE ARANDELA, PENDENTE OU SPOT COMUM', min: 60, max: 90, medio: 75 },
+                { id: 6, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LÂMPADA FLUORESCENTE ou LED (TUBULAR)', min: 65, max: 85, medio: 75 },
+                { id: 7, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LUSTRES SIMPLES ou LUMINÁRIA', min: 85, max: 110, medio: 97.5 },
+                { id: 8, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LUSTRES GRANDES ou LUMINÁRIA', min: 130, max: 160, medio: 145 },
+                { id: 9, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE REFLETOR DE JARDIM', min: 95, max: 125, medio: 110 },
+                { id: 10, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE REFLETOR DE POSTE COMUM', min: 120, max: 160, medio: 140 },
+                { id: 11, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE REFLETOR DE POSTE COM LÂMPADA A VAPOR', min: 120, max: 160, medio: 140 },
+                { id: 12, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE REATOR DE LÂMPADA A VAPOR', min: 75, max: 100, medio: 87.5 },
+                { id: 13, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE FOTOCÉLULA ou SENSOR PRESENÇA', min: 75, max: 115, medio: 95 },
+                { id: 14, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE REFLETOR LED + FOTOCÉLULA ou SENSOR DE PRESENÇA', min: 65, max: 105, medio: 85 },
+                { id: 15, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LUMINÁRIA DE EMERGÊNCIA DE SOBREPOR', min: 75, max: 115, medio: 95 },
+                { id: 16, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LUMINÁRIA DE EMERGÊNCIA DE EMBUTIR (caixinha 2x4)', min: 55, max: 85, medio: 70 },
+                { id: 17, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE INSTALAÇÃO PERFIL DE LED ( O METRO linear )', min: 150, max: 190, medio: 170 },
+                { id: 18, categoria: 'ILUMINAÇÃO', servico: 'INSTALAÇÃO DE LUMINÁRIA TUBULAR ou TROCA "REATOR Pou LED"', min: 75, max: 105, medio: 90 },
+
+                { id: 19, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA SIMPLES', min: 35, max: 55, medio: 45 },
+                { id: 20, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA DUPLA', min: 45, max: 65, medio: 55 },
+                { id: 21, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA TRIPLA', min: 55, max: 75, medio: 65 },
+                { id: 22, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA DE PISO E OU TELEFONE', min: 55, max: 75, medio: 65 },
+                { id: 23, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA INDUSTRIAL ( 3P+t )', min: 85, max: 125, medio: 105 },
+                { id: 24, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TOMADA DE SOBREPOR COM CANALETA', min: 55, max: 75, medio: 65 },
+                { id: 25, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CHAVE DE BÓIA SUPERIOR E INFERIOR ( EM RESIDÊNCIA )', min: 110, max: 150, medio: 130 },
+                { id: 26, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE VENTILADOR DE TETO', min: 130, max: 170, medio: 150 },
+                { id: 27, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE VENTILADOR DE PAREDE', min: 85, max: 105, medio: 95 },
+                { id: 28, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CHUVEIRO ELÉTRICO SIMPLES', min: 85, max: 105, medio: 95 },
+                { id: 29, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CHUVEIRO LUXO (Eletrônico ou Pressurizado ou Ducha)', min: 130, max: 160, medio: 145 },
+                { id: 30, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TROCA DE RESISTÊNCIA DE CHUVEIRO ( Elétrico ou Eletrônico )', min: 75, max: 95, medio: 85 },
+                { id: 31, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TORNEIRA ELÉTRICA', min: 85, max: 105, medio: 95 },
+                { id: 32, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CAMPAINHA ATÉ 20 MTS', min: 65, max: 85, medio: 75 },
+                { id: 33, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE INTERFONE 1 CHAMADA', min: 140, max: 210, medio: 175 },
+                { id: 34, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE INTERFONE 2 CHAMADAS', min: 180, max: 250, medio: 215 },
+                { id: 35, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE INTERFONE 4 CHAMADAS', min: 400, max: 460, medio: 430 },
+                { id: 36, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE VIDEO PORTEIRO', min: 170, max: 210, medio: 190 },
+                { id: 37, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CÂMERAS CFTV 1 CÂMERA WI-FI (sem ponto elétrico)', min: 140, max: 180, medio: 160 },
+                { id: 38, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CÂMERAS CFTV 3 CÂMERAS WIFI (sem ponto elétrico)', min: 340, max: 380, medio: 360 },
+                { id: 39, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE PORTAO ELETRÔNICO DESLIZANTE', min: 250, max: 290, medio: 270 },
+                { id: 40, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE PORTAO ELETRÔNICO PIVONTANTE E OU BASCULANTE', min: 465, max: 525, medio: 495 },
+                { id: 41, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE BOTOEIRA para FECHADURA ELETRÔNICA ( Portão Social )', min: 55, max: 75, medio: 65 },
+                { id: 42, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE FECHADURA ELETRÔNICA ( Portão Social )', min: 140, max: 180, medio: 160 },
+                { id: 43, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE EXAUSTOR COZINHA OU BANHEIRO', min: 215, max: 255, medio: 235 },
+                { id: 44, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE SISTEMA DE ALARME RESIDENCIAL', min: 750, max: 1070, medio: 910 },
+                { id: 45, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE AQUECEDOR ELÉTRICO ( com passagem de cabos )', min: 1940, max: 2900, medio: 2420 },
+                { id: 46, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE DETECTOR FUMAÇA', min: 1070, max: 1600, medio: 1335 },
+                { id: 47, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE CERCA ELÉTRICA ( sendo cobrado por metro de cerca )', min: 55, max: 95, medio: 75 },
+                { id: 48, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE NOBREAK', min: 270, max: 330, medio: 300 },
+                { id: 49, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE AQUECEDOR A GÁS', min: 290, max: 400, medio: 345 },
+                { id: 50, categoria: 'PONTO DE UTILIZAÇÃO', servico: 'INSTALAÇÃO DE TERMOSTATO ou TEMPORIZADOR', min: 85, max: 105, medio: 95 },
+
+                { id: 51, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'SUBSTITUIÇÃO DE DISJUNTOR MONOFÁSICO', min: 45, max: 65, medio: 55 },
+                { id: 52, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'SUBSTITUIÇÃO DE DISJUNTOR BIFÁSICO', min: 65, max: 85, medio: 75 },
+                { id: 53, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'SUBSTITUIÇÃO DE DISJUNTOR TRIFÁSICO', min: 100, max: 120, medio: 110 },
+                { id: 54, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE IDR (INTERRUPTOR DIFERENCIAL RESIDUAL)', min: 120, max: 160, medio: 140 },
+                { id: 55, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE DPS - DISPOSITIVO DE PROTEÇÃO CONTRA SURTOS', min: 105, max: 135, medio: 120 },
+                { id: 56, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE BARRAMENTO PENTE MONOPOLAR NO QGD', min: 50, max: 80, medio: 65 },
+                { id: 57, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE BARRAMENTO PENTE BIPOLAR NO QGD', min: 60, max: 90, medio: 75 },
+                { id: 58, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE BARRAMENTO PENTE TRIPOLAR NO QGD', min: 70, max: 100, medio: 85 },
+                { id: 59, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE BARRAMENTO DE NEUTRO e OU TERRA', min: 70, max: 100, medio: 85 },
+                { id: 60, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE HASTE ATERRAMENTO', min: 175, max: 215, medio: 195 },
+                { id: 61, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO DE CONTATOR E OU RELÉ TÉRMICO', min: 185, max: 245, medio: 215 },
+                { id: 62, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO E MONTAGEM QDC (6 CIRCUITOS + DR + DPS)', min: 495, max: 545, medio: 520 },
+                { id: 63, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO E MONTAGEM QDC (12 CIRCUITOS + DR + DPS)', min: 750, max: 800, medio: 775 },
+                { id: 64, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO E MONTAGEM QDC (18 CIRCUITOS + DR + DPS)', min: 940, max: 990, medio: 965 },
+                { id: 65, categoria: 'QUADROS DE DISTRIBUIÇÃO / PAINEL', servico: 'INSTALAÇÃO E MONTAGEM QDC (24 CIRCUITOS + DR + DPS)', min: 1260, max: 1320, medio: 1290 },
+
+                { id: 66, categoria: 'PASSAGEM DE CABOS', servico: 'ENTRADA MONOFÁSICA ( QM PARA QDC)', min: 170, max: 230, medio: 200 },
+                { id: 67, categoria: 'PASSAGEM DE CABOS', servico: 'ENTRADA BIFÁSICA OU TRIFÁSICA ( QM PARA QDC)', min: 230, max: 300, medio: 265 },
+                { id: 68, categoria: 'PASSAGEM DE CABOS', servico: 'ALIMENTAÇÃO PARA MOTORES', min: 160, max: 220, medio: 190 },
+
+                { id: 69, categoria: 'SOLUÇÃO DE PROBLEMAS ELÉTRICOS', servico: 'CURTO CIRCUITO MONOFÁSICO', min: 130, max: 190, medio: 160 },
+                { id: 70, categoria: 'SOLUÇÃO DE PROBLEMAS ELÉTRICOS', servico: 'CURTO CIRCUITO BIFÁSICO', min: 160, max: 220, medio: 190 },
+                { id: 71, categoria: 'SOLUÇÃO DE PROBLEMAS ELÉTRICOS', servico: 'CURTO CIRCUITO TRIFÁSICO', min: 185, max: 255, medio: 220 },
+
+                { id: 72, categoria: 'PADRÃO DE ENTRADA', servico: 'INSTALAÇÃO DE MEDIDOR (Padrão de entrada - Monofásico 127V ou 220V )', min: 1080, max: 1700, medio: 1390 },
+                { id: 73, categoria: 'PADRÃO DE ENTRADA', servico: 'INSTALAÇÃO DE MEDIDOR (Padrão de entrada - Bifásico 220V )', min: 1290, max: 1940, medio: 1615 },
+                { id: 74, categoria: 'PADRÃO DE ENTRADA', servico: 'INSTALAÇÃO DE MEDIDOR (Padrão de entrada - Trifásico 220V )', min: 1500, max: 2150, medio: 1825 },
+
+                { id: 75, categoria: 'CARREGADOR VEICULAR', servico: 'INSTALAÇÃO CARREGADOR VEICULAR', min: 800, max: 1200, medio: 1000 },
+
+                { id: 76, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO DE INTERRUPTOR INTELIGENTE', min: 110, max: 270, medio: 190 },
+                { id: 77, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO MINI RELE INTERRUPTOR', min: 160, max: 270, medio: 215 },
+                { id: 78, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO RELE DE IMPULSO', min: 130, max: 220, medio: 175 },
+                { id: 79, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO RELE DIMMER', min: 160, max: 270, medio: 215 },
+                { id: 80, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO E CONFIGURAÇÃO CONTROLE REMOTO UNIVERSAL', min: 110, max: 220, medio: 165 },
+                { id: 81, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO DE TOMADA INTELIGENTE', min: 75, max: 125, medio: 100 },
+                { id: 82, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO MINI RELE CONTROLE DE PERSIANA', min: 160, max: 270, medio: 215 },
+                { id: 83, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO E CONFIGURAÇÃO HUB', min: 160, max: 220, medio: 190 },
+                { id: 84, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO E CONFIGURAÇÃO ROTEADOR', min: 110, max: 270, medio: 190 },
+                { id: 85, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO E CONFIGURAÇÃO FECHADURA INTELIGENTE', min: 210, max: 370, medio: 290 },
+                { id: 86, categoria: 'AUTOMAÇÃO RESIDENCIAL', servico: 'INSTALAÇÃO E CONFIGURAÇÃO ASSISTENTE VIRTUAL', min: 110, max: 210, medio: 160 }
+            ];
+
+            let precos = JSON.parse(localStorage.getItem('projetoVolt_precos')) || defaultPrecos;
+            let currentPrecoIdCounter = precos.length > 0 ? Math.max(...precos.map(p => p.id)) + 1 : 1;
+
+            const modalPreco = document.getElementById('modal-preco');
+            const modalPrecoContent = document.getElementById('modal-preco-content');
+            const tbodyPrecos = document.getElementById('tbody-precos');
+
+            function renderTablePrecos() {
+                if (!tbodyPrecos) return;
+                tbodyPrecos.innerHTML = "";
+                const labelTotal = document.getElementById('label-total-precos');
+                if (labelTotal) labelTotal.textContent = `Mostrando ${precos.length} serviços`;
+
+                // Ordenar por ID para manter a ordem da carga inicial ou por Categoria
+                precos.sort((a, b) => a.id - b.id);
+
+                precos.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors group";
+                    tr.innerHTML = `
+                        <td class="py-4 px-6 w-2/5">
+                            <span class="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded uppercase font-semibold mb-1.5 inline-block">${p.categoria}</span>
+                            <div class="font-bold text-slate-800 text-sm leading-snug">${p.servico}</div>
+                        </td>
+                        <td class="py-4 px-6 text-right font-mono text-slate-500">${formatCurrency(p.min)}</td>
+                        <td class="py-4 px-6 text-right font-mono text-brand font-bold">${formatCurrency(p.medio)}</td>
+                        <td class="py-4 px-6 text-right font-mono text-slate-500">${formatCurrency(p.max)}</td>
+                        <td class="py-4 px-6 text-right space-x-1">
+                            <button onclick="editPreco(${p.id})" class="text-slate-400 hover:text-brand transition-colors p-1.5 rounded-md hover:bg-brand/10 inline-flex">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deletePreco(${p.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-red-50 inline-flex">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyPrecos.appendChild(tr);
+                });
+                lucide.createIcons();
+            }
+
+            function openModalPreco(editMode = false, precoData = null) {
+                document.getElementById('form-preco-error')?.classList.add('hidden');
+
+                if (editMode && precoData) {
+                    const title = document.getElementById('modal-preco-title');
+                    if(title) title.textContent = "Editar Serviço";
+                    document.getElementById('preco-id').value = precoData.id;
+                    document.getElementById('preco-categoria').value = precoData.categoria;
+                    document.getElementById('preco-servico').value = precoData.servico;
+                    document.getElementById('preco-min').value = precoData.min;
+                    document.getElementById('preco-medio').value = precoData.medio;
+                    document.getElementById('preco-max').value = precoData.max;
+                } else {
+                    const title = document.getElementById('modal-preco-title');
+                    if(title) title.textContent = "Novo Serviço";
+                    document.getElementById('form-preco')?.reset();
+                    document.getElementById('preco-id').value = "";
+                }
+
+                modalPreco?.classList.remove('hidden');
+                setTimeout(() => {
+                    modalPreco?.classList.remove('opacity-0');
+                    modalPrecoContent?.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModalPreco() {
+                modalPreco?.classList.add('opacity-0');
+                modalPrecoContent?.classList.add('scale-95');
+                setTimeout(() => {
+                    modalPreco?.classList.add('hidden');
+                }, 300);
+            }
+
+            document.getElementById('btn-open-modal-preco')?.addEventListener('click', () => openModalPreco(false));
+            document.getElementById('btn-close-modal-preco')?.addEventListener('click', closeModalPreco);
+            document.getElementById('btn-cancel-modal-preco')?.addEventListener('click', closeModalPreco);
+
+            document.getElementById('btn-save-preco')?.addEventListener('click', () => {
+                const idEdit = document.getElementById('preco-id').value;
+                const categoria = document.getElementById('preco-categoria').value;
+                const servico = document.getElementById('preco-servico').value;
+                const min = parseFloat(document.getElementById('preco-min').value);
+                const medio = parseFloat(document.getElementById('preco-medio').value);
+                const max = parseFloat(document.getElementById('preco-max').value);
+
+                if (!categoria || !servico || isNaN(min) || isNaN(medio) || isNaN(max)) {
+                    document.getElementById('form-preco-error-text').textContent = "Preencha todos os campos com valores válidos.";
+                    document.getElementById('form-preco-error')?.classList.remove('hidden');
+                    return;
+                }
+
+                const novoPreco = {
+                    id: idEdit ? parseInt(idEdit) : currentPrecoIdCounter++,
+                    categoria,
+                    servico,
+                    min,
+                    medio,
+                    max
+                };
+
+                if (idEdit) {
+                    const index = precos.findIndex(p => p.id == parseInt(idEdit));
+                    if (index > -1) precos[index] = novoPreco;
+                } else {
+                    precos.push(novoPreco);
+                }
+
+                localStorage.setItem('projetoVolt_precos', JSON.stringify(precos));
+                closeModalPreco();
+                renderTablePrecos();
+            });
+
+            window.editPreco = function(id) {
+                const item = precos.find(p => p.id == id);
+                if (item) openModalPreco(true, item);
+            }
+
+            window.deletePreco = function(id) {
+                if (window.confirm("Excluir este serviço da tabela de preços?")) {
+                    precos = precos.filter(p => p.id != id);
+                    localStorage.setItem('projetoVolt_precos', JSON.stringify(precos));
+                    renderTablePrecos();
+                }
+            }
+
+            // ==========================================
+            // Lógica de Cadastro de Cargas
+            // ==========================================
+            let cargas = JSON.parse(localStorage.getItem('projetoVolt_cargas')) || [];
+            let currentIdCounter = cargas.length > 0 ? Math.max(...cargas.map(c => c.id)) + 1 : 1;
+
+            const modal = document.getElementById('modal-carga');
+            const modalContent = document.getElementById('modal-content');
+            const modalTitle = document.getElementById('modal-title');
+            const formError = document.getElementById('form-error');
+            const formErrorText = document.getElementById('form-error-text');
+            
+            const inputId = document.getElementById('carga-id');
+            const inputLocal = document.getElementById('carga-local');
+            const inputTipo = document.getElementById('carga-tipo');
+            const inputQtd = document.getElementById('carga-qtd');
+            const inputTensao = document.getElementById('carga-tensao');
+            const inputPotencia = document.getElementById('carga-potencia');
+            const inputCorrente = document.getElementById('carga-corrente');
+            const inputObs = document.getElementById('carga-obs');
+            const inputDisparo = document.getElementById('carga-disparo');
+            const tbodyCargas = document.getElementById('tbody-cargas');
+
+            function openModal(editMode = false, cargaData = null) {
+                formError?.classList.add('hidden');
+                
+                if (editMode && cargaData) {
+                    if(modalTitle) modalTitle.textContent = "Editar Entrada";
+                    if(inputId) inputId.value = cargaData.id;
+                    if(inputLocal) inputLocal.value = cargaData.local;
+                    if(inputTipo) inputTipo.value = cargaData.tipo;
+                    if(inputQtd) inputQtd.value = cargaData.quantidade;
+                    if(inputTensao) inputTensao.value = cargaData.tensao;
+                    if(inputPotencia) inputPotencia.value = cargaData.potencia;
+                    if(inputCorrente) inputCorrente.value = cargaData.corrente.toFixed(2);
+                    if(inputObs) inputObs.value = cargaData.obs || "";
+                    if(inputDisparo) inputDisparo.value = cargaData.disparo || "";
+                } else {
+                    if(modalTitle) modalTitle.textContent = "Nova Entrada de Carga";
+                    document.getElementById('form-carga')?.reset();
+                    if(inputId) inputId.value = "";
+                    if(inputCorrente) inputCorrente.value = "";
+                    if(inputObs) inputObs.value = "";
+                    if(inputDisparo) inputDisparo.value = "";
+                }
+                
+                checkTipoDependencies(); 
+                recalcularValores();     
+                
+                modal?.classList.remove('hidden');
+                setTimeout(() => {
+                    modal?.classList.remove('opacity-0');
+                    modalContent?.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModal() {
+                modal?.classList.add('opacity-0');
+                modalContent?.classList.add('scale-95');
+                setTimeout(() => {
+                    modal?.classList.add('hidden');
+                }, 300);
+            }
+
+            document.getElementById('btn-open-modal')?.addEventListener('click', () => openModal(false));
+            document.getElementById('btn-close-modal')?.addEventListener('click', closeModal);
+            document.getElementById('btn-cancel-modal')?.addEventListener('click', closeModal);
+
+            function getTUGsExistentesNoLocal(local, excludeId) {
+                return cargas
+                    .filter(c => c.local === local && c.tipo === 'TUG' && String(c.id) !== String(excludeId))
+                    .reduce((sum, c) => sum + parseInt(c.quantidade), 0);
+            }
+
+            function calcPotenciaTUGMolhada(qtd) {
+                if (qtd <= 0) return 0;
+                const primeiros = Math.min(qtd, 3);
+                const excedentes = Math.max(0, qtd - 3);
+                return (primeiros * 600) + (excedentes * 100);
+            }
+
+            function checkTipoDependencies() {
+                if(!inputTipo || !inputPotencia || !inputDisparo) return;
+                
+                const tipo = inputTipo.value;
+                if (tipo === 'TUE') {
+                    inputPotencia.readOnly = false;
+                    inputDisparo.disabled = false; 
+                } else {
+                    inputPotencia.readOnly = true;
+                    if (tipo === 'TUG' || tipo === 'ILUM') {
+                        inputDisparo.value = 'Curva B (resistivo)';
+                        inputDisparo.disabled = true; 
+                    } else {
+                        inputDisparo.disabled = false; 
+                    }
+                }
+            }
+
+            function recalcularValores() {
+                if(!inputLocal || !inputTipo || !inputQtd || !inputTensao || !inputId || !inputPotencia || !inputCorrente) return;
+                
+                const local = inputLocal.value;
+                const tipo = inputTipo.value;
+                const qtd = parseInt(inputQtd.value) || 0;
+                const tensao = parseInt(inputTensao.value) || 0;
+                const idAtual = inputId.value;
+
+                if (tipo && local && qtd > 0 && tipo !== 'TUE') {
+                    if (tipo === 'ILUM') {
+                        inputPotencia.value = qtd * 100;
+                    } 
+                    else if (tipo === 'TUG') {
+                        if (['Banheiro', 'Cozinha', 'Área de Serviço'].includes(local)) {
+                            const tugsExistentes = getTUGsExistentesNoLocal(local, idAtual);
+                            const qtdTotal = tugsExistentes + qtd;
+                            
+                            const potenciaTotalLocal = calcPotenciaTUGMolhada(qtdTotal);
+                            const potenciaAntigaLocal = calcPotenciaTUGMolhada(tugsExistentes);
+                            
+                            inputPotencia.value = potenciaTotalLocal - potenciaAntigaLocal;
+                        } else {
+                            inputPotencia.value = qtd * 100;
+                        }
+                    }
+                }
+
+                const potenciaFinal = parseFloat(inputPotencia.value) || 0;
+                if (tensao > 0 && potenciaFinal > 0) {
+                    inputCorrente.value = (potenciaFinal / tensao).toFixed(2);
+                } else {
+                    inputCorrente.value = "";
+                }
+            }
+
+            inputTipo?.addEventListener('change', () => {
+                checkTipoDependencies();
+                recalcularValores();
+            });
+            inputLocal?.addEventListener('change', recalcularValores);
+            inputQtd?.addEventListener('input', recalcularValores);
+            inputTensao?.addEventListener('change', recalcularValores);
+            inputPotencia?.addEventListener('input', () => {
+                recalcularValores();
+            });
+
+            function renderTable() {
+                if(!tbodyCargas) return;
+                tbodyCargas.innerHTML = "";
+                
+                if (cargas.length === 0) {
+                    tbodyCargas.innerHTML = `<tr class="border-b border-surface-variant"><td colspan="6" class="py-8 text-center text-slate-400">Nenhuma carga cadastrada. Clique em "Adicionar Entrada".</td></tr>`;
+                    return;
+                }
+
+                cargas.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors group";
+                    tr.innerHTML = `
+                        <td class="py-4 pr-4">
+                            <span class="font-semibold text-slate-700">${c.obs || '--'}</span>
+                            <span class="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded ml-2">${c.tipo}</span>
+                            ${c.disparo ? `<span class="text-[10px] text-slate-400 border border-slate-200 px-1 py-0.5 rounded ml-1">${c.disparo.split(' ')[0]} ${c.disparo.split(' ')[1]}</span>` : ''}
+                        </td>
+                        <td class="py-4 px-2 text-right font-mono text-brand font-semibold">${c.potencia} VA</td>
+                        <td class="py-4 px-2 text-right font-mono">${c.tensao}V</td>
+                        <td class="py-4 px-2 text-center font-mono">${c.quantidade}</td>
+                        <td class="py-4 pl-4 text-right font-mono text-slate-500">${c.corrente.toFixed(2)} A</td>
+                        <td class="py-4 text-center space-x-2">
+                            <button onclick="editItem(${c.id})" class="text-slate-400 hover:text-brand transition-colors p-1.5 rounded-full hover:bg-brand/10 inline-flex" title="Editar">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteItem(${c.id})" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-full hover:bg-red-50 inline-flex" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbodyCargas.appendChild(tr);
+                });
+                
+                lucide.createIcons();
+            }
+
+            function atualizarResumo() {
+                const totalVA = cargas.reduce((acc, curr) => acc + curr.potencia, 0);
+                
+                const elTotal = document.getElementById('resumo-carga-total');
+                const elDemanda = document.getElementById('resumo-demanda');
+                const elCorrente = document.getElementById('resumo-corrente');
+                const elContinua = document.getElementById('resumo-continua');
+                const elDisjuntor = document.getElementById('resumo-disjuntor');
+                const elStatus = document.getElementById('resumo-status');
+
+                if (!elTotal) return;
+
+                if (totalVA === 0) {
+                    elTotal.innerHTML = `--<span class="text-2xl font-medium ml-1">W</span>`;
+                    elDemanda.textContent = `-- W`;
+                    elCorrente.textContent = `-- A`;
+                    elContinua.textContent = `-- A`;
+                    elDisjuntor.textContent = `-- A`;
+                    elStatus.className = "bg-slate-100 text-slate-600 px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider border border-slate-200";
+                    elStatus.textContent = "Aguardando";
+                    return;
+                }
+
+                const demanda = totalVA * 0.8;
+                const corrente = demanda / 220;
+                const continua = corrente * 1.25;
+                
+                const disjuntoresComerciais = [10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+                const disjuntorRecomendado = disjuntoresComerciais.find(d => d >= corrente) || "Consulte";
+
+                elTotal.innerHTML = `${totalVA.toLocaleString('pt-BR')}<span class="text-2xl font-medium ml-1">W</span>`;
+                elDemanda.textContent = `${demanda.toLocaleString('pt-BR')} W`;
+                elCorrente.textContent = `${corrente.toFixed(2)} A`;
+                elContinua.textContent = `${continua.toFixed(2)} A`;
+                elDisjuntor.textContent = `${disjuntorRecomendado} A`;
+                
+                elStatus.className = "bg-green-100 text-green-800 px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider border border-green-200";
+                elStatus.textContent = "Calculado";
+            }
+
+            function salvarDadosState() {
+                localStorage.setItem('projetoVolt_cargas', JSON.stringify(cargas));
+                renderTable();
+                renderTableProtecoes();
+                atualizarResumo();
+            }
+
+            function renderTableProtecoes() {
+                const tbodyProtecoes = document.getElementById('tbody-protecoes');
+                const errorContainer = document.getElementById('protecoes-error');
+                if (!tbodyProtecoes) return;
+                
+                tbodyProtecoes.innerHTML = "";
+                let hasError = false;
+
+                if (cargas.length === 0) {
+                    tbodyProtecoes.innerHTML = `<tr class="border-b border-surface-variant"><td colspan="3" class="py-8 text-center text-slate-400">Nenhuma proteção calculada. Adicione cargas primeiro.</td></tr>`;
+                    errorContainer?.classList.add('hidden');
+                    return;
+                }
+
+                cargas.forEach(carga => {
+                    const isMono = carga.tensao === 110;
+                    const isCurvaB = carga.disparo.includes('Curva B');
+                    
+                    let prop = '';
+                    if (isCurvaB && isMono) prop = 'bMono';
+                    else if (isCurvaB && !isMono) prop = 'bBi';
+                    else if (!isCurvaB && isMono) prop = 'cMono';
+                    else if (!isCurvaB && !isMono) prop = 'cBi';
+
+                    const disjuntoresValidos = disjuntores
+                        .filter(d => d[prop] === 'Sim' && d.corrente > carga.corrente)
+                        .sort((a, b) => a.corrente - b.corrente);
+
+                    const cabosValidos = cabos
+                        .filter(c => c.corrente >= carga.corrente)
+                        .sort((a, b) => a.corrente - b.corrente);
+
+                    if (disjuntoresValidos.length === 0 || cabosValidos.length === 0) {
+                        hasError = true;
+                        return; 
+                    }
+
+                    const disj = disjuntoresValidos[0];
+                    const cabo = cabosValidos[0];
+                    
+                    const desc = `Disjuntor ${disj.corrente}A Curva ${isCurvaB ? 'B' : 'C'} ${isMono ? 'Monopolar' : 'Bipolar'}`;
+                    const secaoCabo = `${cabo.secao.toString().replace('.', ',')} mm²`;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3 pr-4 font-mono text-slate-500">${carga.id}</td>
+                        <td class="py-3 pr-4 font-medium text-slate-800">${desc}</td>
+                        <td class="py-3 px-2 text-center font-mono font-semibold text-brand">${secaoCabo}</td>
+                    `;
+                    tbodyProtecoes.appendChild(tr);
+                });
+
+                if (hasError) {
+                    errorContainer?.classList.remove('hidden');
+                } else {
+                    errorContainer?.classList.add('hidden');
+                }
+            }
+
+            window.editItem = function(id) {
+                const item = cargas.find(c => c.id == id);
+                if (item) openModal(true, item);
+            }
+
+            window.deleteItem = function(id) {
+                if (window.confirm("Tem certeza que deseja excluir esta entrada? Esta ação é irreversível.")) {
+                    cargas = cargas.filter(c => c.id != id);
+                    salvarDadosState();
+                }
+            }
+
+            function showError(msg) {
+                if(formErrorText) formErrorText.textContent = msg;
+                formError?.classList.remove('hidden');
+            }
+
+            document.getElementById('btn-save-carga')?.addEventListener('click', () => {
+                const idVal = inputId?.value;
+                const idEdit = idVal ? parseInt(idVal) : null;
+                const local = inputLocal?.value;
+                const tipo = inputTipo?.value;
+                const qtd = parseInt(inputQtd?.value);
+                const tensao = parseInt(inputTensao?.value);
+                const potencia = parseFloat(inputPotencia?.value);
+                const obs = inputObs?.value;
+                let disparo = inputDisparo?.value;
+                
+                if (inputDisparo?.disabled && (tipo === 'TUG' || tipo === 'ILUM')) {
+                    disparo = 'Curva B (resistivo)';
+                }
+
+                if (!local || !tipo || !tensao || !disparo) {
+                    return showError("Preencha todos os campos obrigatórios (Local, Tipo, Tensão e Disparo).");
+                }
+                if (isNaN(qtd) || qtd <= 0) {
+                    return showError("A quantidade deve ser um número inteiro maior que zero.");
+                }
+                if (isNaN(potencia) || potencia <= 0) {
+                    return showError("A Potência Aparente deve ser maior que zero.");
+                }
+
+                const corrente = potencia / tensao;
+
+                const novaCarga = {
+                    id: idEdit ? idEdit : currentIdCounter++,
+                    local,
+                    tipo,
+                    quantidade: qtd,
+                    tensao,
+                    potencia,
+                    corrente,
+                    obs,
+                    disparo
+                };
+
+                if (idEdit) {
+                    const index = cargas.findIndex(c => c.id == idEdit);
+                    if (index > -1) cargas[index] = novaCarga;
+                } else {
+                    cargas.push(novaCarga);
+                }
+
+                closeModal();
+                salvarDadosState();
+            });
+
+            // ==========================================
+            // Lógica de Configurações (Perfil do Cliente)
+            // ==========================================
+            const defaultClienteConfig = {
+                nome: "VoltEdge Engineering Solutions",
+                cpf: "12.345.678/0001-90",
+                contato: "Eng. Carlos Silva",
+                email: "contact@voltedge.com",
+                telefone: "+55 (11) 98765-4321"
+            };
+
+            let clienteConfig = JSON.parse(localStorage.getItem('projetoVolt_clienteConfig')) || defaultClienteConfig;
+
+            const inputConfigNome = document.getElementById('config-nome');
+            const inputConfigCpf = document.getElementById('config-cpf');
+            const inputConfigContato = document.getElementById('config-contato');
+            const inputConfigEmail = document.getElementById('config-email');
+            const inputConfigTelefone = document.getElementById('config-telefone');
+
+            function loadConfigForm() {
+                if (!inputConfigNome) return;
+                inputConfigNome.value = clienteConfig.nome || '';
+                inputConfigCpf.value = clienteConfig.cpf || '';
+                inputConfigContato.value = clienteConfig.contato || '';
+                inputConfigEmail.value = clienteConfig.email || '';
+                inputConfigTelefone.value = clienteConfig.telefone || '';
+            }
+
+            document.getElementById('btn-save-config')?.addEventListener('click', (e) => {
+                clienteConfig = {
+                    nome: inputConfigNome.value,
+                    cpf: inputConfigCpf.value,
+                    contato: inputConfigContato.value,
+                    email: inputConfigEmail.value,
+                    telefone: inputConfigTelefone.value
+                };
+                localStorage.setItem('projetoVolt_clienteConfig', JSON.stringify(clienteConfig));
+                
+                renderAtividadeRecente(); // Atualiza instantaneamente a Dashboard
+                
+                const btn = e.currentTarget;
+                const icon = btn.querySelector('i');
+                const span = btn.querySelector('span');
+                
+                if (icon && span) {
+                    icon.setAttribute('data-lucide', 'check');
+                    span.textContent = 'Salvo!';
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'save');
+                        span.textContent = 'Salvar Configurações';
+                        lucide.createIcons();
+                    }, 2000);
+                }
+            });
+
+            document.getElementById('btn-discard-config')?.addEventListener('click', () => {
+                if (!inputConfigNome) return;
+                inputConfigNome.value = '';
+                inputConfigCpf.value = '';
+                inputConfigContato.value = '';
+                inputConfigEmail.value = '';
+                inputConfigTelefone.value = '';
+            });
+
+            // ==========================================
+            // Lógica Modal "Lista de Serviços do Projeto"
+            // ==========================================
+            let servicosSelecionados = JSON.parse(localStorage.getItem('projetoVolt_servicos_selecionados')) || [];
+
+            const modalServicos = document.getElementById('modal-servicos');
+            const modalServicosContent = document.getElementById('modal-servicos-content');
+            const inputSearchServico = document.getElementById('search-servico-input');
+            const ulSearchResults = document.getElementById('search-servico-results');
+            const ulServicosSelecionados = document.getElementById('list-servicos-selecionados');
+
+            function renderServicosSelecionados() {
+                if (!ulServicosSelecionados) return;
+                ulServicosSelecionados.innerHTML = '';
+                
+                if (servicosSelecionados.length === 0) {
+                    ulServicosSelecionados.innerHTML = '<li class="p-6 text-center text-sm text-slate-400">Nenhum serviço selecionado. Busque e adicione acima.</li>';
+                    return;
+                }
+
+                servicosSelecionados.forEach(serv => {
+                    const li = document.createElement('li');
+                    li.className = "flex items-center justify-between p-4 hover:bg-slate-50 transition-colors gap-4";
+                    li.innerHTML = `
+                        <div class="flex-1 pr-4 min-w-0">
+                            <p class="text-sm font-semibold text-slate-800 leading-snug truncate" title="${serv.servico}">${serv.servico}</p>
+                            <span class="text-[10px] text-brand uppercase font-bold tracking-wider">Ref ID: ${serv.precoId}</span>
+                        </div>
+                        <div class="flex items-center gap-4 shrink-0">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-slate-500 font-bold uppercase">Qtd:</label>
+                                <input type="number" min="1" step="1" value="${serv.qtd}" class="w-16 h-8 bg-white border border-slate-300 rounded px-2 text-sm font-mono text-center focus:border-brand focus:ring-1 focus:ring-brand outline-none input-qtd-servico" data-uid="${serv.uid}">
+                            </div>
+                            <button type="button" onclick="deleteServicoSelecionado('${serv.uid}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition-colors" title="Excluir serviço">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    ulServicosSelecionados.appendChild(li);
+                });
+                lucide.createIcons();
+            }
+
+            window.deleteServicoSelecionado = function(uid) {
+                servicosSelecionados = servicosSelecionados.filter(s => String(s.uid) !== String(uid));
+                localStorage.setItem('projetoVolt_servicos_selecionados', JSON.stringify(servicosSelecionados));
+                renderServicosSelecionados();
+                renderOrcamentoServicos(); // Atualiza a tela de orçamento caso esteja aberta
+            };
+
+            function openModalServicos() {
+                renderServicosSelecionados();
+                if(inputSearchServico) inputSearchServico.value = '';
+                ulSearchResults?.classList.add('hidden');
+                
+                modalServicos?.classList.remove('hidden');
+                setTimeout(() => {
+                    modalServicos?.classList.remove('opacity-0');
+                    modalServicosContent?.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModalServicos() {
+                modalServicos?.classList.add('opacity-0');
+                modalServicosContent?.classList.add('scale-95');
+                setTimeout(() => {
+                    modalServicos?.classList.add('hidden');
+                }, 300);
+            }
+
+            document.getElementById('btn-open-modal-servicos')?.addEventListener('click', openModalServicos);
+            document.getElementById('btn-close-modal-servicos')?.addEventListener('click', closeModalServicos);
+            document.getElementById('btn-cancel-modal-servicos')?.addEventListener('click', closeModalServicos);
+
+            inputSearchServico?.addEventListener('input', function() {
+                const val = this.value.toLowerCase().trim();
+                if (!val) {
+                    ulSearchResults.classList.add('hidden');
+                    return;
+                }
+
+                const matches = precos.filter(p => p.servico.toLowerCase().includes(val) || p.categoria.toLowerCase().includes(val));
+                
+                if (matches.length === 0) {
+                    ulSearchResults.innerHTML = '<li class="p-4 text-sm text-slate-500 text-center">Nenhum serviço de referência encontrado.</li>';
+                } else {
+                    ulSearchResults.innerHTML = matches.map(p => `
+                        <li class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" onclick="addServicoSelecionado(${p.id})">
+                            <span class="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase font-bold mb-1 inline-block">${p.categoria}</span>
+                            <p class="text-sm font-semibold text-slate-800">${p.servico}</p>
+                        </li>
+                    `).join('');
+                }
+                ulSearchResults.classList.remove('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (inputSearchServico && ulSearchResults && !inputSearchServico.contains(e.target) && !ulSearchResults.contains(e.target)) {
+                    ulSearchResults.classList.add('hidden');
+                }
+            });
+
+            window.addServicoSelecionado = function(precoId) {
+                const preco = precos.find(p => p.id === precoId);
+                if (preco) {
+                    const newUid = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+                    servicosSelecionados.unshift({
+                        uid: newUid,
+                        precoId: preco.id,
+                        servico: preco.servico,
+                        qtd: 1,
+                        precoMedio: preco.medio
+                    });
+                    
+                    inputSearchServico.value = '';
+                    ulSearchResults.classList.add('hidden');
+                    inputSearchServico.focus();
+                    renderServicosSelecionados();
+                }
+            };
+
+            document.getElementById('btn-save-servicos')?.addEventListener('click', () => {
+                const inputs = document.querySelectorAll('.input-qtd-servico');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    const val = parseInt(input.value);
+                    if (isNaN(val) || val < 1) {
+                        isValid = false;
+                        input.classList.add('border-red-500', 'ring-red-500');
+                    } else {
+                        input.classList.remove('border-red-500', 'ring-red-500');
+                        const uid = input.getAttribute('data-uid');
+                        const serv = servicosSelecionados.find(s => String(s.uid) === String(uid));
+                        if (serv) serv.qtd = val;
+                    }
+                });
+
+                if (!isValid) {
+                    alert("Atenção: A quantidade de todos os serviços deve ser um número inteiro igual ou maior que 1.");
+                    return;
+                }
+
+                localStorage.setItem('projetoVolt_servicos_selecionados', JSON.stringify(servicosSelecionados));
+                
+                const btn = document.getElementById('btn-save-servicos');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Serviços Salvos!`;
+                lucide.createIcons();
+                
+                renderOrcamentoServicos(); // Atualiza a tela de orçamento caso esteja aberta
+
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    lucide.createIcons();
+                    closeModalServicos();
+                }, 1000);
+            });
+
+            // ==========================================
+            // Lógica Orçamento Final e Materiais
+            // ==========================================
+            let materiaisAvulsos = JSON.parse(localStorage.getItem('projetoVolt_materiais_avulsos')) || [];
+
+            function renderOrcamento() {
+                // 1. Dados do Cliente
+                document.getElementById('orc-cliente-nome').textContent = clienteConfig.nome || 'Não informado';
+                document.getElementById('orc-cliente-doc').textContent = clienteConfig.cpf || 'Não informado';
+                document.getElementById('orc-cliente-contato').textContent = clienteConfig.contato || 'Não informado';
+                document.getElementById('orc-cliente-email').textContent = clienteConfig.email || 'Não informado';
+
+                // 2. Tabela de Serviços
+                renderOrcamentoServicos();
+
+                // 3. Tabela de Materiais (Proteções Automáticas)
+                renderOrcamentoProtecoes();
+
+                // 4. Tabela de Materiais (Avulsos)
+                renderMateriaisAvulsos();
+            }
+
+            function renderOrcamentoServicos() {
+                const tbody = document.getElementById('tbody-orc-servicos');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                
+                const tipoPreco = document.getElementById('orc-tipo-preco')?.value || 'medio'; // 'minimo' ou 'medio'
+                let totalServicos = 0;
+
+                if (servicosSelecionados.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">Nenhum serviço adicionado.</td></tr>`;
+                    document.getElementById('orc-total-servicos').textContent = formatCurrency(0);
+                    return;
+                }
+
+                servicosSelecionados.forEach(serv => {
+                    const ref = precos.find(p => p.id === serv.precoId);
+                    if (!ref) return;
+
+                    const precoUnitario = tipoPreco === 'minimo' ? ref.min : ref.medio;
+                    const subtotal = precoUnitario * serv.qtd;
+                    totalServicos += subtotal;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-slate-800 font-medium">${serv.servico}</td>
+                        <td class="py-3 px-4 text-center font-mono">${serv.qtd}</td>
+                        <td class="py-3 px-4 text-right font-mono text-slate-500">${formatCurrency(precoUnitario)}</td>
+                        <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">${formatCurrency(subtotal)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('orc-total-servicos').textContent = formatCurrency(totalServicos);
+            }
+
+            document.getElementById('orc-tipo-preco')?.addEventListener('change', renderOrcamentoServicos);
+
+            function renderOrcamentoProtecoes() {
+                const tbody = document.getElementById('tbody-orc-protecoes');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+
+                // Agregar disjuntores iguais
+                const protecoesAgregadas = {};
+
+                cargas.forEach(carga => {
+                    const isMono = carga.tensao === 110;
+                    const isCurvaB = carga.disparo.includes('Curva B');
+                    
+                    let prop = '';
+                    if (isCurvaB && isMono) prop = 'bMono';
+                    else if (isCurvaB && !isMono) prop = 'bBi';
+                    else if (!isCurvaB && isMono) prop = 'cMono';
+                    else if (!isCurvaB && !isMono) prop = 'cBi';
+
+                    const disjuntoresValidos = disjuntores
+                        .filter(d => d[prop] === 'Sim' && d.corrente > carga.corrente)
+                        .sort((a, b) => a.corrente - b.corrente);
+
+                    if (disjuntoresValidos.length > 0) {
+                        const disj = disjuntoresValidos[0];
+                        const desc = `Disjuntor ${disj.corrente}A Curva ${isCurvaB ? 'B' : 'C'} ${isMono ? 'Monopolar' : 'Bipolar'}`;
+                        
+                        if(!protecoesAgregadas[desc]) {
+                            protecoesAgregadas[desc] = 0;
+                        }
+                        protecoesAgregadas[desc]++;
+                    }
+                });
+
+                const descricoes = Object.keys(protecoesAgregadas);
+
+                if (descricoes.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="2" class="py-4 px-4 text-center text-slate-400">Nenhuma proteção dimensionada.</td></tr>`;
+                    return;
+                }
+
+                descricoes.forEach(desc => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-slate-800 font-medium">${desc}</td>
+                        <td class="py-3 px-4 text-center font-mono font-bold text-brand">${protecoesAgregadas[desc]}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function renderMateriaisAvulsos() {
+                const tbody = document.getElementById('tbody-orc-mat-avulso');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+
+                if (materiaisAvulsos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 px-4 text-center text-slate-400">Nenhum material adicional inserido.</td></tr>`;
+                    return;
+                }
+
+                materiaisAvulsos.forEach(mat => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-slate-800 font-medium">${mat.desc}</td>
+                        <td class="py-3 px-4 text-center font-mono">${mat.qtd}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button type="button" onclick="deleteMatAvulso('${mat.id}')" class="text-slate-400 hover:text-red-500 p-1 rounded transition-colors" title="Excluir item">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                lucide.createIcons();
+            }
+
+            document.getElementById('btn-add-mat-avulso')?.addEventListener('click', () => {
+                const descInput = document.getElementById('orc-mat-desc');
+                const qtdInput = document.getElementById('orc-mat-qtd');
+                
+                const desc = descInput.value.trim();
+                const qtd = parseInt(qtdInput.value);
+
+                if(!desc || isNaN(qtd) || qtd < 1) {
+                    alert("Informe a descrição do material e uma quantidade válida (mínimo 1).");
+                    return;
+                }
+
+                materiaisAvulsos.push({
+                    id: Date.now().toString(),
+                    desc,
+                    qtd
+                });
+
+                localStorage.setItem('projetoVolt_materiais_avulsos', JSON.stringify(materiaisAvulsos));
+                
+                descInput.value = '';
+                qtdInput.value = '';
+                descInput.focus();
+                
+                renderMateriaisAvulsos();
+            });
+
+            window.deleteMatAvulso = function(id) {
+                materiaisAvulsos = materiaisAvulsos.filter(m => m.id !== id);
+                localStorage.setItem('projetoVolt_materiais_avulsos', JSON.stringify(materiaisAvulsos));
+                renderMateriaisAvulsos();
+            };
+
+            // ==========================================
+            // Lógica Atividade Recente (Dashboard)
+            // ==========================================
+            let dashboardActivity = JSON.parse(localStorage.getItem('projetoVolt_dashboard_activity')) || {
+                tipo: 'Dimensionamento',
+                status: 'Em andamento'
+            };
+
+            function updateStatusColor(selectEl) {
+                if(!selectEl) return;
+                selectEl.classList.remove('text-green-700', 'border-green-300', 'bg-green-50', 'text-amber-700', 'border-amber-300', 'bg-amber-50', 'text-slate-600', 'border-slate-300', 'bg-slate-50');
+
+                if(selectEl.value === 'Finalizado') {
+                    selectEl.classList.add('text-green-700', 'border-green-300', 'bg-green-50');
+                } else if(selectEl.value === 'Em andamento') {
+                    selectEl.classList.add('text-amber-700', 'border-amber-300', 'bg-amber-50');
+                } else {
+                    selectEl.classList.add('text-slate-600', 'border-slate-300', 'bg-slate-50');
+                }
+            }
+
+            function renderAtividadeRecente() {
+                const container = document.getElementById('container-atividade-recente');
+                if (!container) return;
+
+                const nomeProjeto = clienteConfig.nome || "Cliente Não Informado";
+
+                container.innerHTML = `
+                    <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50/80 transition-colors group">
+                        <div class="col-span-6 flex flex-col pr-4">
+                            <span class="text-sm font-semibold text-on-surface group-hover:text-brand transition-colors truncate" title="${nomeProjeto}">${nomeProjeto}</span>
+                            <span class="text-[11px] font-bold tracking-wider text-slate-400 uppercase mt-1">Projeto Atual</span>
+                        </div>
+                        <div class="col-span-3 flex items-center">
+                            <select id="select-atividade-tipo" class="w-full bg-white border border-slate-200 hover:border-brand focus:ring-1 focus:ring-brand focus:border-brand rounded p-1.5 text-sm text-slate-700 outline-none cursor-pointer transition-colors font-medium">
+                                <option value="Dimensionamento" ${dashboardActivity.tipo === 'Dimensionamento' ? 'selected' : ''}>Dimensionamento</option>
+                                <option value="Projeto Novo" ${dashboardActivity.tipo === 'Projeto Novo' ? 'selected' : ''}>Projeto Novo</option>
+                            </select>
+                        </div>
+                        <div class="col-span-3 flex items-center justify-end">
+                            <select id="select-atividade-status" class="border rounded-full px-3 py-1.5 text-[12px] font-bold uppercase tracking-wider outline-none cursor-pointer transition-colors text-center shadow-sm">
+                                <option value="Não iniciado" ${dashboardActivity.status === 'Não iniciado' ? 'selected' : ''}>Não iniciado</option>
+                                <option value="Em andamento" ${dashboardActivity.status === 'Em andamento' ? 'selected' : ''}>Em andamento</option>
+                                <option value="Finalizado" ${dashboardActivity.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('select-atividade-tipo')?.addEventListener('change', (e) => {
+                    dashboardActivity.tipo = e.target.value;
+                    localStorage.setItem('projetoVolt_dashboard_activity', JSON.stringify(dashboardActivity));
+                });
+
+                const statusSelect = document.getElementById('select-atividade-status');
+                statusSelect?.addEventListener('change', (e) => {
+                    dashboardActivity.status = e.target.value;
+                    localStorage.setItem('projetoVolt_dashboard_activity', JSON.stringify(dashboardActivity));
+                    updateStatusColor(e.target);
+                });
+
+                updateStatusColor(statusSelect);
+            }
+
+            // ==========================================
+            // Inicialização da Tela
+            // ==========================================
+            renderTable();
+            atualizarResumo();
+            renderTableDisjuntores(); 
+            renderTableCabos();       
+            renderTablePrecos();
+            renderTableProtecoes();
+            loadConfigForm(); 
+            renderAtividadeRecente();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'accent': '#6FE6FC', 
+                        'accent-dark': '#5ACCE0',
+                        'warning-bg': '#FFF7ED', 
+                        'warning-border': '#FED7AA', 
+                        'warning-text': '#9A3412', 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
+
+        /* Estilos para o Range Slider Dual-Thumb */
+        .dual-slider-container { position: relative; width: 100%; height: 1.5rem; display: flex; align-items: center; }
+        .dual-slider-track { position: absolute; width: 100%; height: 0.25rem; background: #e2e8f0; border-radius: 999px; z-index: 1; }
+        .dual-slider-input { position: absolute; width: 100%; appearance: none; background: transparent; pointer-events: none; z-index: 3; outline: none; }
+        .dual-slider-input::-webkit-slider-thumb { appearance: none; pointer-events: auto; width: 1rem; height: 1rem; background: #6FE6FC; border: 2px solid #0f172a; border-radius: 50%; cursor: pointer; }
+        .dual-slider-input::-moz-range-thumb { pointer-events: auto; width: 1rem; height: 1rem; background: #6FE6FC; border: 2px solid #0f172a; border-radius: 50%; cursor: pointer; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <div class="flex min-h-screen w-full">
+        <!-- Sidebar / Navegação Lateral -->
+        <aside id="sidebar" class="bg-white border-r border-gray-200 text-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-shrink-0 shadow-sm flex flex-col">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 text-center">
+                        <img src="https://www.cptm.sp.gov.br/wcm/connect/1ba276a6-20bd-4f27-99be-f87a016b471d/logo_cptm3.png?MOD=AJPERES&ContentCache=none&CACHE=none&CACHEID=ROOTWORKSPACE-1ba276a6-20bd-4f27-99be-f87a016b471d-pxyIk9k" alt="Logo CPTM" class="h-12 w-auto max-w-full object-contain mb-4" referrerpolicy="no-referrer">
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Aura</h2>
+                        <p class="text-xs text-gray-500 font-medium">Análise Unificada de Rede Aérea</p>
+                    </div>
+                    <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-gray-700 flex-shrink-0"><i data-lucide="x"></i></button>
+                </div>
+            </div>
+            <nav id="main-nav" class="p-4 flex-1 overflow-y-auto">
+                <!-- Itens injetados via JS -->
+            </nav>
+            <footer class="px-5 py-4 border-t border-gray-100 bg-gray-50 text-center">
+                <p class="text-[11px] leading-relaxed text-gray-500 font-medium">Desenvolvido internamente pela engenharia de manutenção</p>
+            </footer>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Cabeçalho Superior Mobile -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-20 md:hidden">
+                <div class="flex items-center justify-between h-16 px-4">
+                    <button id="open-sidebar-btn" class="text-gray-600 hover:text-gray-900">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <span class="font-bold text-gray-900 text-lg">Aura</span>
+                    <div class="w-6"></div>
+                </div>
+            </header>
+
+            <!-- Conteúdo Principal -->
+            <main class="flex-1 p-6 md:p-10 max-w-none w-full mx-auto">
+                <div id="main-content" class="animate-fade-in space-y-6">
+                    <!-- Conteúdo injetado via JS -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Estrutura do Modal -->
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-50 flex justify-center items-center p-4 hidden backdrop-blur-sm">
+        <div id="modal-content" class="bg-white rounded-lg shadow-lg w-full max-w-2xl border border-gray-100 overflow-hidden animate-fade-in">
+            <div class="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
+                <h3 id="modal-title" class="text-lg font-bold text-gray-900"></h3>
+                <button id="modal-close-btn" class="text-gray-400 hover:text-gray-700 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-6 text-gray-700 text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =================================================================================
+        // INTEGRAÇÃO DIRETA COM A PCDS API
+        // =================================================================================
+        const PCDS_API_BASE = 'https://api.telemattica.com';
+        const PCDS_API_KEY = '6a9ab43240f363164c474d00+oOEyCNZqs_bSpW_8ADNI6RCJ9-CBSCT_9VwvfvWwyPM';
+        const PCDS_ORGANISATIONS = ''; // Opcional. Ex.: '["Minha Organizacao"]'
+
+        // Mantido com o mesmo nome para preservar integralmente a view e os filtros.
+        const mockAlarmes = [];
+
+        async function pcdsGet(endpoint, extraHeaders = {}) {
+            if (!PCDS_API_KEY || PCDS_API_KEY === 'COLE_SUA_API_KEY_AQUI') throw new Error('Configure PCDS_API_KEY no código.');
+            const headers = { Accept: 'application/json', 'api-key': PCDS_API_KEY, ...extraHeaders };
+            if (PCDS_ORGANISATIONS) headers.organisations = PCDS_ORGANISATIONS;
+            const response = await fetch(`${PCDS_API_BASE}${endpoint}`, { method: 'GET', headers, mode: 'cors' });
+            const contentType = response.headers.get('content-type') || '';
+            const body = contentType.includes('application/json') ? await response.json() : await response.text();
+            if (!response.ok) throw new Error(body?.message || `Erro HTTP ${response.status}`);
+            return body;
+        }
+
+        async function pcdsGetPaginado(endpoint, { limiteTotal = 500, tamanhoPagina = 100, extraHeaders = {} } = {}) {
+            const registros = [];
+            const cursoresUtilizados = new Set();
+            let pageCursor = null;
+
+            while (registros.length < limiteTotal) {
+                const headers = {
+                    ...extraHeaders,
+                    'Page-Size': String(Math.min(tamanhoPagina, limiteTotal - registros.length)),
+                    'Request-Count': 'true'
+                };
+                if (pageCursor) headers['Page-Cursor'] = pageCursor;
+
+                if (!PCDS_API_KEY || PCDS_API_KEY === 'COLE_SUA_API_KEY_AQUI') throw new Error('Configure PCDS_API_KEY no código.');
+                const requestHeaders = { Accept: 'application/json', 'api-key': PCDS_API_KEY, ...headers };
+                if (PCDS_ORGANISATIONS) requestHeaders.organisations = PCDS_ORGANISATIONS;
+
+                const response = await fetch(`${PCDS_API_BASE}${endpoint}`, { method: 'GET', headers: requestHeaders, mode: 'cors' });
+                const contentType = response.headers.get('content-type') || '';
+                const body = contentType.includes('application/json') ? await response.json() : await response.text();
+                if (!response.ok) throw new Error(body?.message || `Erro HTTP ${response.status}`);
+                if (!Array.isArray(body)) throw new Error('A API não retornou uma lista de registros.');
+                if (body.length === 0) break;
+
+                registros.push(...body.slice(0, limiteTotal - registros.length));
+                if (registros.length >= limiteTotal) break;
+
+                const proximoCursor = response.headers.get('Page-Cursor');
+                if (!proximoCursor || cursoresUtilizados.has(proximoCursor)) break;
+
+                cursoresUtilizados.add(proximoCursor);
+                pageCursor = proximoCursor;
+            }
+
+            return registros;
+        }
+
+        function classificarNivelPorMaiorImpacto(valor) {
+            const impacto = Number(valor) || 0;
+            if (impacto >= 4500) return 'Nível 1';
+            if (impacto >= 2000) return 'Nível 2';
+            if (impacto >= 1000) return 'Nível 3';
+            return 'Nível 4';
+        }
+
+        const numeroSeguro = valor => Number.isFinite(Number(valor)) ? Number(valor) : 0;
+        const VEICULO_POR_GATEWAY_HEX = { '0x424': 'N090-N056', '0x394': 'H620-H619', '0x396': 'H516-H513', '0x364': 'U524-U521' };
+        function obterIdVeiculoPorGateway(gateway) {
+            const valor = typeof gateway === 'string' && /^0x[0-9a-f]+$/i.test(gateway.trim()) ? parseInt(gateway, 16) : Number(gateway);
+            if (!Number.isFinite(valor)) return 'Não informado';
+            return VEICULO_POR_GATEWAY_HEX[`0x${valor.toString(16)}`] || 'Não informado';
+        }
+        function dataParaFiltro(valor) {
+            if (!valor) return '';
+            const data = new Date(valor);
+            return Number.isNaN(data.getTime()) ? String(valor).slice(0, 10) : data.toISOString().slice(0, 10);
+        }
+
+        function formatarDataExibicao(valor) {
+            if (!valor || valor === '-' || valor === 'Não informado') return 'Não informado';
+            const p = dataParaFiltro(valor).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return p ? `${p[3]}-${p[2]}-${p[1]}` : valor;
+        }
+        function combinarDadosDeAlarmes(sites, eventos) {
+            const ultimoEventoPorSite = new Map();
+            for (const evento of Array.isArray(eventos) ? eventos : []) {
+                if (!evento?.site_id) continue;
+                const atual = ultimoEventoPorSite.get(evento.site_id);
+                if (!atual || new Date(evento.timestamp || 0) > new Date(atual.timestamp || 0)) ultimoEventoPorSite.set(evento.site_id, evento);
+            }
+            return (Array.isArray(sites) ? sites : []).map((site, index) => {
+                const m = site.metrics || {};
+                const evento = ultimoEventoPorSite.get(site.id);
+                const maiorImpacto = numeroSeguro(m.largest_impact_since_last_review);
+                return {
+                    id: site.id || index + 1,
+                    site: site.name || site.id || 'Site sem nome',
+                    ultimaRevisao: dataParaFiltro(m.last_review),
+                    maiorImpacto,
+                    eventos: numeroSeguro(m.events_since_last_review),
+                    eventoRecente: dataParaFiltro(m.most_recent_event || evento?.timestamp),
+                    severidade: numeroSeguro(m.most_recent_event_impact_severity ?? evento?.max_covar ?? evento?.summary?.max_covar),
+                    idVeiculo: obterIdVeiculoPorGateway(evento?.gateway),
+                    zigZag: evento?.summary?.drop_off_detected === true,
+                    nivel: classificarNivelPorMaiorImpacto(maiorImpacto)
+                };
+            });
+        }
+
+        let carregamentoAlarmesPromise = null;
+        async function carregarDadosAlarmes() {
+            if (mockAlarmes.length > 0) return mockAlarmes;
+            if (!carregamentoAlarmesPromise) {
+                carregamentoAlarmesPromise = Promise.all([
+                    pcdsGetPaginado('/data/pcds/site-summaries', {
+                        limiteTotal: 500,
+                        tamanhoPagina: 100,
+                        extraHeaders: { sort: '<metrics.most_recent_event' }
+                    }),
+                    pcdsGetPaginado('/data/pcds/site-event-summaries', {
+                        limiteTotal: 500,
+                        tamanhoPagina: 100,
+                        extraHeaders: { sort: '<timestamp' }
+                    })
+                ]).then(([sites, eventos]) => {
+                    const dados = combinarDadosDeAlarmes(sites, eventos);
+                    mockAlarmes.splice(0, mockAlarmes.length, ...dados);
+                    return mockAlarmes;
+                }).catch(error => { carregamentoAlarmesPromise = null; throw error; });
+            }
+            return carregamentoAlarmesPromise;
+        }
+        function contarAlarmesPorNivel(registros) {
+            const contagem = { 'Nível 1': 0, 'Nível 2': 0, 'Nível 3': 0, 'Nível 4': 0 };
+            for (const registro of Array.isArray(registros) ? registros : []) {
+                if (Object.prototype.hasOwnProperty.call(contagem, registro.nivel)) contagem[registro.nivel]++;
+            }
+            return contagem;
+        }
+        let carregamentoSaudePromise = null;
+        async function carregarDadosSaude() {
+            if (!carregamentoSaudePromise) {
+                carregamentoSaudePromise = pcdsGet('/pcds/vehicles', {
+                    'Page-Size': '100',
+                    'Fields': JSON.stringify([
+                        'id', 'name', 'battery_level', 'last_checkin', 'health_status',
+                        'pantograph_status.position', 'pantograph_status.position_updated_at'
+                    ])
+                }).catch(error => { carregamentoSaudePromise = null; throw error; });
+            }
+            return carregamentoSaudePromise;
+        }
+        function formatarTempoRelativo(valor) {
+            if (!valor) return 'Não informado';
+            const data = new Date(valor);
+            if (Number.isNaN(data.getTime())) return 'Não informado';
+            const segundos = Math.max(0, Math.floor((Date.now() - data.getTime()) / 1000));
+            if (segundos < 60) return 'há menos de 1 minuto';
+            const minutos = Math.floor(segundos / 60);
+            if (minutos < 60) return `há ${minutos} minuto${minutos === 1 ? '' : 's'}`;
+            const horas = Math.floor(minutos / 60);
+            if (horas < 24) return `há cerca de ${horas} hora${horas === 1 ? '' : 's'}`;
+            const dias = Math.floor(horas / 24);
+            if (dias < 30) return `há cerca de ${dias} dia${dias === 1 ? '' : 's'}`;
+            const meses = Math.floor(dias / 30);
+            if (meses < 12) return `há cerca de ${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+            const anos = Math.floor(dias / 365);
+            return `há cerca de ${anos} ano${anos === 1 ? '' : 's'}`;
+        }
+        function renderizarLinhasSaude(veiculos) {
+            const registros = Array.isArray(veiculos) ? veiculos : [];
+            if (!registros.length) return '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum veículo encontrado.</td></tr>';
+            return registros.map(veiculo => {
+                const posicao = String(veiculo?.pantograph_status?.position || '').toUpperCase();
+                const pantografoLevantado = posicao === 'UP';
+                const bateria = Number.isFinite(Number(veiculo?.battery_level)) ? `${Number(veiculo.battery_level)}%` : 'Não informado';
+                const status = veiculo?.health_status || 'Não informado';
+                const posicaoExibicao = pantografoLevantado ? 'LEVANTADO' : (posicao ? 'ABAIXADO' : 'NÃO INFORMADO');
+                const corIndicador = pantografoLevantado ? 'bg-[#16A34A]' : 'bg-[#FF0000]';
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors bg-white">
+                        <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full ${corIndicador}"></div><span class="text-gray-800 font-medium">${veiculo?.name || veiculo?.id || 'Não informado'}</span></div></td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${bateria}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${formatarTempoRelativo(veiculo?.last_checkin)}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${status}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${posicaoExibicao}</td>
+                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${formatarTempoRelativo(veiculo?.pantograph_status?.position_updated_at)}</td>
+                    </tr>`;
+            }).join('');
+        }
+        // =================================================================================
+        // ESTADO E NAVEGAÇÃO
+        // =================================================================================
+        let activeScreen = 'dashboard';
+        const mainContent = document.getElementById('main-content');
+        const mainNav = document.getElementById('main-nav');
+
+        const menuItems = {
+            'MONITORAMENTO': [
+                { id: 'dashboard', label: 'Dashboard', render: renderDashboard },
+                { id: 'tabela', label: 'Eventos', render: renderTabela },
+                { id: 'historico', label: 'Histórico', render: renderHistorico },
+            ],
+            'AVANÇADO': [
+                { id: 'adv_alarmes', label: 'Alarmes', url: 'https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraALARM.aspx', external: true },
+                { id: 'adv_localizacao', label: 'Localidade', url: 'https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraLOC.aspx', external: true },
+                { id: 'adv_trecho', label: 'Trecho', url: 'https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraTREC.aspx', external: true }
+            ]
+        };
+
+        function navigateTo(screenId) {
+            activeScreen = screenId;
+            const screen = Object.values(menuItems).flat().find(item => item.id === screenId);
+            if (screen && screen.render) {
+                mainContent.innerHTML = '';
+                screen.render(mainContent);
+                updateNav();
+                lucide.createIcons();
+            }
+        }
+        
+        function updateNav() {
+            mainNav.innerHTML = Object.entries(menuItems).map(([category, items]) => `
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">${category}</h3>
+                    ${items.length > 0 ? `
+                        <ul class="space-y-1">
+                            ${items.map(item => `
+                                <li>
+                                    <a href="${item.external ? item.url : '#'}" 
+                                       data-screen-id="${item.id}" 
+                                       class="nav-link ${item.external ? 'external-link' : ''} flex items-center px-3 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${activeScreen === item.id ? 'bg-accent text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}">
+                                        ${item.label}
+                                    </a>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p class="px-3 text-xs text-gray-400 italic">Vazio</p>'}
+                </div>
+            `).join('');
+        }
+
+        mainNav.addEventListener('click', (e) => {
+            const link = e.target.closest('.nav-link');
+            if (link) {
+                if (link.classList.contains('external-link')) {
+                    // Impede o preventDefault para navegação de links externos fluir naturalmente.
+                    return; 
+                }
+                
+                e.preventDefault();
+                navigateTo(link.dataset.screenId);
+                closeSidebar();
+            }
+        });
+
+        // =================================================================================
+        // FUNÇÕES UTILITÁRIAS DE UI
+        // =================================================================================
+        function getNivelBadge(nivel) {
+            let config;
+            switch(nivel) {
+                case 'Nível 1': config = { name: 'Inoperante', color: '#ef4444' }; break; // Vermelho
+                case 'Nível 2': config = { name: 'Em Alerta', color: '#f59e0b' }; break; // Laranja
+                case 'Nível 3': config = { name: 'Operante', color: '#10b981' }; break; // Verde
+                case 'Nível 4': config = { name: 'Desativado', color: '#9ca3af' }; break; // Cinza
+                default: config = { name: 'Desconhecido', color: '#6b7280' };
+            }
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold" style="background-color: ${config.color}15; color: ${config.color}; border: 1px solid ${config.color}30;">${nivel}</span>`;
+        }
+        
+        function createInput(label, id, type = 'text', placeholder = '') {
+            return `
+                <div>
+                    <label for="${id}" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${label}</label>
+                    <input type="${type}" id="${id}" placeholder="${placeholder || label}" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-accent focus:ring-accent p-2 border">
+                </div>
+            `;
+        }
+
+        function createSelect(label, id, options) {
+            return `
+                <div>
+                    <label for="${id}" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${label}</label>
+                    <select id="${id}" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-accent focus:ring-accent p-2 border cursor-pointer bg-white">
+                        ${options}
+                    </select>
+                </div>
+            `;
+        }
+
+        function renderFilterSection(filtersHTML, buttonText = 'Filtrar', clearBtnId = 'btn-limpar', filterBtnId = 'btn-filtrar') {
+            return `
+                <div class="mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <div class="space-y-4">
+                        ${filtersHTML}
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+                        <button id="${clearBtnId}" class="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold border border-gray-300 rounded-md text-sm transition duration-200 shadow-sm">Limpar</button>
+                        <button id="${filterBtnId}" class="px-5 py-2 bg-accent hover:bg-accent-dark text-gray-900 font-bold rounded-md text-sm transition duration-200 shadow-sm flex items-center gap-2">
+                            <i data-lucide="search" class="w-4 h-4"></i> ${buttonText}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let activeCharts = [];
+        function destroyActiveCharts() {
+            activeCharts.forEach(chart => chart.destroy());
+            activeCharts = [];
+        }
+
+        // =================================================================================
+        // RENDERIZAÇÃO DAS TELAS
+        // =================================================================================
+
+        function renderDashboard(container) {
+            destroyActiveCharts();
+            container.innerHTML = `
+                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-6 border-l-4 border-accent pl-3">
+                        <h2 class="text-xl font-semibold text-gray-800">Visão Geral do Monitoramento</h2>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg p-5 flex flex-col shadow-sm">
+                            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 text-center">Severidade dos 100 Alarmes Mais Recentes</h3>
+                            <div class="h-64 relative w-full flex-grow"><canvas id="niveisChart"></canvas></div>
+                        </div>
+                        <div class="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg flex flex-col shadow-sm overflow-hidden">
+                            <div class="p-5 border-b border-[#E5E7EB] bg-white">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Saúde do Sistema (em desenvolvimento)</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-[#E5E7EB] bg-white text-gray-600 font-semibold">
+                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">ID do Veículo</th>
+                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Bateria</th>
+                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Último Check-in</th>
+                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Status</th>
+                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Posição do Pantógrafo</th>
+                                            <th class="px-4 py-3 whitespace-nowrap leading-tight">Posição do Pantógrafo<br>Atualizada Em</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="saude-sistema-tbody" class="divide-y divide-[#E5E7EB]">
+                                        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Carregando dados da plataforma...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            const labelsNiveis = ['Nível 1', 'Nível 2', 'Nível 3', 'Nível 4'];
+            const coresNiveis = ['#ef4444', '#f59e0b', '#10b981', '#9ca3af'];
+            const contagemInicial = contarAlarmesPorNivel(mockAlarmes);
+            const niveisData = {
+                labels: labelsNiveis,
+                datasets: [{ label: 'Quantidade', data: labelsNiveis.map(nivel => contagemInicial[nivel]), backgroundColor: coresNiveis, borderColor: coresNiveis, borderWidth: 1, borderRadius: 4 }]
+            };
+            const niveisChart = new Chart(document.getElementById('niveisChart').getContext('2d'), {
+                type: 'bar', data: niveisData,
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+            activeCharts.push(niveisChart);
+            carregarDadosSaude().then(veiculos => {
+                if (activeScreen !== 'dashboard') return;
+                const tbody = document.getElementById('saude-sistema-tbody');
+                if (tbody) tbody.innerHTML = renderizarLinhasSaude(veiculos);
+            }).catch(error => {
+                console.error('Erro ao carregar saúde do sistema:', error);
+                if (activeScreen !== 'dashboard') return;
+                const tbody = document.getElementById('saude-sistema-tbody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-red-700 bg-red-50"><strong>Falha ao consultar a API:</strong> ${error.message}. Verifique a chave, as permissões e o CORS.</td></tr>`;
+            });
+            carregarDadosAlarmes().then(registros => {
+                if (activeScreen !== 'dashboard') return;
+                const contagem = contarAlarmesPorNivel(registros);
+                niveisChart.data.datasets[0].data = labelsNiveis.map(nivel => contagem[nivel]);
+                niveisChart.update();
+            }).catch(error => console.error('Erro ao carregar contagem de alarmes no dashboard:', error));
+        }
+
+        // =================================================================================
+        // TELA DE ALARMES
+        // =================================================================================
+        function renderTabela(container, dadosOrigem = mockAlarmes, opcoes = {}) {
+            destroyActiveCharts();
+            
+            let currentPage = 1;
+            let itemsPerPage = 25;
+            let filteredData = [...dadosOrigem];
+            let sortColumn = null;
+            const numericColumns = new Set(['maiorImpacto', 'eventos', 'severidade']);
+            const dateColumns = new Set(['ultimaRevisao', 'eventoRecente']);
+            const getSortIcon = column => sortColumn === column
+                ? `<i data-lucide="${numericColumns.has(column) || dateColumns.has(column) || column === 'zigZag' ? 'arrow-down-9-0' : 'arrow-down-a-z'}" class="w-3.5 h-3.5"></i>`
+                : '<i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>';
+            const sortableHeader = (label, column) => `
+                <th class="py-3 px-4 text-center">
+                    <button type="button" data-sort-column="${column}" class="inline-flex w-full items-center justify-center gap-1.5 hover:text-gray-900">
+                        <span>${label}</span>${getSortIcon(column)}
+                    </button>
+                </th>
+            `;
+
+            function createDateRange(label, idPrefix) {
+                return `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${label}</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="${idPrefix}-start" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border">
+                            <span class="text-gray-400 text-sm">até</span>
+                            <input type="date" id="${idPrefix}-end" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-accent p-2 border">
+                        </div>
+                    </div>
+                `;
+            }
+
+            function createDualSlider(label, idPrefix, minVal = 0, maxVal = 20000) {
+                return `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${label}</label>
+                        <div class="flex justify-between text-xs text-gray-500 mb-1 font-medium">
+                            <span id="${idPrefix}-display-min">${minVal}</span>
+                            <span id="${idPrefix}-display-max">${maxVal}</span>
+                        </div>
+                        <div class="dual-slider-container">
+                            <div class="dual-slider-track"></div>
+                            <input type="range" id="${idPrefix}-min" min="${minVal}" max="${maxVal}" value="${minVal}" class="dual-slider-input" oninput="updateDualSlider('${idPrefix}')">
+                            <input type="range" id="${idPrefix}-max" min="${minVal}" max="${maxVal}" value="${maxVal}" class="dual-slider-input" oninput="updateDualSlider('${idPrefix}')">
+                        </div>
+                    </div>
+                `;
+            }
+
+            window.updateDualSlider = function(idPrefix) {
+                const minEl = document.getElementById(`${idPrefix}-min`);
+                const maxEl = document.getElementById(`${idPrefix}-max`);
+                const minDisp = document.getElementById(`${idPrefix}-display-min`);
+                const maxDisp = document.getElementById(`${idPrefix}-display-max`);
+
+                let minVal = parseInt(minEl.value);
+                let maxVal = parseInt(maxEl.value);
+
+                if (minVal > maxVal) {
+                    if (document.activeElement === minEl) { minEl.value = maxVal; minVal = maxVal; }
+                    else { maxEl.value = minVal; maxVal = minVal; }
+                }
+
+                minDisp.textContent = minVal.toLocaleString('pt-BR');
+                maxDisp.textContent = maxVal.toLocaleString('pt-BR');
+            };
+
+            const line1 = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${createDateRange('Última revisão', 'filter-rev')}
+                    ${createDateRange('Evento mais recente', 'filter-evento-recente')}
+                </div>
+            `;
+
+            const line2 = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${createInput('Nome do site', 'filter-site')}
+                    ${createInput('ID do veículo', 'filter-veiculo')}
+                    ${createSelect('Nível do monitoramento', 'filter-nivel', '<option value="">Todos</option><option value="Nível 1">Nível 1</option><option value="Nível 2">Nível 2</option><option value="Nível 3">Nível 3</option><option value="Nível 4">Nível 4</option>')}
+                </div>
+            `;
+
+            const line3 = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${createDualSlider('Intervalo Maior impacto desde a última revisão', 'filter-impacto')}
+                    ${createDualSlider('Intervalo Eventos desde a última revisão', 'filter-eventos')}
+                    ${createDualSlider('Intervalo Severidade do impacto mais recente', 'filter-severidade')}
+                </div>
+            `;
+        
+            const filters = `${line1}${line2}${line3}`;
+
+            function sortData(data) {
+                const sorted = [...data];
+                if (sortColumn) {
+                    return sorted.sort((a, b) => {
+                        if (numericColumns.has(sortColumn)) {
+                            return numeroSeguro(b[sortColumn]) - numeroSeguro(a[sortColumn]);
+                        }
+                        if (dateColumns.has(sortColumn)) {
+                            const dataA = a[sortColumn] ? new Date(`${a[sortColumn]}T00:00:00`).getTime() : 0;
+                            const dataB = b[sortColumn] ? new Date(`${b[sortColumn]}T00:00:00`).getTime() : 0;
+                            return dataB - dataA;
+                        }
+                        if (sortColumn === 'idVeiculo') {
+                            const naoInformadoA = !a.idVeiculo || a.idVeiculo.toLowerCase() === 'não informado';
+                            const naoInformadoB = !b.idVeiculo || b.idVeiculo.toLowerCase() === 'não informado';
+                            if (naoInformadoA !== naoInformadoB) return naoInformadoA ? 1 : -1;
+                            return String(a.idVeiculo ?? '').localeCompare(String(b.idVeiculo ?? ''), 'pt-BR', { sensitivity: 'base', numeric: true });
+                        }
+                        if (sortColumn === 'zigZag') {
+                            return Number(b.zigZag) - Number(a.zigZag);
+                        }
+                        return String(a[sortColumn] ?? '').localeCompare(String(b[sortColumn] ?? ''), 'pt-BR', { sensitivity: 'base', numeric: true });
+                    });
+                }
+                return sorted.sort((a, b) => a.nivel.localeCompare(b.nivel, 'pt-BR', { numeric: true }) || b.maiorImpacto - a.maiorImpacto);
+            }
+
+            function renderTableContent() {
+                const sortedData = sortData(filteredData);
+                const totalPages = Math.ceil(sortedData.length / itemsPerPage) || 1;
+                const currentData = sortedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+                return `
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="w-full text-left border-collapse min-w-[1000px]">
+                            <thead>
+                                <tr class="border-b-2 border-gray-200 bg-gray-50 text-xs text-gray-500 font-bold uppercase tracking-wider">
+                                    ${sortableHeader('Nome do Site', 'site')}
+                                    ${sortableHeader('Última Revisão', 'ultimaRevisao')}
+                                    ${sortableHeader('Maior impacto desde a última revisão', 'maiorImpacto')}
+                                    ${sortableHeader('Eventos desde a última revisão', 'eventos')}
+                                    ${sortableHeader('Evento Mais Recente', 'eventoRecente')}
+                                    ${sortableHeader('Severidade do impacto mais recente', 'severidade')}
+                                    ${sortableHeader('ID do Veículo', 'idVeiculo')}
+                                    ${sortableHeader('Zig-Zag', 'zigZag')}
+                                    ${sortableHeader('Nível do Monitoramento', 'nivel')}
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm divide-y divide-gray-100 bg-white">
+                                ${currentData.length > 0 ? currentData.map(eq => `
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-3.5 px-4 font-bold text-gray-800 whitespace-nowrap">${eq.site}</td>
+                                        <td class="py-3.5 px-4 text-gray-600 whitespace-nowrap">${formatarDataExibicao(eq.ultimaRevisao)}</td>
+                                        <td class="py-3.5 px-4 text-gray-600 text-left">${eq.maiorImpacto.toLocaleString('pt-BR')}</td>
+                                        <td class="py-3.5 px-4 text-gray-600 text-left">${eq.eventos.toLocaleString('pt-BR')}</td>
+                                        <td class="py-3.5 px-4 text-gray-600 whitespace-nowrap">${formatarDataExibicao(eq.eventoRecente)}</td>
+                                        <td class="py-3.5 px-4 font-medium text-gray-700 text-left">${eq.severidade.toLocaleString('pt-BR')}</td>
+                                        <td class="py-3.5 px-4 font-medium text-gray-700 whitespace-nowrap">${eq.idVeiculo}</td>
+                                        <td class="py-3.5 px-4 text-left font-medium text-gray-700">${eq.zigZag ? 'Sim' : ''}</td>
+                                        <td class="py-3.5 px-4 text-left">${getNivelBadge(eq.nivel)}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="9" class="py-8 text-center text-gray-500">Nenhum registro encontrado.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 text-xs text-gray-500 gap-3">
+                        <div class="flex items-center gap-2">
+                            <span>Registros por página:</span>
+                            <select id="itemsPerPageSelect" class="bg-white border border-gray-300 rounded p-1 font-medium focus:border-accent">
+                                <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
+                                <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
+                                <option value="15" ${itemsPerPage === 15 ? 'selected' : ''}>15</option>
+                                <option value="25" ${itemsPerPage === 25 ? 'selected' : ''}>25</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-medium">Página ${currentPage} de ${totalPages} (Total: ${sortedData.length})</span>
+                            <div class="flex items-center gap-1">
+                                <button id="prevPageBtn" ${currentPage === 1 ? 'disabled' : ''} class="p-1.5 rounded border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button id="nextPageBtn" ${currentPage >= totalPages ? 'disabled' : ''} class="p-1.5 rounded border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function updateTable() {
+                const tableContainer = container.querySelector('#table-container');
+                if(tableContainer) tableContainer.innerHTML = renderTableContent();
+                attachPaginationListeners();
+                lucide.createIcons();
+            }
+
+            function attachPaginationListeners() {
+                container.querySelectorAll('[data-sort-column]').forEach(button => {
+                    button.onclick = () => { sortColumn = button.dataset.sortColumn; currentPage = 1; updateTable(); };
+                });
+                const prevBtn = document.getElementById('prevPageBtn');
+                const nextBtn = document.getElementById('nextPageBtn');
+                const select = document.getElementById('itemsPerPageSelect');
+
+                if(prevBtn) prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; updateTable(); } };
+                if(nextBtn) nextBtn.onclick = () => { if(currentPage < Math.ceil(filteredData.length / itemsPerPage)) { currentPage++; updateTable(); } };
+                if(select) select.onchange = (e) => { itemsPerPage = Number(e.target.value); currentPage = 1; updateTable(); };
+            }
+
+            function applyFilters() {
+                const site = document.getElementById('filter-site').value.toLowerCase().trim();
+                const veiculo = document.getElementById('filter-veiculo').value.toLowerCase().trim();
+                const nivel = document.getElementById('filter-nivel').value;
+
+                const revStart = document.getElementById('filter-rev-start').value;
+                const revEnd = document.getElementById('filter-rev-end').value;
+                
+                const recStart = document.getElementById('filter-evento-recente-start').value;
+                const recEnd = document.getElementById('filter-evento-recente-end').value;
+
+                const impactoMin = parseInt(document.getElementById('filter-impacto-min').value);
+                const impactoMax = parseInt(document.getElementById('filter-impacto-max').value);
+                
+                const eventosMin = parseInt(document.getElementById('filter-eventos-min').value);
+                const eventosMax = parseInt(document.getElementById('filter-eventos-max').value);
+                
+                const sevMin = parseInt(document.getElementById('filter-severidade-min').value);
+                const sevMax = parseInt(document.getElementById('filter-severidade-max').value);
+
+                filteredData = dadosOrigem.filter(item => {
+                    if (site && !item.site.toLowerCase().includes(site)) return false;
+                    if (veiculo && !item.idVeiculo.toLowerCase().includes(veiculo)) return false;
+                    if (nivel && item.nivel !== nivel) return false;
+
+                    if (revStart && (!item.ultimaRevisao || item.ultimaRevisao < revStart)) return false;
+                    if (revEnd && (!item.ultimaRevisao || item.ultimaRevisao > revEnd)) return false;
+                    if (recStart && (!item.eventoRecente || item.eventoRecente < recStart)) return false;
+                    if (recEnd && (!item.eventoRecente || item.eventoRecente > recEnd)) return false;
+
+                    if (item.maiorImpacto < impactoMin || item.maiorImpacto > impactoMax) return false;
+                    if (item.eventos < eventosMin || item.eventos > eventosMax) return false;
+                    if (item.severidade < sevMin || item.severidade > sevMax) return false;
+
+                    return true;
+                });
+
+                currentPage = 1;
+                updateTable();
+            }
+
+            function clearFilters() {
+                document.getElementById('filter-site').value = '';
+                document.getElementById('filter-veiculo').value = '';
+                document.getElementById('filter-nivel').value = '';
+                
+                document.getElementById('filter-rev-start').value = '';
+                document.getElementById('filter-rev-end').value = '';
+                document.getElementById('filter-evento-recente-start').value = '';
+                document.getElementById('filter-evento-recente-end').value = '';
+
+                const resetSlider = (idPrefix) => {
+                    document.getElementById(`${idPrefix}-min`).value = 0;
+                    document.getElementById(`${idPrefix}-max`).value = 20000;
+                    window.updateDualSlider(idPrefix);
+                };
+
+                resetSlider('filter-impacto');
+                resetSlider('filter-eventos');
+                resetSlider('filter-severidade');
+
+                filteredData = [...dadosOrigem];
+                currentPage = 1;
+                updateTable();
+            }
+
+            container.innerHTML = `
+                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between mb-6 border-l-4 border-accent pl-3">
+                        <h2 class="text-xl font-semibold text-gray-800">${opcoes.titulo || 'Lista de Alarmes'}</h2>
+                    </div>
+                    ${renderFilterSection(filters, 'Filtrar', 'btn-limpar-alarmes', 'btn-filtrar-alarmes')}
+                    <div id="api-status-alarmes" class="mb-4 text-sm text-gray-500"></div>
+                    <div id="table-container">
+                        ${renderTableContent()}
+                    </div>
+                </section>
+            `;
+            
+            attachPaginationListeners();
+            document.getElementById('btn-filtrar-alarmes').addEventListener('click', applyFilters);
+            document.getElementById('btn-limpar-alarmes').addEventListener('click', clearFilters);
+
+            async function carregarAlarmesDaApi() {
+                const status = document.getElementById('api-status-alarmes');
+                status.textContent = 'Carregando dados da plataforma...';
+                try {
+                    const dados = await carregarDadosAlarmes();
+                    filteredData = [...mockAlarmes];
+                    currentPage = 1;
+                    status.textContent = `${dados.length} registro(s) carregado(s) da PCDS API.`;
+                    updateTable();
+                } catch (error) {
+                    console.error('Erro ao carregar alarmes:', error);
+                    status.innerHTML = `<div class="p-3 rounded-md border border-red-200 bg-red-50 text-red-700"><strong>Falha ao consultar a API:</strong> ${error.message}. Verifique a chave, as permissões e o CORS.</div>`;
+                    filteredData = [];
+                    updateTable();
+                }
+            }
+
+            if (opcoes.carregarApi === false) {
+                const status = container.querySelector('#api-status-alarmes');
+                if (status) status.textContent = `${dadosOrigem.length} registro(s) carregado(s) do arquivo CSV.`;
+            } else carregarAlarmesDaApi();
+        }
+
+        function renderHistorico(container) {
+            destroyActiveCharts();
+            container.innerHTML = `<section class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <div class="mb-6 border-l-4 border-accent pl-3"><h2 class="text-xl font-semibold text-gray-800">Histórico</h2></div>
+                <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 relative overflow-hidden">
+                    <div id="hist-ind" class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-300"></div><div class="pl-2">
+                    <h3 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV</h3><p class="text-xs text-gray-500 mt-1">Arquivo exportado no padrão PCDS sites.</p>
+                    <div class="mt-4 flex flex-col md:flex-row gap-4"><input type="file" id="hist-csv" accept=".csv,text/csv" class="block flex-1 w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-gray-100 border border-gray-300 rounded-md p-2 cursor-pointer"><button id="hist-btn" class="bg-accent hover:bg-accent-dark text-gray-900 font-bold py-2.5 px-8 rounded-md">Analisar</button></div>
+                    <div id="hist-erro" class="hidden mt-4 p-3 bg-red-50 text-red-600 text-sm rounded border border-red-200"></div></div></div>
+                <div id="hist-tabela" class="mt-6"></div></section>`;
+            const input=container.querySelector('#hist-csv'), btn=container.querySelector('#hist-btn'), erro=container.querySelector('#hist-erro'), ind=container.querySelector('#hist-ind'), destino=container.querySelector('#hist-tabela');
+            input.onchange=()=>{ ind.className=`absolute left-0 top-0 bottom-0 w-1.5 ${input.files[0]?'bg-accent':'bg-gray-300'}`; erro.classList.add('hidden'); };
+            btn.onclick=async()=>{ const arq=input.files[0]; if(!arq||!arq.name.toLowerCase().endsWith('.csv')){erro.textContent='Selecione um arquivo CSV válido.';erro.classList.remove('hidden');return;} try{btn.disabled=true;btn.textContent='Analisando...';const dados=converterCsvHistorico(await arq.text());if(!dados.length)throw Error('O arquivo não contém registros válidos.');destino.innerHTML='';renderTabela(destino,dados,{carregarApi:false,titulo:'Lista de Alarmes do Histórico'});}catch(e){erro.textContent=e.message;erro.classList.remove('hidden');destino.innerHTML='';}finally{btn.disabled=false;btn.textContent='Analisar';lucide.createIcons();}};
+        }
+        function converterCsvHistorico(texto) {
+            const sep=(texto.split(/\r?\n/,1)[0]||'').includes(';')?';':','; const linhas=[]; let r=[],c='',q=false;
+            for(let i=0;i<texto.length;i++){const x=texto[i];if(x==='"'){if(q&&texto[i+1]==='"'){c+='"';i++;}else q=!q;}else if(x===sep&&!q){r.push(c.trim());c='';}else if((x==='\n'||x==='\r')&&!q){if(x==='\r'&&texto[i+1]==='\n')i++;r.push(c.trim());c='';if(r.some(Boolean))linhas.push(r);r=[];}else c+=x;} if(c||r.length){r.push(c.trim());linhas.push(r);} if(linhas.length<2)return[];
+            const norm=v=>String(v||'').trim().toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' '), h=linhas[0].map(norm), idx=(...n)=>h.findIndex(x=>n.some(y=>x===y||x.includes(y)));
+            const is=idx('site name','nome do site'), ii=idx('largest impact since last review'), ie=idx('events since last review'), ir=idx('last review'), im=h.findIndex(x=>x==='most recent event'), iv=idx('most recent event impact severity'), id=idx('drop off events since last review'), ive=idx('vehicle id','id do veículo','id do veiculo');
+            if([is,ii,ie,im,iv].some(x=>x<0))throw Error('O CSV não possui todas as colunas obrigatórias do padrão PCDS sites.');
+            const num=v=>{let x=String(v??'').trim();if(!x||x==='-')return 0;x=sep===';'?x.replace(/\./g,'').replace(',','.'):x.replace(/,/g,'');x=Number(x);return Number.isFinite(x)?x:0;};
+            return linhas.slice(1).map((x,k)=>{const imp=num(x[ii]);return{id:k+1,site:x[is]||'Site sem nome',ultimaRevisao:(ir>=0 && x[ir] && x[ir].trim() !== '-' && x[ir].trim().toLowerCase() !== 'null') ? dataParaFiltro(x[ir]) : '',maiorImpacto:imp,eventos:num(x[ie]),eventoRecente:(x[im] && x[im].trim() !== '-' && x[im].trim().toLowerCase() !== 'null') ? dataParaFiltro(x[im]) : '',severidade:num(x[iv]),idVeiculo:ive>=0&&x[ive]?x[ive]:'Não informado',zigZag:id>=0&&num(x[id])>0,nivel:classificarNivelPorMaiorImpacto(imp)}});
+        }
+
+        // =================================================================================
+        // CONTROLES DE SIDEBAR E MODAL
+        // =================================================================================
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarBtn = document.getElementById('open-sidebar-btn');
+        const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+        
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function openSidebar() { sidebar.classList.remove('-translate-x-full'); }
+        function closeSidebar() { sidebar.classList.add('-translate-x-full'); }
+        
+        function openModal(title, bodyHTML) {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = bodyHTML;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeModal() { modal.classList.add('hidden'); }
+
+        if(openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
+        if(closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+        if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+        if(modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // Initialize pela view informada na URL.
+        const telasMonitoramento = new Set(['dashboard', 'tabela', 'historico']);
+        function navigateFromHash() {
+            const screenId = window.location.hash.slice(1);
+            navigateTo(telasMonitoramento.has(screenId) ? screenId : 'dashboard');
+        }
+        window.addEventListener('hashchange', navigateFromHash);
+        updateNav();
+        navigateFromHash();
+    });
+    </script>
+</body>
+</html>

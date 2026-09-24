@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura | LOC</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet CSS & JS (Mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Leaflet Heatmap -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Configuração do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'accent': '#6FE6FC',
+                        'accent-dark': '#5ACCE0',
+                        'custom-accent': '#86A8E7',
+                        'severity-accent': '#6FE6FC',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        /* Scrollbar fina */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        /* Leaflet Z-Index Fix inside Tailwind */
+        .leaflet-container {
+            z-index: 0; 
+        }
+        /* Animações Auxiliares */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+    </style>
+</head>
+<body class="text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+    <div class="flex min-h-screen w-full">
+        <!-- Sidebar / Navegação Lateral -->
+        <aside id="sidebar" class="bg-white border-r border-gray-200 text-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-shrink-0 shadow-sm flex flex-col">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 text-center">
+                        <img src="https://www.cptm.sp.gov.br/wcm/connect/1ba276a6-20bd-4f27-99be-f87a016b471d/logo_cptm3.png?MOD=AJPERES&ContentCache=none&CACHE=none&CACHEID=ROOTWORKSPACE-1ba276a6-20bd-4f27-99be-f87a016b471d-pxyIk9k" alt="Logo CPTM" class="h-12 w-auto max-w-full object-contain mb-4" referrerpolicy="no-referrer">
+                        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Aura</h2>
+                        <p class="text-xs text-gray-500 font-medium">Análise Unificada de Rede Aérea</p>
+                    </div>
+                    <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-gray-700 flex-shrink-0" aria-label="Fechar menu"><i data-lucide="x"></i></button>
+                </div>
+            </div>
+            <nav class="p-4 flex-1 overflow-y-auto">
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">MONITORAMENTO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#dashboard" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Dashboard</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#tabela" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Eventos</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraMONI.aspx#historico" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Histórico</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-3 px-3">AVANÇADO</h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraALARM.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Alarmes</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraLOC.aspx" aria-current="page" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold bg-accent text-gray-900 shadow-sm transition-all duration-200">Localidade</a></li>
+                        <li><a href="https://extranet.cptm.sp.gov.br/manutencao/ENGMAN/Paginas/DOTI/AURA/AuraTREC.aspx" class="flex items-center px-3 py-2 rounded-md text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200">Trecho</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <footer class="px-5 py-4 border-t border-gray-100 bg-gray-50 text-center">
+                <p class="text-[11px] leading-relaxed text-gray-500 font-medium">Desenvolvido internamente pela engenharia de manutenção</p>
+            </footer>
+        </aside>
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Cabeçalho Superior Mobile -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-20 md:hidden">
+                <div class="flex items-center justify-between h-16 px-4">
+                    <button id="open-sidebar-btn" class="text-gray-600 hover:text-gray-900" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+                    <span class="font-bold text-gray-900 text-lg">Aura</span>
+                    <div class="w-6"></div>
+                </div>
+            </header>
+            <main class="flex-1 p-6 md:p-10 max-w-none w-full mx-auto">
+        
+        <!-- Cabeçalho -->
+        <header class="mb-8 border-b border-gray-200 pb-4">
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Aura LOCALIDADE</h1>
+            <p class="text-gray-500 mt-1 text-lg">Análise dos alarmes em uma localidade</p>
+        </header>
+
+        <!-- Seção de Entrada (Refatorada) -->
+        <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-300 relative overflow-hidden">
+            <!-- Indicador visual lateral -->
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-300 transition-colors duration-300" id="mainStatusIndicator"></div>
+
+            <div class="flex flex-col w-full pl-2">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Selecione o arquivo CSV</h2>
+                        <p class="text-xs text-gray-500 mt-1">Ex: site_data_681d6b14670fa4c0d1bd3d6b.csv</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3 flex flex-col md:flex-row gap-4 items-center w-full">
+                    <div class="flex-1 w-full relative" id="inputWrapper">
+                        <input 
+                            type="file" 
+                            id="csvInput" 
+                            accept=".csv" 
+                            class="block w-full text-sm text-gray-500 
+                                   file:mr-4 file:py-2.5 file:px-4 
+                                   file:rounded-md file:border-0 
+                                   file:text-sm file:font-semibold 
+                                   file:bg-gray-100 file:text-gray-700 
+                                   hover:file:bg-gray-200 
+                                   focus:outline-none cursor-pointer border border-gray-300 rounded-md p-2 transition-colors focus:ring-2 focus:ring-accent focus:border-accent">
+                    </div>
+                    
+                    <!-- Feedback visual de arquivo selecionado -->
+                    <div id="mainFileStatus" class="hidden shrink-0 items-center gap-2 px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-md text-sm font-medium animate-fade-in">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span id="mainFileName" class="max-w-[150px] truncate">arquivo.csv</span>
+                        <button id="removeMainFileBtn" class="ml-2 text-green-600 hover:text-green-800 font-bold focus:outline-none" title="Remover" type="button">&times;</button>
+                    </div>
+                    
+                    <!-- Botão de Ação -->
+                    <div class="shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                        <button 
+                            id="analyzeBtn"
+                            class="bg-accent hover:bg-accent-dark text-gray-900 font-bold py-2.5 px-8 rounded-md transition duration-200 shadow-sm w-full md:w-auto focus:ring-4 focus:ring-opacity-50 focus:ring-accent focus:outline-none"
+                        >
+                            Analisar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mensagem de Erro Geral -->
+        <div id="errorMessage" class="hidden mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700" id="errorText">Erro ao processar arquivo.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Saída -->
+        <div id="outputContainer" class="hidden space-y-6">
+            
+            <!-- Título do Local (Site) -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
+                <h2 id="siteNameDisplay" class="text-2xl font-bold text-gray-800">Nome do Site</h2>
+            </div>
+
+            <!-- NOVA SEÇÃO: Posicionamento Geográfico -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 border-l-4 border-accent pl-3 gap-4">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        Posicionamento Geográfico
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                        <!-- Filtro Temporal Mapa -->
+                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            <div class="flex flex-col">
+                                <label for="mapStartDate" class="text-[10px] uppercase font-bold text-gray-400">Início</label>
+                                <input type="date" id="mapStartDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                            </div>
+                            <span class="text-gray-400">-</span>
+                            <div class="flex flex-col">
+                                <label for="mapEndDate" class="text-[10px] uppercase font-bold text-gray-400">Fim</label>
+                                <input type="date" id="mapEndDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Alternador de Visualização -->
+                        <div class="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
+                            <button id="btnMapCircle" class="px-3 py-1 text-xs font-semibold rounded shadow-sm bg-white text-accent transition-all">Círculos</button>
+                            <button id="btnMapCluster" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Cluster</button>
+                            <button id="btnMapHeat" class="px-3 py-1 text-xs font-semibold rounded text-gray-500 hover:text-gray-700 transition-all">Heatmap</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container do Mapa -->
+                <div class="w-full relative border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                    <!-- Aspect Ratio Control: Square on mobile, fixed height on desktop to not break layout -->
+                    <div id="map" class="w-full h-[400px] md:h-[600px] z-0"></div>
+                </div>
+            </section>
+
+            <!-- Painel 1: Cards Totalizadores (Resumo Global) -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 border-l-4 border-accent pl-3">
+                    Resumo Global (Todos os Registros)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Maior Recorrência</span>
+                        <strong id="card1Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card1Label" class="text-sm text-accent font-medium">-</span>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Maior Severidade</span>
+                        <strong id="card2Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card2Label" class="text-sm text-accent font-medium">-</span>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Maior Velocidade</span>
+                        <strong id="card3Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card3Label" class="text-sm text-accent font-medium">-</span>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center">
+                        <span id="card4Title" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Severidades Recentes</span>
+                        <div id="card4Container" class="w-full flex flex-col items-center justify-center flex-grow min-h-[60px]">
+                            <span class="text-gray-400 text-sm">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 5: Participação de Alarmes -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center h-full">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Participação da Composição nos Alarmes</span>
+                        <span class="text-[10px] font-bold text-accent uppercase tracking-wide mb-3">últimos 30 dias</span>
+                        
+                        <!-- Lista de Participação (com scroll se necessário) -->
+                        <div id="card5Container" class="w-full flex flex-col items-center justify-start flex-grow overflow-hidden" style="max-height: 120px;">
+                            <div id="card5List" class="w-full space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                                <span class="text-gray-400 text-sm">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Veículo com Maior Severidade Média -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col items-center text-center h-full">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Composição com Maior Severidade Média</span>
+                        <span class="text-[10px] font-bold text-accent uppercase tracking-wide mb-3">últimos 30 dias</span>
+                        
+                        <!-- Lista de Média de Severidade -->
+                        <div id="card6Container" class="w-full flex flex-col items-center justify-start flex-grow overflow-hidden" style="max-height: 120px;">
+                            <div id="card6List" class="w-full space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                                <span class="text-gray-400 text-sm">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 7: Maior Severidade em -->
+                    <div id="card7Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Maior Severidade em</span>
+                        <strong id="card7Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card7Label" class="text-sm text-gray-400 italic">Em breve</span>
+                    </div>
+
+                    <!-- Card 8: Total de Alarmes do Site -->
+                    <div id="card8Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes do Site</span>
+                        <strong id="card8Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card8Label" class="text-sm text-gray-400 italic">Em breve</span>
+                    </div>
+
+                    <!-- Card 9: Total de Alarmes (7 dias) -->
+                    <div id="card9Container" class="bg-gray-50 border border-gray-100 rounded-lg p-6 flex flex-col justify-center items-center text-center opacity-60 transition-opacity duration-300">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Alarmes Recentes</span>
+                        <strong id="card9Value" class="text-2xl font-bold text-gray-800 mb-1">-</strong>
+                        <span id="card9Label" class="text-sm text-gray-400 italic">Em breve</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Painel 2: Evolução Temporal (Padrão) -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 border-l-4 border-accent pl-3">
+                    Evolução Temporal (Últimos 12 Meses)
+                </h2>
+                
+                <div class="flex flex-col mb-8 w-full">
+                    <div class="flex justify-between items-baseline mb-4">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de velocidade e severidade</h3>
+                    </div>
+                    <div class="chart-container"><canvas id="chartCombined"></canvas></div>
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-gray-100">
+                    <div class="flex flex-col" id="dropOffSection">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide cursor-help" title="Traçado alternado da rede aérea, com desvios entre fixações para distribuir o desgaste no pantógrafo">DROP-OFF</h3>
+                            <span class="text-xs text-gray-400">Eventos</span>
+                        </div>
+                        <div id="dropOffChartContainer" class="chart-container hidden"><canvas id="chartDropOff"></canvas></div>
+                        <div id="dropOffError" class="hidden py-10 bg-gray-50 rounded border border-gray-200 text-center">
+                            <p class="text-gray-400 text-sm">Nenhum evento de Drop-off detectado no período analisado.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAINEL: Evolução Personalizada -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-l-4 border-custom-accent pl-3">
+                    <h2 class="text-xl font-semibold text-gray-800">Evolução Personalizada</h2>
+                    <div class="mt-4 md:mt-0 flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div class="flex flex-col">
+                            <label for="startDate" class="text-[10px] uppercase font-bold text-gray-400">Início</label>
+                            <input type="date" id="startDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                        <span class="text-gray-400">-</span>
+                        <div class="flex flex-col">
+                            <label for="endDate" class="text-[10px] uppercase font-bold text-gray-400">Fim</label>
+                            <input type="date" id="endDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                <div id="customError" class="hidden py-10 bg-red-50 rounded border border-red-100 text-center mb-6">
+                    <p id="customErrorText" class="text-red-400 text-sm font-medium">-</p>
+                </div>
+                <div id="customChartsWrapper">
+                    
+                    <div class="flex flex-col mb-8 w-full">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Média de velocidade e severidade</h3>
+                        </div>
+                        <div class="chart-container"><canvas id="customChartCombined"></canvas></div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-gray-100">
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-baseline mb-4">
+                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide cursor-help" title="Traçado alternado da rede aérea, com desvios entre fixações para distribuir o desgaste no pantógrafo">DROP-OFF</h3>
+                                <span class="text-xs text-gray-400">Eventos</span>
+                            </div>
+                            <div id="customDropOffChartContainer" class="chart-container">
+                                <canvas id="customChartDropOff"></canvas>
+                            </div>
+                            <!-- Mensagem de erro para drop-off personalizado -->
+                            <div id="customDropOffError" class="hidden py-10 bg-gray-50 rounded border border-gray-200 text-center">
+                                <p class="text-gray-400 text-sm">Nenhum evento de Drop-off detectado no período analisado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NOVO PAINEL: Evolução das Severidades -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-l-4 border-severity-accent pl-3">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        Evolução das Severidades
+                    </h2>
+                    
+                    <!-- Filtro Temporal Severidades -->
+                    <div class="mt-4 md:mt-0 flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div class="flex flex-col">
+                            <label for="sevStartDate" class="text-[10px] uppercase font-bold text-gray-400">Início</label>
+                            <input type="date" id="sevStartDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                        <span class="text-gray-400">-</span>
+                        <div class="flex flex-col">
+                            <label for="sevEndDate" class="text-[10px] uppercase font-bold text-gray-400">Fim</label>
+                            <input type="date" id="sevEndDate" class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Erro Severidades -->
+                <div id="sevError" class="hidden py-10 bg-red-50 rounded border border-red-100 text-center mb-6">
+                    <p id="sevErrorText" class="text-red-400 text-sm font-medium">-</p>
+                </div>
+
+                <!-- Container dos Gráficos Severidades -->
+                <div id="sevChartsWrapper">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Gráfico 1: Nível 1 -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-baseline mb-4">
+                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Nível 1 (≥ 4500)</h3>
+                                <span class="text-xs text-gray-400">Eventos</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chartSevLevel1"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 2: Nível 2 -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-baseline mb-4">
+                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Nível 2 (2000 - 4499)</h3>
+                                <span class="text-xs text-gray-400">Eventos</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chartSevLevel2"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 3: Nível 3 -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-baseline mb-4">
+                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Nível 3 (1000 - 1999)</h3>
+                                <span class="text-xs text-gray-400">Eventos</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chartSevLevel3"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 4: Nível 4 -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-baseline mb-4">
+                                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide">Nível 4 (500 - 999)</h3>
+                                <span class="text-xs text-gray-400">Eventos</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chartSevLevel4"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Painel 4: Correlações e Tendências -->
+            <section class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 border-l-4 border-accent pl-3">
+                    Correlações e Tendências (Últimos 6 meses)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Divisões de Correlação (Mantidas) -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col h-full relative overflow-hidden group hover:border-accent transition-colors duration-200">
+                        <div class="absolute top-0 right-0 p-2 opacity-10">
+                            <svg class="w-16 h-16 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 cursor-help" title="Este índice vai de 0 a 1, quanto mais próximo de 1 mais correlação há entre velocidade e severidade">Velocidade x Severidade</h3>
+                        <div class="flex items-baseline mb-2"><span id="corrValue" class="text-4xl font-bold text-gray-800 tracking-tight">-</span></div>
+                        <div class="mt-auto pt-4 border-t border-gray-200"><p id="corrText" class="text-sm text-gray-600 leading-relaxed">-</p></div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col h-full relative overflow-hidden group hover:border-accent transition-colors duration-200">
+                        <div class="absolute top-0 right-0 p-2 opacity-10">
+                            <svg class="w-16 h-16 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 cursor-help" title="Quanto maior este índice, mais distante está a maior severidade medida pelo trem da média de severidade do site">Composição x Site (Anomalia)</h3>
+                        <div class="flex items-baseline mb-2"><span id="zScoreValue" class="text-4xl font-bold text-gray-800 tracking-tight">-</span><span class="ml-2 text-sm text-gray-400 font-medium">Z-Score (σ)</span></div>
+                        <div class="mt-auto pt-4 border-t border-gray-200"><p id="zScoreText" class="text-sm text-gray-600 leading-relaxed">-</p></div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col h-full relative overflow-hidden group hover:border-accent transition-colors duration-200">
+                        <div class="absolute top-0 right-0 p-2 opacity-10">
+                            <svg class="w-16 h-16 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 cursor-help" title="Hora do dia em que ocorrem mais impactos maiores que 2000">Densidade Térmica</h3>
+                        <div class="flex items-baseline mb-2"><span id="thermalValue" class="text-4xl font-bold text-gray-800 tracking-tight">-</span></div>
+                        <div class="mt-auto pt-4 border-t border-gray-200"><p id="thermalText" class="text-sm text-gray-600 leading-relaxed">-</p></div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 flex flex-col h-full relative overflow-hidden group hover:border-accent transition-colors duration-200">
+                        <div class="absolute top-0 right-0 p-2 opacity-10">
+                            <svg class="w-16 h-16 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 cursor-help" title="Este índice mede a proporção entre a quantidade de veículos diferentes envolvidos em incidentes e o número total de incidentes registrados.">Persistência Geográfica</h3>
+                        <div class="flex items-baseline mb-2"><span id="geoValue" class="text-4xl font-bold text-gray-800 tracking-tight">-</span></div>
+                        <div class="mt-auto pt-4 border-t border-gray-200"><p id="geoText" class="text-sm text-gray-600 leading-relaxed">-</p></div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Estado Vazio -->
+        <div id="emptyState" class="text-center py-20 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
+            <p>Carregue um arquivo e clique em "Analisar" para visualizar os dados.</p>
+        </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Lógica da Aplicação -->
+    <script>
+        // --- Variáveis Globais ---
+        let mapInstance = null;
+        let mapLayerGroup = null;
+        let mapData = []; // Store parsed geo data for the map
+        let currentMapMode = 'circle'; // 'circle', 'cluster', 'heat'
+
+        let combinedChartInstance = null;
+        let dropOffChartInstance = null;
+        
+        let customCombinedChartInstance = null;
+        let customDropOffChartInstance = null;
+
+        // Instâncias da Seção Severidades
+        let sevLevel1Chart = null;
+        let sevLevel2Chart = null;
+        let sevLevel3Chart = null;
+        let sevLevel4Chart = null;
+
+        // --- Armazenamento Global do CSV ---
+        let currentCSVContent = null;
+
+        // --- Constantes de Colunas ---
+        const COL = {
+            SITE: 'site',
+            TIME_PREF: 'time (utc)',
+            TIME_FALLBACK: 'time (local)',
+            VEHICLE: 'vehicle',
+            SPEED: 'speed (km/hr)',
+            SEVERITY: 'severity',
+            DROP_OFF: 'drop_off_detected',
+            LAT: 'latitude (deg)',
+            LON: 'longitude (deg)'
+        };
+
+        // --- Referências do DOM ---
+        const elements = {
+            input: document.getElementById('csvInput'),
+            inputWrapper: document.getElementById('inputWrapper'),
+            mainFileStatus: document.getElementById('mainFileStatus'),
+            mainFileName: document.getElementById('mainFileName'),
+            removeMainFileBtn: document.getElementById('removeMainFileBtn'),
+            mainStatusIndicator: document.getElementById('mainStatusIndicator'),
+            btn: document.getElementById('analyzeBtn'),
+            outputContainer: document.getElementById('outputContainer'),
+            emptyState: document.getElementById('emptyState'),
+            errorMessage: document.getElementById('errorMessage'),
+            errorText: document.getElementById('errorText'),
+            siteNameDisplay: document.getElementById('siteNameDisplay'),
+            // Map
+            mapStartDate: document.getElementById('mapStartDate'),
+            mapEndDate: document.getElementById('mapEndDate'),
+            btnMapCircle: document.getElementById('btnMapCircle'),
+            btnMapCluster: document.getElementById('btnMapCluster'),
+            btnMapHeat: document.getElementById('btnMapHeat'),
+            // Cards
+            c1Value: document.getElementById('card1Value'),
+            c1Label: document.getElementById('card1Label'),
+            c2Value: document.getElementById('card2Value'),
+            c2Label: document.getElementById('card2Label'),
+            c3Value: document.getElementById('card3Value'),
+            c3Label: document.getElementById('card3Label'),
+            card4Container: document.getElementById('card4Container'),
+            card4Title: document.getElementById('card4Title'),
+            // Card 5 & 6
+            card5List: document.getElementById('card5List'),
+            card6List: document.getElementById('card6List'),
+            // Card 7
+            card7Container: document.getElementById('card7Container'),
+            card7Value: document.getElementById('card7Value'),
+            card7Label: document.getElementById('card7Label'),
+            // Card 8
+            card8Container: document.getElementById('card8Container'),
+            card8Value: document.getElementById('card8Value'),
+            card8Label: document.getElementById('card8Label'),
+            // Card 9
+            card9Container: document.getElementById('card9Container'),
+            card9Value: document.getElementById('card9Value'),
+            card9Label: document.getElementById('card9Label'),
+            // Charts Padrão
+            chartCombinedCtx: document.getElementById('chartCombined') ? document.getElementById('chartCombined').getContext('2d') : null,
+            chartDropOffCtx: document.getElementById('chartDropOff') ? document.getElementById('chartDropOff').getContext('2d') : null,
+            dropOffChartContainer: document.getElementById('dropOffChartContainer'),
+            dropOffError: document.getElementById('dropOffError'),
+            // Custom Section
+            startDateInput: document.getElementById('startDate'),
+            endDateInput: document.getElementById('endDate'),
+            customError: document.getElementById('customError'),
+            customErrorText: document.getElementById('customErrorText'),
+            customChartsWrapper: document.getElementById('customChartsWrapper'),
+            customChartCombinedCtx: document.getElementById('customChartCombined') ? document.getElementById('customChartCombined').getContext('2d') : null,
+            customChartDropOffCtx: document.getElementById('customChartDropOff') ? document.getElementById('customChartDropOff').getContext('2d') : null,
+            // New Custom DropOff Elements
+            customDropOffChartContainer: document.getElementById('customDropOffChartContainer'),
+            customDropOffError: document.getElementById('customDropOffError'),
+            // Severity Evolution Section
+            sevStartDateInput: document.getElementById('sevStartDate'),
+            sevEndDateInput: document.getElementById('sevEndDate'),
+            sevError: document.getElementById('sevError'),
+            sevErrorText: document.getElementById('sevErrorText'),
+            sevChartsWrapper: document.getElementById('sevChartsWrapper'),
+            chartSevLevel1Ctx: document.getElementById('chartSevLevel1') ? document.getElementById('chartSevLevel1').getContext('2d') : null,
+            chartSevLevel2Ctx: document.getElementById('chartSevLevel2') ? document.getElementById('chartSevLevel2').getContext('2d') : null,
+            chartSevLevel3Ctx: document.getElementById('chartSevLevel3') ? document.getElementById('chartSevLevel3').getContext('2d') : null,
+            chartSevLevel4Ctx: document.getElementById('chartSevLevel4') ? document.getElementById('chartSevLevel4').getContext('2d') : null,
+            // Correlations
+            corrValue: document.getElementById('corrValue'),
+            corrText: document.getElementById('corrText'),
+            zScoreValue: document.getElementById('zScoreValue'),
+            zScoreText: document.getElementById('zScoreText'),
+            thermalValue: document.getElementById('thermalValue'),
+            thermalText: document.getElementById('thermalText'),
+            geoValue: document.getElementById('geoValue'),
+            geoText: document.getElementById('geoText'),
+        };
+
+        // --- Inicialização de Datas ---
+        function initDates() {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - 6);
+            
+            // Map
+            if (elements.mapEndDate) elements.mapEndDate.valueAsDate = end;
+            if (elements.mapStartDate) elements.mapStartDate.valueAsDate = start;
+
+            // Custom Section
+            if (elements.endDateInput) elements.endDateInput.valueAsDate = end;
+            if (elements.startDateInput) elements.startDateInput.valueAsDate = start;
+
+            // Severity Evolution Section
+            if (elements.sevEndDateInput) elements.sevEndDateInput.valueAsDate = end;
+            if (elements.sevStartDateInput) elements.sevStartDateInput.valueAsDate = start;
+        }
+        initDates();
+
+        // --- Gerenciamento de UI ---
+        function resetUI() {
+            if (elements.outputContainer) elements.outputContainer.classList.add('hidden');
+            if (elements.errorMessage) elements.errorMessage.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.remove('hidden');
+            
+            // Map Reset
+            mapData = [];
+            if(mapLayerGroup) mapLayerGroup.clearLayers();
+            // Reset to default location/zoom if needed, but usually hidden
+
+            // Destruir gráficos anteriores
+            const allCharts = [
+                combinedChartInstance, dropOffChartInstance,
+                customCombinedChartInstance, customDropOffChartInstance,
+                sevLevel1Chart, sevLevel2Chart, sevLevel3Chart, sevLevel4Chart
+            ];
+            allCharts.forEach(chart => { if(chart) chart.destroy(); });
+
+            // Reset Textos (with safety checks to prevent TypeError if DOM changes)
+            if (elements.siteNameDisplay) elements.siteNameDisplay.textContent = 'Nome do Site';
+            if (elements.corrValue) elements.corrValue.textContent = '-'; 
+            if (elements.corrText) elements.corrText.textContent = '-';
+            if (elements.zScoreValue) elements.zScoreValue.textContent = '-'; 
+            if (elements.zScoreText) elements.zScoreText.textContent = '-';
+            if (elements.thermalValue) elements.thermalValue.textContent = '-'; 
+            if (elements.thermalText) elements.thermalText.textContent = '-';
+            if (elements.geoValue) elements.geoValue.textContent = '-'; 
+            if (elements.geoText) elements.geoText.textContent = '-';
+            
+            if (elements.card4Title) elements.card4Title.textContent = 'Severidades Recentes';
+            if (elements.card4Container) elements.card4Container.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.card5List) elements.card5List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.card6List) elements.card6List.innerHTML = '<span class="text-gray-400 text-sm">-</span>';
+            if (elements.c3Value) elements.c3Value.textContent = '-';
+            if (elements.c3Label) elements.c3Label.textContent = '-';
+            
+            if (elements.card7Value) elements.card7Value.textContent = '-';
+            if (elements.card7Label) {
+                elements.card7Label.textContent = 'Em breve';
+                elements.card7Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card7Container) elements.card7Container.classList.add('opacity-60');
+
+            if (elements.card8Value) elements.card8Value.textContent = '-';
+            if (elements.card8Label) {
+                elements.card8Label.textContent = 'Em breve';
+                elements.card8Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card8Container) elements.card8Container.classList.add('opacity-60');
+
+            if (elements.card9Value) elements.card9Value.textContent = '-';
+            if (elements.card9Label) {
+                elements.card9Label.textContent = 'Em breve';
+                elements.card9Label.className = 'text-sm text-gray-400 italic';
+            }
+            if (elements.card9Container) elements.card9Container.classList.add('opacity-60');
+
+            // Reset seções ocultas
+            if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.add('hidden');
+            if (elements.dropOffError) elements.dropOffError.classList.add('hidden');
+            if (elements.customError) elements.customError.classList.add('hidden');
+            if (elements.customChartsWrapper) elements.customChartsWrapper.classList.remove('hidden');
+            
+            // Reset Custom DropOff specific
+            if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.add('hidden');
+            if (elements.customDropOffError) elements.customDropOffError.classList.add('hidden');
+
+            if (elements.sevError) elements.sevError.classList.add('hidden');
+            if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.remove('hidden');
+        }
+
+        function showError(msg) {
+            if (elements.outputContainer) elements.outputContainer.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.add('hidden');
+            if (elements.errorMessage) elements.errorMessage.classList.remove('hidden');
+            if (elements.errorText) elements.errorText.textContent = msg;
+        }
+
+        function showResults() {
+            if (elements.errorMessage) elements.errorMessage.classList.add('hidden');
+            if (elements.emptyState) elements.emptyState.classList.add('hidden');
+            if (elements.outputContainer) elements.outputContainer.classList.remove('hidden');
+            
+            // Map needs invalidateSize when container becomes visible
+            if(mapInstance) {
+                setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+            }
+        }
+
+        // --- MAP FUNCTIONS ---
+        function initMap() {
+            if (typeof L === 'undefined') return; // Leaflet not loaded
+            
+            // Default center (world or arbitrary)
+            mapInstance = L.map('map').setView([-23.55, -46.63], 10); 
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(mapInstance);
+
+            mapLayerGroup = L.layerGroup().addTo(mapInstance);
+        }
+
+        function updateMap() {
+            if (!mapInstance) initMap();
+            if (!mapInstance || mapData.length === 0) return;
+
+            // Clear previous layers
+            mapLayerGroup.clearLayers();
+
+            const startStr = elements.mapStartDate ? elements.mapStartDate.value : null;
+            const endStr = elements.mapEndDate ? elements.mapEndDate.value : null;
+            if (!startStr || !endStr) return;
+
+            const startDate = new Date(startStr);
+            startDate.setHours(0,0,0,0);
+            const endDate = new Date(endStr);
+            endDate.setHours(23,59,59,999);
+
+            // Filter data by date
+            const filteredData = mapData.filter(pt => pt.date >= startDate && pt.date <= endDate);
+
+            if (filteredData.length === 0) {
+                // If no data, maybe reset view or do nothing
+                return;
+            }
+
+            // Render based on mode
+            if (currentMapMode === 'circle') {
+                // Prefer canvas renderer for performance
+                const myRenderer = L.canvas({ padding: 0.5 });
+                
+                filteredData.forEach(pt => {
+                    L.circleMarker([pt.lat, pt.lon], {
+                        renderer: myRenderer,
+                        radius: 5,
+                        fillColor: '#6FE6FC',
+                        color: '#6FE6FC',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.6
+                    })
+                    .bindTooltip(`
+                        <b>Veículo:</b> ${pt.vehicle || 'N/A'}<br>
+                        <b>Data:</b> ${pt.date.toLocaleString('pt-BR')}<br>
+                        <b>Severidade:</b> ${pt.severity}
+                    `, { direction: 'top' })
+                    .addTo(mapLayerGroup);
+                });
+
+            } else if (currentMapMode === 'cluster') {
+                const markers = L.markerClusterGroup();
+                filteredData.forEach(pt => {
+                    const marker = L.circleMarker([pt.lat, pt.lon], {
+                        radius: 5,
+                        fillColor: '#6FE6FC',
+                        color: '#6FE6FC',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.6
+                    }).bindTooltip(`
+                        <b>Veículo:</b> ${pt.vehicle || 'N/A'}<br>
+                        <b>Data:</b> ${pt.date.toLocaleString('pt-BR')}<br>
+                        <b>Severidade:</b> ${pt.severity}
+                    `);
+                    markers.addLayer(marker);
+                });
+                mapLayerGroup.addLayer(markers);
+
+            } else if (currentMapMode === 'heat') {
+                // Leaflet heat requires [lat, lon, intensity]
+                // Intensity could be fixed or based on severity. Let's use density (1).
+                const heatPoints = filteredData.map(pt => [pt.lat, pt.lon, 0.5]); 
+                L.heatLayer(heatPoints, { radius: 25, blur: 15 }).addTo(mapLayerGroup);
+            }
+
+            // Fit bounds
+            if (filteredData.length > 0) {
+                const bounds = L.latLngBounds(filteredData.map(pt => [pt.lat, pt.lon]));
+                mapInstance.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+
+        function setMapMode(mode) {
+            currentMapMode = mode;
+            // Update button styles
+            const btns = [elements.btnMapCircle, elements.btnMapCluster, elements.btnMapHeat];
+            btns.forEach(b => {
+                if (b) {
+                    b.classList.remove('bg-white', 'text-accent', 'shadow-sm');
+                    b.classList.add('text-gray-500');
+                }
+            });
+            
+            const activeBtn = mode === 'circle' ? elements.btnMapCircle : 
+                              mode === 'cluster' ? elements.btnMapCluster : elements.btnMapHeat;
+            
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-500');
+                activeBtn.classList.add('bg-white', 'text-accent', 'shadow-sm');
+            }
+
+            updateMap();
+        }
+
+        // --- Funções Matemáticas e Parsers ---
+        function calculatePearsonCorrelation(x, y) {
+            const n = x.length;
+            if (n < 2) return 0;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+            const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+            const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+            const numerator = (n * sumXY) - (sumX * sumY);
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            if (denominator === 0) return 0;
+            return numerator / denominator;
+        }
+
+        function calculateStandardDeviation(arr) {
+            if (arr.length < 2) return 0;
+            const mean = arr.reduce((a, b) => a + b) / arr.length;
+            const sumSqDiff = arr.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
+            return Math.sqrt(sumSqDiff / (arr.length - 1));
+        }
+
+        function parseCSVLine(line) {
+            return line.split(',').map(item => item.trim());
+        }
+
+        function renderCombinedChart(ctx, labels, speedData, sevData, speedColor, sevColor) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Velocidade Média (km/h)',
+                            data: speedData,
+                            borderColor: speedColor,
+                            backgroundColor: speedColor + '1A',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: speedColor,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'ySpeed'
+                        },
+                        {
+                            label: 'Severidade Média (Pontos)',
+                            data: sevData,
+                            borderColor: sevColor,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: sevColor,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'ySeverity'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                font: { size: 11 },
+                                color: '#6b7280'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        if (context.datasetIndex === 0) { 
+                                            label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        } else { 
+                                            label += Math.round(context.parsed.y);
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 }, color: '#9ca3af' }
+                        },
+                        ySpeed: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' },
+                            title: { display: true, text: 'km/h', color: '#9ca3af', font: { size: 10 } }
+                        },
+                        ySeverity: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' },
+                            title: { display: true, text: 'Pontos', color: '#9ca3af', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChart(ctx, label, labels, data, unitSuffix, colorHex) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: colorHex,
+                        backgroundColor: colorHex + '1A',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: colorHex,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        if (unitSuffix.includes('km/h')) {
+                                            label += context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + unitSuffix;
+                                        } else if (unitSuffix) {
+                                            label += Math.round(context.parsed.y) + ' ' + unitSuffix;
+                                        } else {
+                                            label += Math.round(context.parsed.y);
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4], color: '#f3f4f6' },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 }, color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Lógica: Evolução das Severidades (NOVA) ---
+        function updateSeverityEvolutionSection() {
+            if (!currentCSVContent) return;
+
+            // Reset UI
+            if (elements.sevError) elements.sevError.classList.add('hidden');
+            if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.remove('hidden');
+            
+            if (sevLevel1Chart) sevLevel1Chart.destroy();
+            if (sevLevel2Chart) sevLevel2Chart.destroy();
+            if (sevLevel3Chart) sevLevel3Chart.destroy();
+            if (sevLevel4Chart) sevLevel4Chart.destroy();
+
+            // Obter Datas
+            const startStr = elements.sevStartDateInput ? elements.sevStartDateInput.value : null;
+            const endStr = elements.sevEndDateInput ? elements.sevEndDateInput.value : null;
+
+            if (!startStr || !endStr) return;
+
+            const startDate = new Date(startStr);
+            const endDate = new Date(endStr);
+            const endDateInclusive = new Date(endDate);
+            endDateInclusive.setHours(23, 59, 59, 999);
+            startDate.setHours(0,0,0,0);
+
+            if (startDate > endDate) {
+                if (elements.sevError) elements.sevError.classList.remove('hidden');
+                if (elements.sevErrorText) elements.sevErrorText.textContent = "Data inicial não pode ser maior que data final.";
+                if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.add('hidden');
+                return;
+            }
+
+            // Agregação (Diária vs Mensal)
+            const timeDiff = Math.abs(endDateInclusive - startDate);
+            const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            const aggregationMode = dayDiff > 31 ? 'monthly' : 'daily';
+
+            // Buckets
+            const sevBuckets = new Map();
+            const labels = [];
+            const displayLabels = [];
+
+            let cursor = new Date(startDate);
+            while (cursor <= endDateInclusive) {
+                let key, label;
+                if (aggregationMode === 'daily') {
+                    key = cursor.toISOString().split('T')[0];
+                    label = cursor.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    cursor.setDate(cursor.getDate() + 1);
+                } else {
+                    const year = cursor.getFullYear();
+                    const month = String(cursor.getMonth() + 1).padStart(2, '0');
+                    key = `${year}-${month}`;
+                    label = cursor.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                    cursor.setMonth(cursor.getMonth() + 1);
+                    cursor.setDate(1);
+                }
+
+                if (!sevBuckets.has(key)) {
+                    sevBuckets.set(key, { level1: 0, level2: 0, level3: 0, level4: 0 });
+                    labels.push(key);
+                    displayLabels.push(label);
+                }
+            }
+
+            // Processar CSV
+            const lines = currentCSVContent.split(/\r?\n/).filter(line => line.trim() !== '');
+            const headers = parseCSVLine(lines[0].toLowerCase());
+            
+            let idxTime = headers.indexOf(COL.TIME_PREF.toLowerCase());
+            if (idxTime === -1) idxTime = headers.indexOf(COL.TIME_FALLBACK.toLowerCase());
+            const idxSeverity = headers.indexOf(COL.SEVERITY.toLowerCase());
+
+            let validRecords = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCSVLine(lines[i]);
+                let rawTime = row[idxTime];
+                const rawSeverity = row[idxSeverity];
+
+                if (!rawTime || !rawSeverity) continue;
+                rawTime = rawTime.replace(/−/g, '-');
+
+                const severity = parseInt(rawSeverity, 10);
+                const dateObj = new Date(rawTime);
+
+                // Validações
+                if (isNaN(severity) || isNaN(dateObj.getTime())) continue;
+                if (severity < 500) continue; // Regra: Ignorar < 500
+
+                // Filtro Temporal
+                if (dateObj >= startDate && dateObj <= endDateInclusive) {
+                    let key;
+                    if (aggregationMode === 'daily') {
+                        key = dateObj.toISOString().split('T')[0];
+                    } else {
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        key = `${year}-${month}`;
+                    }
+
+                    if (sevBuckets.has(key)) {
+                        validRecords++;
+                        const b = sevBuckets.get(key);
+                        
+                        // Classificação de Níveis
+                        if (severity >= 4501) {
+                            b.level1++;
+                        } else if (severity >= 2001) {
+                            b.level2++;
+                        } else if (severity >= 1001) {
+                            b.level3++;
+                        } else if (severity >= 500) {
+                            b.level4++;
+                        }
+                    }
+                }
+            }
+
+            if (validRecords === 0) {
+                if (elements.sevError) elements.sevError.classList.remove('hidden');
+                if (elements.sevErrorText) elements.sevErrorText.textContent = "Não existem registros válidos (Severidade >= 500) dentro do intervalo selecionado.";
+                if (elements.sevChartsWrapper) elements.sevChartsWrapper.classList.add('hidden');
+                return;
+            }
+
+            // Preparar Dados
+            const l1Data = [], l2Data = [], l3Data = [], l4Data = [];
+            labels.forEach(key => {
+                const b = sevBuckets.get(key);
+                l1Data.push(b.level1);
+                l2Data.push(b.level2);
+                l3Data.push(b.level3);
+                l4Data.push(b.level4);
+            });
+
+            const sevColor = '#6FE6FC';
+            
+            if (elements.chartSevLevel1Ctx) sevLevel1Chart = renderChart(elements.chartSevLevel1Ctx, 'Nível 1', displayLabels, l1Data, '', sevColor);
+            if (elements.chartSevLevel2Ctx) sevLevel2Chart = renderChart(elements.chartSevLevel2Ctx, 'Nível 2', displayLabels, l2Data, '', sevColor);
+            if (elements.chartSevLevel3Ctx) sevLevel3Chart = renderChart(elements.chartSevLevel3Ctx, 'Nível 3', displayLabels, l3Data, '', sevColor);
+            if (elements.chartSevLevel4Ctx) sevLevel4Chart = renderChart(elements.chartSevLevel4Ctx, 'Nível 4', displayLabels, l4Data, '', sevColor);
+        }
+
+        // --- Processamento da Seção Customizada (Existente) ---
+        function updateCustomSection() {
+            if (!currentCSVContent) return;
+
+            if (elements.customError) elements.customError.classList.add('hidden');
+            if (elements.customChartsWrapper) elements.customChartsWrapper.classList.remove('hidden');
+            
+            if (customCombinedChartInstance) customCombinedChartInstance.destroy();
+            if (customDropOffChartInstance) customDropOffChartInstance.destroy();
+
+            const startStr = elements.startDateInput ? elements.startDateInput.value : null;
+            const endStr = elements.endDateInput ? elements.endDateInput.value : null;
+
+            if (!startStr || !endStr) return;
+
+            const startDate = new Date(startStr);
+            const endDate = new Date(endStr);
+            const endDateInclusive = new Date(endDate);
+            endDateInclusive.setHours(23, 59, 59, 999);
+            startDate.setHours(0,0,0,0);
+
+            if (startDate > endDate) {
+                if (elements.customError) elements.customError.classList.remove('hidden');
+                if (elements.customErrorText) elements.customErrorText.textContent = "Data inicial não pode ser maior que data final.";
+                if (elements.customChartsWrapper) elements.customChartsWrapper.classList.add('hidden');
+                return;
+            }
+
+            const timeDiff = Math.abs(endDateInclusive - startDate);
+            const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            const aggregationMode = dayDiff > 31 ? 'monthly' : 'daily';
+
+            const customBuckets = new Map();
+            const labels = [];
+            const displayLabels = [];
+
+            let cursor = new Date(startDate);
+            while (cursor <= endDateInclusive) {
+                let key, label;
+                if (aggregationMode === 'daily') {
+                    key = cursor.toISOString().split('T')[0];
+                    label = cursor.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    cursor.setDate(cursor.getDate() + 1);
+                } else {
+                    const year = cursor.getFullYear();
+                    const month = String(cursor.getMonth() + 1).padStart(2, '0');
+                    key = `${year}-${month}`;
+                    label = cursor.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+                    cursor.setMonth(cursor.getMonth() + 1);
+                    cursor.setDate(1); 
+                }
+
+                if (!customBuckets.has(key)) {
+                    customBuckets.set(key, { speedSum: 0, speedCount: 0, sevSum: 0, sevCount: 0, dropOffCount: 0 });
+                    labels.push(key);
+                    displayLabels.push(label);
+                }
+            }
+
+            const lines = currentCSVContent.split(/\r?\n/).filter(line => line.trim() !== '');
+            const headers = parseCSVLine(lines[0].toLowerCase());
+            
+            let idxTime = headers.indexOf(COL.TIME_PREF.toLowerCase());
+            if (idxTime === -1) idxTime = headers.indexOf(COL.TIME_FALLBACK.toLowerCase());
+            const idxSpeed = headers.indexOf(COL.SPEED.toLowerCase());
+            const idxSeverity = headers.indexOf(COL.SEVERITY.toLowerCase());
+            const idxDropOff = headers.indexOf(COL.DROP_OFF.toLowerCase());
+
+            let validRecordsInInterval = 0;
+            let totalDropOffsInInterval = 0; // Track total drop-offs in custom interval
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCSVLine(lines[i]);
+                let rawTime = row[idxTime];
+                const rawSpeed = row[idxSpeed];
+                const rawSeverity = row[idxSeverity];
+                const rawDropOff = idxDropOff !== -1 ? row[idxDropOff] : null;
+
+                if (!rawTime || !rawSpeed || !rawSeverity) continue;
+                rawTime = rawTime.replace(/−/g, '-');
+
+                const speed = parseFloat(rawSpeed);
+                const severity = parseInt(rawSeverity, 10);
+                const dateObj = new Date(rawTime);
+
+                if (isNaN(speed) || isNaN(severity) || isNaN(dateObj.getTime())) continue;
+
+                if (dateObj >= startDate && dateObj <= endDateInclusive) {
+                    let key;
+                    if (aggregationMode === 'daily') {
+                        key = dateObj.toISOString().split('T')[0];
+                    } else {
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        key = `${year}-${month}`;
+                    }
+
+                    if (customBuckets.has(key)) {
+                        validRecordsInInterval++;
+                        const bucket = customBuckets.get(key);
+                        bucket.speedSum += speed;
+                        bucket.speedCount++;
+                        bucket.sevSum += severity;
+                        bucket.sevCount++;
+                        if (rawDropOff && rawDropOff.trim().toLowerCase() === 'true') {
+                            bucket.dropOffCount++;
+                            totalDropOffsInInterval++;
+                        }
+                    }
+                }
+            }
+
+            if (validRecordsInInterval === 0) {
+                if (elements.customError) elements.customError.classList.remove('hidden');
+                if (elements.customErrorText) elements.customErrorText.textContent = "Não existem registros válidos dentro do intervalo selecionado.";
+                if (elements.customChartsWrapper) elements.customChartsWrapper.classList.add('hidden');
+                return;
+            }
+
+            const speedData = [];
+            const sevData = [];
+            const dropOffData = [];
+
+            labels.forEach(key => {
+                const b = customBuckets.get(key);
+                speedData.push(b.speedCount > 0 ? (b.speedSum / b.speedCount) : 0);
+                sevData.push(b.sevCount > 0 ? (b.sevSum / b.sevCount) : 0);
+                dropOffData.push(b.dropOffCount);
+            });
+
+            const customColor = '#86A8E7';
+            const customSevColor = '#5ACCE0'; // Contraste para severidade
+            
+            if (elements.customChartCombinedCtx) customCombinedChartInstance = renderCombinedChart(elements.customChartCombinedCtx, displayLabels, speedData, sevData, customColor, customSevColor);
+            
+            // Custom Drop-off Logic
+            if (totalDropOffsInInterval > 0) {
+                if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.remove('hidden');
+                if (elements.customDropOffError) elements.customDropOffError.classList.add('hidden');
+                if (elements.customChartDropOffCtx) customDropOffChartInstance = renderChart(elements.customChartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', customColor);
+            } else {
+                if (elements.customDropOffChartContainer) elements.customDropOffChartContainer.classList.add('hidden');
+                if (elements.customDropOffError) elements.customDropOffError.classList.remove('hidden');
+            }
+        }
+
+        // --- Processamento Principal ---
+        function processData(csvText) {
+            currentCSVContent = csvText;
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            if (lines.length < 2) { showError("O arquivo CSV está vazio ou contém apenas o cabeçalho."); return; }
+
+            const headers = parseCSVLine(lines[0].toLowerCase());
+            const idxSite = headers.indexOf(COL.SITE.toLowerCase());
+            let idxTime = headers.indexOf(COL.TIME_PREF.toLowerCase());
+            if (idxTime === -1) idxTime = headers.indexOf(COL.TIME_FALLBACK.toLowerCase());
+            const idxVehicle = headers.indexOf(COL.VEHICLE.toLowerCase());
+            const idxSpeed = headers.indexOf(COL.SPEED.toLowerCase());
+            const idxSeverity = headers.indexOf(COL.SEVERITY.toLowerCase());
+            const idxDropOff = headers.indexOf(COL.DROP_OFF.toLowerCase());
+            
+            // Map Columns (optional but needed for map)
+            const idxLat = headers.indexOf(COL.LAT.toLowerCase());
+            const idxLon = headers.indexOf(COL.LON.toLowerCase());
+
+            if (idxTime === -1 || idxVehicle === -1 || idxSpeed === -1 || idxSeverity === -1) {
+                showError("Estrutura do CSV inválida. Colunas obrigatórias não encontradas.");
+                return;
+            }
+
+            const now = new Date();
+            const monthBuckets = new Map();
+            const monthLabels = [];
+            const displayLabels = [];
+            for (let i = 11; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const key = `${year}-${month}`;
+                const shortMonth = d.toLocaleString('pt-BR', { month: 'short' });
+                const shortYear = year.toString().slice(-2);
+                monthBuckets.set(key, { speedSum: 0, speedCount: 0, sevSum: 0, sevCount: 0, dropOffCount: 0 });
+                monthLabels.push(key);
+                displayLabels.push(`${shortMonth} ${shortYear}`);
+            }
+
+            let validRecords = 0;
+            let totalSpeed = 0;
+            // Variable to track MAX speed instead of just total
+            let maxSpeedGlobal = 0;
+            let maxSpeedVehicle = "-";
+
+            let maxSeverityGlobalVal = -1;
+            let maxSeverityGlobalDate = null;
+
+            let validRecordsInWindow = 0;
+            const vehicleMap = new Map();
+            const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+            
+            const windowSpeeds = [];
+            const windowSeverities = [];
+            let maxSeverityInWindow = -1;
+            let maxSeverityVehicle = null;
+            const thermalHourCounts = new Array(24).fill(0);
+            let hasSevereImpacts = false;
+            const uniqueVehiclesInWindow = new Set();
+            let totalEventsInWindow = 0;
+            let foundSiteName = null;
+            let totalDropOffsInWindow = 0;
+            const allValidSeverities = [];
+
+            // Card 5 Variables (Last 30 Days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(now.getDate() - 30);
+            thirtyDaysAgo.setHours(0,0,0,0);
+            let totalAlarms30d = 0;
+            const vehicleCounts30d = {};
+            
+            // Card 6 Variables (Last 30 Days)
+            const vehicleSeverityStats30d = {};
+            
+            // Card 8 Variables
+            let totalSiteAlarms = 0;
+            
+            // Card 9 Variables (Last 7 Days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(now.getDate() - 7);
+            sevenDaysAgo.setHours(0,0,0,0);
+            let totalAlarms7d = 0;
+            
+            // Map Data Accumulator
+            const newMapData = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCSVLine(lines[i]);
+                let rawTime = row[idxTime];
+                const rawVehicle = row[idxVehicle]; // Vehicle name might be empty but we count it
+                const rawSpeed = row[idxSpeed];
+                const rawSeverity = row[idxSeverity];
+                const rawDropOff = idxDropOff !== -1 ? row[idxDropOff] : null;
+                const rawLat = idxLat !== -1 ? row[idxLat] : null;
+                const rawLon = idxLon !== -1 ? row[idxLon] : null;
+                const rawSite = idxSite !== -1 ? row[idxSite] : null;
+                
+                if (!foundSiteName && rawSite) foundSiteName = rawSite;
+                
+                // Count Card 8 (Total de alarmes válidos pela coluna 'site')
+                if (rawSite && rawSite.trim() !== '') {
+                    totalSiteAlarms++;
+                }
+
+                if (!rawTime) continue; // Time is essential
+                rawTime = rawTime.replace(/−/g, '-');
+                const dateObj = new Date(rawTime);
+                const timestamp = dateObj.getTime();
+                if (isNaN(timestamp)) continue;
+
+                // Count Card 8 & 9 (Total de alarmes válidos pela coluna 'site')
+                if (rawSite && rawSite.trim() !== '') {
+                    totalSiteAlarms++;
+                    if (dateObj >= sevenDaysAgo) {
+                        totalAlarms7d++;
+                    }
+                }
+
+                // Pre-parsing for Card 6 (Card 6 logic below needs to be robust)
+                let severity = null;
+                if (rawSeverity) severity = parseInt(rawSeverity, 10);
+
+                // --- Card 5 & 6: (Last 30 days) ---
+                if (dateObj >= thirtyDaysAgo) {
+                    // Card 5
+                    totalAlarms30d++;
+                    // Use vehicle name or "(Sem ID)" if empty, but consistent
+                    const vName = rawVehicle ? rawVehicle : ""; 
+                    vehicleCounts30d[vName] = (vehicleCounts30d[vName] || 0) + 1;
+
+                    // Card 6
+                    if (severity !== null && !isNaN(severity)) {
+                        if (!vehicleSeverityStats30d[vName]) {
+                            vehicleSeverityStats30d[vName] = { sum: 0, count: 0 };
+                        }
+                        vehicleSeverityStats30d[vName].sum += severity;
+                        vehicleSeverityStats30d[vName].count += 1;
+                    }
+                }
+                
+                // --- MAP Data Parsing ---
+                if (rawLat && rawLon) {
+                    const lat = parseFloat(rawLat);
+                    const lon = parseFloat(rawLon);
+                    // Basic geo validation
+                    if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && (lat !== 0 || lon !== 0)) {
+                        newMapData.push({
+                            lat: lat,
+                            lon: lon,
+                            date: dateObj,
+                            vehicle: rawVehicle || 'N/A',
+                            severity: severity || 0
+                        });
+                    }
+                }
+
+                // For other calculations, we strictly need vehicle/speed/severity
+                if (!rawVehicle || !rawSpeed || !rawSeverity) continue;
+
+                const speed = parseFloat(rawSpeed);
+                // re-parse locally for clarity, though variable 'severity' holds it
+                if (severity === null || isNaN(severity)) severity = parseInt(rawSeverity, 10);
+
+                if (isNaN(speed) || isNaN(severity)) continue;
+
+                // Track Max Severity Date globally
+                if (severity > maxSeverityGlobalVal) {
+                    maxSeverityGlobalVal = severity;
+                    maxSeverityGlobalDate = dateObj;
+                } else if (severity === maxSeverityGlobalVal && (!maxSeverityGlobalDate || dateObj > maxSeverityGlobalDate)) {
+                    maxSeverityGlobalDate = dateObj; // Tie-breaker: most recent event
+                }
+
+                // Global Stats (Card 1, 2, 3)
+                validRecords++;
+                totalSpeed += speed;
+                
+                // Track Max Speed for Card 3
+                if (speed > maxSpeedGlobal) {
+                    maxSpeedGlobal = speed;
+                    maxSpeedVehicle = rawVehicle;
+                }
+
+                if (!vehicleMap.has(rawVehicle)) vehicleMap.set(rawVehicle, { id: rawVehicle, count: 0, maxSeverity: 0, lastTime: 0 });
+                const vData = vehicleMap.get(rawVehicle);
+                vData.count += 1;
+                if (severity > vData.maxSeverity) vData.maxSeverity = severity;
+                if (timestamp > vData.lastTime) vData.lastTime = timestamp;
+
+                // Card 4 Data
+                allValidSeverities.push({ severity: severity, date: dateObj });
+
+                // 12 Months Graph Data
+                const recordYear = dateObj.getFullYear();
+                const recordMonth = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const bucketKey = `${recordYear}-${recordMonth}`;
+                if (monthBuckets.has(bucketKey)) {
+                    validRecordsInWindow++;
+                    const bucket = monthBuckets.get(bucketKey);
+                    bucket.speedSum += speed;
+                    bucket.speedCount++;
+                    bucket.sevSum += severity;
+                    bucket.sevCount++;
+                    if (rawDropOff && rawDropOff.trim().toLowerCase() === 'true') {
+                        bucket.dropOffCount++;
+                        totalDropOffsInWindow++;
+                    }
+                }
+
+                // 6 Months Stats
+                if (dateObj >= sixMonthsAgo) {
+                    windowSpeeds.push(speed);
+                    windowSeverities.push(severity);
+                    if (severity > maxSeverityInWindow) {
+                        maxSeverityInWindow = severity;
+                        maxSeverityVehicle = rawVehicle;
+                    }
+                    if (severity >= 2000) {
+                        const hour = dateObj.getUTCHours();
+                        thermalHourCounts[hour]++;
+                        hasSevereImpacts = true;
+                    }
+                    uniqueVehiclesInWindow.add(rawVehicle);
+                    totalEventsInWindow++;
+                }
+            }
+
+            if (validRecords === 0 && totalAlarms30d === 0) { showError("Nenhum registro válido encontrado no arquivo."); return; }
+            
+            // --- Update Map Data ---
+            mapData = newMapData;
+            updateMap(); // Render Map immediately
+
+            // UI Updates
+            if (elements.siteNameDisplay) {
+                if (foundSiteName) elements.siteNameDisplay.textContent = foundSiteName;
+                else elements.siteNameDisplay.textContent = 'Site (Nome não detectado)';
+            }
+
+            if (validRecords > 0) {
+                const vehicles = Array.from(vehicleMap.values());
+                const compareWinner = (a, b, property) => {
+                    if (a[property] !== b[property]) return b[property] - a[property];
+                    return b.lastTime - a.lastTime;
+                };
+                const topDetection = [...vehicles].sort((a, b) => compareWinner(a, b, 'count'))[0];
+                const topSeverity = [...vehicles].sort((a, b) => compareWinner(a, b, 'maxSeverity'))[0];
+
+                // Card 1
+                if (elements.c1Value) elements.c1Value.textContent = topDetection.id;
+                if (elements.c1Label) elements.c1Label.textContent = `${topDetection.count} detecções`;
+                
+                // Card 2 (Inverted info)
+                if (elements.c2Value) elements.c2Value.textContent = topSeverity.maxSeverity; 
+                if (elements.c2Label) elements.c2Label.textContent = topSeverity.id; 
+
+                // Card 3 (Now Max Speed)
+                if (elements.c3Value) elements.c3Value.textContent = maxSpeedGlobal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " km/h";
+                if (elements.c3Label) elements.c3Label.textContent = maxSpeedVehicle; 
+                
+                // Card 7 (Date of Max Severity)
+                if (maxSeverityGlobalDate && elements.card7Value) {
+                    const day = String(maxSeverityGlobalDate.getDate()).padStart(2, '0');
+                    const month = String(maxSeverityGlobalDate.getMonth() + 1).padStart(2, '0');
+                    const year = maxSeverityGlobalDate.getFullYear();
+                    elements.card7Value.textContent = `${day}/${month}/${year}`;
+                    
+                    if (elements.card7Label) {
+                        elements.card7Label.textContent = "Data Local";
+                        elements.card7Label.className = "text-sm text-accent font-medium";
+                    }
+                    if (elements.card7Container) {
+                        elements.card7Container.classList.remove('opacity-60');
+                    }
+                }
+            }
+            
+            // UI Update Card 8: Total Site Alarms
+            if (elements.card8Container) {
+                if (totalSiteAlarms > 0) {
+                    elements.card8Value.textContent = totalSiteAlarms.toLocaleString('pt-BR');
+                    if (elements.card8Label) {
+                        elements.card8Label.textContent = 'Registros Históricos';
+                        elements.card8Label.className = 'text-sm text-accent font-medium';
+                    }
+                    elements.card8Container.classList.remove('opacity-60');
+                } else {
+                    elements.card8Value.textContent = '0';
+                    if (elements.card8Label) {
+                        elements.card8Label.textContent = 'Sem dados de site';
+                        elements.card8Label.className = 'text-sm text-gray-400 italic';
+                    }
+                }
+            }
+
+            // UI Update Card 9: Total Alarms (7 Days)
+            if (elements.card9Container) {
+                // Ativamos o card se houver dados no site, mesmo que os últimos 7 dias sejam zero
+                if (totalSiteAlarms > 0 || totalAlarms7d > 0) {
+                    elements.card9Value.textContent = totalAlarms7d.toLocaleString('pt-BR');
+                    if (elements.card9Label) {
+                        elements.card9Label.textContent = 'Últimos 7 dias';
+                        elements.card9Label.className = 'text-sm text-accent font-medium';
+                    }
+                    elements.card9Container.classList.remove('opacity-60');
+                } else {
+                    elements.card9Value.textContent = '0';
+                    if (elements.card9Label) {
+                        elements.card9Label.textContent = 'Sem dados de site';
+                        elements.card9Label.className = 'text-sm text-gray-400 italic';
+                    }
+                }
+            }
+
+            // Card 4 Logic
+            if (elements.card4Container) {
+                if (allValidSeverities.length === 0) {
+                    elements.card4Container.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida encontrada.</p>';
+                } else {
+                    allValidSeverities.sort((a, b) => b.date - a.date);
+                    const mostRecentDate = allValidSeverities[0].date;
+                    const mostRecentDateString = mostRecentDate.toDateString();
+                    const mostRecentDateLabel = mostRecentDate.toLocaleDateString('pt-BR');
+                    const recentSeverities = allValidSeverities.filter(item => item.date.toDateString() === mostRecentDateString);
+                    recentSeverities.sort((a, b) => {
+                        if (b.severity !== a.severity) return b.severity - a.severity;
+                        return b.date - a.date;
+                    });
+                    const top3Recent = recentSeverities.slice(0, 3).sort((a, b) => b.date - a.date);
+                    if (elements.card4Title) elements.card4Title.textContent = `Severidades Mais Recentes: ${mostRecentDateLabel}`;
+                    let html = '<div class="w-full space-y-2 mt-1">';
+                    top3Recent.forEach(item => {
+                        const timeStr = item.date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                        html += `<div class="flex justify-between items-center border-b border-gray-100 pb-1 last:border-0"><span class="text-lg font-bold text-gray-800">${item.severity}</span><div class="text-right leading-tight"><div class="text-[10px] text-gray-500">${mostRecentDateLabel}</div><div class="text-[10px] font-mono text-gray-400">${timeStr}</div></div></div>`;
+                    });
+                    html += '</div>';
+                    elements.card4Container.innerHTML = html;
+                }
+            }
+
+            // Update Card 5: Participation
+            if (elements.card5List) {
+                if (totalAlarms30d === 0) {
+                    elements.card5List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhum alarme nos últimos 30 dias.</p>';
+                } else {
+                    const participationList = [];
+                    for (const [vName, count] of Object.entries(vehicleCounts30d)) {
+                        const percent = (count / totalAlarms30d) * 100;
+                        participationList.push({ name: vName, percent: percent });
+                    }
+                    // Sort Alphabetically
+                    participationList.sort((a, b) => a.name.localeCompare(b.name));
+
+                    let html5 = '';
+                    participationList.forEach(item => {
+                        const formattedPercent = item.percent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+                        const displayName = item.name === "" ? "(Sem ID)" : item.name;
+                        html5 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
+                            <span class="font-bold text-gray-700">${displayName}:</span>
+                            <span class="text-gray-500">${formattedPercent}</span>
+                        </div>`;
+                    });
+                    elements.card5List.innerHTML = html5;
+                }
+            }
+
+            // Update Card 6: Average Severity
+            if (elements.card6List) {
+                if (Object.keys(vehicleSeverityStats30d).length === 0) {
+                    elements.card6List.innerHTML = '<p class="text-xs text-gray-400 mt-2">Nenhuma severidade válida nos últimos 30 dias.</p>';
+                } else {
+                    const sevAvgList = [];
+                    for (const [vName, stats] of Object.entries(vehicleSeverityStats30d)) {
+                        if (stats.count > 0) {
+                            const avg = stats.sum / stats.count;
+                            sevAvgList.push({ name: vName, average: avg });
+                        }
+                    }
+                    // Sort Alphabetically
+                    sevAvgList.sort((a, b) => a.name.localeCompare(b.name));
+
+                    let html6 = '';
+                    sevAvgList.forEach(item => {
+                        const formattedAvg = item.average.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const displayName = item.name === "" ? "(Sem ID)" : item.name;
+                        html6 += `<div class="flex justify-between items-center text-xs border-b border-gray-100 last:border-0 py-1">
+                            <span class="font-bold text-gray-700">${displayName}:</span>
+                            <span class="text-gray-500">${formattedAvg}</span>
+                        </div>`;
+                    });
+                    elements.card6List.innerHTML = html6;
+                }
+            }
+
+            // Only update graphs if we have data in window
+            if (validRecordsInWindow > 0) {
+                // Standard Charts
+                const speedData = [], sevData = [], dropOffData = [];
+                monthLabels.forEach(key => {
+                    const b = monthBuckets.get(key);
+                    speedData.push(b.speedCount > 0 ? (b.speedSum / b.speedCount) : 0);
+                    sevData.push(b.sevCount > 0 ? (b.sevSum / b.sevCount) : 0);
+                    dropOffData.push(b.dropOffCount);
+                });
+
+                const defaultSpeedColor = '#6FE6FC';
+                const defaultSevColor = '#374151'; // Contraste para severidade
+                
+                if (elements.chartCombinedCtx) combinedChartInstance = renderCombinedChart(elements.chartCombinedCtx, displayLabels, speedData, sevData, defaultSpeedColor, defaultSevColor);
+                
+                if (totalDropOffsInWindow > 0) {
+                    if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.remove('hidden');
+                    if (elements.dropOffError) elements.dropOffError.classList.add('hidden');
+                    if (elements.chartDropOffCtx) dropOffChartInstance = renderChart(elements.chartDropOffCtx, 'Eventos Drop-off', displayLabels, dropOffData, '', defaultSpeedColor);
+                } else {
+                    if (elements.dropOffChartContainer) elements.dropOffChartContainer.classList.add('hidden');
+                    if (elements.dropOffError) elements.dropOffError.classList.remove('hidden');
+                }
+
+                updateCustomSection();
+                updateSeverityEvolutionSection(); // CALL NEW SECTION UPDATE
+
+                // 6 Months Stats Logic
+                if (windowSpeeds.length < 2) {
+                    const na = "N/A", ins = "Dados insuficientes.";
+                    if(elements.corrValue) elements.corrValue.textContent = na; 
+                    if(elements.corrText) elements.corrText.innerHTML = ins;
+                    if(elements.zScoreValue) elements.zScoreValue.textContent = na; 
+                    if(elements.zScoreText) elements.zScoreText.innerHTML = ins;
+                    if(elements.thermalValue) elements.thermalValue.textContent = na; 
+                    if(elements.thermalText) elements.thermalText.innerHTML = ins;
+                    if(elements.geoValue) elements.geoValue.textContent = na; 
+                    if(elements.geoText) elements.geoText.innerHTML = ins;
+                } else {
+                    let r = calculatePearsonCorrelation(windowSpeeds, windowSeverities);
+                    if (r < 0) r = 0;
+                    if(elements.corrValue) elements.corrValue.textContent = r.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    
+                    let corrHTML = "";
+                    if (r >= 0.7) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">forte</span> com a severidade`;
+                    else if (r >= 0.5) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">moderada</span> com a severidade`;
+                    else if (r >= 0.1) corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">fraca</span> com a severidade`;
+                    else corrHTML = `A velocidade tem uma correlação <span class="text-accent font-bold">desprezível</span> com a severidade`;
+                    if(elements.corrText) elements.corrText.innerHTML = corrHTML;
+
+                    const siteMean = windowSeverities.reduce((a, b) => a + b) / windowSeverities.length;
+                    const siteStdDev = calculateStandardDeviation(windowSeverities);
+                    const zScore = siteStdDev > 0 ? (maxSeverityInWindow - siteMean) / siteStdDev : 0;
+                    if(elements.zScoreValue) elements.zScoreValue.textContent = zScore.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    
+                    const isAnomaly = maxSeverityInWindow > (siteMean + 2 * siteStdDev);
+                    let zScoreHTML = isAnomaly ? `Severidade acima do padrão do site para o trem <span class="text-accent font-bold">${maxSeverityVehicle}</span>` : `<span class="text-accent font-bold">Múltiplos veículos afetados</span>`;
+                    if(elements.zScoreText) elements.zScoreText.innerHTML = zScoreHTML;
+
+                    if (!hasSevereImpacts) {
+                        if(elements.thermalValue) elements.thermalValue.textContent = "-"; 
+                        if(elements.thermalText) elements.thermalText.innerHTML = "Nenhum impacto severo (>2000) registrado.";
+                    } else {
+                        let maxHourCount = -1, maxHour = -1;
+                        for (let h = 0; h < 24; h++) { if (thermalHourCounts[h] > maxHourCount) { maxHourCount = thermalHourCounts[h]; maxHour = h; } }
+                        if(elements.thermalValue) elements.thermalValue.textContent = `${maxHour}h`;
+                        let thermalHTML = "";
+                        if (maxHour >= 10 && maxHour <= 16) thermalHTML = `Pico de impactos detectado no horário de <span class="text-accent font-bold">maior calor</span>.`;
+                        else if (maxHour >= 22 || maxHour <= 5) thermalHTML = `Pico de impactos detectado no horário de <span class="text-accent font-bold">menor temperatura</span>.`;
+                        else thermalHTML = `Pico de impactos em horário de temperatura neutra.`;
+                        if(elements.thermalText) elements.thermalText.innerHTML = thermalHTML;
+                    }
+
+                    const occurrenceRate = totalEventsInWindow > 0 ? (uniqueVehiclesInWindow.size / totalEventsInWindow) : 0;
+                    const occurrencePercent = (occurrenceRate * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+                    if(elements.geoValue) elements.geoValue.textContent = occurrencePercent;
+                    
+                    let geoHTML = "";
+                    if (occurrenceRate >= 0.4) geoHTML = `<span class="text-accent font-bold">Persistência Crítica</span>: ${occurrencePercent} dos trens sofreram impacto neste site.`;
+                    else if (occurrenceRate < 0.4 && maxSeverityInWindow >= 2000) geoHTML = `Impactos severos isolados. <span class="text-accent font-bold">Baixa repetibilidade</span>.`;
+                    else geoHTML = "Repetibilidade moderada sem severidade crítica.";
+                    if(elements.geoText) elements.geoText.innerHTML = geoHTML;
+                }
+            }
+            
+            showResults();
+        }
+
+        // Added back handleFile
+        function handleFile() {
+            if (elements.input && elements.input.files.length > 0) {
+                const file = elements.input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) { processData(e.target.result); };
+                reader.onerror = function() { showError("Erro ao ler o arquivo."); };
+                reader.readAsText(file);
+            }
+        }
+
+        // Listeners
+        if (elements.input) {
+            elements.input.addEventListener('change', (e) => {
+                resetUI();
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Atualiza interface visual do arquivo carregado
+                if (elements.mainFileName) {
+                    elements.mainFileName.textContent = file.name;
+                    elements.mainFileName.title = file.name;
+                }
+                
+                if (elements.inputWrapper) elements.inputWrapper.classList.add('hidden');
+                
+                if (elements.mainFileStatus) {
+                    elements.mainFileStatus.classList.remove('hidden');
+                    elements.mainFileStatus.classList.add('flex');
+                }
+                
+                if (elements.mainStatusIndicator) {
+                    elements.mainStatusIndicator.classList.remove('bg-gray-300', 'bg-red-400');
+                    elements.mainStatusIndicator.classList.add('bg-accent');
+                }
+            });
+        }
+
+        if (elements.removeMainFileBtn) {
+            elements.removeMainFileBtn.addEventListener('click', () => {
+                if (elements.input) elements.input.value = '';
+                
+                if (elements.inputWrapper) elements.inputWrapper.classList.remove('hidden');
+                
+                if (elements.mainFileStatus) {
+                    elements.mainFileStatus.classList.add('hidden');
+                    elements.mainFileStatus.classList.remove('flex');
+                }
+                
+                if (elements.mainStatusIndicator) {
+                    elements.mainStatusIndicator.classList.remove('bg-accent', 'bg-red-400');
+                    elements.mainStatusIndicator.classList.add('bg-gray-300');
+                }
+                
+                resetUI();
+            });
+        }
+
+        if (elements.btn) {
+            elements.btn.addEventListener('click', () => {
+                if (elements.input && !elements.input.files.length) {
+                    if (elements.mainStatusIndicator) {
+                        elements.mainStatusIndicator.classList.remove('bg-gray-300');
+                        elements.mainStatusIndicator.classList.add('bg-red-400');
+                    }
+                    showError("O arquivo CSV é obrigatório para continuar. Por favor, selecione-o.");
+                    return;
+                }
+                handleFile();
+            });
+        }
+        
+        if (elements.startDateInput) elements.startDateInput.addEventListener('change', updateCustomSection);
+        if (elements.endDateInput) elements.endDateInput.addEventListener('change', updateCustomSection);
+        
+        // New Listeners for Severity Section
+        if (elements.sevStartDateInput) elements.sevStartDateInput.addEventListener('change', updateSeverityEvolutionSection);
+        if (elements.sevEndDateInput) elements.sevEndDateInput.addEventListener('change', updateSeverityEvolutionSection);
+
+        // Listeners do Mapa (Estavam faltando)
+        if (elements.btnMapCircle) elements.btnMapCircle.addEventListener('click', () => setMapMode('circle'));
+        if (elements.btnMapCluster) elements.btnMapCluster.addEventListener('click', () => setMapMode('cluster'));
+        if (elements.btnMapHeat) elements.btnMapHeat.addEventListener('click', () => setMapMode('heat'));
+        
+        if (elements.mapStartDate) elements.mapStartDate.addEventListener('change', updateMap);
+        if (elements.mapEndDate) elements.mapEndDate.addEventListener('change', updateMap);
+
+    </script>
+
+    <script>
+        (() => {
+            const sidebar = document.getElementById('sidebar');
+            const openButton = document.getElementById('open-sidebar-btn');
+            const closeButton = document.getElementById('close-sidebar-btn');
+            const openSidebar = () => sidebar && sidebar.classList.remove('-translate-x-full');
+            const closeSidebar = () => sidebar && sidebar.classList.add('-translate-x-full');
+            if (openButton) openButton.addEventListener('click', openSidebar);
+            if (closeButton) closeButton.addEventListener('click', closeSidebar);
+            if (window.lucide) lucide.createIcons();
+        })();
+    </script>
+</body>
+</html>

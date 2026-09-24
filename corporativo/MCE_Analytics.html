@@ -1,0 +1,2566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MCE Analytics - Relatório Consolidado GOT</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        surface: '#fcf9f8',
+                        'surface-dim': '#dcd9d9',
+                        'surface-container-lowest': '#ffffff',
+                        'surface-container-low': '#f6f3f2',
+                        'surface-container': '#f0edec',
+                        'on-surface': '#1c1b1b',
+                        'on-surface-variant': '#3c4947',
+                        outline: '#6c7a77',
+                        'outline-variant': '#bbcac6',
+                        primary: '#006b5f',
+                        'on-primary': '#ffffff',
+                        'primary-container': '#14b8a6',
+                        'on-primary-container': '#00423b',
+                        secondary: '#006e14',
+                        'secondary-container': '#5cfe5f',
+                        tertiary: '#39618c',
+                        'tertiary-container': '#80a7d6',
+                        error: '#ba1a1a',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #fcf9f8, 0 0 0 4px #006b5f;
+            border-color: #006b5f;
+        }
+        ::-webkit-scrollbar { width:8px; height:8px; }
+        ::-webkit-scrollbar-track { background:#f6f3f2; }
+        ::-webkit-scrollbar-thumb { background:#bbcac6; border-radius:4px; }
+        ::-webkit-scrollbar-thumb:hover { background:#6c7a77; }
+
+        /* Estilos ajustados para formatação em "Tiles" retangulares */
+        .modelo-item { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            background: #ffffff; 
+            border: 1px solid #bbcac6;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .status-dot { width: 12px; height: 12px; border-radius: 9999px; display:inline-block; flex: 0 0 12px; }
+        
+        .resumo-legenda { display:inline-flex; gap:10px; align-items:center; font-size: 12px; color: #3c4947; }
+        .resumo-legenda .leg-item { display:inline-flex; gap:6px; align-items:center; margin-right:10px; }
+        
+        /* Ajuste do grid para quebra de linha fluída */
+        .resumo-modelos-wrap { 
+            display:flex; 
+            flex-wrap:wrap; 
+            justify-content:flex-start; 
+            align-items:flex-start; 
+            align-content:flex-start;
+            gap:8px; 
+            padding:8px 0; 
+        }
+    </style>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-surface text-on-surface font-sans h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Sidebar -->
+    <aside class="w-[400px] flex-shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-3 text-primary mb-1">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.4.1</h1>
+                </div>
+                <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
+            </div>
+            <button onclick="toggleConfiguracoes()" class="p-2 mt-0.5 text-on-surface-variant hover:bg-surface-dim hover:text-primary rounded-md transition-colors" title="Configurações e Referenciais">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+            <!-- Período -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="calendar" class="w-5 h-5 text-tertiary"></i>
+                    <h2 class="font-heading font-medium text-lg">Período de Análise</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="dataInicio" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Inicial</label>
+                        <input type="date" id="dataInicio" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="dataFim" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Final</label>
+                        <input type="date" id="dataFim" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                    </div>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Dados de Falhas -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
+                    <h2 class="font-heading font-medium text-lg">1. Dados de Falhas</h2>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="indMes" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores do Mês (Cole do Excel)</label>
+                    <textarea id="indMes" rows="3" placeholder="Cole os dados das falhas recentes aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="indPassados" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores Passados (Cole do Excel)</label>
+                    <textarea id="indPassados" rows="3" placeholder="Cole os dados do histórico aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Preventiva -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-secondary"></i>
+                    <h2 class="font-heading font-medium text-lg">2. Dados de Preventiva</h2>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe.</p>
+                    <button onclick="abrirModalPreventiva()" class="w-full bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline font-medium py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center gap-2">
+                        <i data-lucide="list-plus" class="w-5 h-5"></i>
+                        <span>Inserir Novo Mês</span>
+                    </button>
+                    <div class="flex justify-between items-center px-1 mt-1">
+                        <span class="text-xs font-semibold text-on-surface-variant">Progresso Anual:</span>
+                        <span class="text-xs font-bold text-primary" id="preventivaProgress">0/12</span>
+                    </div>
+                    <div id="listaPreventivaSidebar" class="flex flex-col gap-1 mt-1 max-h-[140px] overflow-y-auto pr-1"></div>
+                </div>
+            </section>
+
+            <hr class="border-outline-variant/50">
+
+            <!-- Recomendações -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-on-surface">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 text-primary"></i>
+                    <h2 class="font-heading font-medium text-lg">3. Recomendações GOT</h2>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="recomendacoesText" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Comentários e Ações</label>
+                    <textarea id="recomendacoesText" rows="5" placeholder="Insira as recomendações técnicas, análises ou orientações..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors resize-y min-h-[100px]"></textarea>
+                </div>
+            </section>
+
+            <div id="errorMessage" class="hidden bg-error-container text-on-error-container p-3 rounded-md text-sm flex items-start gap-2">
+                <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                <span id="errorText">Preencha ao menos os Dados de Falhas para processar.</span>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-outline-variant bg-surface-container flex flex-col gap-3">
+            <button id="btnProcessar" onclick="processarDados()" class="w-full bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-3 px-4 rounded transition-all duration-200 flex justify-center items-center gap-2">
+                <i data-lucide="play-circle" class="w-5 h-5"></i>
+                <span>Processar Dados</span>
+            </button>
+            <button onclick="limparCampos()" class="w-full border border-outline hover:bg-surface-dim text-on-surface font-medium py-2 px-4 rounded transition-all duration-200 text-sm">
+                Limpar Campos
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
+        <div id="dashboardView" class="flex-1 flex flex-col h-full overflow-hidden">
+            <header class="h-20 px-10 flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest shrink-0">
+                <div>
+                    <h2 class="font-heading text-xl font-semibold text-on-surface">Dashboard Consolidado</h2>
+                    <p class="text-sm text-on-surface-variant" id="dashboardSubtitle">Aguardando processamento de dados...</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="file" id="fileImport" accept=".json" class="hidden" onchange="processarImportacao(event)">
+
+                    <label class="flex items-center gap-2 text-sm font-medium text-on-surface-variant cursor-pointer select-none mx-1 hover:text-primary transition-colors">
+                        <div class="relative flex items-center justify-center">
+                            <input type="checkbox" id="checkExclusivoL10" class="peer appearance-none w-[18px] h-[18px] border-2 border-outline-variant rounded-full checked:bg-primary checked:border-primary cursor-pointer transition-colors outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 focus:ring-offset-surface">
+                            <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                        </div>
+                        Exclusivo Linha 10
+                    </label>
+
+                    <button onclick="triggerImportarDados()" class="bg-surface hover:bg-secondary/10 text-secondary border border-secondary px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                        Importar Dados
+                    </button>
+
+                    <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Salvar Dados
+                    </button>
+
+                    <div class="w-px h-6 bg-outline-variant mx-1"></div>
+
+                    <button id="btnExportar" onclick="exportarPDF()" class="opacity-50 cursor-not-allowed pointer-events-none bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Baixar Relatório PDF
+                    </button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-10">
+                <div id="pdf-content" class="max-w-[1200px] mx-auto space-y-8 bg-surface pb-10">
+
+                    <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                        <i data-lucide="bar-chart-2" class="w-16 h-16 text-outline mb-4"></i>
+                        <h3 class="font-heading text-lg font-medium">Nenhum dado processado</h3>
+                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Insira os dados copiados do Excel no painel lateral e clique em "Processar Dados" para visualizar os gráficos.</p>
+                    </div>
+
+                    <div id="noDataState" class="hidden flex-col items-center justify-center py-20 text-center opacity-80">
+                        <i data-lucide="calendar-x" class="w-16 h-16 text-error mb-4"></i>
+                        <h3 class="font-heading text-xl font-medium text-error">Nenhum dado dentro do período selecionado</h3>
+                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Ajuste as datas iniciais e finais no painel lateral para abranger o período dos registros inseridos.</p>
+                    </div>
+
+                    <div id="chartsContainer" class="hidden space-y-6">
+
+                        <!-- Indicadores do Mês -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-[#db0000] flex items-center gap-2">
+                                    <i data-lucide="bar-chart" class="w-6 h-6"></i>
+                                    Indicadores do Mês
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Visão geral e detalhada das avarias no período selecionado.</p>
+                                <p id="periodoReferenciaDisplay" class="text-sm font-semibold text-on-surface mt-1 hidden"></p>
+                            </div>
+
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <!-- Resumo de Falhas -->
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <h3 class="font-heading text-sm font-semibold text-on-surface uppercase">Resumo de Falhas</h3>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="resumo-legenda">
+                                                <div class="leg-item">
+                                                    <span class="status-dot" style="background:#db0000;"></span>
+                                                    <span>Falha</span>
+                                                </div>
+                                                <div class="leg-item">
+                                                    <span class="status-dot" style="background:#16a34a;"></span>
+                                                    <span>Sem Falhas</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="resumoModelos" class="resumo-modelos-wrap" aria-live="polite">
+                                            <span class="text-xs text-on-surface-variant italic">Nenhum modelo</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <div class="flex items-end gap-2">
+                                            <span class="font-heading text-5xl font-semibold text-on-surface" id="kpiFalhas">--</span>
+                                            <span class="text-sm text-outline mb-1.5">falhas</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Locais com Mais Falhas -->
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Locais com Mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartLocais"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Máquinas Reincidentes e Causas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Máquinas Reincidentes</h3>
+                                    <div class="flex-1 relative min-h-[350px]">
+                                        <canvas id="chartMce"></canvas>
+                                    </div>
+                                </div>
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Causas com mais falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartCausa"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parque Instalado x Falhas -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Parque Instalado x Falhas</h3>
+                                    <div class="flex-1 relative min-h-[350px]">
+                                        <canvas id="chartParqueFalhas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acumulado do Ano e Evolução Semanal -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Média de Falhas por Máquina (Acumulado do Ano)</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartAcumulado"></canvas>
+                                    </div>
+                                </div>
+                                <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Evolução Semanal e Tendência de Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartEvolucao"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comparativo Anual -->
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                                <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Comparativo Anual</h3>
+                                    <div class="flex-1 relative min-h-[350px]">
+                                        <canvas id="chartEvolucaoMensal"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicadores Passados -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-[#006e88] flex items-center gap-2">
+                                    <i data-lucide="history" class="w-6 h-6"></i>
+                                    Indicadores Passados
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Análise retrospectiva e comparações históricas de longo prazo.</p>
+                                <p id="periodoReferenciaPassadosDisplay" class="text-sm font-semibold text-on-surface mt-1 hidden"></p>
+                            </div>
+
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Máquinas com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosMce"></canvas>
+                                    </div>
+                                </div>
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Locais com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosLocal"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pdf-export-chunk bg-surface">
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Modelos com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosModelo"></canvas>
+                                    </div>
+                                </div>
+                                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Causas com mais Falhas</h3>
+                                    <div class="flex-1 relative min-h-[300px]">
+                                        <canvas id="chartPassadosCausa"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO 3: Preventiva -->
+                        <div class="pdf-export-chunk bg-surface flex flex-col gap-6 mt-8">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-secondary flex items-center gap-2">
+                                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                    Preventiva
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Acompanhamento do percentual de conclusão das manutenções programadas em relação ao parque base.</p>
+                                <p id="periodoReferenciaPreventivaDisplay" class="text-sm font-semibold text-on-surface mt-1 hidden"></p>
+                            </div>
+                            
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col">
+                                <div class="flex flex-col mb-1">
+                                    <span class="text-xs font-semibold tracking-wider text-[#00886d] uppercase mb-1 leading-normal">Cumprimento do PMP</span>
+                                    <p class="text-[10px] text-on-surface-variant leading-normal">Percentual executado do plano preventivo</p>
+                                </div>
+                                <div id="kpiCumprimentoPmp" class="flex-1 flex flex-col justify-center gap-1 mt-1 text-on-surface">
+                                    <span class="text-xs text-outline italic font-medium">--</span>
+                                </div>
+                            </div>
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
+                                <div class="flex-1 relative min-h-[350px]">
+                                    <canvas id="chartPreventivaPerc"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Container Dinâmico para Gráficos das Equipes (Separado para paginação do PDF) -->
+                        <div class="pdf-export-chunk bg-surface mt-6">
+                            <div id="containerEquipesPreventiva" class="grid grid-cols-1 xl:grid-cols-2 gap-6"></div>
+                        </div>
+                        <!-- NOVO GRÁFICO MULTI AXIS (Separado para paginação do PDF) -->
+                        <div class="pdf-export-chunk bg-surface mt-6">
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Número de Falhas x Percentual de Preventiva</h3>
+                                <div class="flex-1 relative min-h-[350px]">
+                                    <canvas id="chartFalhasPreventiva"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NOVA SEÇÃO: Recomendações GOT (Indicadores Passados) -->
+                        <div id="section-recomendacoes-container" class="pdf-export-chunk bg-surface hidden flex-col gap-6 mt-8">
+                            <div class="border-b border-outline-variant pb-3 mb-2">
+                                <h2 class="font-heading text-2xl font-bold text-[#006b5f] flex items-center gap-2">
+                                    <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                                    Recomendações GOT
+                                </h2>
+                                <p class="text-sm text-on-surface-variant">Comentários técnicos, análises e orientações.</p>
+                            </div>
+
+                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
+                                <div class="prose prose-sm max-w-none text-on-surface whitespace-pre-wrap text-sm leading-relaxed" id="dashboardRecomendacoes"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings view -->
+        <div id="settingsView" class="hidden flex-1 flex flex-col h-full overflow-hidden bg-surface">
+            <header class="h-20 px-10 flex items-center gap-4 border-b border-outline-variant bg-surface-container-lowest shrink-0">
+                <button onclick="toggleConfiguracoes()" class="p-2 -ml-2 text-on-surface-variant hover:bg-surface-container hover:text-primary rounded-md transition-colors" title="Voltar ao Dashboard">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h2 class="font-heading text-xl font-semibold text-on-surface">Configurações e Referenciais</h2>
+                    <p class="text-sm text-on-surface-variant">Defina os parâmetros base para cálculos da aplicação</p>
+                </div>
+            </header>
+            <div class="flex-1 overflow-y-auto p-10">
+                <div class="max-w-[800px] mx-auto space-y-8">
+                    <!-- Parque Instalado -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
+                                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-tertiary"></i>
+                                    Parque Instalado de MCE
+                                </h3>
+                                <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por modelo para definir o parque instalado.</p>
+                            </div>
+                            <button onclick="abrirModalParque()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Novo
+                            </button>
+                        </div>
+                        <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
+                            <table class="w-full text-left text-sm text-on-surface">
+                                <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold">Modelo da MCE</th>
+                                        <th class="px-4 py-3 font-semibold w-32 text-center">Quantidade</th>
+                                        <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaParque" class="divide-y divide-outline-variant/50"></tbody>
+                            </table>
+                            <div id="listaParqueVazia" class="hidden p-8 text-center text-on-surface-variant">Nenhum modelo cadastrado. Clique em "Novo" para adicionar.</div>
+                        </div>
+                    </div>
+
+                    <!-- Parque VP -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
+                                    <i data-lucide="users" class="w-5 h-5 text-tertiary"></i>
+                                    Parque de MCE por Equipe VP
+                                </h3>
+                                <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por equipe preventiva da VP.</p>
+                            </div>
+                            <button onclick="abrirModalParqueVP()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Novo
+                            </button>
+                        </div>
+                        <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
+                            <table class="w-full text-left text-sm text-on-surface">
+                                <thead class="bg-surface-container-low border-b border-outline-variant text-on-surface-variant uppercase text-xs tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold">Equipe</th>
+                                        <th class="px-4 py-3 font-semibold w-32 text-center">Quantidade</th>
+                                        <th class="px-4 py-3 font-semibold w-24 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaParqueVP" class="divide-y divide-outline-variant/50"></tbody>
+                            </table>
+                            <div id="listaParqueVPVazia" class="hidden p-8 text-center text-on-surface-variant">Nenhuma equipe cadastrada. Clique em "Novo" para adicionar.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modalParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueContent">
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueTitle">Novo Modelo</h3>
+                <button onclick="fecharModalParque()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="parqueIndex" value="-1">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Modelo</label>
+                    <input type="text" id="parqueModelo" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: MD2000">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
+                    <input type="number" id="parqueQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 5">
+                </div>
+            </div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalParque()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarParque()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalParqueVP" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueVPContent">
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueVPTitle">Nova Equipe</h3>
+                <button onclick="fecharModalParqueVP()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="parqueVPIndex" value="-1">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe</label>
+                    <input type="text" id="parqueVPEquipe" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: Equipe Alpha">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
+                    <input type="number" id="parqueVPQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 12">
+                </div>
+            </div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalParqueVP()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarParqueVP()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPreventiva" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalPreventivaContent">
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalPreventivaTitle">Inserir Preventiva</h3>
+                <button onclick="fecharModalPreventiva()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <input type="hidden" id="preventivaIndex" value="-1">
+            <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto" id="modalPreventivaBody"></div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button onclick="fecharModalPreventiva()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
+                <button onclick="salvarPreventiva()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-surface-container-lowest">
+        <i data-lucide="loader-2" class="w-12 h-12 animate-spin mb-4"></i>
+        <h2 class="font-heading text-xl font-medium">Gerando Documento Técnico...</h2>
+        <p class="text-sm opacity-80 mt-2">Isso pode levar alguns segundos.</p>
+    </div>
+
+    <!-- SCRIPTS CORE -->
+    <script>
+        let chartInstances = {};
+        let dadosParqueInstalado = [];
+        let dadosParqueVP = [];
+        let dadosPreventivaMensal = [];
+        
+        let lastDadosPassadosFiltrados = [];
+        let lastDadosMesCru = [];
+        let lastDadosFiltrados = [];
+        let lastDtInicioObj = null;
+        let lastDtFimObj = null;
+
+        const mesesDoAno = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+        const chartColors = { 
+            primary:'#006b5f', 
+            primaryContainer:'#14b8a6', 
+            secondary:'#006e14', 
+            tertiary:'#39618c', 
+            error:'#ba1a1a', 
+            surfaceVariant:'#e5e2e1', 
+            text:'#1c1b1b' 
+        };
+
+        // Configurar Chart.js
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = chartColors.text;
+        Chart.defaults.plugins.tooltip.backgroundColor = '#1c1b1b';
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+        // Plugin para labels nos gráficos (vertical)
+        const dataLabelsPlugin = {
+            id: 'customDataLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return;
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (value === undefined || value === null || value === 0) return;
+                        ctx.font = '600 13px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 3;
+                        ctx.lineJoin = 'round';
+                        ctx.strokeText(value, element.x, element.y - 6);
+                        ctx.fillStyle = chartColors.text;
+                        ctx.fillText(value, element.x, element.y - 6);
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        // Plugin para labels nos gráficos (horizontal)
+        const dataLabelsHorizontalPlugin = {
+            id: 'customDataLabelsHorizontal',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                if (!chart.data.datasets[0]) { ctx.restore(); return; }
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const value = data.datasets[0].data[index];
+                    if (value === 0 || value === null) return;
+                    ctx.fillStyle = chartColors.text;
+                    ctx.font = '600 13px Inter';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(value, bar.x + 6, bar.y);
+                });
+                ctx.restore();
+            }
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            carregarLocalStorage();
+            renderizarListaParque();
+            renderizarListaParqueVP();
+            configurarAutoSave();
+        });
+
+        // ========== STORAGE E CARREGAMENTO ==========
+        function carregarLocalStorage() {
+            const parqueSalvo = localStorage.getItem('mch_parque');
+            if (parqueSalvo) try { dadosParqueInstalado = JSON.parse(parqueSalvo); } catch (e) {}
+            
+            const parqueVPSalvo = localStorage.getItem('mch_parque_vp');
+            if (parqueVPSalvo) try { dadosParqueVP = JSON.parse(parqueVPSalvo); } catch (e) {}
+            
+            const prevMensalSalva = localStorage.getItem('mch_preventiva_mensal');
+            if (prevMensalSalva) try { 
+                dadosPreventivaMensal = JSON.parse(prevMensalSalva); 
+                atualizarProgressoPreventiva(); 
+            } catch(e){}
+            
+            const textMes = localStorage.getItem('mch_indMes'); 
+            if (textMes) document.getElementById('indMes').value = textMes;
+            
+            const textPassado = localStorage.getItem('mch_indPassados'); 
+            if (textPassado) document.getElementById('indPassados').value = textPassado;
+            
+            const textRec = localStorage.getItem('mch_recomendacoes'); 
+            if (textRec) document.getElementById('recomendacoesText').value = textRec;
+            
+            const dataI = localStorage.getItem('mch_dataInicio'); 
+            const dataF = localStorage.getItem('mch_dataFim');
+            if (dataI && dataF) { 
+                document.getElementById('dataInicio').value = dataI; 
+                document.getElementById('dataFim').value = dataF; 
+            } else {
+                definirDatasPadrao();
+            }
+        }
+
+        function configurarAutoSave() {
+            document.getElementById('indMes').addEventListener('input', (e) => {
+                localStorage.setItem('mch_indMes', e.target.value);
+                renderizarResumoFalhas(parseExcelData(e.target.value).data);
+            });
+            document.getElementById('indPassados').addEventListener('input', (e) => localStorage.setItem('mch_indPassados', e.target.value));
+            document.getElementById('recomendacoesText').addEventListener('input', (e) => localStorage.setItem('mch_recomendacoes', e.target.value));
+            document.getElementById('dataInicio').addEventListener('change', (e) => localStorage.setItem('mch_dataInicio', e.target.value));
+            document.getElementById('dataFim').addEventListener('change', (e) => localStorage.setItem('mch_dataFim', e.target.value));
+        }
+
+        function definirDatasPadrao() {
+            const hoje = new Date();
+            const dataMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+            const primeiroDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth(), 1);
+            const ultimoDia = new Date(dataMesAnterior.getFullYear(), dataMesAnterior.getMonth() + 1, 0);
+            const formatarData = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            document.getElementById('dataInicio').value = formatarData(primeiroDia);
+            document.getElementById('dataFim').value = formatarData(ultimoDia);
+        }
+
+        function limparCampos() {
+            document.getElementById('indMes').value = '';
+            document.getElementById('indPassados').value = '';
+            document.getElementById('recomendacoesText').value = '';
+            document.getElementById('errorMessage').classList.add('hidden');
+            localStorage.removeItem('mch_indMes'); 
+            localStorage.removeItem('mch_indPassados'); 
+            localStorage.removeItem('mch_recomendacoes');
+            dadosPreventivaMensal = []; 
+            localStorage.removeItem('mch_preventiva_mensal'); 
+            atualizarProgressoPreventiva();
+            
+            lastDadosPassadosFiltrados = [];
+            lastDadosMesCru = [];
+            lastDadosFiltrados = [];
+            lastDtInicioObj = null;
+            lastDtFimObj = null;
+
+            const resumo = document.getElementById('resumoModelos'); 
+            if (resumo) resumo.innerHTML = '<span class="text-xs text-on-surface-variant italic">Nenhum modelo</span>';
+            document.getElementById('kpiFalhas').innerText = '--';
+            
+            // Destruir gráficos
+            Object.keys(chartInstances).forEach(k => { 
+                try { 
+                    if (Array.isArray(chartInstances[k])) {
+                        chartInstances[k].forEach(c => c && c.destroy());
+                    } else if (chartInstances[k]) {
+                        chartInstances[k].destroy(); 
+                    }
+                } catch(e){}
+                chartInstances[k] = null; 
+            });
+            
+            document.getElementById('chartsContainer').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('dashboardSubtitle').innerText = "Campos limpos.";
+            
+            if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+            if(typeof renderizarChartFalhasPreventiva === 'function') renderizarChartFalhasPreventiva([], null, null);
+        }
+
+        // ========== GERENCIAMENTO DE PARQUE ==========
+        function renderizarListaParque() {
+            const tbody = document.getElementById('listaParque');
+            const emptyState = document.getElementById('listaParqueVazia');
+            const table = tbody.parentElement;
+            tbody.innerHTML = '';
+            
+            if (dadosParqueInstalado.length === 0) { 
+                table.classList.add('hidden'); 
+                emptyState.classList.remove('hidden'); 
+                return; 
+            }
+            
+            table.classList.remove('hidden'); 
+            emptyState.classList.add('hidden');
+            
+            dadosParqueInstalado.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-tertiary/5 transition-colors group';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-on-surface font-medium">${item.modelo}</td>
+                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalParque(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="excluirParque(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function abrirModalParque(index = -1) {
+            const modal = document.getElementById('modalParque');
+            const content = document.getElementById('modalParqueContent');
+            document.getElementById('parqueIndex').value = index;
+            
+            if (index >= 0) {
+                document.getElementById('modalParqueTitle').innerText = 'Editar Modelo';
+                document.getElementById('parqueModelo').value = dadosParqueInstalado[index].modelo;
+                document.getElementById('parqueQuantidade').value = dadosParqueInstalado[index].quantidade;
+            } else {
+                document.getElementById('modalParqueTitle').innerText = 'Novo Modelo';
+                document.getElementById('parqueModelo').value = '';
+                document.getElementById('parqueQuantidade').value = '';
+            }
+            
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex');
+            setTimeout(() => { 
+                content.classList.remove('scale-95','opacity-0'); 
+                content.classList.add('scale-100','opacity-100'); 
+            }, 10);
+            setTimeout(() => document.getElementById('parqueModelo').focus(), 200);
+        }
+
+        function fecharModalParque() {
+            const modal = document.getElementById('modalParque'); 
+            const content = document.getElementById('modalParqueContent');
+            content.classList.remove('scale-100','opacity-100'); 
+            content.classList.add('scale-95','opacity-0');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+            }, 200);
+        }
+
+        function salvarParque() {
+            const idx = parseInt(document.getElementById('parqueIndex').value);
+            const modelo = document.getElementById('parqueModelo').value.trim();
+            const quantidade = parseInt(document.getElementById('parqueQuantidade').value);
+            
+            if (!modelo || isNaN(quantidade) || quantidade <= 0) {
+                alert('Preencha todos os campos corretamente.');
+                return;
+            }
+            
+            if (idx >= 0) {
+                dadosParqueInstalado[idx] = { modelo, quantidade };
+            } else {
+                dadosParqueInstalado.push({ modelo, quantidade });
+            }
+            
+            localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+            fecharModalParque(); 
+            renderizarListaParque();
+        }
+
+        function excluirParque(index) {
+            if (confirm(`Excluir o modelo "${dadosParqueInstalado[index].modelo}"?`)) {
+                dadosParqueInstalado.splice(index, 1);
+                localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+                renderizarListaParque();
+            }
+        }
+
+        // ========== GERENCIAMENTO DE PARQUE VP ==========
+        function renderizarListaParqueVP() {
+            const tbody = document.getElementById('listaParqueVP');
+            const emptyState = document.getElementById('listaParqueVPVazia');
+            const table = tbody.parentElement;
+            tbody.innerHTML = '';
+            
+            if (dadosParqueVP.length === 0) { 
+                table.classList.add('hidden'); 
+                emptyState.classList.remove('hidden'); 
+                return; 
+            }
+            
+            table.classList.remove('hidden'); 
+            emptyState.classList.add('hidden');
+            
+            dadosParqueVP.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-tertiary/5 transition-colors group';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-on-surface font-medium">${item.equipe}</td>
+                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalParqueVP(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="excluirParqueVP(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function abrirModalParqueVP(index = -1) {
+            const modal = document.getElementById('modalParqueVP'); 
+            const content = document.getElementById('modalParqueVPContent');
+            document.getElementById('parqueVPIndex').value = index;
+            
+            if (index >= 0) {
+                document.getElementById('modalParqueVPTitle').innerText = 'Editar Equipe';
+                document.getElementById('parqueVPEquipe').value = dadosParqueVP[index].equipe;
+                document.getElementById('parqueVPQuantidade').value = dadosParqueVP[index].quantidade;
+            } else {
+                document.getElementById('modalParqueVPTitle').innerText = 'Nova Equipe';
+                document.getElementById('parqueVPEquipe').value = '';
+                document.getElementById('parqueVPQuantidade').value = '';
+            }
+            
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex');
+            setTimeout(() => { 
+                content.classList.remove('scale-95','opacity-0'); 
+                content.classList.add('scale-100','opacity-100'); 
+            }, 10);
+            setTimeout(() => document.getElementById('parqueVPEquipe').focus(), 200);
+        }
+
+        function fecharModalParqueVP() {
+            const modal = document.getElementById('modalParqueVP'); 
+            const content = document.getElementById('modalParqueVPContent');
+            content.classList.remove('scale-100','opacity-100'); 
+            content.classList.add('scale-95','opacity-0');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+            }, 200);
+        }
+
+        function salvarParqueVP() {
+            const idx = parseInt(document.getElementById('parqueVPIndex').value);
+            const equipe = document.getElementById('parqueVPEquipe').value.trim();
+            const quantidade = parseInt(document.getElementById('parqueVPQuantidade').value);
+            
+            if (!equipe || isNaN(quantidade) || quantidade <= 0) {
+                alert('Preencha todos os campos corretamente.');
+                return;
+            }
+            
+            if (idx >= 0) {
+                dadosParqueVP[idx] = { equipe, quantidade };
+            } else {
+                dadosParqueVP.push({ equipe, quantidade });
+            }
+            
+            localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+            fecharModalParqueVP(); 
+            renderizarListaParqueVP();
+            
+            if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
+                renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+            }
+        }
+
+        function excluirParqueVP(index) {
+            if (confirm(`Excluir a equipe "${dadosParqueVP[index].equipe}"?`)) {
+                dadosParqueVP.splice(index, 1);
+                localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+                renderizarListaParqueVP();
+                
+                if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
+                    renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+                }
+            }
+        }
+
+        // ========== GERENCIAMENTO DE PREVENTIVA ==========
+        function atualizarProgressoPreventiva() {
+            document.getElementById('preventivaProgress').innerText = `${dadosPreventivaMensal.length}/12`;
+            renderizarListaPreventivaSidebar();
+        }
+
+        function renderizarListaPreventivaSidebar() {
+            const container = document.getElementById('listaPreventivaSidebar');
+            container.innerHTML = '';
+            
+            dadosPreventivaMensal.forEach((mesObj, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-surface-container-low border border-outline-variant/50 px-2.5 py-2 rounded text-xs group transition-colors hover:bg-surface-container';
+                div.innerHTML = `
+                    <span class="font-medium text-on-surface-variant">${mesObj.mesNome} <span class="opacity-60 font-normal">(Mês ${mesObj.mesReferencia})</span></span>
+                    <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="abrirModalPreventiva(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="excluirPreventiva(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>`;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function excluirPreventiva(index) {
+            if (confirm(`Excluir ${dadosPreventivaMensal[index].mesNome}?`)) {
+                dadosPreventivaMensal.splice(index, 1);
+                dadosPreventivaMensal.forEach((item, i) => { 
+                    item.mesReferencia = i + 1; 
+                    item.mesNome = mesesDoAno[i]; 
+                });
+                localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+                atualizarProgressoPreventiva();
+                
+                if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
+                    renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+                }
+            }
+        }
+
+        function abrirModalPreventiva(index = -1) {
+            if (dadosParqueVP.length === 0) { 
+                alert("Cadastre as equipes VP em Configurações antes de inserir preventiva."); 
+                return; 
+            }
+            
+            if (index === -1 && dadosPreventivaMensal.length >= 12) { 
+                alert("O ano já está completo."); 
+                return; 
+            }
+            
+            const isEdicao = index >= 0;
+            const targetIndex = isEdicao ? index : dadosPreventivaMensal.length;
+            document.getElementById('modalPreventivaTitle').innerText = isEdicao ? 
+                `Editar Preventiva - ${mesesDoAno[targetIndex]}` : 
+                `Inserir Preventiva - Mês ${targetIndex + 1} (${mesesDoAno[targetIndex]})`;
+            document.getElementById('preventivaIndex').value = index;
+            
+            const body = document.getElementById('modalPreventivaBody'); 
+            body.innerHTML = '';
+            
+            let valoresEdicao = {};
+            if (isEdicao) {
+                dadosPreventivaMensal[index].dados.forEach(d => valoresEdicao[d.equipe] = d.valor);
+            }
+            
+            dadosParqueVP.forEach((item, i) => {
+                const val = isEdicao && valoresEdicao[item.equipe] !== undefined ? valoresEdicao[item.equipe] : '';
+                const div = document.createElement('div');
+                div.className = 'flex flex-col gap-1.5';
+                div.innerHTML = `
+                    <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe: ${item.equipe}</label>
+                    <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">`;
+                body.appendChild(div);
+            });
+            
+            const modal = document.getElementById('modalPreventiva'); 
+            const content = document.getElementById('modalPreventivaContent');
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex');
+            setTimeout(() => { 
+                content.classList.remove('scale-95','opacity-0'); 
+                content.classList.add('scale-100','opacity-100'); 
+            }, 10);
+            setTimeout(() => { 
+                const f = document.getElementById('prev_equipe_0'); 
+                if(f) f.focus(); 
+            }, 200);
+        }
+
+        function fecharModalPreventiva() {
+            const modal = document.getElementById('modalPreventiva'); 
+            const content = document.getElementById('modalPreventivaContent');
+            content.classList.remove('scale-100','opacity-100'); 
+            content.classList.add('scale-95','opacity-0');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+            }, 200);
+        }
+
+        function salvarPreventiva() {
+            const entradas = []; 
+            let possuiErro = false;
+            
+            dadosParqueVP.forEach((item, index) => {
+                const input = document.getElementById(`prev_equipe_${index}`);
+                const valor = parseInt(input.value, 10);
+                if (isNaN(valor) || valor < 0) { 
+                    input.focus(); 
+                    possuiErro = true; 
+                } else {
+                    entradas.push({ equipe: item.equipe, valor: valor });
+                }
+            });
+            
+            if (possuiErro) return;
+            
+            const idx = parseInt(document.getElementById('preventivaIndex').value, 10);
+            if (idx >= 0) {
+                dadosPreventivaMensal[idx].dados = entradas;
+            } else {
+                dadosPreventivaMensal.push({ 
+                    mesReferencia: dadosPreventivaMensal.length + 1, 
+                    mesNome: mesesDoAno[dadosPreventivaMensal.length], 
+                    dados: entradas 
+                });
+            }
+            
+            localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+            atualizarProgressoPreventiva(); 
+            fecharModalPreventiva();
+            
+            if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
+                renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+            }
+        }
+
+        // ========== PARSERS E UTILITÁRIOS ==========
+        function parseExcelData(text) {
+            if (!text) return { data: [], error: null };
+            
+            const lines = text.trim().split(/\r?\n/);
+            if (lines.length < 2) return { data: [], error: "Formato inválido." };
+            
+            const headersLine = lines.shift();
+            const delimiter = headersLine.includes('\t') ? '\t' : ',';
+            
+            const parseLine = (line) => {
+                if (delimiter === '\t') return line.split('\t').map(c => c.trim().replace(/^"|"$/g,''));
+                
+                const result = []; 
+                let inQuotes = false; 
+                let current = '';
+                
+                for (let i=0;i<line.length;i++){
+                    const char = line[i];
+                    if (char === '"') {
+                        if (inQuotes && line[i+1] === '"') { 
+                            current += '"'; 
+                            i++; 
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) { 
+                        result.push(current.trim()); 
+                        current=''; 
+                    } else {
+                        current+=char;
+                    }
+                }
+                result.push(current.trim()); 
+                return result.map(c => c.replace(/^"|"$/g,''));
+            };
+            
+            const headers = parseLine(headersLine).map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g,'_'));
+            
+            if (!headers.includes('modelo') || !headers.includes('localidade')) {
+                return { data: [], error: "Colunas 'modelo' ou 'localidade' ausentes." };
+            }
+            
+            const data = lines.map(line => {
+                if (!line.trim()) return null;
+                const values = parseLine(line);
+                const obj = {};
+                headers.forEach((h,i) => obj[h] = values[i] || '');
+                return obj;
+            }).filter(o => o !== null);
+            
+            return { data, error: null };
+        }
+
+        function parseExcelDate(str) {
+            if (!str) return null;
+            const parts = str.trim().split('/');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1]-1, parts[0]);
+            }
+            return null;
+        }
+
+        function normalizarTexto(str) {
+            if (!str) return '';
+            return str.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        }
+
+        function toggleConfiguracoes() {
+            const dash = document.getElementById('dashboardView'); 
+            const sett = document.getElementById('settingsView');
+            
+            if (sett.classList.contains('hidden')) { 
+                dash.classList.add('hidden'); 
+                sett.classList.remove('hidden'); 
+            } else { 
+                sett.classList.add('hidden'); 
+                dash.classList.remove('hidden'); 
+            }
+        }
+
+        // ========== PROCESSAMENTO DE DADOS E RENDERIZAÇÃO ==========
+        function processarDados() {
+            const indMesRaw = document.getElementById('indMes').value.trim();
+            const indPassadosRaw = document.getElementById('indPassados').value.trim();
+            const errorMsg = document.getElementById('errorMessage'); 
+            const errorText = document.getElementById('errorText'); 
+            const btnProcessar = document.getElementById('btnProcessar');
+            
+            if (!indMesRaw) { 
+                errorText.innerText = "Preencha os Dados de Falhas."; 
+                errorMsg.classList.remove('hidden'); 
+                return; 
+            }
+            
+            errorMsg.classList.add('hidden');
+            
+            const textoOriginalBtn = btnProcessar.innerHTML;
+            btnProcessar.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analisando...</span>`;
+            lucide.createIcons(); 
+            btnProcessar.disabled = true; 
+            btnProcessar.classList.add('opacity-80','cursor-not-allowed');
+
+            const resultadoParse = parseExcelData(indMesRaw);
+            if (resultadoParse.error) {
+                errorText.innerText = resultadoParse.error; 
+                errorMsg.classList.remove('hidden');
+                btnProcessar.innerHTML = textoOriginalBtn; 
+                lucide.createIcons(); 
+                btnProcessar.disabled = false; 
+                btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
+                return;
+            }
+
+            const dadosMesCru = resultadoParse.data;
+            let dadosParseados = [...dadosMesCru];
+            let dadosPassadosCru = [];
+
+            if (indPassadosRaw) {
+                const resPassados = parseExcelData(indPassadosRaw);
+                if (!resPassados.error) { 
+                    dadosPassadosCru = resPassados.data; 
+                    dadosParseados = dadosParseados.concat(dadosPassadosCru); 
+                }
+            }
+
+            const strInicio = document.getElementById('dataInicio').value;
+            const strFim = document.getElementById('dataFim').value;
+            const parseDt = (str) => { 
+                if (!str) return null; 
+                const p = str.split('-'); 
+                return new Date(p[0], p[1]-1, p[2]); 
+            };
+            
+            const dtInicioObj = parseDt(strInicio); 
+            const dtFimObj = parseDt(strFim);
+            
+            let dadosFiltrados = dadosParseados; 
+            let dadosPassadosFiltrados = dadosPassadosCru;
+
+            if (dtInicioObj && dtFimObj) {
+                dtInicioObj.setHours(0,0,0,0); 
+                dtFimObj.setHours(23,59,59,999);
+                
+                const dtIniPassado = new Date(dtInicioObj); 
+                dtIniPassado.setFullYear(dtInicioObj.getFullYear()-1);
+                const dtFimPassado = new Date(dtFimObj); 
+                dtFimPassado.setFullYear(dtFimObj.getFullYear()-1);
+
+                dadosFiltrados = dadosParseados.filter(row => {
+                    const d = parseExcelDate(row.data);
+                    return d && d >= dtInicioObj && d <= dtFimObj;
+                });
+
+                dadosPassadosFiltrados = dadosPassadosCru.filter(row => {
+                    const d = parseExcelDate(row.data);
+                    return d && d >= dtIniPassado && d <= dtFimPassado;
+                });
+            }
+
+            setTimeout(() => {
+                document.getElementById('emptyState').classList.add('hidden');
+                const btnExportar = document.getElementById('btnExportar');
+
+                if (dadosFiltrados.length === 0) {
+                    document.getElementById('chartsContainer').classList.add('hidden');
+                    document.getElementById('noDataState').classList.remove('hidden'); 
+                    document.getElementById('noDataState').classList.add('flex');
+                    document.getElementById('dashboardSubtitle').innerText = "Não há ocorrências no período selecionado.";
+                    btnExportar.classList.add('opacity-50','cursor-not-allowed','pointer-events-none');
+                } else {
+                    document.getElementById('noDataState').classList.add('hidden'); 
+                    document.getElementById('noDataState').classList.remove('flex');
+                    document.getElementById('chartsContainer').classList.remove('hidden');
+
+                    const dI = strInicio.split('-'); 
+                    const dF = strFim.split('-');
+                    document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}/${dI[1]}/${dI[0]} a ${dF[2]}/${dF[1]}/${dF[0]}`;
+
+                    const displayRef = document.getElementById('periodoReferenciaDisplay'); 
+                    if (displayRef) { 
+                        displayRef.innerText = `Período de Referência: ${strInicio} a ${strFim}`; 
+                        displayRef.classList.remove('hidden'); 
+                    }
+                    
+                    const displayRefPassados = document.getElementById('periodoReferenciaPassadosDisplay'); 
+                    if (displayRefPassados) {
+                        const strInicioPassado = `${parseInt(dI[0]) - 1}-${dI[1]}-${dI[2]}`; 
+                        const strFimPassado = `${parseInt(dF[0]) - 1}-${dF[1]}-${dF[2]}`;
+                        displayRefPassados.innerText = `Período de Referência: ${strInicioPassado} a ${strFimPassado}`; 
+                        displayRefPassados.classList.remove('hidden');
+                    }
+
+                    const displayRefPrev = document.getElementById('periodoReferenciaPreventivaDisplay');
+                    if (displayRefPrev) {
+                        displayRefPrev.innerText = `Período de Referência: ${strInicio} a ${strFim}`;
+                        displayRefPrev.classList.remove('hidden');
+                    }
+
+                    btnExportar.classList.remove('opacity-50','cursor-not-allowed','pointer-events-none'); 
+                    btnExportar.classList.add('hover:bg-surface-container');
+
+                    // Atualizar KPI
+                    document.getElementById('kpiFalhas').innerText = dadosFiltrados.length;
+
+                    // Atualizar variáveis globais (importante para atualização reativa dos gráficos ao inserir preventiva)
+                    lastDadosPassadosFiltrados = dadosPassadosFiltrados.slice();
+                    lastDadosMesCru = dadosMesCru.slice();
+                    lastDadosFiltrados = dadosFiltrados.slice();
+                    lastDtInicioObj = dtInicioObj;
+                    lastDtFimObj = dtFimObj;
+
+                    // Renderizar gráficos
+                    renderizarGraficos(dadosFiltrados, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados, dtInicioObj, dtFimObj);
+
+                    // Renderizar resumo
+                    renderizarResumoFalhas(dadosFiltrados);
+
+                    // Renderizar recomendações se preenchidas
+                    const recRaw = document.getElementById('recomendacoesText').value.trim();
+                    const recCont = document.getElementById('section-recomendacoes-container');
+                    if (recRaw) { 
+                        document.getElementById('dashboardRecomendacoes').innerText = recRaw; 
+                        recCont.classList.remove('hidden'); 
+                        recCont.classList.add('flex'); 
+                    } else { 
+                        recCont.classList.add('hidden'); 
+                        recCont.classList.remove('flex'); 
+                    }
+                }
+
+                btnProcessar.innerHTML = textoOriginalBtn; 
+                lucide.createIcons(); 
+                btnProcessar.disabled = false; 
+                btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
+                document.querySelector('main > div').scrollTo({top:0, behavior:'smooth'});
+            }, 600);
+        }
+
+        // ========== RENDERIZAÇÃO DOS GRÁFICOS ==========
+        function renderizarGraficos(dadosMes, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados, dtUserInicio, dtFimObj) {
+            // Destruir gráficos antigos
+            Object.keys(chartInstances).forEach(k => { 
+                try { 
+                    if (Array.isArray(chartInstances[k])) {
+                        chartInstances[k].forEach(c => c && c.destroy());
+                    } else if (chartInstances[k]) {
+                        chartInstances[k].destroy(); 
+                    }
+                } catch(e){}
+                chartInstances[k] = null; 
+            });
+
+            // C1: Locais
+            const contLoc = {}; 
+            dadosMes.forEach(r => { 
+                if (r.localidade) {
+                    const loc = r.localidade.trim();
+                    contLoc[loc] = (contLoc[loc] || 0) + 1; 
+                }
+            });
+            const pLoc = Object.entries(contLoc).sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0])).slice(0,5);
+            
+            const canvasLocais = document.getElementById('chartLocais');
+            if (canvasLocais) {
+                chartInstances.locais = new Chart(canvasLocais.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: pLoc.length ? pLoc.map(d=>d[0]) : ['Nenhum'], 
+                        datasets:[{ 
+                            data: pLoc.length ? pLoc.map(d=>d[1]) : [0], 
+                            backgroundColor:'#ff0000', 
+                            borderRadius:4 
+                        }]
+                    },
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{padding:{top:30}}, 
+                        scales:{ 
+                            y:{ beginAtZero:true, grid:{ color:'#f0edec' } }, 
+                            x:{ grid:{ display:false } } 
+                        }, 
+                        plugins:{ legend:{ display:false } } 
+                    },
+                    plugins:[dataLabelsPlugin]
+                });
+            }
+
+            // C2: MCE (Máquinas Reincidentes) - Atualizado para multiline label
+            const contMce = {};
+            const mapMceLoc = {};
+            dadosMes.forEach(r => {
+                if (r.mce) {
+                    const key = r.mce.trim();
+                    contMce[key] = (contMce[key] || 0) + 1;
+                    if (r.localidade && !mapMceLoc[key]) {
+                        mapMceLoc[key] = r.localidade.trim();
+                    }
+                }
+            });
+            const pMce = Object.entries(contMce).sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0])).slice(0,5);
+            
+            const labelsMce = pMce.length ? pMce.map(d => {
+                const k = d[0];
+                const loc = mapMceLoc[k] || "Local não informado";
+                return [k, loc]; // Array de strings faz o Chart.js quebrar em múltiplas linhas
+            }) : [['Nenhum', '']];
+
+            const canvasMce = document.getElementById('chartMce');
+            if (canvasMce) {
+                chartInstances.mce = new Chart(canvasMce.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: labelsMce, 
+                        datasets:[{ 
+                            data: pMce.length ? pMce.map(d=>d[1]) : [0], 
+                            backgroundColor:'#db0000', 
+                            borderRadius:4 
+                        }]
+                    },
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{padding:{top:30, bottom:15}}, 
+                        scales:{ 
+                            y:{ beginAtZero:true, grid:{ color:'#f0edec' } }, 
+                            x:{ grid:{ display:false }, ticks:{ maxRotation:0, autoSkip:false, font: {size: 11} } } 
+                        }, 
+                        plugins:{ legend:{ display:false } } 
+                    },
+                    plugins:[dataLabelsPlugin]
+                });
+            }
+
+            // C3: Causas
+            const contCausa = {}; 
+            dadosMes.forEach(r=>{ 
+                if (r.causa) {
+                    const key = r.causa.trim();
+                    contCausa[key] = (contCausa[key]||0)+1; 
+                }
+            });
+            const pCausa = Object.entries(contCausa).sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0])).slice(0,5);
+            
+            const canvasCausa = document.getElementById('chartCausa');
+            if (canvasCausa) {
+                chartInstances.causa = new Chart(canvasCausa.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: pCausa.length ? pCausa.map(d=>d[0]) : ['Nenhum'], 
+                        datasets:[{ 
+                            data: pCausa.length ? pCausa.map(d=>d[1]) : [0], 
+                            backgroundColor:'#b80000', 
+                            borderRadius:4 
+                        }]
+                    },
+                    options:{ 
+                        indexAxis:'y', 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{ padding:{ right:35 } }, 
+                        scales:{ 
+                            x:{ beginAtZero:true, grid:{ color:'#f0edec' } }, 
+                            y:{ grid:{ display:false } } 
+                        }, 
+                        plugins:{ legend:{ display:false } } 
+                    },
+                    plugins:[dataLabelsHorizontalPlugin]
+                });
+            }
+
+            // C4: Acumulado do Ano
+            const anoCorrente = new Date().getFullYear();
+            const dadosAnoCorrente = dadosParseados.filter(r => { 
+                const d = parseExcelDate(r.data); 
+                return d && d.getFullYear() === anoCorrente && r.modelo; 
+            });
+            const contAcum = {};
+            dadosAnoCorrente.forEach(r => { 
+                const m = r.modelo.trim(); 
+                if (m) contAcum[m] = (contAcum[m]||0) + 1; 
+            });
+            
+            const calculoAcumulado = Object.entries(contAcum).map(([modelo, falhas]) => {
+                const pq = dadosParqueInstalado.find(p => p.modelo.trim().toUpperCase() === modelo.toUpperCase());
+                const qtdParque = pq && pq.quantidade > 0 ? pq.quantidade : 0;
+                let taxa = null;
+                if (qtdParque > 0) taxa = parseFloat((falhas / qtdParque).toFixed(2));
+                return { modelo, taxa };
+            });
+            
+            calculoAcumulado.sort((a,b) => {
+                const valA = a.taxa === null ? -1 : a.taxa; 
+                const valB = b.taxa === null ? -1 : b.taxa;
+                return valB !== valA ? valB - valA : a.modelo.localeCompare(b.modelo);
+            });
+            
+            const pAcum = calculoAcumulado.slice(0,5);
+            
+            const canvasAcum = document.getElementById('chartAcumulado');
+            if (canvasAcum) {
+                chartInstances.acumulado = new Chart(canvasAcum.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: pAcum.length ? pAcum.map(d=>d.modelo) : ['Nenhum'], 
+                        datasets:[{ 
+                            label:`Acumulado (${anoCorrente})`, 
+                            data: pAcum.length ? pAcum.map(d=>d.taxa) : [0], 
+                            backgroundColor:'#960000', 
+                            borderRadius:4 
+                        }]
+                    },
+                    options:{
+                        indexAxis:'y', 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{ padding:{ right:45 } }, 
+                        scales:{ 
+                            x:{ beginAtZero:true, grid:{ color:'#f0edec' } }, 
+                            y:{ grid:{ display:false } } 
+                        },
+                        plugins:{ 
+                            legend:{ display:false }, 
+                            tooltip:{ callbacks:{ label: function(context){ return context.raw === null ? 'N/A' : context.raw; } } } 
+                        }
+                    },
+                    plugins:[{
+                        id:'customDataLabelsAcumulado', 
+                        afterDatasetsDraw(chart) {
+                            const { ctx, data } = chart; 
+                            ctx.save();
+                            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                                const value = data.datasets[0].data[index];
+                                if(value === 0 && pAcum.length === 1 && pAcum[0].modelo === 'Nenhum') return;
+                                const text = value === null ? 'N/A' : value;
+                                ctx.fillStyle = chartColors.text; 
+                                ctx.font = '600 13px Inter'; 
+                                ctx.textAlign = 'left'; 
+                                ctx.textBaseline = 'middle';
+                                const xPos = (value === null || isNaN(bar.x)) ? chart.scales.x.getPixelForValue(0) + 6 : bar.x + 6;
+                                ctx.fillText(text, xPos, bar.y);
+                            });
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            // C5: Evolução Semanal
+            const getIsoW = (d) => { 
+                const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); 
+                const dn = dt.getUTCDay() || 7; 
+                dt.setUTCDate(dt.getUTCDate() + 4 - dn); 
+                const ys = new Date(Date.UTC(dt.getUTCFullYear(),0,1)); 
+                return Math.ceil((((dt - ys)/86400000)+1)/7); 
+            };
+            const getIsoY = (d) => { 
+                const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); 
+                const dn = dt.getUTCDay() || 7; 
+                dt.setUTCDate(dt.getUTCDate() + 4 - dn); 
+                return dt.getUTCFullYear(); 
+            };
+            
+            const dtEIni = new Date(dtUserInicio); 
+            const di = dtEIni.getDay(); 
+            dtEIni.setDate(dtEIni.getDate() - di + (di === 0 ? -6 : 1)); 
+            dtEIni.setHours(0,0,0,0);
+            
+            const dtEFim = new Date(dtFimObj); 
+            const df = dtEFim.getDay(); 
+            dtEFim.setDate(dtEFim.getDate() + (df === 0 ? 0 : 7 - df)); 
+            dtEFim.setHours(23,59,59,999);
+            
+            const semEx = []; 
+            let cD = new Date(dtEIni);
+            while (cD <= dtEFim) { 
+                const k = `${getIsoY(cD)}-${String(getIsoW(cD)).padStart(2,'0')}`; 
+                if(!semEx.find(s=>s.key===k)) semEx.push({ key:k, label:`Sem ${getIsoW(cD)}`, count:0 }); 
+                cD.setDate(cD.getDate()+7); 
+            }
+            
+            dadosParseados.forEach(r => { 
+                const d = parseExcelDate(r.data); 
+                if (d && d >= dtEIni && d <= dtEFim) { 
+                    const k = `${getIsoY(d)}-${String(getIsoW(d)).padStart(2,'0')}`; 
+                    const o = semEx.find(s=>s.key===k); 
+                    if(o) o.count++; 
+                } 
+            });
+            
+            for (let i=0;i<semEx.length;i++){ 
+                let sum=0,qtd=0; 
+                for (let j=Math.max(0,i-2); j<=i; j++){ 
+                    sum+=semEx[j].count; 
+                    qtd++; 
+                } 
+                semEx[i].ma = parseFloat((sum/qtd).toFixed(1)); 
+            }
+            
+            const semFiltrado = semEx.filter(s => s.count > 0);
+            
+            const canvasEvolucao = document.getElementById('chartEvolucao');
+            if (canvasEvolucao) {
+                chartInstances.evolucao = new Chart(canvasEvolucao.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: semFiltrado.map(s=>s.label), 
+                        datasets: [
+                            { 
+                                type:'line', 
+                                label:'Média Móvel (3 Sem)', 
+                                data: semFiltrado.map(s=>s.ma), 
+                                borderColor:'#1c1b1b', 
+                                backgroundColor:'#1c1b1b', 
+                                borderWidth:2, 
+                                pointRadius:4, 
+                                order:1 
+                            },
+                            { 
+                                type:'bar', 
+                                label:'Falhas Semanais', 
+                                data: semFiltrado.map(s=>s.count), 
+                                backgroundColor:'#db0000', 
+                                borderRadius:4, 
+                                order:2 
+                            }
+                        ]
+                    },
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{ padding:{ top:35 } }, 
+                        scales:{ 
+                            y:{ beginAtZero:true, grid:{ color:'#f0edec' } }, 
+                            x:{ grid:{ display:false } } 
+                        }, 
+                        plugins:{ legend:{ display:true, position:'bottom', labels:{ usePointStyle:true, boxWidth:10 } } } 
+                    },
+                    plugins:[{
+                        id:'customDataLabelsEv', 
+                        afterDatasetsDraw(c) {
+                            const ctx = c.ctx; 
+                            ctx.save();
+                            c.data.datasets.forEach((ds,i) => {
+                                if (c.getDatasetMeta(i).hidden) return;
+                                c.getDatasetMeta(i).data.forEach((el, idx) => {
+                                    const v = ds.data[idx]; 
+                                    if (v == null || v === 0) return;
+                                    if (ds.type === 'line') {
+                                        const t = v.toString(); 
+                                        ctx.font='700 11px Inter'; 
+                                        const w = ctx.measureText(t).width+10; 
+                                        const x = el.x - w/2; 
+                                        const y = el.y - 25;
+                                        ctx.fillStyle='rgba(255,255,255,0.9)'; 
+                                        ctx.beginPath(); 
+                                        if (ctx.roundRect) ctx.roundRect(x,y,w,18,4); 
+                                        else ctx.rect(x,y,w,18); 
+                                        ctx.fill();
+                                        ctx.strokeStyle='#1c1b1b'; 
+                                        ctx.lineWidth = 1; 
+                                        ctx.stroke();
+                                        ctx.fillStyle = '#1c1b1b'; 
+                                        ctx.textAlign='center'; 
+                                        ctx.textBaseline='middle'; 
+                                        ctx.fillText(t, el.x, y+10);
+                                    } else {
+                                        ctx.font='600 13px Inter'; 
+                                        ctx.textAlign='center'; 
+                                        ctx.textBaseline='bottom';
+                                        ctx.strokeStyle = '#fff'; 
+                                        ctx.lineWidth = 4; 
+                                        ctx.lineJoin = 'round'; 
+                                        ctx.strokeText(v, el.x, el.y - 6);
+                                        ctx.fillStyle = chartColors.text; 
+                                        ctx.fillText(v, el.x, el.y - 6);
+                                    }
+                                });
+                            });
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            // C6: Parque x Falhas
+            const mapPq = {}; 
+            dadosParqueInstalado.forEach(i => mapPq[i.modelo.trim().toUpperCase()] = i.quantidade);
+            const mapFa = {}; 
+            dadosMes.forEach(r => { 
+                if(r.modelo) mapFa[r.modelo.trim().toUpperCase()] = (mapFa[r.modelo.trim().toUpperCase()] || 0) + 1; 
+            });
+            const mix = Object.keys(mapPq).map(k => ({ 
+                modelo:k, 
+                pq: mapPq[k], 
+                fa: mapFa[k]||0, 
+                perc: mapPq[k]>0? Math.round(((mapFa[k]||0)/mapPq[k])*100):0 
+            })).sort((a,b) => b.perc - a.perc || a.modelo.localeCompare(b.modelo));
+            
+            const canvasParque = document.getElementById('chartParqueFalhas');
+            if (canvasParque) {
+                chartInstances.parqueFalhas = new Chart(canvasParque.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: mix.map(m=>m.modelo), 
+                        datasets:[
+                            { 
+                                type:'line', 
+                                label:'% de Falhas', 
+                                data: mix.map(m=>m.perc), 
+                                borderColor:'#1c1b1b', 
+                                backgroundColor:'#1c1b1b', 
+                                borderWidth:2, 
+                                pointRadius:4, 
+                                yAxisID:'y1', 
+                                order:1 
+                            },
+                            { 
+                                type:'bar', 
+                                label:'Parque', 
+                                data: mix.map(m=>m.pq), 
+                                backgroundColor:'#760000', 
+                                borderRadius:4, 
+                                yAxisID:'y', 
+                                order:2 
+                            },
+                            { 
+                                type:'bar', 
+                                label:'Falhas', 
+                                data: mix.map(m=>m.fa), 
+                                backgroundColor:'#ff0000', 
+                                borderRadius:4, 
+                                yAxisID:'y', 
+                                order:3 
+                            }
+                        ]
+                    },
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{ padding:{ top:45 } }, 
+                        scales:{ 
+                            x:{ grid:{ display:false } }, 
+                            y:{ type:'linear', display:true, position:'left', beginAtZero:true }, 
+                            y1:{ type:'linear', display:false, position:'right', beginAtZero:true, min:0 } 
+                        }, 
+                        plugins:{ legend:{ position:'top', align:'end', labels:{ usePointStyle:true, boxWidth:10 } } } 
+                    },
+                    plugins:[{
+                        id:'mixL', 
+                        afterDatasetsDraw(c) {
+                            const ctx = c.ctx; 
+                            ctx.save();
+                            c.data.datasets.forEach((ds,i) => {
+                                if (c.getDatasetMeta(i).hidden) return;
+                                c.getDatasetMeta(i).data.forEach((el, idx) => {
+                                    const v = ds.data[idx]; 
+                                    if (v == null) return;
+                                    if (ds.type === 'line') {
+                                        const t = v + '%'; 
+                                        ctx.font='700 12px Inter'; 
+                                        const w = ctx.measureText(t).width+12; 
+                                        const x = el.x - w/2; 
+                                        const y = el.y - 28;
+                                        ctx.fillStyle = '#fff'; 
+                                        ctx.beginPath(); 
+                                        if (ctx.roundRect) ctx.roundRect(x,y,w,20,4); 
+                                        else ctx.rect(x,y,w,20); 
+                                        ctx.fill();
+                                        ctx.strokeStyle = chartColors.error; 
+                                        ctx.lineWidth=1; 
+                                        ctx.stroke();
+                                        ctx.fillStyle = chartColors.error; 
+                                        ctx.textAlign='center'; 
+                                        ctx.textBaseline='middle'; 
+                                        ctx.fillText(t, el.x, y+11);
+                                    } else {
+                                        ctx.font='600 12px Inter'; 
+                                        ctx.textAlign='center'; 
+                                        ctx.textBaseline='bottom';
+                                        ctx.strokeStyle='#fff'; 
+                                        ctx.lineWidth = 4; 
+                                        ctx.lineJoin = 'round'; 
+                                        ctx.strokeText(v, el.x, el.y - 6);
+                                        ctx.fillStyle = chartColors.text; 
+                                        ctx.fillText(v, el.x, el.y - 6);
+                                    }
+                                });
+                            });
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+
+            // C7: Evolução Mensal
+            const cMA = new Array(12).fill(null); 
+            const cMP = new Array(12).fill(null);
+            
+            dadosMesCru.forEach(r => { 
+                const d = parseExcelDate(r.data); 
+                if (d) { 
+                    if (cMA[d.getMonth()]===null) cMA[d.getMonth()] = 0; 
+                    cMA[d.getMonth()]++; 
+                } 
+            });
+            
+            dadosPassadosCru.forEach(r => { 
+                const d = parseExcelDate(r.data); 
+                if (d) { 
+                    if (cMP[d.getMonth()]===null) cMP[d.getMonth()] = 0; 
+                    cMP[d.getMonth()]++; 
+                } 
+            });
+            
+            const canvasEvolMensal = document.getElementById('chartEvolucaoMensal');
+            if (canvasEvolMensal) {
+                chartInstances.evolucaoMensal = new Chart(canvasEvolMensal.getContext('2d'), {
+                    type:'bar',
+                    data:{ 
+                        labels: mesesDoAno, 
+                        datasets:[ 
+                            { label:'ano vigente', data:cMA, backgroundColor:'#db0000', borderRadius:4 }, 
+                            { label:'ano anterior', data:cMP, backgroundColor:'#c6c6c6', borderRadius:4 } 
+                        ] 
+                    },
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        layout:{ padding:{ top:30 } }, 
+                        scales:{ 
+                            x:{ grid:{ display:false } }, 
+                            y:{ beginAtZero:true } 
+                        }, 
+                        plugins:{ legend:{ position:'top', align:'end', labels:{ usePointStyle:true, boxWidth:10 } } } 
+                    },
+                    plugins:[dataLabelsPlugin]
+                });
+            }
+
+            // Gráficos passados
+            buildPassadosChart('chartPassadosMce','mce','#5ab7d4', dadosPassadosFiltrados, dadosMes);
+            buildPassadosChart('chartPassadosLocal','localidade','#2b91ad', dadosPassadosFiltrados, dadosMes);
+            buildPassadosChart('chartPassadosModelo','modelo','#006e88', dadosPassadosFiltrados, dadosMes);
+            buildPassadosChart('chartPassadosCausa','causa','#004c65', dadosPassadosFiltrados, dadosMes);
+
+            renderizarGraficoPreventiva();
+            renderizarChartFalhasPreventiva(dadosMes, dtUserInicio, dtFimObj);
+        }
+
+        function buildPassadosChart(id, prop, corAnterior, dadosPassadosArr, dadosMesCruArr) {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            const hasAnoVigente = Array.isArray(dadosMesCruArr) && dadosMesCruArr.length > 0;
+            if (!hasAnoVigente) {
+                try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
+                chartInstances[id] = new Chart(el.getContext('2d'), { 
+                    type:'bar', 
+                    data:{ 
+                        labels:['Nenhum'], 
+                        datasets:[{ data:[0], backgroundColor:'rgba(0,0,0,0)', borderRadius:4 }] 
+                    }, 
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        plugins:{ legend:{ display:false } }, 
+                        scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } } 
+                    } 
+                });
+                return;
+            }
+
+            const pastMap = {}; 
+            const normToLabel = {};
+            
+            if (Array.isArray(dadosPassadosArr)) {
+                dadosPassadosArr.forEach(r => {
+                    const v = r[prop];
+                    if (v && v.toString().trim()) {
+                        const orig = v.toString().trim(); 
+                        const n = normalizarTexto(orig);
+                        pastMap[n] = (pastMap[n]||0) + 1; 
+                        if (!normToLabel[n]) normToLabel[n] = orig;
+                    }
+                });
+            }
+
+            const currMap = {};
+            if (Array.isArray(dadosMesCruArr)) {
+                dadosMesCruArr.forEach(r => {
+                    const v = r[prop];
+                    if (v && v.toString().trim()) {
+                        const n = normalizarTexto(v.toString());
+                        currMap[n] = (currMap[n]||0) + 1;
+                    }
+                });
+            }
+
+            const inter = Object.keys(pastMap).filter(k => currMap[k] && currMap[k] > 0);
+            inter.sort((a,b) => pastMap[b] - pastMap[a] || (normToLabel[a]||a).localeCompare(normToLabel[b]||b));
+            const keys = inter.slice(0,10);
+
+            if (!keys.length) {
+                try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
+                chartInstances[id] = new Chart(el.getContext('2d'), { 
+                    type:'bar', 
+                    data:{ 
+                        labels:['Nenhum'], 
+                        datasets:[{ data:[0], backgroundColor:'rgba(0,0,0,0)', borderRadius:4 }] 
+                    }, 
+                    options:{ 
+                        responsive:true, 
+                        maintainAspectRatio:false, 
+                        plugins:{ legend:{ display:false } }, 
+                        scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } } 
+                    } 
+                });
+                return;
+            }
+
+            const labels = keys.map(k => normToLabel[k] || k);
+            const dataPast = keys.map(k => pastMap[k] || 0);
+            const dataCurr = keys.map(k => currMap[k] || 0);
+
+            try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
+            chartInstances[id] = new Chart(el.getContext('2d'), {
+                type:'bar',
+                data:{ 
+                    labels, 
+                    datasets:[
+                        { label:'ano anterior', data: dataPast, backgroundColor: corAnterior, borderRadius:4, pointStyle:'circle' },
+                        { label:'ano vigente', data: dataCurr, backgroundColor: '#db0000', borderRadius:4, pointStyle:'circle' }
+                    ]
+                },
+                options:{ 
+                    responsive:true, 
+                    maintainAspectRatio:false, 
+                    layout:{ padding:{ top:30 } }, 
+                    scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } }, 
+                    plugins:{ legend:{ display:true, labels:{ usePointStyle:true, boxWidth:10 } } } 
+                },
+                plugins:[dataLabelsPlugin]
+            });
+        }
+
+        function renderizarResumoFalhas(dadosFiltrados) {
+            const wrap = document.getElementById('resumoModelos'); 
+            if (!wrap) return;
+            
+            let modelosExibir = [];
+            if (dadosParqueInstalado && dadosParqueInstalado.length > 0) {
+                modelosExibir = dadosParqueInstalado.map(p => p.modelo ? p.modelo.trim() : '').filter(Boolean);
+            } else {
+                const setM = new Set(); 
+                (dadosFiltrados || []).forEach(r => { 
+                    if (r.modelo && r.modelo.trim()) setM.add(r.modelo.trim()); 
+                });
+                modelosExibir = Array.from(setM);
+            }
+            
+            modelosExibir = Array.from(new Set(modelosExibir));
+            const modelosComFalhaNorm = new Set();
+            (dadosFiltrados || []).forEach(r => { 
+                if (r.modelo && r.modelo.trim()) modelosComFalhaNorm.add(normalizarTexto(r.modelo.trim())); 
+            });
+            
+            if (!modelosExibir.length) { 
+                wrap.innerHTML = '<span class="text-xs text-on-surface-variant italic">Nenhum modelo</span>'; 
+                return; 
+            }
+            
+            wrap.innerHTML = '';
+            modelosExibir.forEach(mOrig => {
+                const normalized = normalizarTexto(mOrig);
+                const hasFalha = modelosComFalhaNorm.has(normalized);
+                
+                const item = document.createElement('div'); 
+                item.className = 'modelo-item'; // Nova estilização de tiles no bloco CSS
+                
+                const dot = document.createElement('span'); 
+                dot.className = 'status-dot'; 
+                dot.style.background = hasFalha ? '#db0000' : '#16a34a';
+                
+                const label = document.createElement('span'); 
+                label.style.fontSize='13px'; 
+                label.style.color='#1c1b1b'; 
+                label.style.fontWeight='600'; 
+                label.textContent = mOrig;
+                
+                item.appendChild(dot); 
+                item.appendChild(label); 
+                wrap.appendChild(item);
+            });
+        }
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO DA PREVENTIVA ---
+
+        function renderizarGraficoPreventiva() {
+            // KPI Cumprimento PMP
+            const kP = document.getElementById('kpiCumprimentoPmp');
+            if(kP) {
+                if(!dadosPreventivaMensal.length || !dadosParqueVP.length) kP.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
+                else {
+                    let tP = 0; dadosParqueVP.forEach(e => tP += e.quantidade);
+                    let tR = 0; dadosPreventivaMensal.forEach(m => m.dados.forEach(d => tR += d.valor));
+                    const tM = tP * dadosPreventivaMensal.length;
+                    const pC = tM>0 ? Math.round((tR/tM)*100) : 0;
+                    kP.innerHTML = `<div class="text-xs leading-relaxed text-on-surface-variant mt-1">Cumprimento de <span class="font-bold text-[#00886d]">[${pC}%]</span> do Plano de Manutenção (PMP).</div>`;
+                }
+            }
+
+            if(chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
+
+            const cP = document.getElementById('chartPreventivaPerc');
+            if(!cP) return;
+
+            // --- Lógica Chart % Geral ---
+            let totalParqueVP = 0;
+            dadosParqueVP.forEach(eq => totalParqueVP += eq.quantidade);
+
+            const dadosMesesPerc = mesesDoAno.map((mes, idx) => {
+                const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
+                if (!md || totalParqueVP === 0) return 0;
+                
+                let somaMes = 0;
+                md.dados.forEach(d => {
+                    if (typeof d.valor === 'number') somaMes += d.valor;
+                });
+                
+                let perc = Math.round((somaMes / totalParqueVP) * 100);
+                return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
+            });
+
+            const dPerc = [{
+                type: 'bar',
+                label: 'Desempenho Mensal',
+                data: dadosMesesPerc,
+                backgroundColor: chartColors.secondary,
+                borderRadius: 4
+            }];
+
+            const customDataLabelsPercPlugin = {
+                id: 'customDataLabelsPerc',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        if (meta.hidden) return;
+                        meta.data.forEach((element, index) => {
+                            const value = dataset.data[index];
+                            if (value === undefined || value === null) return;
+                            
+                            const text = value + '%';
+                            ctx.font = '600 13px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            
+                            const yPos = value === 0 ? element.y - 2 : element.y - 6;
+                            
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 3;
+                            ctx.lineJoin = 'round';
+                            ctx.strokeText(text, element.x, yPos);
+                            ctx.fillStyle = chartColors.text;
+                            ctx.fillText(text, element.x, yPos);
+                        });
+                    });
+                    ctx.restore();
+                }
+            };
+
+            chartInstances.preventivaPerc = new Chart(cP.getContext('2d'), {
+                type: 'bar', 
+                data: { labels: mesesDoAno, datasets: dPerc },
+                options: { 
+                    responsive:true, 
+                    maintainAspectRatio:false, 
+                    layout:{padding:{top:30}}, 
+                    scales:{
+                        x:{grid:{display:false}}, 
+                        y:{beginAtZero:true, max:100, min:0, ticks:{callback:v=>v+'%'}}
+                    }, 
+                    plugins:{
+                        legend:{display:false}
+                    } 
+                },
+                plugins: [customDataLabelsPercPlugin]
+            });
+
+            // --- Lógica Gráficos Dinâmicos por Equipe ---
+            const containerEquipes = document.getElementById('containerEquipesPreventiva');
+            if(!containerEquipes) return;
+
+            if(chartInstances.equipes && Array.isArray(chartInstances.equipes)) {
+                chartInstances.equipes.forEach(c => c && c.destroy());
+            }
+            chartInstances.equipes = [];
+            containerEquipes.innerHTML = '';
+
+            const equipesSort = [...dadosParqueVP].sort((a, b) => a.equipe.localeCompare(b.equipe));
+
+            equipesSort.forEach((eq, index) => {
+                const lightness = Math.min(22 + (index * 15), 90);
+                const teamColor = `hsl(131, 100%, ${lightness}%)`;
+
+                const colDiv = document.createElement('div');
+                colDiv.className = "bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col";
+                
+                const title = document.createElement('h3');
+                title.className = "font-heading font-medium text-lg mb-4 text-on-surface";
+                title.textContent = eq.equipe;
+
+                const chartWrapper = document.createElement('div');
+                chartWrapper.className = "flex-1 relative min-h-[250px]";
+
+                const canvas = document.createElement('canvas');
+                chartWrapper.appendChild(canvas);
+                
+                colDiv.appendChild(title);
+                colDiv.appendChild(chartWrapper);
+                containerEquipes.appendChild(colDiv);
+
+                const qParque = eq.quantidade;
+
+                const dadosEqPerc = mesesDoAno.map((mes, idx) => {
+                    if (qParque <= 0 || !qParque) return null;
+                    
+                    const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
+                    if (!md) return 0;
+                    
+                    const dt = md.dados.find(d => d.equipe === eq.equipe);
+                    const val = (dt && typeof dt.valor === 'number') ? dt.valor : 0;
+
+                    let perc = Math.round((val / qParque) * 100);
+                    return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
+                });
+
+                const dEq = [{
+                    type: 'bar',
+                    label: eq.equipe,
+                    data: dadosEqPerc,
+                    backgroundColor: teamColor,
+                    borderRadius: 4
+                }];
+
+                const pluginEqLabels = {
+                    id: `labels_eq_${index}`,
+                    afterDatasetsDraw(chart) {
+                        const { ctx, data } = chart;
+                        ctx.save();
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            if (meta.hidden) return;
+                            meta.data.forEach((element, idx) => {
+                                const value = dataset.data[idx];
+                                
+                                if (value === null || value === undefined) {
+                                    const zeroY = chart.scales.y.getPixelForValue(0);
+                                    ctx.save();
+                                    ctx.translate(element.x, zeroY - 5);
+                                    ctx.rotate(-Math.PI / 2);
+                                    ctx.fillStyle = '#6c7a77'; 
+                                    ctx.font = 'italic 500 11px Inter';
+                                    ctx.textAlign = 'left';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText('Sem dados', 0, 0);
+                                    ctx.restore();
+                                    return;
+                                }
+
+                                const text = value + '%';
+                                ctx.font = '600 12px Inter';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+
+                                const yPos = value === 0 ? element.y - 2 : element.y - 6;
+
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.lineWidth = 3;
+                                ctx.lineJoin = 'round';
+                                ctx.strokeText(text, element.x, yPos);
+                                ctx.fillStyle = chartColors.text;
+                                ctx.fillText(text, element.x, yPos);
+                            });
+                        });
+                        ctx.restore();
+                    }
+                };
+
+                const instance = new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: mesesDoAno, datasets: dEq },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 25 } },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, max: 100, min: 0, ticks: { callback: v => v + '%' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    },
+                    plugins: [pluginEqLabels]
+                });
+
+                chartInstances.equipes.push(instance);
+            });
+        }
+
+        // Lógica Gráfico: Número de Falhas x Percentual de Preventiva
+        function renderizarChartFalhasPreventiva(dadosFiltrados, dtInicio, dtFim) {
+            const canvas = document.getElementById('chartFalhasPreventiva');
+            if (!canvas) return;
+
+            if (chartInstances.falhasPreventiva) {
+                chartInstances.falhasPreventiva.destroy();
+            }
+
+            // Descobrir os meses contidos no período de filtro (para promediar/somar preventiva)
+            const mesesFiltro = new Set();
+            if (dtInicio && dtFim) {
+                let curD = new Date(dtInicio);
+                curD.setDate(1);
+                const endD = new Date(dtFim);
+                while (curD <= endD) {
+                    mesesFiltro.add(curD.getMonth() + 1);
+                    curD.setMonth(curD.getMonth() + 1);
+                }
+            } else {
+                for(let i=1; i<=12; i++) mesesFiltro.add(i);
+            }
+            const numMeses = mesesFiltro.size || 1;
+
+            const equipesSort = [...dadosParqueVP].sort((a,b) => a.equipe.localeCompare(b.equipe));
+            const labels = equipesSort.map(eq => eq.equipe);
+
+            // Eixo Y1: Percentual Acumulado (Preventiva)
+            const dataY1 = equipesSort.map(eq => {
+                // Se a equipe não tem parque preenchido na view Configurações, resulta em zero diretamente.
+                if (!eq.quantidade || eq.quantidade <= 0) return 0;
+                
+                let somaValores = 0;
+                mesesFiltro.forEach(mes => {
+                    const md = dadosPreventivaMensal.find(m => m.mesReferencia === mes);
+                    if (md) {
+                        const dt = md.dados.find(d => d.equipe === eq.equipe);
+                        if (dt && typeof dt.valor === 'number') somaValores += dt.valor;
+                    }
+                });
+                
+                const esperado = eq.quantidade * numMeses;
+                if (esperado === 0) return 0; // Proteção contra divisão por zero para período sem planejamento
+                
+                let perc = Math.round((somaValores / esperado) * 100);
+                if (perc > 100) perc = 100; // Trunca a visualização e valor em 100%
+                
+                return perc;
+            });
+
+            // Eixo Y2: Quantidade de Falhas (Coluna VPX)
+            const dataY2 = equipesSort.map(eq => {
+                let falhas = 0;
+                const eqNorm = normalizarTexto(eq.equipe);
+                
+                (dadosFiltrados || []).forEach(row => {
+                    if (row.vpx && normalizarTexto(row.vpx) === eqNorm) {
+                        falhas++;
+                    }
+                });
+                
+                return falhas > 0 ? falhas : null; // Omite a plotagem em Y2 caso seja 0 falhas no período
+            });
+
+            chartInstances.falhasPreventiva = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Percentual de Preventiva',
+                            data: dataY1,
+                            borderColor: chartColors.secondary,
+                            backgroundColor: chartColors.secondary,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            yAxisID: 'y1',
+                            spanGaps: true
+                        },
+                        {
+                            label: 'Quantidade de Falhas',
+                            data: dataY2,
+                            borderColor: '#1c1b1b',
+                            backgroundColor: '#1c1b1b',
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            yAxisID: 'y2',
+                            spanGaps: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 30 } },
+                    scales: {
+                        x: { 
+                            grid: { display: false } 
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'left',
+                            min: 0,
+                            max: 100, // Escala fixa em 100
+                            ticks: { callback: v => v + '%' },
+                            grid: { color: '#f0edec' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { display: false } // Auto ajustável dinamicamente conforme os dados
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, boxWidth: 10 }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'customDataLabelsMultiAxis',
+                    afterDatasetsDraw(chart) {
+                        const { ctx, data } = chart;
+                        ctx.save();
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            if (meta.hidden) return;
+                            meta.data.forEach((element, index) => {
+                                const value = dataset.data[index];
+                                if (value === null || value === undefined) return;
+                                
+                                const text = dataset.yAxisID === 'y1' ? value + '%' : value;
+                                ctx.font = '600 12px Inter';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                
+                                const yPos = element.y - 8;
+                                
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.lineWidth = 3;
+                                ctx.lineJoin = 'round';
+                                ctx.strokeText(text, element.x, yPos);
+                                ctx.fillStyle = dataset.borderColor;
+                                ctx.fillText(text, element.x, yPos);
+                            });
+                        });
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        // ========== EXPORTAÇÃO E IMPORTAÇÃO ==========
+        async function exportarPDF() {
+            const ol = document.getElementById('loadingOverlay'); 
+            ol.classList.replace('hidden','flex');
+            
+            await new Promise(r => setTimeout(r,100));
+            
+            try {
+                const { jsPDF } = window.jspdf; 
+                const pdf = new jsPDF('p','mm','a4');
+                const mW = pdf.internal.pageSize.getWidth() - 15; 
+                const mH = pdf.internal.pageSize.getHeight() - 50;
+                
+                const chunks = Array.from(document.querySelectorAll('.pdf-export-chunk')).filter(c => !c.classList.contains('hidden'));
+                const pData = [];
+                
+                for (let c of chunks) {
+                    const canvas = await html2canvas(c, { scale:2, useCORS:true, logging:false, backgroundColor:'#fcf9f8' });
+                    const img = canvas.toDataURL('image/png'); 
+                    const prop = pdf.getImageProperties(img);
+                    pData.push({ img, w: mW, h: (prop.height * mW) / prop.width });
+                }
+                
+                const pages = []; 
+                let cur = []; 
+                let cY = 35;
+                
+                for (let c of pData) {
+                    if (cY + c.h > mH && cur.length) { 
+                        pages.push(cur); 
+                        cur = []; 
+                        cY = 35; 
+                    }
+                    cur.push({ img: c.img, x:7.5, y:cY, w:c.w, h:c.h }); 
+                    cY += c.h + 6;
+                }
+                
+                if (cur.length) pages.push(cur);
+                
+                const isExclusivoL10 = document.getElementById('checkExclusivoL10').checked;
+                const pdfTitle = isExclusivoL10 ? 
+                    "Exclusivo Linha 10 - MCE Analytics - Relatório Consolidado GOT" : 
+                    "Exclusivo Linhas 11, 12 e 13 - MCE Analytics - Relatório Consolidado GOT";
+                
+                for (let i=0;i<pages.length;i++){
+                    if (i>0) pdf.addPage();
+                    pdf.setFont("helvetica","bold"); 
+                    pdf.setFontSize(16); 
+                    pdf.setTextColor(0,107,95);
+                    pdf.text(pdfTitle, 7.5, 15);
+                    
+                    for (let it of pages[i]) pdf.addImage(it.img, 'PNG', it.x, it.y, it.w, it.h);
+                }
+                
+                const d = new Date(); 
+                pdf.save(`relatorio_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.pdf`);
+            } catch(e) { 
+                alert("Erro ao gerar PDF: " + e.message); 
+            } finally { 
+                ol.classList.replace('flex','hidden'); 
+            }
+        }
+
+        function salvarDadosJSON() {
+            const blob = new Blob([JSON.stringify({ 
+                versao:"1.0", 
+                dados: { 
+                    mch_indMes: document.getElementById('indMes').value, 
+                    mch_indPassados: document.getElementById('indPassados').value, 
+                    mch_recomendacoes: document.getElementById('recomendacoesText').value, 
+                    mch_dataInicio: document.getElementById('dataInicio').value, 
+                    mch_dataFim: document.getElementById('dataFim').value, 
+                    mch_parque: dadosParqueInstalado, 
+                    mch_parque_vp: dadosParqueVP, 
+                    mch_preventiva_mensal: dadosPreventivaMensal 
+                } 
+            }, null, 2)], { type:'application/json' });
+            
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            const d = new Date(); 
+            a.download = `backup_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.json`; 
+            document.body.appendChild(a); 
+            a.click(); 
+            a.remove();
+        }
+
+        function triggerImportarDados() { 
+            document.getElementById('fileImport').click(); 
+        }
+
+        function processarImportacao(event) {
+            const f = event.target.files[0]; 
+            if (!f) return;
+            
+            const r = new FileReader();
+            r.onload = function(e) {
+                try {
+                    const est = JSON.parse(e.target.result).dados; 
+                    if (!est) throw new Error();
+                    
+                    if(est.mch_indMes) { 
+                        document.getElementById('indMes').value = est.mch_indMes; 
+                        localStorage.setItem('mch_indMes', est.mch_indMes); 
+                    }
+                    if(est.mch_indPassados) { 
+                        document.getElementById('indPassados').value = est.mch_indPassados; 
+                        localStorage.setItem('mch_indPassados', est.mch_indPassados); 
+                    }
+                    if(est.mch_recomendacoes) { 
+                        document.getElementById('recomendacoesText').value = est.mch_recomendacoes; 
+                        localStorage.setItem('mch_recomendacoes', est.mch_recomendacoes); 
+                    }
+                    if(est.mch_dataInicio) { 
+                        document.getElementById('dataInicio').value = est.mch_dataInicio; 
+                        localStorage.setItem('mch_dataInicio', est.mch_dataInicio); 
+                    }
+                    if(est.mch_dataFim) { 
+                        document.getElementById('dataFim').value = est.mch_dataFim; 
+                        localStorage.setItem('mch_dataFim', est.mch_dataFim); 
+                    }
+                    if(est.mch_parque) { 
+                        dadosParqueInstalado = est.mch_parque; 
+                        localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado)); 
+                        renderizarListaParque(); 
+                    }
+                    if(est.mch_parque_vp) { 
+                        dadosParqueVP = est.mch_parque_vp; 
+                        localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP)); 
+                        renderizarListaParqueVP(); 
+                    }
+                    if(est.mch_preventiva_mensal) { 
+                        dadosPreventivaMensal = est.mch_preventiva_mensal; 
+                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal)); 
+                        atualizarProgressoPreventiva(); 
+                    }
+                    
+                    document.getElementById('errorMessage').classList.add('hidden');
+                    document.getElementById('chartsContainer').classList.add('hidden');
+                    document.getElementById('noDataState').classList.add('hidden');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    document.getElementById('dashboardSubtitle').innerText = "Dados restaurados.";
+                    document.getElementById('btnExportar').classList.add('opacity-50','cursor-not-allowed','pointer-events-none');
+                    alert("Backup restaurado. Clique em Processar Dados.");
+                } catch(err) { 
+                    alert("Arquivo inválido."); 
+                }
+                event.target.value = "";
+            };
+            r.readAsText(f);
+        }
+
+    </script>
+</body>
+</html>

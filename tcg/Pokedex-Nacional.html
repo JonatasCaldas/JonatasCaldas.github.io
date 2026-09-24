@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Pokédex Nacional | Progresso da coleção</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{action:'#147d3f',ink:'#1d1d1f',canvas:'#ffffff',parchment:'#f5f5f7',muted:'#6e6e73',line:'#e0e0e0',ok:'#147d3f',danger:'#b42318',warning:'#9a6700',poke:'#147d3f'},fontFamily:{sans:['Inter','system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif']},boxShadow:{soft:'0 14px 40px rgba(0,0,0,.08)'}}}}}
+</script>
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{font-size:16px;letter-spacing:-.01em;-webkit-tap-highlight-color:transparent}.view{display:none}.view.active{display:block}.btn{min-height:44px;transition:transform .16s ease,background-color .16s ease,border-color .16s ease}.btn:active{transform:scale(.97)}.card{border:1px solid rgba(0,0,0,.08)}.focusable:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(20,125,63,.35);outline-offset:2px}.toast{transform:translate(-50%,-150%);opacity:0}.toast.show{transform:translate(-50%,0);opacity:1}.nav-active{color:#147d3f}.status-toggle{width:52px;height:30px;border-radius:999px;background:#d2d2d7;padding:3px;transition:.2s}.status-toggle span{display:block;width:24px;height:24px;border-radius:50%;background:white;box-shadow:0 1px 5px rgba(0,0,0,.22);transition:.2s}.status-toggle.on{background:#147d3f}.status-toggle.on span{transform:translateX(22px)}.generation-chip.active{background:#1d1d1f;color:#fff;border-color:#1d1d1f}.progress-ring{transform:rotate(-90deg);transform-origin:50% 50%}.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}.modal{display:none}.modal.open{display:flex}input:not([type="checkbox"]):not([type="file"]),select,textarea{color:#1d1d1f;background:#fff;border:1px solid #86868b}input::placeholder,textarea::placeholder{color:#59595f;opacity:1}.table-wrap{overflow:auto}.table-wrap table{min-width:760px}.sort-btn{display:inline-flex;align-items:center;gap:5px}.mobile-card{display:none}@media(max-width:700px){.desktop-table{display:none}.mobile-card{display:block}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Correções de contraste e identidade visual verde */
+.bg-ink{background-color:#1d1d1f!important}.text-ink{color:#1d1d1f!important}
+.bg-action{background-color:#147d3f!important}.text-action{color:#147d3f!important}
+.bg-poke{background-color:#147d3f!important}.text-poke{color:#147d3f!important}
+.text-ok{color:#147d3f!important}.status-toggle.on{background:#147d3f!important}
+button.bg-ink,button.bg-action{color:#fff!important}
+#heroSummary{background:#1d1d1f!important;color:#fff!important}
+#heroSummary p,#heroSummary i{color:#fff}
+#heroSummary .text-white\/60,#heroSummary .text-white\/65{color:#d2d2d7!important}
+#heroSummary .bg-green-400{background:#4ade80!important}
+#dataView section.bg-ink{background:#1d1d1f!important;color:#fff!important}
+#dataView section.bg-ink h2,#dataView section.bg-ink p,#dataView section.bg-ink i{color:#fff}
+#dataView section.bg-ink .text-white\/65{color:#d2d2d7!important}
+#dataView section.bg-ink button.bg-white{background:#fff!important;color:#1d1d1f!important}
+#dataView section.bg-ink button.bg-white\/10{background:rgba(255,255,255,.12)!important;color:#fff!important;border-color:rgba(255,255,255,.35)!important}
+header button.bg-ink{background:#1d1d1f!important;color:#fff!important}
+.generation-chip.active{background:#147d3f!important;border-color:#147d3f!important;color:#fff!important}
+
+
+/* Otimizacao completa para smartphones */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{padding-bottom:calc(5rem + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+button{cursor:pointer}
+img,svg,canvas{max-width:100%}
+header{padding-top:env(safe-area-inset-top)}
+header>div{min-width:0}
+.toast{top:calc(12px + env(safe-area-inset-top));width:max-content;max-width:calc(100vw - 24px);justify-content:center;text-align:center;line-height:1.25}
+nav{padding-bottom:env(safe-area-inset-bottom)}
+nav button{min-height:64px}
+.status-toggle{min-width:52px;min-height:30px;flex:0 0 auto}
+
+@media(max-width:700px){
+  body{font-size:16px;overscroll-behavior-y:contain}
+  button,a,input,select,textarea{touch-action:manipulation}
+  header>div{height:60px;padding-left:12px!important;padding-right:12px!important}
+  header .btn{width:44px;min-width:44px;padding-left:0!important;padding-right:0!important;justify-content:center}
+  header .flex.items-center.gap-2{gap:6px}
+  main .max-w-7xl,main .max-w-5xl{padding-left:14px!important;padding-right:14px!important}
+  main .py-8,main .sm\:py-12{padding-top:24px!important;padding-bottom:24px!important}
+  h1.text-4xl,h1.sm\:text-5xl{font-size:2.25rem!important;line-height:1.02}
+  h2.text-2xl{font-size:1.25rem!important;line-height:1.2}
+  .rounded-\[28px\],.rounded-3xl{border-radius:22px!important}
+  .card{box-shadow:0 7px 24px rgba(0,0,0,.045)}
+  #heroSummary{padding:22px!important}
+  #heroSummary .grid{grid-template-columns:1fr!important;gap:18px!important}
+  #heroSummary .text-5xl{font-size:3rem!important}
+  #heroSummary .w-40{width:116px!important;height:116px!important}
+  #metricCards{gap:10px!important;margin-bottom:20px!important}
+  #metricCards>div{padding:15px!important;min-width:0}
+  #metricCards .text-2xl{font-size:1.4rem!important;overflow-wrap:anywhere}
+  #metricCards .text-xs{line-height:1.25}
+  #dashboardView .grid.lg\:grid-cols-\[\.9fr_1\.1fr\]{gap:14px!important;margin-bottom:14px!important}
+  #dashboardView canvas{max-height:230px}
+  #dashboardView .h-72{height:240px!important}
+  #generationList{gap:10px!important}
+  #generationList article{padding:15px!important}
+
+  #pokedexView .lg\:items-end{margin-bottom:20px!important}
+  #pokedexView .lg\:items-end>.btn{width:100%}
+  #pokedexView section.bg-white.card{padding:14px!important;border-radius:20px!important;position:relative}
+  #searchInput{font-size:16px!important}
+  #statusFilter{width:calc(100% - 126px);font-size:16px!important}
+  #statusFilter+button{width:118px;padding-left:10px!important;padding-right:10px!important}
+  #generationFilters{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px;padding-bottom:6px;scroll-snap-type:x proximity}
+  #generationFilters button{scroll-snap-align:start;min-height:44px}
+  #resultSummary{line-height:1.5;padding:0 2px}
+  #pokedexCards{display:block!important}
+  #pokedexCards article{padding:14px!important;min-height:92px}
+  #pokedexCards .w-12{width:46px!important;height:46px!important;flex:0 0 46px}
+  .desktop-table{display:none!important}
+  #emptyState{padding:38px 20px!important}
+
+  #dataView .grid.lg\:grid-cols-\[1\.15fr_\.85fr\]{gap:14px!important}
+  #dataView section{padding:20px!important}
+  #dataView textarea{font-size:16px!important;line-height:1.45;min-height:270px}
+  #dataView .grid.sm\:grid-cols-2{grid-template-columns:1fr!important}
+  #dataView .grid.grid-cols-2{grid-template-columns:1fr!important}
+  #dataView button{width:100%}
+  input,select,textarea{font-size:16px!important}
+  .btn{min-height:48px}
+}
+
+@media(max-width:380px){
+  main .max-w-7xl,main .max-w-5xl{padding-left:10px!important;padding-right:10px!important}
+  h1.text-4xl,h1.sm\:text-5xl{font-size:2rem!important}
+  #metricCards{grid-template-columns:1fr 1fr!important}
+  #metricCards>div{padding:13px!important}
+  #statusFilter{width:100%}
+  #statusFilter+button{width:100%}
+  #pokedexCards article{gap:10px!important}
+  #pokedexCards .w-12{width:40px!important;height:40px!important;flex-basis:40px}
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  nav button{min-height:54px}
+  body{padding-bottom:calc(4.25rem + env(safe-area-inset-bottom))}
+  #heroSummary .grid{grid-template-columns:1fr auto!important}
+  #heroSummary .w-40{width:100px!important;height:100px!important}
+}
+
+</style>
+</head>
+<body class="bg-parchment text-ink min-h-screen pb-24">
+<div id="toast" class="toast fixed top-4 left-1/2 z-[120] bg-ink text-white rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-xl"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span id="toastText"></span></div>
+
+<header class="sticky top-0 z-40 bg-parchment/90 backdrop-blur-xl border-b border-black/5">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+    <button onclick="goView('dashboard')" class="focusable flex items-center gap-2 font-semibold text-[19px]" aria-label="Ir para o painel">
+      <span class="w-9 h-9 rounded-full bg-poke text-white grid place-items-center"><i data-lucide="circle-dot" class="w-5 h-5"></i></span>
+      <span class="hidden sm:inline">Pokédex Nacional</span>
+    </button>
+    <div class="flex items-center gap-2">
+      <input id="importInput" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
+      <button onclick="document.getElementById('importInput').click()" class="btn focusable rounded-full bg-white border border-line px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" title="Importar backup JSON"><i data-lucide="upload" class="w-4 h-4"></i><span class="hidden sm:inline">Importar</span></button>
+      <button onclick="exportBackup()" class="btn focusable rounded-full bg-ink text-white px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" title="Exportar backup JSON"><i data-lucide="download" class="w-4 h-4"></i><span class="hidden sm:inline">Backup</span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="dashboardView" class="view active">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">PROGRESSO DA COLEÇÃO</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Visão geral</h1><p class="text-muted mt-2">Acompanhe sua jornada por todas as regiões da Pokédex Nacional.</p></div>
+    <section id="heroSummary" class="bg-ink text-white rounded-[28px] p-6 sm:p-8 mb-7"></section>
+    <div id="metricCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7"></div>
+    <div class="grid lg:grid-cols-[.9fr_1.1fr] gap-5 mb-7">
+      <section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex items-start justify-between gap-3"><div><h2 class="text-2xl font-semibold">Distribuição geral</h2><p class="text-sm text-muted mt-1">Capturados e pendentes.</p></div><i data-lucide="chart-pie" class="text-action"></i></div><div class="h-72 mt-4"><canvas id="overallChart"></canvas></div></section>
+      <section class="bg-white card rounded-3xl p-5 sm:p-6"><div><h2 class="text-2xl font-semibold">Progresso por geração</h2><p class="text-sm text-muted mt-1">Comparativo das regiões cadastradas.</p></div><div class="h-72 mt-4"><canvas id="generationChart"></canvas></div></section>
+    </div>
+    <section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3"><div><h2 class="text-2xl font-semibold">Jornada pelas regiões</h2><p class="text-muted text-sm mt-1">Detalhamento acumulado da coleção.</p></div><button onclick="goView('pokedex')" class="btn rounded-full bg-action text-white px-5 text-sm font-semibold flex items-center justify-center gap-2"><i data-lucide="list-filter" class="w-4 h-4"></i>Ver Pokédex</button></div><div id="generationList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-5"></div></section>
+  </div>
+</section>
+
+<section id="pokedexView" class="view">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7"><div><p class="text-poke text-sm font-semibold mb-2">REGISTRO NACIONAL</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Minha Pokédex</h1><p class="text-muted mt-2">Pesquise, filtre e registre capturas em um único toque.</p></div><button onclick="goView('data')" class="btn bg-action text-white rounded-full px-6 font-semibold flex items-center justify-center gap-2"><i data-lucide="plus" class="w-5 h-5"></i>Adicionar dados</button></div>
+    <section class="bg-white card rounded-3xl p-4 sm:p-5 mb-5">
+      <div class="grid lg:grid-cols-[1fr_auto] gap-4 lg:items-center">
+        <label class="relative"><i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-muted"></i><input id="searchInput" oninput="renderPokedex()" class="focusable w-full h-12 rounded-full pl-12 pr-4" placeholder="Nome ou número, ex.: Bulbasaur ou 001" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="none"></label>
+        <div class="flex flex-wrap gap-2"><select id="statusFilter" onchange="renderPokedex()" class="focusable h-12 rounded-full px-4 text-sm font-semibold"><option value="all">Todos os status</option><option value="captured">Capturados</option><option value="missing">Ainda faltam</option></select><button onclick="clearFilters()" class="btn rounded-full px-4 bg-parchment text-sm font-semibold">Limpar filtros</button></div>
+      </div>
+      <div class="mt-4"><div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">Gerações <span class="text-muted font-normal">(seleção cumulativa)</span></p><button onclick="toggleAllGenerations()" class="text-action text-sm font-semibold">Selecionar todas</button></div><div id="generationFilters" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 mt-3"></div></div>
+    </section>
+    <div id="resultSummary" class="text-sm text-muted mb-3"></div>
+    <section class="desktop-table bg-white card rounded-3xl table-wrap">
+      <table class="w-full border-collapse"><thead class="bg-parchment/80 text-left text-xs uppercase text-muted"><tr><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('number')">Número <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('name')">Pokémon <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('generation')">Geração / Região <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4">Status</th><th class="px-5 py-4 text-right">Captura rápida</th></tr></thead><tbody id="pokedexTable" class="divide-y divide-line"></tbody></table>
+    </section>
+    <div id="pokedexCards" class="mobile-card space-y-3"></div>
+    <div id="emptyState" class="hidden bg-white border border-dashed border-line rounded-3xl p-12 text-center"><i data-lucide="search-x" class="w-9 h-9 text-muted mx-auto"></i><h3 class="font-semibold mt-3">Nenhum Pokémon encontrado</h3><p class="text-muted text-sm mt-1">Ajuste a pesquisa ou os filtros.</p></div>
+  </div>
+</section>
+
+<section id="dataView" class="view">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">ADMINISTRAÇÃO DOS DADOS</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Incluir e compartilhar</h1><p class="text-muted mt-2">Cole uma lista tabulada ou CSV para atualizar sua Pokédex.</p></div>
+    <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-5">
+      <section class="bg-white card rounded-3xl p-5 sm:p-6"><h2 class="text-2xl font-semibold">Importação em lote</h2><p class="text-sm text-muted mt-1">Aceita tabulação, ponto e vírgula ou vírgula. A primeira linha pode conter cabeçalho.</p><label class="block mt-5"><span class="text-sm font-semibold">Dados da Pokédex</span><textarea id="bulkInput" rows="14" oninput="previewBulk()" class="focusable mt-2 w-full rounded-2xl px-4 py-3 font-mono text-sm resize-y" placeholder="Pokémon\tNúmero\tGeração\tCapturado?\nBulbasaur\t1\t1 - Kanto\tNão"></textarea></label><div id="bulkPreview" class="mt-3 rounded-2xl bg-parchment p-4 text-sm text-muted">Cole os dados para validar antes de incluir.</div><div class="grid sm:grid-cols-2 gap-3 mt-4"><button onclick="addBulkData()" class="btn rounded-full bg-action text-white font-semibold flex items-center justify-center gap-2"><i data-lucide="database-zap" class="w-4 h-4"></i>Incluir / atualizar</button><button onclick="loadSample()" class="btn rounded-full bg-white border border-line font-semibold">Carregar exemplo</button></div></section>
+      <div class="space-y-5"><section class="bg-ink text-white rounded-3xl p-6"><i data-lucide="copy" class="w-7 h-7 text-blue-300"></i><h2 class="text-2xl font-semibold mt-5">Copiar listagem</h2><p class="text-white/65 text-sm mt-2">Copie toda a Pokédex como texto tabulado para colar no Excel, Sheets ou editor de texto.</p><button onclick="copyTSV()" class="btn mt-5 w-full rounded-full bg-white text-ink font-semibold flex items-center justify-center gap-2"><i data-lucide="clipboard-copy" class="w-4 h-4"></i>Copiar como tabulação</button><button onclick="exportCSV()" class="btn mt-2 w-full rounded-full bg-white/10 border border-white/25 text-white font-semibold flex items-center justify-center gap-2"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Baixar CSV</button></section><section class="bg-white card rounded-3xl p-6"><h2 class="text-xl font-semibold">Segurança dos dados</h2><p class="text-muted text-sm mt-2">Os dados ficam neste navegador. Use o backup JSON para migrar ou restaurar tudo sem perda.</p><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="exportBackup()" class="btn rounded-full bg-ink text-white text-sm font-semibold">Exportar JSON</button><button onclick="document.getElementById('importInput').click()" class="btn rounded-full bg-white border border-line text-sm font-semibold">Importar JSON</button></div></section></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav aria-label="Navegação principal" class="fixed bottom-0 inset-x-0 z-50 bg-white/92 backdrop-blur-xl border-t border-black/5 pb-[env(safe-area-inset-bottom)]"><div class="max-w-lg mx-auto h-16 grid grid-cols-3"><button id="navDashboard" onclick="goView('dashboard')" class="focusable nav-active flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Painel</button><button id="navPokedex" onclick="goView('pokedex')" class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="list-checks" class="w-5 h-5"></i>Pokédex</button><button id="navData" onclick="goView('data')" class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="database" class="w-5 h-5"></i>Dados</button></div></nav>
+
+<script>
+const STORAGE='pokedex-nacional-v1';
+const GENERATIONS={1:'Kanto',2:'Johto',3:'Hoenn',4:'Sinnoh',5:'Unova',6:'Kalos',7:'Alola',8:'Galar',9:'Paldea'};
+const SAMPLE=`Pokémon\tNúmero\tGeração\tCapturado?\nBulbasaur\t1\t1 - Kanto\tNão\nIvysaur\t2\t1 - Kanto\tNão\nVenusaur\t3\t1 - Kanto\tNão\nCharmander\t4\t1 - Kanto\tNão\nCharmeleon\t5\t1 - Kanto\tNão\nCharizard\t6\t1 - Kanto\tNão\nSquirtle\t7\t1 - Kanto\tNão\nWartortle\t8\t1 - Kanto\tNão\nBlastoise\t9\t1 - Kanto\tNão\nCaterpie\t10\t1 - Kanto\tNão\nMetapod\t11\t1 - Kanto\tNão\nButterfree\t12\t1 - Kanto\tNão\nWeedle\t13\t1 - Kanto\tSim\nKakuna\t14\t1 - Kanto\tSim`;
+let state=loadState();let selectedGenerations=new Set();let sort={key:'number',dir:1};let overallChart=null,generationChart=null;
+function uid(){return crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
+function normalize(data){return {pokemon:(Array.isArray(data?.pokemon)?data.pokemon:[]).map(p=>({id:p.id||uid(),name:String(p.name||'').trim(),number:Number(p.number)||0,generation:Math.min(9,Math.max(1,Number(p.generation)||1)),region:p.region||GENERATIONS[Number(p.generation)]||'',captured:!!p.captured,capturedAt:p.capturedAt||null,updatedAt:p.updatedAt||new Date().toISOString()})).filter(p=>p.name&&p.number>0)}}
+function loadState(){try{const raw=localStorage.getItem(STORAGE);if(raw)return normalize(JSON.parse(raw))}catch(e){}return normalize({pokemon:parseBulk(SAMPLE)})}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(state))}
+function escapeHtml(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function showToast(msg,icon='check-circle-2'){const t=document.getElementById('toast');document.getElementById('toastText').textContent=msg;t.querySelector('i').setAttribute('data-lucide',icon);lucide.createIcons();t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3000)}
+function goView(view){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(view+'View').classList.add('active');['Dashboard','Pokedex','Data'].forEach(n=>{const el=document.getElementById('nav'+n);el.className=`focusable ${n.toLowerCase()===view?'nav-active':'text-muted'} flex flex-col items-center justify-center text-xs font-semibold gap-1`});if(view==='dashboard')renderDashboard();if(view==='pokedex')renderPokedex();scrollTo({top:0,behavior:'smooth'});lucide.createIcons()}
+function stats(items=state.pokemon){const total=items.length,captured=items.filter(p=>p.captured).length;return {total,captured,missing:total-captured,pct:total?captured/total*100:0}}
+function renderDashboard(){const s=stats();document.getElementById('heroSummary').innerHTML=`<div class="grid md:grid-cols-[1fr_auto] gap-6 items-center"><div><p class="text-white/60 text-sm font-semibold">CONCLUSÃO DA POKÉDEX</p><p class="text-5xl sm:text-6xl font-semibold tracking-[-.05em] mt-2">${s.pct.toFixed(1)}%</p><p class="text-white/65 mt-3">${s.captured} de ${s.total} Pokémon capturados.</p><div class="h-3 bg-white/15 rounded-full mt-6 overflow-hidden"><div class="h-full bg-green-400 rounded-full" style="width:${s.pct}%"></div></div></div><div class="w-40 h-40 relative mx-auto"><svg viewBox="0 0 120 120" class="w-full h-full"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="10"/><circle class="progress-ring" cx="60" cy="60" r="50" fill="none" stroke="#4ade80" stroke-width="10" stroke-linecap="round" stroke-dasharray="${Math.PI*100}" stroke-dashoffset="${Math.PI*100*(1-s.pct/100)}"/></svg><div class="absolute inset-0 grid place-items-center"><i data-lucide="trophy" class="w-10 h-10 text-green-300"></i></div></div></div>`;
+const metrics=[['Total considerado',s.total,'database'],['Capturados',s.captured,'circle-check-big'],['Ainda faltam',s.missing,'circle-dashed'],['Progresso',s.pct.toFixed(1)+'%','trending-up']];document.getElementById('metricCards').innerHTML=metrics.map((m,i)=>`<div class="bg-white card rounded-2xl p-4 sm:p-5"><i data-lucide="${m[2]}" class="w-5 h-5 ${i===1?'text-ok':i===2?'text-danger':'text-action'}"></i><p class="text-xs text-muted mt-4">${m[0]}</p><p class="text-2xl font-semibold mt-1">${m[1]}</p></div>`).join('');
+const genRows=Object.keys(GENERATIONS).map(Number).map(g=>{const a=state.pokemon.filter(p=>p.generation===g),x=stats(a);return {g,region:GENERATIONS[g],...x}});document.getElementById('generationList').innerHTML=genRows.map(x=>`<article class="rounded-2xl bg-parchment p-4"><div class="flex justify-between gap-3"><div><p class="text-xs text-muted">Geração ${x.g}</p><h3 class="font-semibold">${x.region}</h3></div><span class="text-sm font-semibold">${x.pct.toFixed(0)}%</span></div><div class="h-2 bg-black/10 rounded-full mt-3 overflow-hidden"><div class="h-full bg-action rounded-full" style="width:${x.pct}%"></div></div><p class="text-xs text-muted mt-2">${x.captured} capturados · ${x.missing} faltam · ${x.total} total</p></article>`).join('');renderCharts(genRows);lucide.createIcons()}
+function renderCharts(rows){if(typeof Chart==='undefined')return;if(overallChart)overallChart.destroy();if(generationChart)generationChart.destroy();overallChart=new Chart(document.getElementById('overallChart'),{type:'doughnut',data:{labels:['Capturados','Ainda faltam'],datasets:[{data:[stats().captured,stats().missing],backgroundColor:['#147d3f','#e5e7eb'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom'}}}});generationChart=new Chart(document.getElementById('generationChart'),{type:'bar',data:{labels:rows.map(x=>'G'+x.g),datasets:[{label:'Capturados',data:rows.map(x=>x.captured),backgroundColor:'#147d3f',borderRadius:6},{label:'Ainda faltam',data:rows.map(x=>x.missing),backgroundColor:'#e5e7eb',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}}})}
+function renderGenerationFilters(){document.getElementById('generationFilters').innerHTML=Object.keys(GENERATIONS).map(Number).map(g=>`<button onclick="toggleGeneration(${g})" class="generation-chip btn focusable shrink-0 rounded-full border border-line bg-white px-4 text-sm font-semibold ${selectedGenerations.has(g)?'active':''}">G${g} · ${GENERATIONS[g]}</button>`).join('')}
+function filteredPokemon(){const q=(document.getElementById('searchInput')?.value||'').trim().toLocaleLowerCase('pt-BR'),status=document.getElementById('statusFilter')?.value||'all';let rows=state.pokemon.filter(p=>(!q||p.name.toLocaleLowerCase('pt-BR').includes(q)||String(p.number).includes(q))&&(status==='all'||(status==='captured'?p.captured:!p.captured))&&(!selectedGenerations.size||selectedGenerations.has(p.generation)));return rows.sort((a,b)=>{let A=a[sort.key],B=b[sort.key];if(typeof A==='string'){return A.localeCompare(B,'pt-BR')*sort.dir}return (A-B)*sort.dir})}
+function renderPokedex(){renderGenerationFilters();const rows=filteredPokemon(),s=stats(rows);document.getElementById('resultSummary').innerHTML=`Exibindo <strong class="text-ink">${rows.length}</strong> registro(s) · <span class="text-ok">${s.captured} capturados</span> · <span class="text-danger">${s.missing} pendentes</span>`;document.getElementById('pokedexTable').innerHTML=rows.map(p=>`<tr class="hover:bg-parchment/55"><td class="px-5 py-4 font-mono text-sm text-muted">#${String(p.number).padStart(4,'0')}</td><td class="px-5 py-4 font-semibold">${escapeHtml(p.name)}</td><td class="px-5 py-4"><span class="text-sm">G${p.generation} · ${escapeHtml(p.region||GENERATIONS[p.generation])}</span></td><td class="px-5 py-4">${statusBadge(p)}</td><td class="px-5 py-4 text-right"><button onclick="toggleCaptured('${p.id}')" class="status-toggle ${p.captured?'on':''}" role="switch" aria-checked="${p.captured}" aria-label="${p.captured?'Desmarcar':'Marcar'} ${escapeHtml(p.name)} como capturado"><span></span></button></td></tr>`).join('');document.getElementById('pokedexCards').innerHTML=rows.map(p=>`<article class="bg-white card rounded-2xl p-4 flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-parchment grid place-items-center font-mono text-xs text-muted">#${String(p.number).padStart(3,'0')}</div><div class="min-w-0 flex-1"><h3 class="font-semibold truncate">${escapeHtml(p.name)}</h3><p class="text-xs text-muted mt-1">G${p.generation} · ${escapeHtml(p.region||GENERATIONS[p.generation])}</p><div class="mt-2">${statusBadge(p)}</div></div><button onclick="toggleCaptured('${p.id}')" class="status-toggle ${p.captured?'on':''}" role="switch" aria-checked="${p.captured}" aria-label="Alterar status"><span></span></button></article>`).join('');document.getElementById('emptyState').classList.toggle('hidden',rows.length>0);document.querySelector('.desktop-table').classList.toggle('hidden',rows.length===0);lucide.createIcons()}
+function statusBadge(p){return p.captured?'<span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 text-ok px-2.5 py-1 text-xs font-semibold"><i data-lucide="check" class="w-3.5"></i>Capturado</span>':'<span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-danger px-2.5 py-1 text-xs font-semibold"><i data-lucide="circle-dashed" class="w-3.5"></i>Ainda falta</span>'}
+function toggleCaptured(id){const p=state.pokemon.find(x=>x.id===id);if(!p)return;p.captured=!p.captured;p.capturedAt=p.captured?new Date().toISOString():null;p.updatedAt=new Date().toISOString();save();renderPokedex();showToast(p.captured?`${p.name} registrado como capturado`:`${p.name} voltou para pendentes`,p.captured?'check-circle-2':'undo-2')}
+function toggleGeneration(g){selectedGenerations.has(g)?selectedGenerations.delete(g):selectedGenerations.add(g);renderPokedex()}
+function toggleAllGenerations(){selectedGenerations=selectedGenerations.size===9?new Set():new Set(Object.keys(GENERATIONS).map(Number));renderPokedex()}
+function clearFilters(){document.getElementById('searchInput').value='';document.getElementById('statusFilter').value='all';selectedGenerations.clear();renderPokedex()}
+function setSort(key){if(sort.key===key)sort.dir*=-1;else sort={key,dir:1};renderPokedex()}
+function detectDelimiter(line){if(line.includes('\t'))return '\t';if(line.includes(';'))return ';';return ','}
+function parseGeneration(value){const m=String(value||'').match(/([1-9])/);return m?Number(m[1]):1}
+function yes(value){return /^(sim|s|yes|true|1|capturado)$/i.test(String(value||'').trim())}
+function parseBulk(raw){const lines=String(raw||'').replace(/\u00a0/g,' ').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return[];const delimiter=detectDelimiter(lines[0]);const parsed=[];lines.forEach((line,index)=>{const p=line.split(delimiter).map(x=>x.trim().replace(/^"|"$/g,''));if(index===0&&/pok[eé]mon|nome/i.test(p[0])&&/n[uú]mero/i.test(p[1]||''))return;if(p.length<3)return;const number=Number(String(p[1]).replace(/\D/g,'')),generation=parseGeneration(p[2]);if(!p[0]||!number)return;parsed.push({id:uid(),name:p[0],number,generation,region:(String(p[2]).split('-')[1]||GENERATIONS[generation]||'').trim(),captured:yes(p[3]),capturedAt:yes(p[3])?new Date().toISOString():null,updatedAt:new Date().toISOString()})});return parsed}
+function previewBulk(){const rows=parseBulk(document.getElementById('bulkInput').value),box=document.getElementById('bulkPreview');box.className=`mt-3 rounded-2xl p-4 text-sm ${rows.length?'bg-green-50 text-ok':'bg-red-50 text-danger'}`;box.textContent=rows.length?`${rows.length} registro(s) reconhecido(s). Registros com o mesmo número serão atualizados.`:'Nenhum registro válido reconhecido.'}
+function addBulkData(){const rows=parseBulk(document.getElementById('bulkInput').value);if(!rows.length){showToast('Nenhum dado válido para incluir','circle-alert');return}rows.forEach(n=>{const current=state.pokemon.find(p=>p.number===n.number);if(current)Object.assign(current,{name:n.name,generation:n.generation,region:n.region,captured:n.captured,capturedAt:n.captured?current.capturedAt||n.capturedAt:null,updatedAt:new Date().toISOString()});else state.pokemon.push(n)});state.pokemon.sort((a,b)=>a.number-b.number);save();document.getElementById('bulkInput').value='';previewBulk();showToast(`${rows.length} registro(s) incluído(s) ou atualizado(s)`);goView('pokedex')}
+function loadSample(){document.getElementById('bulkInput').value=SAMPLE;previewBulk()}
+function tsv(){return ['Pokémon\tNúmero\tGeração\tCapturado?',...state.pokemon.sort((a,b)=>a.number-b.number).map(p=>`${p.name}\t${p.number}\t${p.generation} - ${p.region||GENERATIONS[p.generation]}\t${p.captured?'Sim':'Não'}`)].join('\n')}
+async function copyTSV(){try{await navigator.clipboard.writeText(tsv());showToast('Listagem copiada como tabulação')}catch(e){const ta=document.createElement('textarea');ta.value=tsv();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('Listagem copiada')}}
+function download(name,content,type){const blob=new Blob(['\ufeff'+content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportCSV(){const csv=['Pokémon;Número;Geração;Capturado?',...state.pokemon.sort((a,b)=>a.number-b.number).map(p=>`"${p.name.replace(/"/g,'""')}";${p.number};"${p.generation} - ${p.region||GENERATIONS[p.generation]}";${p.captured?'Sim':'Não'}`)].join('\n');download(`pokedex-${new Date().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8');showToast('CSV gerado')}
+function exportBackup(){const data={metadata:{app:'Pokédex Nacional',version:1,exportedAt:new Date().toISOString()},pokemon:state.pokemon};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup JSON gerado')}
+function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(!confirm(`Importar ${data.pokemon.length} registros e substituir os dados atuais?`))return;state=normalize(data);save();selectedGenerations.clear();goView('dashboard');showToast('Backup restaurado com sucesso')}catch(err){showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
+renderDashboard();lucide.createIcons();
+</script>
+</body>
+</html>

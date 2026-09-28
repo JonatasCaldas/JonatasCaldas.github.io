@@ -146,6 +146,17 @@
           placeholder="Cole aqui os dados da Setlist TCG..."
           class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition"
         ></textarea>
+        <div class="mt-4 pt-4 border-t border-slate-800">
+          <label for="inputExpansionCode" class="block text-xs font-semibold text-slate-200 mb-1.5">Expansão para análise</label>
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+            <input id="inputExpansionCode" type="text" inputmode="numeric" autocomplete="off" list="expansionCodeSuggestions"
+              placeholder="Digite o código após a barra, por exemplo: 132"
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition">
+            <datalist id="expansionCodeSuggestions"></datalist>
+          </div>
+          <p id="expansionCodeFeedback" class="mt-2 text-[11px] text-slate-500">Cole a setlist para identificar os códigos disponíveis na coluna “No.”.</p>
+        </div>
       </div>
     </section>
 
@@ -203,7 +214,7 @@
       <div class="border-t border-slate-800 pt-8">
         <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
           <i data-lucide="bar-chart-3" class="w-6 h-6 text-amber-400"></i>
-          Resumo do Diagnóstico da Pokédex
+          <span id="resultsTitle">Resumo do Diagnóstico da Pokédex</span>
         </h2>
 
         <!-- KPI Metrics Cards Grid -->
@@ -212,7 +223,7 @@
           <!-- Highlight KPI: Oportunidades no Setlist -->
           <div class="bg-slate-900 border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl p-5 relative overflow-hidden pulse-opportunity">
             <div class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <i data-lucide="target" class="w-4 h-4"></i> Oportunidades no Setlist
+              <i data-lucide="target" class="w-4 h-4"></i> <span id="opportunityKpiLabel">Oportunidades no Setlist</span>
             </div>
             <div id="statOpportunities" class="text-3xl font-extrabold text-amber-300 mt-2">0</div>
             <div id="statOpportunitiesSub" class="text-xs text-amber-200/80 mt-1">Pokémons "Não" com carta no Setlist</div>
@@ -406,6 +417,9 @@
       pokedexList: [],      // Pokédex entries array
       pokedexMap: new Map(), // Key: normalized name -> Pokédex entry
       setlistCards: [],     // Raw parsed setlist cards
+      availableExpansions: new Map(), // code after slash -> card count
+      selectedExpansionCode: '',
+      selectedExpansionCardCount: 0,
       matchedResults: [],   // Pokédex-centric matched list
       setlistResults: [],   // Setlist-centric matched list
       activeViewMode: 'pokedex', // 'pokedex' | 'setlist'
@@ -496,6 +510,73 @@ Gengar\t94\t1 - Kanto\tSIM`;
       return lines.map(line => line.split(delimiter).map(cell => cell.trim()));
     }
 
+    /** Extracts the expansion code from values in the format xxx/yyy. */
+    function extractExpansionCode(cardNo) {
+      const match = String(cardNo || '').trim().match(/^\d+\s*\/\s*(\d+)$/);
+      return match ? match[1] : '';
+    }
+
+    function findSetlistNumberColumn(rows) {
+      if (!rows.length) return 0;
+      let column = 0;
+      rows[0].forEach((name, index) => {
+        const value = String(name || '').trim().toLowerCase();
+        if (value === 'no.' || value === 'no' || value.includes('número') || value.includes('numero')) column = index;
+      });
+      return column;
+    }
+
+    function hasSetlistHeader(rows) {
+      if (!rows.length) return false;
+      return rows[0].some(cell => {
+        const value = String(cell || '').trim().toLowerCase();
+        return value === 'no.' || value === 'no' || value.includes('card name') || value.includes('nome da carta');
+      });
+    }
+
+    function refreshAvailableExpansions() {
+      const rows = parseDelimitedText(document.getElementById('inputSetlist').value);
+      const codeInput = document.getElementById('inputExpansionCode');
+      const counts = new Map();
+      if (rows.length) {
+        const numberColumn = findSetlistNumberColumn(rows);
+        const startIndex = hasSetlistHeader(rows) ? 1 : 0;
+        for (let i = startIndex; i < rows.length; i++) {
+          const code = extractExpansionCode(rows[i][numberColumn]);
+          if (code) counts.set(code, (counts.get(code) || 0) + 1);
+        }
+      }
+      appState.availableExpansions = counts;
+      document.getElementById('expansionCodeSuggestions').innerHTML = [...counts.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }))
+        .map(([code, count]) => `<option value="${code}">${count} carta${count === 1 ? '' : 's'}</option>`)
+        .join('');
+      validateExpansionSelection();
+    }
+
+    function validateExpansionSelection() {
+      const codeInput = document.getElementById('inputExpansionCode');
+      const feedback = document.getElementById('expansionCodeFeedback');
+      const code = codeInput.value.replace(/\D/g, '');
+      if (codeInput.value !== code) codeInput.value = code;
+      appState.selectedExpansionCode = code;
+      appState.selectedExpansionCardCount = appState.availableExpansions.get(code) || 0;
+      if (appState.availableExpansions.size === 0) {
+        feedback.className = 'mt-2 text-[11px] text-slate-500';
+        feedback.textContent = 'Nenhum código válido no formato xxx/yyy foi identificado na coluna “No.”.';
+      } else if (!code) {
+        feedback.className = 'mt-2 text-[11px] text-slate-500';
+        feedback.textContent = '';
+      } else if (appState.availableExpansions.has(code)) {
+        const count = appState.availableExpansions.get(code);
+        feedback.className = 'mt-2 text-[11px] text-emerald-400';
+        feedback.textContent = `Expansão ${code} encontrada: ${count} carta${count === 1 ? '' : 's'} será${count === 1 ? '' : 'ão'} analisada${count === 1 ? '' : 's'}.`;
+      } else {
+        feedback.className = 'mt-2 text-[11px] text-red-400';
+        feedback.textContent = `A expansão ${code} não foi encontrada na coluna “No.”.`;
+      }
+    }
+
     /**
      * Runs analysis with Pokédex as Primary Matrix Reference
      */
@@ -505,6 +586,14 @@ Gengar\t94\t1 - Kanto\tSIM`;
 
       if (!pokedexRaw.trim() || !setlistRaw.trim()) {
         showToast('Por favor, preencha os dois campos (Pokédex e Setlist).', 'warning');
+        return;
+      }
+
+      refreshAvailableExpansions();
+      const selectedExpansion = appState.selectedExpansionCode;
+      if (selectedExpansion && !appState.availableExpansions.has(selectedExpansion)) {
+        showToast(`A expansão ${selectedExpansion} não foi encontrada na coluna “No.”.`, 'error');
+        document.getElementById('inputExpansionCode').focus();
         return;
       }
 
@@ -562,7 +651,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
       }
 
       // Step 2: Process Setlist Cards and Map to Pokédex
-      let setNoCol = 0;
+      let setNoCol = findSetlistNumberColumn(setlistRows);
       let setNameCol = 2;
       let setTypeCol = 3;
       let setRarityCol = 4;
@@ -586,9 +675,10 @@ Gengar\t94\t1 - Kanto\tSIM`;
         const cardName = row[setNameCol] || row[0] || 'Desconhecido';
         const cardType = row[setTypeCol] || 'Outro';
         const cardRarity = row[setRarityCol] || 'Comum';
+        const expansionCode = extractExpansionCode(cardNo);
+        if (selectedExpansion && expansionCode !== selectedExpansion) continue;
         const normCard = normalizeName(cardName);
-
-        const cardObj = { cardNo, cardName, cardType, cardRarity, normCard };
+        const cardObj = { cardNo, cardName, cardType, cardRarity, normCard, expansionCode };
         appState.setlistCards.push(cardObj);
 
         // Find match in Pokédex Map
@@ -703,6 +793,16 @@ Gengar\t94\t1 - Kanto\tSIM`;
 
     function renderDashboard() {
       updateDashboardForGenerationFilter();
+      const selectedExpansion = appState.selectedExpansionCode;
+      document.getElementById('resultsTitle').textContent = selectedExpansion
+        ? `Diagnóstico da expansão ${selectedExpansion}`
+        : 'Resumo do Diagnóstico da Pokédex';
+      document.getElementById('opportunityKpiLabel').textContent = selectedExpansion
+        ? `Buscar na expansão ${selectedExpansion}`
+        : 'Oportunidades no Setlist';
+      document.getElementById('statOpportunitiesSub').textContent = selectedExpansion
+        ? `${appState.selectedExpansionCardCount} cartas processadas nesta expansão`
+        : 'Pokémons "Não" com carta no Setlist';
       document.getElementById('resultsSection').classList.remove('hidden');
       filterAndRenderTable();
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
@@ -988,6 +1088,8 @@ Gengar\t94\t1 - Kanto\tSIM`;
 
       const inputPokedex = document.getElementById('inputPokedex');
       const inputSetlist = document.getElementById('inputSetlist');
+      const inputExpansionCode = document.getElementById('inputExpansionCode');
+      let expansionRefreshTimer = null;
 
       function updateLineCounts() {
         const pLines = inputPokedex.value.trim() ? inputPokedex.value.trim().split('\n').length : 0;
@@ -997,7 +1099,12 @@ Gengar\t94\t1 - Kanto\tSIM`;
       }
 
       inputPokedex.addEventListener('input', updateLineCounts);
-      inputSetlist.addEventListener('input', updateLineCounts);
+      inputSetlist.addEventListener('input', () => {
+        updateLineCounts();
+        clearTimeout(expansionRefreshTimer);
+        expansionRefreshTimer = setTimeout(refreshAvailableExpansions, 250);
+      });
+      inputExpansionCode.addEventListener('input', validateExpansionSelection);
 
       // Analyze Button
       document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
@@ -1010,7 +1117,8 @@ Gengar\t94\t1 - Kanto\tSIM`;
           exportedAt: new Date().toISOString(),
           data: {
             pokedex: inputPokedex.value,
-            setlist: inputSetlist.value
+            setlist: inputSetlist.value,
+            selectedExpansionCode: inputExpansionCode.value.trim()
           }
         };
 
@@ -1053,7 +1161,11 @@ Gengar\t94\t1 - Kanto\tSIM`;
 
           inputPokedex.value = pokedex;
           inputSetlist.value = setlist;
+          inputExpansionCode.value = typeof backup?.data?.selectedExpansionCode === 'string'
+            ? backup.data.selectedExpansionCode.replace(/\D/g, '')
+            : '';
           updateLineCounts();
+          refreshAvailableExpansions();
           document.getElementById('resultsSection').classList.add('hidden');
           showToast('Backup importado sem perda de dados. Clique em "Comparar" para processar.', 'success');
         } catch (error) {
@@ -1066,7 +1178,12 @@ Gengar\t94\t1 - Kanto\tSIM`;
       document.getElementById('btnClearAll').addEventListener('click', () => {
         inputPokedex.value = '';
         inputSetlist.value = '';
+        inputExpansionCode.value = '';
+        appState.availableExpansions.clear();
+        appState.selectedExpansionCode = '';
+        appState.selectedExpansionCardCount = 0;
         updateLineCounts();
+        refreshAvailableExpansions();
         document.getElementById('resultsSection').classList.add('hidden');
         showToast('Campos limpos com sucesso.', 'info');
       });

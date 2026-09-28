@@ -394,13 +394,9 @@
 
                 <div class="flex flex-col gap-10">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
-                        <div class="flex flex-col gap-2">
-                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Valor do Portfólio</span>
-                            <h2 id="tracker-total-portfolio" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface truncate">R$ 0,00</h2>
-                            <div class="flex items-center gap-1.5 mt-2 text-primary">
-                                <i data-lucide="trending-up" class="w-4 h-4 md:w-5 md:h-5"></i>
-                                <span id="tracker-total-variance" class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Calculando...</span>
-                            </div>
+                        <div class="flex flex-col gap-4 w-full">
+                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">Momento de Mercado</span>
+                            <div id="tracker-market-summary-portfolio" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-6">
@@ -447,13 +443,9 @@
 
                 <div class="flex flex-col gap-10">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
-                        <div class="flex flex-col gap-2">
-                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70 mb-1">Custo Estimado</span>
-                            <h2 id="tracker-total-wishlist" class="font-headline text-4xl md:text-5xl font-extrabold text-on-surface truncate">R$ 0,00</h2>
-                            <div class="flex items-center gap-1.5 mt-2 text-on-surface-variant">
-                                <i data-lucide="target" class="w-4 h-4 md:w-5 md:h-5"></i>
-                                <span class="font-label text-[11px] md:text-xs font-bold uppercase tracking-widest">Radar de mercado</span>
-                            </div>
+                        <div class="flex flex-col gap-4 w-full">
+                            <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">Momento de Mercado</span>
+                            <div id="tracker-market-summary-wishlist" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-6">
@@ -2476,6 +2468,44 @@
             `;
         }
 
+        function tRenderMarketSummary(cards, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const groups = {
+                buy: { label: 'Comprar', icon: 'trending-up', style: 'border-green-500/25 bg-green-500/5 text-green-400', cards: [] },
+                monitor: { label: 'Monitorar', icon: 'eye', style: 'border-amber-400/25 bg-amber-400/5 text-amber-300', cards: [] },
+                wait: { label: 'Aguardar', icon: 'clock-3', style: 'border-error/25 bg-error/5 text-error', cards: [] }
+            };
+
+            cards.forEach(card => {
+                const signal = tCalculateMarketSignal(card.history);
+                const groupKey = signal.type === 'buy' ? 'buy' : signal.type === 'wait' ? 'wait' : 'monitor';
+                groups[groupKey].cards.push(card);
+            });
+
+            container.innerHTML = Object.values(groups).map(group => {
+                const cardList = group.cards.length
+                    ? group.cards.map(card => `
+                        <button type="button" onclick="tOpenDetails('${card.id}')" class="max-w-full truncate rounded-md bg-black/10 px-2 py-1 text-left font-label text-[10px] font-bold text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-colors" title="${card.name}">
+                            ${card.name}
+                        </button>`).join('')
+                    : '<span class="font-label text-[10px] text-on-surface-variant/60">Nenhuma carta</span>';
+
+                return `
+                    <section class="rounded-xl border p-3 ${group.style}">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i data-lucide="${group.icon}" class="w-4 h-4 shrink-0"></i>
+                                <span class="font-label text-[10px] font-extrabold uppercase tracking-wider truncate">${group.label}</span>
+                            </div>
+                            <span class="font-headline text-sm font-extrabold">${group.cards.length}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">${cardList}</div>
+                    </section>`;
+            }).join('');
+        }
+
         function tRenderHome() {
             const listEl = document.getElementById('tracker-card-list');
             listEl.innerHTML = '';
@@ -2491,12 +2521,7 @@
                 totalValue += currentP; totalPreviousValue += prevP;
                 listEl.insertAdjacentHTML('beforeend', tGenerateCardHtml(card, currentP, prevP));
             });
-            document.getElementById('tracker-total-portfolio').textContent = tFormatBRL(totalValue);
-            const totalVar = tGetVariance(totalValue, totalPreviousValue);
-            const varSpan = document.getElementById('tracker-total-variance');
-            varSpan.textContent = `${totalVar > 0 ? '+' : ''}${totalVar.toFixed(1)}% este mês`;
-            varSpan.parentElement.className = `flex items-center gap-1.5 mt-2 ${totalVar >= 0 ? 'text-green-500' : 'text-error'}`;
-            varSpan.previousElementSibling.setAttribute('data-lucide', totalVar >= 0 ? 'trending-up' : 'trending-down');
+            tRenderMarketSummary(portfolioCards, 'tracker-market-summary-portfolio');
             lucide.createIcons();
         }
 
@@ -2515,7 +2540,7 @@
                 totalValue += currentP;
                 listEl.insertAdjacentHTML('beforeend', tGenerateCardHtml(card, currentP, prevP));
             });
-            document.getElementById('tracker-total-wishlist').textContent = tFormatBRL(totalValue);
+            tRenderMarketSummary(wishlistCards, 'tracker-market-summary-wishlist');
             lucide.createIcons();
         }
 

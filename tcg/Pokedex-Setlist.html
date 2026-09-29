@@ -108,7 +108,7 @@
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
             <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
-              Cartas da Pokédex
+              Database da Pokédex Nacional
             </h2>
           </div>
           <span id="pokedexLineCount" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md font-mono">0 linhas</span>
@@ -130,7 +130,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
-            <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">Setlist das Expansões</h2>
+            <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">Database das Expansões</h2>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
             <button id="btnNewExpansion" type="button" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition">
@@ -207,7 +207,7 @@
         class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-base shadow-xl shadow-red-600/25 hover:shadow-red-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
       >
         <i data-lucide="play-circle" class="w-6 h-6"></i>
-        Comparar Pokédex vs Setlist
+        Comparar Pokédex com Expansões
       </button>
     </div>
 
@@ -223,18 +223,6 @@
         <!-- KPI Metrics Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <!-- Highlight KPI: Oportunidades no Setlist -->
-          <div class="bg-slate-900 border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl p-5 relative overflow-hidden pulse-opportunity">
-            <div class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <i data-lucide="target" class="w-4 h-4"></i> <span id="opportunityKpiLabel">Oportunidades no Setlist</span>
-            </div>
-            <div id="statOpportunities" class="text-3xl font-extrabold text-amber-300 mt-2">0</div>
-            <div id="statOpportunitiesSub" class="text-xs text-amber-200/80 mt-1">Pokémons "Não" com carta no Setlist</div>
-            <div class="absolute -right-2 -bottom-2 opacity-10">
-              <i data-lucide="sparkles" class="w-20 h-20 text-amber-400"></i>
-            </div>
-          </div>
-
           <!-- Total Pokémons Pokédex -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
             <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total de Cartas da Pokédex</div>
@@ -247,7 +235,7 @@
 
           <!-- Já Capturados na Pokédex -->
           <div class="bg-slate-900 border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent rounded-2xl p-5 relative overflow-hidden">
-            <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Já Capturados (SIM)</div>
+            <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Já Capturados</div>
             <div id="statCapturedDex" class="text-3xl font-extrabold text-emerald-400 mt-2">0</div>
             <div id="statCapturedPct" class="text-xs text-emerald-300/80 mt-1">0% da Pokédex informada</div>
             <div class="absolute -right-2 -bottom-2 opacity-10">
@@ -257,14 +245,25 @@
 
           <!-- Faltando e Sem Carta na Setlist -->
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-            <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Pokedéx e Setlist "Não"</div>
+            <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ausente na Pokedéx e Expansão</div>
             <div id="statMissingNoSet" class="text-3xl font-extrabold text-slate-400 mt-2">0</div>
-            <div class="text-xs text-slate-500 mt-1">Não constam nesta expansão</div>
+            <div class="text-xs text-slate-500 mt-1">Não constam nessas expansões</div>
             <div class="absolute -right-2 -bottom-2 opacity-10">
               <i data-lucide="slash" class="w-20 h-20 text-slate-500"></i>
             </div>
           </div>
 
+          <!-- Highlight KPI: Oportunidades no Setlist -->
+          <div class="bg-slate-900 border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl p-5 relative overflow-hidden pulse-opportunity">
+            <div class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="target" class="w-4 h-4"></i> <span id="opportunityKpiLabel">Oportunidades nas Expansões</span>
+            </div>
+            <div id="statOpportunities" class="text-3xl font-extrabold text-amber-300 mt-2">0</div>
+            <div id="statOpportunitiesSub" class="text-xs text-amber-200/80 mt-1">Ausente na Pokedéx, mas presente nas expansões</div>
+            <div class="absolute -right-2 -bottom-2 opacity-10">
+              <i data-lucide="sparkles" class="w-20 h-20 text-amber-400"></i>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -275,7 +274,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
           <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
             <i data-lucide="pie-chart" class="w-4 h-4 text-amber-400"></i>
-            Oportunidades de Captura no Set
+            Oportunidades de Captura nas Expansões
           </h3>
           <div class="relative flex-grow flex items-center justify-center min-h-[220px]">
             <canvas id="chartStatus"></canvas>
@@ -327,10 +326,10 @@
           <!-- Status Filter Pills -->
           <div id="filterPillsContainer" class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800 self-start flex-wrap gap-1">
             <button data-filter="opportunity" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-amber-300 bg-amber-500/20 border border-amber-500/30 transition shadow flex items-center gap-1">
-              🎯 Oportunidades no Set (<span id="cntOpportunity">0</span>)
+              🎯 Oportunidades na Expansão (<span id="cntOpportunity">0</span>)
             </button>
             <button data-filter="missing" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
-              ❌ Faltando na Pokédex (<span id="cntMissing">0</span>)
+              ❌ Pokédex e Expansão (<span id="cntMissing">0</span>)
             </button>
             <button data-filter="captured" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
               ✅ Já Capturados (<span id="cntCaptured">0</span>)
@@ -821,10 +820,10 @@ Gengar\t94\t1 - Kanto\tSIM`;
         : 'Resumo do Diagnóstico da Pokédex';
       document.getElementById('opportunityKpiLabel').textContent = selectedExpansion
         ? `Buscar na expansão ${selectedExpansion}`
-        : 'Oportunidades no Setlist';
+        : 'Oportunidades na Expansão';
       document.getElementById('statOpportunitiesSub').textContent = selectedExpansion
         ? `${appState.selectedExpansionCardCount} cartas processadas nesta expansão`
-        : 'Pokémons "Não" com carta no Setlist';
+        : 'Pokedéx "Não", Expansão "Sim"';
       document.getElementById('resultsSection').classList.remove('hidden');
       filterAndRenderTable();
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
@@ -841,7 +840,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
       appState.charts.status = new Chart(ctxStatus, {
         type: 'doughnut',
         data: {
-          labels: ['🎯 Oportunidades no Set', '✅ Já Capturados', '⚠️ Faltando e Sem Carta no Set'],
+          labels: ['🎯 Oportunidades Expansão', '✅ Já Capturados', '⚠️ Faltando e Sem Carta no Set'],
           datasets: [{
             data: [oppsCount, capturedCount, missingNoSetCount],
             backgroundColor: ['#F59E0B', '#10B981', '#475569'],
@@ -1017,8 +1016,8 @@ Gengar\t94\t1 - Kanto\tSIM`;
           <th class="p-3.5">Pokémon (Pokédex)</th>
           <th class="p-3.5 whitespace-nowrap">Geração</th>
           <th class="p-3.5 text-center">Status Pokédex</th>
-          <th class="p-3.5">Cartas Encontradas no Setlist</th>
-          <th class="p-3.5 text-center">Diagnóstico / Ação</th>
+          <th class="p-3.5">Cartas Encontradas na Expansão</th>
+          <th class="p-3.5 text-center">Diagnóstico</th>
         </tr>
       `;
 

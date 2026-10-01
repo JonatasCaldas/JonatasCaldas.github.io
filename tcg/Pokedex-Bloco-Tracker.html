@@ -2621,6 +2621,26 @@
             const last14 = records.filter(h => current.time - h.time <= 14 * DAY);
             const prior14 = last14.filter(h => !sameRecord(h));
 
+            // NOVO: identifica uma lateralidade consecutiva no menor preço da carta.
+            // A faixa precisa incluir o registro atual, variar menos de 2% e durar mais de 21 dias.
+            const matureFloor = Math.min(...records.map(h => h.value));
+            const matureFloorBand = [];
+            for (let i = records.length - 1; i >= 0; i--) {
+                const candidateBand = [records[i], ...matureFloorBand];
+                const values = candidateBand.map(h => h.value);
+                const isNearFloor = Math.abs(records[i].value - matureFloor) / matureFloor < 0.02;
+                if (!isNearFloor || range(values) >= 0.02) break;
+                matureFloorBand.unshift(records[i]);
+            }
+
+            if (matureFloorBand.length >= 2) {
+                const matureDays = (current.time - matureFloorBand[0].time) / DAY;
+                if (matureDays > 21) {
+                    return { type: 'buy', label: 'COMPRAR (Fundo Maduro)', reason: `O preço permanece lateralizado junto ao piso de ${tFormatBRL(matureFloor)} há ${Math.floor(matureDays)} dias, com variação inferior a 2%.` };
+                }
+            }
+
+            // MANTIDO: critério atual de reversão após estabilidade no piso dos últimos 14 dias.
             if (prior14.length >= 2) {
                 const floor = Math.min(...prior14.map(h => h.value));
                 const floorBand = prior14.filter(h => Math.abs(h.value - floor) / floor < 0.03);

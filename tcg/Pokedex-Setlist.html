@@ -673,6 +673,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
 
       // Step 2: Process Setlist Cards and Map to Pokédex
       let setNoCol = findSetlistNumberColumn(setlistRows);
+      let setMarkCol = 1;
       let setNameCol = 2;
       let setTypeCol = 3;
       let setRarityCol = 4;
@@ -680,6 +681,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
       setlistRows[0].forEach((col, idx) => {
         const lower = col.toLowerCase();
         if (lower.includes('no') || lower.includes('num')) setNoCol = idx;
+        if (lower === 'mark' || lower.includes('marca')) setMarkCol = idx;
         if (lower.includes('card name') || lower.includes('nome') || lower.includes('carta')) setNameCol = idx;
         if (lower.includes('type') || lower.includes('tipo')) setTypeCol = idx;
         if (lower.includes('rarity') || lower.includes('raridade')) setRarityCol = idx;
@@ -693,13 +695,14 @@ Gengar\t94\t1 - Kanto\tSIM`;
         if (!row || row.length === 0) continue;
 
         const cardNo = row[setNoCol] || `#${i}`;
+        const cardMark = row[setMarkCol] || '';
         const cardName = row[setNameCol] || row[0] || 'Desconhecido';
         const cardType = row[setTypeCol] || 'Outro';
         const cardRarity = row[setRarityCol] || 'Comum';
         const expansionCode = extractExpansionCode(cardNo);
         if (selectedExpansion && expansionCode !== selectedExpansion) continue;
         const normCard = normalizeName(cardName);
-        const cardObj = { cardNo, cardName, cardType, cardRarity, normCard, expansionCode };
+        const cardObj = { cardNo, cardMark, cardName, cardType, cardRarity, normCard, expansionCode };
         appState.setlistCards.push(cardObj);
 
         // Find match in Pokédex Map
@@ -1017,6 +1020,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
           <th class="p-3.5 whitespace-nowrap">Geração</th>
           <th class="p-3.5 text-center">Status Pokédex</th>
           <th class="p-3.5">Cartas Encontradas na Expansão</th>
+          <th class="p-3.5 text-center">Marca</th>
           <th class="p-3.5 text-center">Diagnóstico</th>
         </tr>
       `;
@@ -1026,7 +1030,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
       if (paginatedData.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="p-8 text-center text-slate-500">
+            <td colspan="7" class="p-8 text-center text-slate-500">
               Nenhum registro encontrado para este filtro ou busca.
             </td>
           </tr>`;
@@ -1064,6 +1068,20 @@ Gengar\t94\t1 - Kanto\tSIM`;
             cardsDetailHTML = `<span class="text-slate-500 italic text-xs">Nenhuma carta nesta expansão</span>`;
           }
 
+          // Marcas dos registros correspondentes na Database das Expansões
+          let marksDetailHTML = '';
+          if (item.matchedCards.length > 0) {
+            const marks = [...new Set(
+              sortMatchedCards(item.matchedCards)
+                .map(c => String(c.cardMark || '').trim())
+                .filter(Boolean)
+            )];
+            marksDetailHTML = marks.length > 0
+              ? marks.map(mark => `<span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[11px] font-mono font-semibold mr-1 mb-1">${mark}</span>`).join('')
+              : `<span class="text-slate-500 text-xs">-</span>`;
+          } else {
+            marksDetailHTML = `<span class="text-slate-500 text-xs">-</span>`;
+          }
           // Diagnostic Tag
           let diagBadge = '';
           if (item.statusTag === 'OPPORTUNITY') {
@@ -1084,6 +1102,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
             <td class="p-3.5 whitespace-nowrap text-violet-300 font-medium">${item.generation || 'Sem geração'}</td>
             <td class="p-3.5 text-center">${dexStatusBadge}</td>
             <td class="p-3.5">${cardsDetailHTML}</td>
+            <td class="p-3.5 text-center">${marksDetailHTML}</td>
             <td class="p-3.5 text-center">${diagBadge}</td>
           `;
 

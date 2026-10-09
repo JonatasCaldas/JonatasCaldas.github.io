@@ -2636,7 +2636,7 @@
             if (matureFloorBand.length >= 2) {
                 const matureDays = (current.time - matureFloorBand[0].time) / DAY;
                 if (matureDays > 21) {
-                    return { type: 'buy', label: 'COMPRAR (Fundo Maduro)', reason: `O preço permanece lateralizado junto ao piso de ${tFormatBRL(matureFloor)} há ${Math.floor(matureDays)} dias, com variação inferior a 2%.` };
+                    return { type: 'buy', label: 'COMPRAR (Fundo Maduro)', reason: `O preço permanece lateralizado junto ao piso de ${tFormatBRL(matureFloor)} há ${Math.floor(matureDays)} dias, com variação inferior a 2%. O preço permaneceu próximo ao menor valor, com variação inferior a 2% por mais de 21 dias, ou começou a subir após ficar estável no piso por pelo menos 7 dias, alcançando uma alta mínima de 5%.` };
                 }
             }
 
@@ -2647,7 +2647,7 @@
                 if (floorBand.length >= 2) {
                     const stableDays = (floorBand[floorBand.length - 1].time - floorBand[0].time) / DAY;
                     if (current.value >= floor * 1.05 && stableDays >= 7 && range(floorBand.map(h => h.value)) < 0.03) {
-                        return { type: 'buy', label: 'COMPRAR (Reversão)', reason: `O valor atual está ${((current.value / floor - 1) * 100).toFixed(1)}% acima do piso de ${tFormatBRL(floor)}, estável por ${Math.floor(stableDays)} dias.` };
+                        return { type: 'buy', label: 'COMPRAR (Reversão)', reason: `O valor atual está ${((current.value / floor - 1) * 100).toFixed(1)}% acima do piso de ${tFormatBRL(floor)}, estável por ${Math.floor(stableDays)} dias. O preço permaneceu próximo ao menor valor, com variação inferior a 2% por mais de 21 dias, ou começou a subir após ficar estável no piso por pelo menos 7 dias, alcançando uma alta mínima de 5%.` };
                     }
                 }
             }
@@ -2655,7 +2655,7 @@
             if (last14.length >= 2) {
                 const average14 = avg(last14.map(h => h.value));
                 const distance = Math.abs(current.value - average14) / average14;
-                if (distance < 0.03) return { type: 'monitor', label: 'MONITORAR (Piso Formado)', reason: `O valor atual está a ${(distance * 100).toFixed(1)}% da média de 14 dias (${tFormatBRL(average14)}), indicando lateralização.` };
+                if (distance < 0.03) return { type: 'monitor', label: 'MONITORAR (Piso Formado)', reason: `O valor atual está a ${(distance * 100).toFixed(1)}% da média de 14 dias (${tFormatBRL(average14)}), indicando lateralização. O preço está relativamente estável, geralmente a menos de 3% da média dos últimos 14 dias, mas ainda não apresenta confirmação suficiente para indicar compra.` };
             }
 
             const prior7 = records.filter(h => current.time - h.time <= 7 * DAY && !sameRecord(h));
@@ -2668,9 +2668,9 @@
             }
             const fallingWeeks = weeklyMinima.length === 3 && weeklyMinima[1] < weeklyMinima[0] && weeklyMinima[2] < weeklyMinima[1];
             if ((average7 !== null && current.value < average7) || fallingWeeks) {
-                return { type: 'wait', label: 'AGUARDAR (Em Queda)', reason: fallingWeeks ? 'As mínimas das três últimas janelas semanais são consecutivamente menores.' : `O valor atual está abaixo da média anterior de 7 dias (${tFormatBRL(average7)}).` };
+                return { type: 'wait', label: 'AGUARDAR (Em Queda)', reason: fallingWeeks ? 'As mínimas das três últimas janelas semanais são consecutivamente menores. O preço está abaixo da média recente ou apresenta mínimas semanais consecutivamente menores, indicando que a queda pode continuar.' : `O valor atual está abaixo da média anterior de 7 dias (${tFormatBRL(average7)}). O preço está abaixo da média recente ou apresenta mínimas semanais consecutivamente menores, indicando que a queda pode continuar.` };
             }
-            return { type: 'monitor', label: 'MONITORAR (Piso Formado)', reason: 'Não há reversão confirmada nem queda livre. Continue acompanhando os próximos registros.' };
+            return { type: 'monitor', label: 'MONITORAR (Piso Formado)', reason: 'Não há reversão confirmada nem queda livre. Continue acompanhando os próximos registros. O preço está relativamente estável, geralmente a menos de 3% da média dos últimos 14 dias, mas ainda não apresenta confirmação suficiente para indicar compra.' };
         }
 
         function tRenderMarketSignal(history) {

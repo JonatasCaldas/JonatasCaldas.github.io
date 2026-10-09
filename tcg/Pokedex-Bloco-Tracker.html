@@ -2636,7 +2636,7 @@
             if (matureFloorBand.length >= 2) {
                 const matureDays = (current.time - matureFloorBand[0].time) / DAY;
                 if (matureDays > 21) {
-                    return { type: 'buy', label: 'COMPRAR (Fundo Maduro)', reason: `O preço permanece lateralizado junto ao piso de ${tFormatBRL(matureFloor)} há ${Math.floor(matureDays)} dias, com variação inferior a 2%. O preço permaneceu próximo ao menor valor, com variação inferior a 2% por mais de 21 dias, ou começou a subir após ficar estável no piso por pelo menos 7 dias, alcançando uma alta mínima de 5%.` };
+                    return { type: 'buy', label: 'COMPRAR (Exaustão)', reason: `O preço permanece lateralizado junto ao piso de ${tFormatBRL(matureFloor)} há ${Math.floor(matureDays)} dias, com variação inferior a 2%. O preço permaneceu próximo ao menor valor, com variação inferior a 2% por mais de 21 dias.`};
                 }
             }
 
@@ -2647,7 +2647,7 @@
                 if (floorBand.length >= 2) {
                     const stableDays = (floorBand[floorBand.length - 1].time - floorBand[0].time) / DAY;
                     if (current.value >= floor * 1.05 && stableDays >= 7 && range(floorBand.map(h => h.value)) < 0.03) {
-                        return { type: 'buy', label: 'COMPRAR (Reversão)', reason: `O valor atual está ${((current.value / floor - 1) * 100).toFixed(1)}% acima do piso de ${tFormatBRL(floor)}, estável por ${Math.floor(stableDays)} dias. O preço permaneceu próximo ao menor valor, com variação inferior a 2% por mais de 21 dias, ou começou a subir após ficar estável no piso por pelo menos 7 dias, alcançando uma alta mínima de 5%.` };
+                        return { type: 'buy', label: 'COMPRAR (Reversão)', reason: `O valor atual está ${((current.value / floor - 1) * 100).toFixed(1)}% acima do piso de ${tFormatBRL(floor)}, estável por ${Math.floor(stableDays)} dias. O preço permaneceu próximo ao menor valor, mas começou a subir após ficar estável no piso por pelo menos 7 dias, alcançando uma variação inferior a 3% e alta mínima de 5%.`};
                     }
                 }
             }

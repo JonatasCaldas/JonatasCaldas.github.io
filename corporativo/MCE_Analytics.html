@@ -91,7 +91,7 @@
             <div>
                 <div class="flex items-center gap-3 text-primary mb-1">
                     <i data-lucide="cpu" class="w-6 h-6"></i>
-                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.4.1</h1>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.4.3</h1>
                 </div>
                 <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
             </div>
@@ -1320,25 +1320,25 @@
 
                     const dI = strInicio.split('-'); 
                     const dF = strFim.split('-');
-                    document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}/${dI[1]}/${dI[0]} a ${dF[2]}/${dF[1]}/${dF[0]}`;
+                    document.getElementById('dashboardSubtitle').innerText = `Período analisado: ${dI[2]}-${dI[1]}-${dI[0]} a ${dF[2]}-${dF[1]}-${dF[0]}`;
 
                     const displayRef = document.getElementById('periodoReferenciaDisplay'); 
                     if (displayRef) { 
-                        displayRef.innerText = `Período de Referência: ${strInicio} a ${strFim}`; 
+                        displayRef.innerText = `Período de Referência: ${dI[2]}-${dI[1]}-${dI[0]} a ${dF[2]}-${dF[1]}-${dF[0]}`; 
                         displayRef.classList.remove('hidden'); 
                     }
                     
                     const displayRefPassados = document.getElementById('periodoReferenciaPassadosDisplay'); 
                     if (displayRefPassados) {
-                        const strInicioPassado = `${parseInt(dI[0]) - 1}-${dI[1]}-${dI[2]}`; 
-                        const strFimPassado = `${parseInt(dF[0]) - 1}-${dF[1]}-${dF[2]}`;
+                        const strInicioPassado = `${dI[2]}-${dI[1]}-${parseInt(dI[0]) - 1}`; 
+                        const strFimPassado = `${dF[2]}-${dF[1]}-${parseInt(dF[0]) - 1}`;
                         displayRefPassados.innerText = `Período de Referência: ${strInicioPassado} a ${strFimPassado}`; 
                         displayRefPassados.classList.remove('hidden');
                     }
 
                     const displayRefPrev = document.getElementById('periodoReferenciaPreventivaDisplay');
                     if (displayRefPrev) {
-                        displayRefPrev.innerText = `Período de Referência: ${strInicio} a ${strFim}`;
+                        displayRefPrev.innerText = `Período de Referência: ${dI[2]}-${dI[1]}-${dI[0]} a ${dF[2]}-${dF[1]}-${dF[0]}`;
                         displayRefPrev.classList.remove('hidden');
                     }
 
@@ -1984,7 +1984,7 @@
                     maintainAspectRatio:false, 
                     layout:{ padding:{ top:30 } }, 
                     scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } }, 
-                    plugins:{ legend:{ display:true, labels:{ usePointStyle:true, boxWidth:10 } } } 
+                    plugins:{ legend:{ display:true, position:'bottom', align:'center', labels:{ usePointStyle:true, boxWidth:10 } } } 
                 },
                 plugins:[dataLabelsPlugin]
             });
@@ -2259,12 +2259,10 @@
         function renderizarChartFalhasPreventiva(dadosFiltrados, dtInicio, dtFim) {
             const canvas = document.getElementById('chartFalhasPreventiva');
             if (!canvas) return;
-
             if (chartInstances.falhasPreventiva) {
                 chartInstances.falhasPreventiva.destroy();
             }
-
-            // Descobrir os meses contidos no período de filtro (para promediar/somar preventiva)
+            // Descobrir os meses contidos no período de filtro.
             const mesesFiltro = new Set();
             if (dtInicio && dtFim) {
                 let curD = new Date(dtInicio);
@@ -2275,90 +2273,86 @@
                     curD.setMonth(curD.getMonth() + 1);
                 }
             } else {
-                for(let i=1; i<=12; i++) mesesFiltro.add(i);
+                for (let i = 1; i <= 12; i++) mesesFiltro.add(i);
             }
             const numMeses = mesesFiltro.size || 1;
 
-            const equipesSort = [...dadosParqueVP].sort((a,b) => a.equipe.localeCompare(b.equipe));
-            const labels = equipesSort.map(eq => eq.equipe);
+            // Consolida os dados por equipe e ordena do maior para o menor percentual de preventiva.
+            const dadosEquipes = [...dadosParqueVP].map(eq => {
+                let percentualPreventiva = 0;
+                if (eq.quantidade && eq.quantidade > 0) {
+                    let somaValores = 0;
+                    mesesFiltro.forEach(mes => {
+                        const md = dadosPreventivaMensal.find(m => m.mesReferencia === mes);
+                        if (md) {
+                            const dt = md.dados.find(d => d.equipe === eq.equipe);
+                            if (dt && typeof dt.valor === 'number') somaValores += dt.valor;
+                        }
+                    });
+                    const esperado = eq.quantidade * numMeses;
+                    percentualPreventiva = esperado > 0 ? Math.round((somaValores / esperado) * 100) : 0;
+                    if (percentualPreventiva > 100) percentualPreventiva = 100;
+                }
 
-            // Eixo Y1: Percentual Acumulado (Preventiva)
-            const dataY1 = equipesSort.map(eq => {
-                // Se a equipe não tem parque preenchido na view Configurações, resulta em zero diretamente.
-                if (!eq.quantidade || eq.quantidade <= 0) return 0;
-                
-                let somaValores = 0;
-                mesesFiltro.forEach(mes => {
-                    const md = dadosPreventivaMensal.find(m => m.mesReferencia === mes);
-                    if (md) {
-                        const dt = md.dados.find(d => d.equipe === eq.equipe);
-                        if (dt && typeof dt.valor === 'number') somaValores += dt.valor;
-                    }
-                });
-                
-                const esperado = eq.quantidade * numMeses;
-                if (esperado === 0) return 0; // Proteção contra divisão por zero para período sem planejamento
-                
-                let perc = Math.round((somaValores / esperado) * 100);
-                if (perc > 100) perc = 100; // Trunca a visualização e valor em 100%
-                
-                return perc;
-            });
-
-            // Eixo Y2: Quantidade de Falhas (Coluna VPX)
-            const dataY2 = equipesSort.map(eq => {
-                let falhas = 0;
+                let quantidadeFalhas = 0;
                 const eqNorm = normalizarTexto(eq.equipe);
-                
                 (dadosFiltrados || []).forEach(row => {
-                    if (row.vpx && normalizarTexto(row.vpx) === eqNorm) {
-                        falhas++;
-                    }
+                    if (row.vpx && normalizarTexto(row.vpx) === eqNorm) quantidadeFalhas++;
                 });
-                
-                return falhas > 0 ? falhas : null; // Omite a plotagem em Y2 caso seja 0 falhas no período
-            });
+
+                return {
+                    equipe: eq.equipe,
+                    percentualPreventiva,
+                    quantidadeFalhas
+                };
+            }).filter(item => item.quantidadeFalhas > 0)
+              .sort((a, b) =>
+                b.percentualPreventiva - a.percentualPreventiva ||
+                a.equipe.localeCompare(b.equipe)
+            );
+
+            const labels = dadosEquipes.map(item => item.equipe);
+            const dataY1 = dadosEquipes.map(item => item.percentualPreventiva);
+            const dataY2 = dadosEquipes.map(item => item.quantidadeFalhas);
 
             chartInstances.falhasPreventiva = new Chart(canvas.getContext('2d'), {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [
                         {
                             label: 'Percentual de Preventiva',
                             data: dataY1,
-                            borderColor: chartColors.secondary,
                             backgroundColor: chartColors.secondary,
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            yAxisID: 'y1',
-                            spanGaps: true
+                            borderColor: chartColors.secondary,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y1'
                         },
                         {
                             label: 'Quantidade de Falhas',
                             data: dataY2,
-                            borderColor: '#1c1b1b',
                             backgroundColor: '#1c1b1b',
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            yAxisID: 'y2',
-                            spanGaps: true
+                            borderColor: '#1c1b1b',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y2'
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } },
+                    layout: { padding: { top: 35 } },
                     scales: {
-                        x: { 
-                            grid: { display: false } 
+                        x: {
+                            grid: { display: false }
                         },
                         y1: {
                             type: 'linear',
                             position: 'left',
                             min: 0,
-                            max: 100, // Escala fixa em 100
+                            max: 100,
                             ticks: { callback: v => v + '%' },
                             grid: { color: '#f0edec' }
                         },
@@ -2366,7 +2360,7 @@
                             type: 'linear',
                             position: 'right',
                             beginAtZero: true,
-                            grid: { display: false } // Auto ajustável dinamicamente conforme os dados
+                            grid: { display: false }
                         }
                     },
                     plugins: {
@@ -2379,7 +2373,7 @@
                 plugins: [{
                     id: 'customDataLabelsMultiAxis',
                     afterDatasetsDraw(chart) {
-                        const { ctx, data } = chart;
+                        const { ctx } = chart;
                         ctx.save();
                         chart.data.datasets.forEach((dataset, i) => {
                             const meta = chart.getDatasetMeta(i);
@@ -2387,14 +2381,11 @@
                             meta.data.forEach((element, index) => {
                                 const value = dataset.data[index];
                                 if (value === null || value === undefined) return;
-                                
                                 const text = dataset.yAxisID === 'y1' ? value + '%' : value;
                                 ctx.font = '600 12px Inter';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'bottom';
-                                
-                                const yPos = element.y - 8;
-                                
+                                const yPos = element.y - 6;
                                 ctx.strokeStyle = '#ffffff';
                                 ctx.lineWidth = 3;
                                 ctx.lineJoin = 'round';
@@ -2408,7 +2399,6 @@
                 }]
             });
         }
-
         // ========== EXPORTAÇÃO E IMPORTAÇÃO ==========
         async function exportarPDF() {
             const ol = document.getElementById('loadingOverlay'); 

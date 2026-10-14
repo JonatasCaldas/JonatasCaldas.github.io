@@ -396,7 +396,7 @@
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
                         <div class="flex flex-col gap-4 w-full">
                             <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">Momento de Mercado</span>
-                            <div id="tracker-market-summary-portfolio" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+                            <div id="tracker-market-summary-portfolio" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-6">
@@ -445,7 +445,7 @@
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 relative bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
                         <div class="flex flex-col gap-4 w-full">
                             <span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary opacity-70">Momento de Mercado</span>
-                            <div id="tracker-market-summary-wishlist" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+                            <div id="tracker-market-summary-wishlist" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-6">
@@ -2474,13 +2474,15 @@
 
             const groups = {
                 buy: { label: 'Comprar', icon: 'trending-up', style: 'border-green-500/25 bg-green-500/5 text-green-400', cards: [] },
+                // NOVO: oportunidades em azul, entre Comprar e Monitorar.
+                opportunity: { label: 'Oportunidade', icon: 'badge-percent', style: 'border-blue-400/30 bg-blue-400/10 text-blue-300', cards: [] },
                 monitor: { label: 'Monitorar', icon: 'eye', style: 'border-amber-400/25 bg-amber-400/5 text-amber-300', cards: [] },
                 wait: { label: 'Aguardar', icon: 'clock-3', style: 'border-error/25 bg-error/5 text-error', cards: [] }
             };
 
             cards.forEach(card => {
                 const signal = tCalculateMarketSignal(card.history);
-                const groupKey = signal.type === 'buy' ? 'buy' : signal.type === 'wait' ? 'wait' : 'monitor';
+                const groupKey = signal.type === 'buy' ? 'buy' : signal.type === 'opportunity' ? 'opportunity' : signal.type === 'wait' ? 'wait' : 'monitor';
                 groups[groupKey].cards.push(card);
             });
 
@@ -2621,6 +2623,40 @@
             const last14 = records.filter(h => current.time - h.time <= 14 * DAY);
             const prior14 = last14.filter(h => !sameRecord(h));
 
+            // NOVO: valida uma queda abrupta usando somente os registros anteriores ao ponto analisado.
+            const getOpportunityDrop = index => {
+                if (index < 3) return null; // Exige pelo menos 3 registros anteriores válidos.
+                const point = records[index];
+                const previous = records[index - 1];
+                const daysSincePrevious = (point.time - previous.time) / DAY;
+                const previous7 = records.slice(0, index).filter(h => point.time - h.time <= 7 * DAY);
+                if (!previous7.length || daysSincePrevious < 0 || daysSincePrevious > 7) return null;
+
+                const averagePrevious7 = avg(previous7.map(h => h.value));
+                const dropFromPrevious = (previous.value - point.value) / previous.value;
+                const dropFromAverage7 = (averagePrevious7 - point.value) / averagePrevious7;
+
+                return dropFromPrevious >= 0.15 && dropFromAverage7 >= 0.15
+                    ? { point, previous, averagePrevious7, dropFromPrevious, dropFromAverage7 }
+                    : null;
+            };
+
+            // NOVO: um segundo preço próximo (diferença inferior a 3%) em até 3 dias confirma a compra.
+            const opportunityToConfirm = getOpportunityDrop(records.length - 2);
+            if (opportunityToConfirm) {
+                const confirmationDays = (current.time - opportunityToConfirm.point.time) / DAY;
+                const confirmationDifference = Math.abs(current.value - opportunityToConfirm.point.value) / opportunityToConfirm.point.value;
+                if (confirmationDays >= 0 && confirmationDays <= 3 && confirmationDifference < 0.03) {
+                    return { type: 'buy', label: 'COMPRAR (Oportunidade)', reason: `A queda abrupta foi confirmada por um segundo registro em ${confirmationDays.toFixed(1)} dia(s), com diferença de ${(confirmationDifference * 100).toFixed(1)}%. O preço segue pelo menos 15% abaixo do valor anterior e da média anterior de 7 dias.` };
+                }
+            }
+
+            // NOVO: queda imediata de 15% frente ao preço anterior e à média anterior de 7 dias.
+            const currentOpportunity = getOpportunityDrop(records.length - 1);
+            if (currentOpportunity) {
+                return { type: 'opportunity', label: 'OPORTUNIDADE', reason: `O preço caiu ${(currentOpportunity.dropFromPrevious * 100).toFixed(1)}% em relação ao registro anterior e está ${(currentOpportunity.dropFromAverage7 * 100).toFixed(1)}% abaixo da média anterior de 7 dias (${tFormatBRL(currentOpportunity.averagePrevious7)}). Registre novamente em até 3 dias; uma diferença inferior a 3% confirmará COMPRAR (Oportunidade).` };
+            }
+
             // NOVO: identifica uma lateralidade consecutiva no menor preço da carta.
             // A faixa precisa incluir o registro atual, variar menos de 2% e durar mais de 21 dias.
             const matureFloor = Math.min(...records.map(h => h.value));
@@ -2682,6 +2718,8 @@
             if (!badge || !text || !reason || !icon) return;
             const styles = {
                 buy: ['border-green-500/30 bg-green-500/10 text-green-400', 'trending-up', 'text-green-400'],
+                // NOVO: apresentação azul para o estágio de oportunidade ainda não confirmado.
+                opportunity: ['border-blue-400/30 bg-blue-400/10 text-blue-300', 'badge-percent', 'text-blue-300'],
                 monitor: ['border-amber-400/30 bg-amber-400/10 text-amber-300', 'lightbulb', 'text-amber-300'],
                 wait: ['border-error/30 bg-error/10 text-error', 'triangle-alert', 'text-error'],
                 insufficient: ['border-white/10 bg-surface-container-highest text-on-surface-variant', 'circle-help', 'text-outline']

@@ -1898,35 +1898,40 @@
             const el = document.getElementById(id);
             if (!el) return;
 
+            // A regra de exibição abaixo aplica-se somente aos quatro gráficos de Indicadores Passados.
+            const chartCard = el.closest('.bg-surface-container-lowest');
+            const chartChunk = el.closest('.pdf-export-chunk');
+
+            const atualizarVisibilidade = (possuiDados) => {
+                if (chartCard) chartCard.classList.toggle('hidden', !possuiDados);
+
+                // Evita manter um bloco vazio na interface e na exportação em PDF.
+                if (chartChunk) {
+                    const cardsDoBloco = Array.from(chartChunk.querySelectorAll('canvas[id^="chartPassados"]'))
+                        .map(canvas => canvas.closest('.bg-surface-container-lowest'))
+                        .filter(Boolean);
+                    const possuiGraficoVisivel = cardsDoBloco.some(card => !card.classList.contains('hidden'));
+                    chartChunk.classList.toggle('hidden', !possuiGraficoVisivel);
+                }
+            };
+
             const hasAnoVigente = Array.isArray(dadosMesCruArr) && dadosMesCruArr.length > 0;
             if (!hasAnoVigente) {
                 try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
-                chartInstances[id] = new Chart(el.getContext('2d'), { 
-                    type:'bar', 
-                    data:{ 
-                        labels:['Nenhum'], 
-                        datasets:[{ data:[0], backgroundColor:'rgba(0,0,0,0)', borderRadius:4 }] 
-                    }, 
-                    options:{ 
-                        responsive:true, 
-                        maintainAspectRatio:false, 
-                        plugins:{ legend:{ display:false } }, 
-                        scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } } 
-                    } 
-                });
+                chartInstances[id] = null;
+                atualizarVisibilidade(false);
                 return;
             }
 
-            const pastMap = {}; 
+            const pastMap = {};
             const normToLabel = {};
-            
             if (Array.isArray(dadosPassadosArr)) {
                 dadosPassadosArr.forEach(r => {
                     const v = r[prop];
                     if (v && v.toString().trim()) {
-                        const orig = v.toString().trim(); 
+                        const orig = v.toString().trim();
                         const n = normalizarTexto(orig);
-                        pastMap[n] = (pastMap[n]||0) + 1; 
+                        pastMap[n] = (pastMap[n]||0) + 1;
                         if (!normToLabel[n]) normToLabel[n] = orig;
                     }
                 });
@@ -1949,47 +1954,36 @@
 
             if (!keys.length) {
                 try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
-                chartInstances[id] = new Chart(el.getContext('2d'), { 
-                    type:'bar', 
-                    data:{ 
-                        labels:['Nenhum'], 
-                        datasets:[{ data:[0], backgroundColor:'rgba(0,0,0,0)', borderRadius:4 }] 
-                    }, 
-                    options:{ 
-                        responsive:true, 
-                        maintainAspectRatio:false, 
-                        plugins:{ legend:{ display:false } }, 
-                        scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } } 
-                    } 
-                });
+                chartInstances[id] = null;
+                atualizarVisibilidade(false);
                 return;
             }
+
+            atualizarVisibilidade(true);
 
             const labels = keys.map(k => normToLabel[k] || k);
             const dataPast = keys.map(k => pastMap[k] || 0);
             const dataCurr = keys.map(k => currMap[k] || 0);
-
             try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
             chartInstances[id] = new Chart(el.getContext('2d'), {
                 type:'bar',
-                data:{ 
-                    labels, 
+                data:{
+                    labels,
                     datasets:[
                         { label:'ano anterior', data: dataPast, backgroundColor: corAnterior, borderRadius:4, pointStyle:'circle' },
                         { label:'ano vigente', data: dataCurr, backgroundColor: '#db0000', borderRadius:4, pointStyle:'circle' }
                     ]
                 },
-                options:{ 
-                    responsive:true, 
-                    maintainAspectRatio:false, 
-                    layout:{ padding:{ top:30 } }, 
-                    scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } }, 
-                    plugins:{ legend:{ display:true, position:'bottom', align:'center', labels:{ usePointStyle:true, boxWidth:10 } } } 
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    layout:{ padding:{ top:30 } },
+                    scales:{ y:{ beginAtZero:true }, x:{ grid:{ display:false } } },
+                    plugins:{ legend:{ display:true, position:'bottom', align:'center', labels:{ usePointStyle:true, boxWidth:10 } } }
                 },
                 plugins:[dataLabelsPlugin]
             });
         }
-
         function renderizarResumoFalhas(dadosFiltrados) {
             const wrap = document.getElementById('resumoModelos'); 
             if (!wrap) return;
@@ -2408,7 +2402,7 @@
             
             try {
                 const { jsPDF } = window.jspdf; 
-                const pdf = new jsPDF('p','mm','a4');
+                const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4', compress:true });
                 const mW = pdf.internal.pageSize.getWidth() - 15; 
                 const mH = pdf.internal.pageSize.getHeight() - 50;
                 
@@ -2417,7 +2411,7 @@
                 
                 for (let c of chunks) {
                     const canvas = await html2canvas(c, { scale:2, useCORS:true, logging:false, backgroundColor:'#fcf9f8' });
-                    const img = canvas.toDataURL('image/png'); 
+                    const img = canvas.toDataURL('image/jpeg', 0.85); 
                     const prop = pdf.getImageProperties(img);
                     pData.push({ img, w: mW, h: (prop.height * mW) / prop.width });
                 }
@@ -2450,7 +2444,7 @@
                     pdf.setTextColor(0,107,95);
                     pdf.text(pdfTitle, 7.5, 15);
                     
-                    for (let it of pages[i]) pdf.addImage(it.img, 'PNG', it.x, it.y, it.w, it.h);
+                    for (let it of pages[i]) pdf.addImage(it.img, 'JPEG', it.x, it.y, it.w, it.h, undefined, 'FAST');
                 }
                 
                 const d = new Date(); 

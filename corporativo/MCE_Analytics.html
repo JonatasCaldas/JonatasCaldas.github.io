@@ -418,15 +418,6 @@
                                 <p id="periodoReferenciaPreventivaDisplay" class="text-sm font-semibold text-on-surface mt-1 hidden"></p>
                             </div>
                             
-                            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-technical flex flex-col">
-                                <div class="flex flex-col mb-1">
-                                    <span class="text-xs font-semibold tracking-wider text-[#00886d] uppercase mb-1 leading-normal">Cumprimento do PMP</span>
-                                    <p class="text-[10px] text-on-surface-variant leading-normal">Percentual executado do plano preventivo</p>
-                                </div>
-                                <div id="kpiCumprimentoPmp" class="flex-1 flex flex-col justify-center gap-1 mt-1 text-on-surface">
-                                    <span class="text-xs text-outline italic font-medium">--</span>
-                                </div>
-                            </div>
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
                                 <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
                                 <div class="flex-1 relative min-h-[350px]">
@@ -2040,36 +2031,6 @@
         // --- FUNÇÕES DE RENDERIZAÇÃO DA PREVENTIVA ---
 
         function renderizarGraficoPreventiva() {
-            // KPI Cumprimento PMP
-            const kP = document.getElementById('kpiCumprimentoPmp');
-            if(kP) {
-                if(!dadosPreventivaMensal.length || !dadosParqueVP.length) kP.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
-                else {
-                    const isLinha10 = equipe => {
-                        const nome = normalizarTexto(equipe);
-                        return nome === 'sct' || nome === 'luz';
-                    };
-                    const calcularCumprimento = filtroEquipe => {
-                        const equipesGrupo = dadosParqueVP.filter(e => filtroEquipe(e.equipe));
-                        const parqueGrupo = equipesGrupo.reduce((total, e) => total + (Number(e.quantidade) || 0), 0);
-                        const nomesGrupo = new Set(equipesGrupo.map(e => normalizarTexto(e.equipe)));
-                        let realizadoGrupo = 0;
-                        dadosPreventivaMensal.forEach(m => {
-                            m.dados.forEach(d => {
-                                if (nomesGrupo.has(normalizarTexto(d.equipe))) realizadoGrupo += Number(d.valor) || 0;
-                            });
-                        });
-                        const previstoGrupo = parqueGrupo * dadosPreventivaMensal.length;
-                        return previstoGrupo > 0 ? Math.round((realizadoGrupo / previstoGrupo) * 100) : 0;
-                    };
-                    const pCLinhas111213 = calcularCumprimento(equipe => !isLinha10(equipe));
-                    const pCLinha10 = calcularCumprimento(equipe => isLinha10(equipe));
-                    kP.innerHTML = `
-                        <div class="text-xs leading-relaxed text-on-surface-variant mt-1">Cumprimento de <span class="font-bold text-[#00886d]">[${pCLinhas111213}%]</span> do Plano de Manutenção (PMP) exclusivo linhas 11, 12 e 13</div>
-                        <div class="text-xs leading-relaxed text-on-surface-variant">Cumprimento de <span class="font-bold text-[#00886d]">[${pCLinha10}%]</span> do Plano de Manutenção (PMP) exclusivo linha 10</div>`;
-                }
-            }
-
             if(chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
 
             const cP = document.getElementById('chartPreventivaPerc');

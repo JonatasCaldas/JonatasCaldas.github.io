@@ -1741,7 +1741,10 @@
                 pq: mapPq[k], 
                 fa: mapFa[k]||0, 
                 perc: mapPq[k]>0? Math.round(((mapFa[k]||0)/mapPq[k])*100):0 
-            })).sort((a,b) => b.perc - a.perc || a.modelo.localeCompare(b.modelo));
+            }))
+            // Exibe somente modelos que possuem dados de falhas no periodo.
+            .filter(item => item.fa > 0)
+            .sort((a,b) => b.perc - a.perc || a.modelo.localeCompare(b.modelo));
             
             const canvasParque = document.getElementById('chartParqueFalhas');
             if (canvasParque) {
@@ -2042,11 +2045,28 @@
             if(kP) {
                 if(!dadosPreventivaMensal.length || !dadosParqueVP.length) kP.innerHTML = '<span class="text-xs text-outline italic">Nenhum dado</span>';
                 else {
-                    let tP = 0; dadosParqueVP.forEach(e => tP += e.quantidade);
-                    let tR = 0; dadosPreventivaMensal.forEach(m => m.dados.forEach(d => tR += d.valor));
-                    const tM = tP * dadosPreventivaMensal.length;
-                    const pC = tM>0 ? Math.round((tR/tM)*100) : 0;
-                    kP.innerHTML = `<div class="text-xs leading-relaxed text-on-surface-variant mt-1">Cumprimento de <span class="font-bold text-[#00886d]">[${pC}%]</span> do Plano de Manutenção (PMP).</div>`;
+                    const isLinha10 = equipe => {
+                        const nome = normalizarTexto(equipe);
+                        return nome === 'sct' || nome === 'luz';
+                    };
+                    const calcularCumprimento = filtroEquipe => {
+                        const equipesGrupo = dadosParqueVP.filter(e => filtroEquipe(e.equipe));
+                        const parqueGrupo = equipesGrupo.reduce((total, e) => total + (Number(e.quantidade) || 0), 0);
+                        const nomesGrupo = new Set(equipesGrupo.map(e => normalizarTexto(e.equipe)));
+                        let realizadoGrupo = 0;
+                        dadosPreventivaMensal.forEach(m => {
+                            m.dados.forEach(d => {
+                                if (nomesGrupo.has(normalizarTexto(d.equipe))) realizadoGrupo += Number(d.valor) || 0;
+                            });
+                        });
+                        const previstoGrupo = parqueGrupo * dadosPreventivaMensal.length;
+                        return previstoGrupo > 0 ? Math.round((realizadoGrupo / previstoGrupo) * 100) : 0;
+                    };
+                    const pCLinhas111213 = calcularCumprimento(equipe => !isLinha10(equipe));
+                    const pCLinha10 = calcularCumprimento(equipe => isLinha10(equipe));
+                    kP.innerHTML = `
+                        <div class="text-xs leading-relaxed text-on-surface-variant mt-1">Cumprimento de <span class="font-bold text-[#00886d]">[${pCLinhas111213}%]</span> do Plano de Manutenção (PMP) exclusivo linhas 11, 12 e 13</div>
+                        <div class="text-xs leading-relaxed text-on-surface-variant">Cumprimento de <span class="font-bold text-[#00886d]">[${pCLinha10}%]</span> do Plano de Manutenção (PMP) exclusivo linha 10</div>`;
                 }
             }
 
@@ -2055,30 +2075,51 @@
             const cP = document.getElementById('chartPreventivaPerc');
             if(!cP) return;
 
-            // --- Lógica Chart % Geral ---
-            let totalParqueVP = 0;
-            dadosParqueVP.forEach(eq => totalParqueVP += eq.quantidade);
+            // --- Lógica Chart % por grupo de linhas ---
+            const isLinha10Grafico = equipe => {
+                const nome = normalizarTexto(equipe);
+                return nome === 'sct' || nome === 'luz';
+            };
 
-            const dadosMesesPerc = mesesDoAno.map((mes, idx) => {
-                const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
-                if (!md || totalParqueVP === 0) return 0;
-                
-                let somaMes = 0;
-                md.dados.forEach(d => {
-                    if (typeof d.valor === 'number') somaMes += d.valor;
+            const calcularSerieMensal = filtroEquipe => {
+                const equipesGrupo = dadosParqueVP.filter(eq => filtroEquipe(eq.equipe));
+                const parqueGrupo = equipesGrupo.reduce((total, eq) => total + (Number(eq.quantidade) || 0), 0);
+                const nomesGrupo = new Set(equipesGrupo.map(eq => normalizarTexto(eq.equipe)));
+
+                return mesesDoAno.map((mes, idx) => {
+                    const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
+                    if (!md || parqueGrupo === 0) return 0;
+
+                    const realizadoGrupo = md.dados.reduce((total, d) => {
+                        return nomesGrupo.has(normalizarTexto(d.equipe))
+                            ? total + (Number(d.valor) || 0)
+                            : total;
+                    }, 0);
+
+                    const perc = Math.round((realizadoGrupo / parqueGrupo) * 100);
+                    return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
                 });
-                
-                let perc = Math.round((somaMes / totalParqueVP) * 100);
-                return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
-            });
+            };
 
-            const dPerc = [{
-                type: 'bar',
-                label: 'Desempenho Mensal',
-                data: dadosMesesPerc,
-                backgroundColor: chartColors.secondary,
-                borderRadius: 4
-            }];
+            const dadosLinhas111213 = calcularSerieMensal(equipe => !isLinha10Grafico(equipe));
+            const dadosLinha10 = calcularSerieMensal(equipe => isLinha10Grafico(equipe));
+
+            const dPerc = [
+                {
+                    type: 'bar',
+                    label: 'Exclusivo Linhas 11, 12 e 13',
+                    data: dadosLinhas111213,
+                    backgroundColor: '#000000',
+                    borderRadius: 4
+                },
+                {
+                    type: 'bar',
+                    label: 'Exclusivo Linha 10',
+                    data: dadosLinha10,
+                    backgroundColor: chartColors.secondary,
+                    borderRadius: 4
+                }
+            ];
 
             const customDataLabelsPercPlugin = {
                 id: 'customDataLabelsPerc',
@@ -2123,7 +2164,11 @@
                         y:{beginAtZero:true, max:100, min:0, ticks:{callback:v=>v+'%'}}
                     }, 
                     plugins:{
-                        legend:{display:false}
+                        legend:{
+                            display:true,
+                            position:'bottom',
+                            labels:{usePointStyle:true, pointStyle:'rectRounded'}
+                        }
                     } 
                 },
                 plugins: [customDataLabelsPercPlugin]

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Explorador de expansoes Pokemon TCG com selecao cumulativa e exportacao CSV." />
+  <title>TCGdex Set Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tcgdex/sdk@2/dist/tcgdex.browser.global.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#172033', brand: '#3b5ccc', surface: '#f4f7fb' },
+          boxShadow: { soft: '0 14px 40px rgba(23,32,51,.08)' }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    body { background: radial-gradient(circle at top left, #eef2ff 0, #f8fafc 35%, #f8fafc 100%); }
+    .skeleton { background: linear-gradient(90deg,#e2e8f0 25%,#f8fafc 50%,#e2e8f0 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+  </style>
+</head>
+<body class="min-h-screen text-slate-700 selection:bg-indigo-100">
+  <div id="toast" class="fixed right-5 top-5 z-50 hidden max-w-sm rounded-2xl border bg-white px-4 py-3 shadow-soft" role="status" aria-live="polite"></div>
+
+  <header class="border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-[1600px] flex-col gap-5 px-5 py-7 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div class="flex items-center gap-4">
+        <div class="grid size-12 place-items-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200"><i data-lucide="layers-3"></i></div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[.22em] text-indigo-600">Pokemon Trading Card Game</p>
+          <h1 class="text-2xl font-black tracking-tight text-ink">TCGdex Set Explorer</h1>
+          <p class="mt-1 text-sm text-slate-500">Selecione expansoes do Pokemon TCG cumulativamente, consolide as cartas e exporte em CSV.</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600">
+          Fonte
+          <select id="dataSource" class="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            <option value="fetch">Fetch REST</option>
+            <option value="sdk">JavaScript SDK com fallback REST</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm font-semibold text-slate-600">
+          Idioma
+          <select id="language" class="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            <option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="fr">Français</option>
+          </select>
+        </label>
+        <button id="reloadBtn" class="grid size-10 place-items-center rounded-xl border border-slate-200 bg-white transition hover:border-indigo-300 hover:text-indigo-600" title="Recarregar"><i data-lucide="refresh-cw" class="size-4"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto grid max-w-[1600px] gap-6 px-5 py-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
+    <aside class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft lg:sticky lg:top-5 lg:h-[calc(100vh-40px)]">
+      <div class="border-b border-slate-100 p-5">
+        <div class="mb-4 flex items-center justify-between">
+          <div><h2 class="font-extrabold text-ink">Series e expansoes</h2><p id="selectionText" class="mt-1 text-xs text-slate-500">Nenhuma expansao selecionada</p></div>
+          <button id="clearBtn" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">Limpar</button>
+        </div>
+        <div class="relative"><i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"></i><input id="setSearch" type="search" placeholder="Buscar serie ou expansao..." class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" /></div>
+      </div>
+      <div id="seriesTree" class="h-[calc(100%-133px)] overflow-y-auto p-3" aria-live="polite"></div>
+    </aside>
+
+    <section class="min-w-0 space-y-5">
+      <div class="grid gap-4 sm:grid-cols-3">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft"><div class="flex items-center justify-between"><span class="text-sm font-semibold text-slate-500">Expansoes</span><i data-lucide="box" class="size-5 text-indigo-500"></i></div><strong id="setsCount" class="mt-3 block text-3xl font-black text-ink">0</strong></article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft"><div class="flex items-center justify-between"><span class="text-sm font-semibold text-slate-500">Cartas reunidas</span><i data-lucide="gallery-vertical-end" class="size-5 text-emerald-500"></i></div><strong id="cardsCount" class="mt-3 block text-3xl font-black text-ink">0</strong></article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft"><div class="flex items-center justify-between"><span class="text-sm font-semibold text-slate-500">Series selecionadas</span><i data-lucide="folder-tree" class="size-5 text-amber-500"></i></div><strong id="selectedSeriesCount" class="mt-3 block text-3xl font-black text-ink">0</strong></article>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white shadow-soft">
+        <div class="flex flex-col gap-4 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:justify-between">
+          <div><h2 class="font-extrabold text-ink">Cartas das expansoes selecionadas</h2><p id="tableDescription" class="mt-1 text-sm text-slate-500">Use o painel lateral para adicionar uma ou mais expansoes.</p></div>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <div class="relative"><i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"></i><input id="cardSearch" type="search" placeholder="Filtrar cartas..." class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-64" /></div>
+            <button id="downloadBtn" disabled class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><i data-lucide="download" class="size-4"></i>Baixar CSV</button>
+          </div>
+        </div>
+        <div id="loadingCards" class="hidden border-b border-slate-100 px-5 py-3 text-sm font-semibold text-indigo-600"><span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="size-4 animate-spin"></i>Carregando cartas...</span></div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[850px] text-left text-sm">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-5 py-4">ID</th><th class="px-5 py-4">ID local</th><th class="px-5 py-4">Nome</th><th class="px-5 py-4">Expansao</th><th class="px-5 py-4">Raridade</th></tr></thead>
+            <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="grid place-items-center px-6 py-20 text-center"><div class="grid size-16 place-items-center rounded-2xl bg-slate-100 text-slate-400"><i data-lucide="inbox" class="size-7"></i></div><h3 class="mt-4 font-bold text-ink">Sua tabela esta vazia</h3><p class="mt-1 max-w-md text-sm text-slate-500">Abra uma serie no painel lateral e marque as expansoes que deseja comparar ou exportar.</p></div>
+        <div id="tableFooter" class="hidden items-center justify-between border-t border-slate-100 px-5 py-4 text-sm text-slate-500"><span id="visibleCount"></span><span>Selecao cumulativa ativa</span></div>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  'use strict';
+  const API = 'https://api.tcgdex.net/v2';
+  const state = { series: [], details: new Map(), selected: new Map(), cards: [], filtered: [], lang: 'en', source: 'fetch', sdk: null };
+  const $ = (s) => document.querySelector(s);
+  const els = { tree: $('#seriesTree'), setSearch: $('#setSearch'), cardSearch: $('#cardSearch'), body: $('#tableBody'), empty: $('#emptyState'), footer: $('#tableFooter'), loading: $('#loadingCards'), download: $('#downloadBtn') };
+
+  const esc = (v='') => String(v).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const imageUrl = (url) => url ? `${url}/low.webp` : '';
+  const notify = (message, error=false) => { const t=$('#toast'); t.className=`fixed right-5 top-5 z-50 max-w-sm rounded-2xl border px-4 py-3 shadow-soft ${error?'border-rose-200 bg-rose-50 text-rose-700':'border-emerald-200 bg-emerald-50 text-emerald-700'}`; t.textContent=message; clearTimeout(notify.timer); notify.timer=setTimeout(()=>t.classList.add('hidden'),3200); };
+  const getSDK = () => { if (!state.sdk) { if (!window.TCGdex) throw new Error('O SDK TCGdex nao foi carregado.'); state.sdk = new TCGdex(state.lang); } return state.sdk; };
+  const getJson = async (path) => { const r=await fetch(`${API}/${state.lang}/${path}`); if(!r.ok) throw new Error(`API respondeu ${r.status}`); return r.json(); };
+  async function withSource(sdkCall, restPath) {
+    if (state.source === 'sdk') {
+      try { return await sdkCall(); }
+      catch (error) { console.warn('SDK indisponivel; usando Fetch REST.', error); }
+    }
+    return getJson(restPath);
+  }
+  const data = {
+    listSeries: () => withSource(() => getSDK().serie.list(), 'series'),
+    getSerie: (id) => withSource(() => getSDK().serie.get(id), `series/${encodeURIComponent(id)}`),
+    getSet: (id) => withSource(() => getSDK().set.get(id), `sets/${encodeURIComponent(id)}`),
+    getCard: (id) => withSource(() => getSDK().card.get(id), `cards/${encodeURIComponent(id)}`)
+  };
+
+  async function loadSeries() {
+    state.series=[]; state.details.clear(); state.selected.clear(); state.cards=[];
+    els.tree.innerHTML = Array.from({length:7},()=>'<div class="skeleton mb-2 h-12 rounded-xl"></div>').join('');
+    updateAll();
+    try { state.series = (await data.listSeries()).filter(serie => String(serie.id).toLowerCase() !== 'tcgp').sort((a,b)=>a.name.localeCompare(b.name)); renderTree(); }
+    catch(e) { els.tree.innerHTML=`<div class="p-5 text-sm text-rose-600">Nao foi possivel carregar as series.<br><span class="text-xs">${esc(e.message)}</span></div>`; notify('Falha ao consultar a TCGdex.', true); }
+  }
+
+  function renderTree() {
+    const q=els.setSearch.value.trim().toLowerCase();
+    const filtered=state.series.filter(s => s.name.toLowerCase().includes(q) || (state.details.get(s.id)?.sets||[]).some(x=>x.name.toLowerCase().includes(q)));
+    els.tree.innerHTML = filtered.map(s=>{
+      const d=state.details.get(s.id), sets=d?.sets||[];
+      return `<section class="mb-1 rounded-2xl border border-transparent hover:border-slate-100">
+        <button class="serie-toggle flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50" data-id="${esc(s.id)}" aria-expanded="${!!d}">
+          <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="folder" class="size-4"></i></span>
+          <span class="min-w-0 flex-1"><strong class="block truncate text-sm text-ink">${esc(s.name)}</strong><small class="text-slate-400">${d ? `${sets.length} expansoes` : 'Clique para carregar'}</small></span>
+          <i data-lucide="chevron-down" class="size-4 text-slate-400 transition ${d?'rotate-180':''}"></i>
+        </button>
+        ${d ? `<div class="mb-2 ml-6 border-l border-slate-200 pl-3">${sets.map(set=>`<label class="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-indigo-50/60"><input type="checkbox" class="set-check mt-0.5 size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" data-serie-id="${esc(s.id)}" data-serie-name="${esc(s.name)}" data-set-id="${esc(set.id)}" ${state.selected.has(set.id)?'checked':''}><span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-700">${esc(set.name)}</span><small class="text-slate-400">${esc(set.id)}</small></span></label>`).join('')}</div>`:''}
+      </section>`;
+    }).join('') || '<p class="p-5 text-center text-sm text-slate-500">Nenhum resultado.</p>';
+    lucide.createIcons();
+  }
+
+  async function toggleSerie(id) {
+    if(state.details.has(id)){ state.details.delete(id); renderTree(); return; }
+    const button=els.tree.querySelector(`[data-id="${CSS.escape(id)}"]`); if(button) button.querySelector('small').textContent='Carregando...';
+    try { const detail=await data.getSerie(id); if (String(detail.id).toLowerCase() === 'tcgp') throw new Error('A serie Pokemon TCG Pocket nao faz parte deste catalogo.'); state.details.set(id, detail); renderTree(); }
+    catch(e){ notify(`Erro ao carregar a serie: ${e.message}`,true); renderTree(); }
+  }
+
+  async function setSelection(input) {
+    const {setId,serieId,serieName}=input.dataset;
+    if(input.checked){
+      input.disabled=true; els.loading.classList.remove('hidden');
+      try { const set=await data.getSet(setId); if (String(set.serie?.id || serieId).toLowerCase() === 'tcgp') throw new Error('Este set pertence ao Pokemon TCG Pocket e foi bloqueado.'); state.selected.set(setId,{set,serieId,serieName}); rebuildCards(); }
+      catch(e){ input.checked=false; notify(`Nao foi possivel carregar ${setId}: ${e.message}`,true); }
+      finally { input.disabled=false; els.loading.classList.add('hidden'); }
+    } else { state.selected.delete(setId); rebuildCards(); }
+  }
+
+  async function enrichRarities(cards) {
+    const pending = cards.filter(card => !card.rarity);
+    const workers = Array.from({ length: Math.min(6, pending.length) }, async () => {
+      while (pending.length) {
+        const card = pending.shift();
+        try { const detail = await data.getCard(card.id); card.rarity = detail.rarity || 'Nao informada'; }
+        catch (error) { console.warn(`Raridade indisponivel para ${card.id}`, error); card.rarity = 'Nao informada'; }
+        renderTable();
+      }
+    });
+    await Promise.all(workers);
+  }
+
+  function rebuildCards(){
+    state.cards=[...state.selected.values()].flatMap(({set,serieName}) => (set.cards||[]).map(card=>({ ...card, setId:set.id, setName:set.name, serieName:set.serie?.name||serieName, releaseDate:set.releaseDate||'', rarity:card.rarity||'' })));
+    state.cards.sort((a,b)=> a.setName.localeCompare(b.setName) || String(a.localId).localeCompare(String(b.localId),undefined,{numeric:true}));
+    updateAll();
+    enrichRarities(state.cards);
+  }
+
+  function updateAll(){
+    const q=els.cardSearch.value.trim().toLowerCase();
+    state.filtered=state.cards.filter(c=>[c.name,c.id,c.localId,c.setName,c.serieName].some(v=>String(v||'').toLowerCase().includes(q)));
+    const selectedSeries=new Set([...state.selected.values()].map(x=>x.serieId)).size;
+    $('#setsCount').textContent=state.selected.size.toLocaleString('pt-BR'); $('#cardsCount').textContent=state.cards.length.toLocaleString('pt-BR'); $('#selectedSeriesCount').textContent=selectedSeries.toLocaleString('pt-BR');
+    $('#selectionText').textContent=state.selected.size ? `${state.selected.size} expansao(oes) selecionada(s)` : 'Nenhuma expansao selecionada';
+    $('#tableDescription').textContent=state.selected.size ? 'Os resultados abaixo combinam todas as expansoes marcadas.' : 'Use o painel lateral para adicionar uma ou mais expansoes.';
+    els.download.disabled=!state.cards.length; renderTable();
+  }
+
+  function renderTable(){
+    els.body.innerHTML=state.filtered.map(c=>`<tr class="transition hover:bg-slate-50/80"><td class="px-5 py-3 font-mono text-xs text-slate-600">${esc(c.id)}</td><td class="px-5 py-3 font-mono text-xs">${esc(c.localId)}</td><td class="px-5 py-3 font-semibold text-ink">${esc(c.name)}</td><td class="px-5 py-3 font-semibold">${esc(c.setName)}</td><td class="px-5 py-3"><span class="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">${esc(c.rarity||'Carregando...')}</span></td></tr>`).join('');
+    const has=state.filtered.length>0; els.empty.classList.toggle('hidden',has); els.footer.classList.toggle('hidden',!has); els.footer.classList.toggle('flex',has); $('#visibleCount').textContent=`${state.filtered.length.toLocaleString('pt-BR')} de ${state.cards.length.toLocaleString('pt-BR')} cartas`;
+  }
+
+  function csvCell(v){ return `"${String(v??'').replace(/"/g,'""')}"`; }
+  function downloadCSV(){
+    const header=['ID','ID local','Nome','Expansao','Raridade'];
+    const rows=state.cards.map(c=>[c.id,c.localId,c.name,c.setName,c.rarity||'Nao informada']);
+    const csv='\uFEFF'+[header,...rows].map(r=>r.map(csvCell).join(';')).join('\r\n');
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download=`tcgdex-cartas-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url); notify('CSV gerado com sucesso.');
+  }
+
+  els.tree.addEventListener('click',e=>{ const btn=e.target.closest('.serie-toggle'); if(btn) toggleSerie(btn.dataset.id); });
+  els.tree.addEventListener('change',e=>{ if(e.target.matches('.set-check')) setSelection(e.target); });
+  els.setSearch.addEventListener('input',renderTree); els.cardSearch.addEventListener('input',updateAll); els.download.addEventListener('click',downloadCSV);
+  $('#clearBtn').addEventListener('click',()=>{ state.selected.clear(); rebuildCards(); renderTree(); });
+  $('#reloadBtn').addEventListener('click',loadSeries);
+  $('#dataSource').addEventListener('change',e=>{state.source=e.target.value; state.sdk=null; loadSeries();});
+  $('#language').addEventListener('change',e=>{state.lang=e.target.value; state.sdk=null; loadSeries();});
+  lucide.createIcons(); loadSeries();
+})();
+</script>
+</body>
+</html>

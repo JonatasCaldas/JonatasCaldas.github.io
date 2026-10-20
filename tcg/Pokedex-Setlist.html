@@ -31,8 +31,6 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Chart.js for visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     /* Custom scrollbar for data tables */
@@ -266,34 +264,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Charts Row -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Chart 1: Proporção Pokédex vs Setlist -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
-          <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <i data-lucide="pie-chart" class="w-4 h-4 text-amber-400"></i>
-            Oportunidades de Captura nas Expansões
-          </h3>
-          <div class="relative flex-grow flex items-center justify-center min-h-[220px]">
-            <canvas id="chartStatus"></canvas>
-          </div>
-        </div>
-
-        <!-- Chart 2: Oportunidades por Raridade -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between">
-          <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
-            Raridade das Cartas Faltantes Encontradas
-          </h3>
-          <div class="relative flex-grow min-h-[220px]">
-            <canvas id="chartRarity"></canvas>
-          </div>
-        </div>
-
-      </div>
-
       <!-- Interactive Table Section -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
         
@@ -449,11 +419,7 @@
       selectedGenerations: new Set(),
       currentPage: 1,
       pageSize: 30,
-      charts: {
-        status: null,
-        rarity: null
-      }
-    };
+};
 
     // Updated Sample Datasets (Includes Voltorb explicitly for user testing)
     const SAMPLE_POKEDEX_TSV = 
@@ -812,7 +778,6 @@ Gengar\t94\t1 - Kanto\tSIM`;
       document.getElementById('cntMissing').textContent = missingNoSet.length;
       document.getElementById('cntCaptured').textContent = captured.length;
       document.getElementById('cntAll').textContent = totalDex;
-      renderCharts(opportunities.length, captured.length, missingNoSet.length, opportunities);
     }
 
     function renderDashboard() {
@@ -831,74 +796,6 @@ Gengar\t94\t1 - Kanto\tSIM`;
       filterAndRenderTable();
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
     }
-
-    /**
-     * Renders Chart.js visuals
-     */
-    function renderCharts(oppsCount, capturedCount, missingNoSetCount, opportunitiesList) {
-      // Donut Chart
-      const ctxStatus = document.getElementById('chartStatus').getContext('2d');
-      if (appState.charts.status) appState.charts.status.destroy();
-
-      appState.charts.status = new Chart(ctxStatus, {
-        type: 'doughnut',
-        data: {
-          labels: ['🎯 Oportunidades Expansão', '✅ Já Capturados', '⚠️ Faltando e Sem Carta no Set'],
-          datasets: [{
-            data: [oppsCount, capturedCount, missingNoSetCount],
-            backgroundColor: ['#F59E0B', '#10B981', '#475569'],
-            borderColor: '#0F172A',
-            borderWidth: 3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: '#94A3B8', font: { size: 11 } }
-            }
-          },
-          cutout: '68%'
-        }
-      });
-
-      // Rarity Chart of Opportunities
-      const rarityCounts = {};
-      opportunitiesList.forEach(opp => {
-        opp.matchedCards.forEach(c => {
-          const r = c.cardRarity || 'Outras';
-          rarityCounts[r] = (rarityCounts[r] || 0) + 1;
-        });
-      });
-
-      const ctxRarity = document.getElementById('chartRarity').getContext('2d');
-      if (appState.charts.rarity) appState.charts.rarity.destroy();
-
-      appState.charts.rarity = new Chart(ctxRarity, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(rarityCounts).length > 0 ? Object.keys(rarityCounts) : ['Sem Cartas'],
-          datasets: [{
-            label: 'Cartas Disponíveis para Pokémons Faltantes',
-            data: Object.values(rarityCounts).length > 0 ? Object.values(rarityCounts) : [0],
-            backgroundColor: '#F59E0B',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#94A3B8' }, grid: { display: false } },
-            y: { ticks: { color: '#94A3B8' }, grid: { color: '#1E293B' } }
-          }
-        }
-      });
-    }
-
     function renderGenerationFilters() {
       const area = document.getElementById('generationFilterArea');
       const container = document.getElementById('generationFilterOptions');
@@ -995,36 +892,54 @@ Gengar\t94\t1 - Kanto\tSIM`;
         });
       });
     }
-
+    function getRarityBucket(cardRarity) {
+      const rarity = String(cardRarity || '').trim().toLowerCase();
+      if (rarity === 'common') return 'common';
+      if (rarity === 'uncommon') return 'uncommon';
+      if (rarity === 'rare') return 'rare';
+      if (rarity === 'double rare') return 'doubleRare';
+      return 'other';
+    }
+    function groupCardsByRarity(cards) {
+      const groups = { common: [], uncommon: [], rare: [], doubleRare: [], other: [] };
+      sortMatchedCards(cards).forEach(card => groups[getRarityBucket(card.cardRarity)].push(card));
+      return groups;
+    }
+    function renderCardsCell(cards, showRarity = false) {
+      if (!cards.length) return `<span class="text-slate-600 text-xs">-</span>`;
+      return cards.map(c => `
+        <div class="inline-flex flex-col gap-0.5 px-2 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 text-[11px] mr-1.5 mb-1 align-top">
+          <span><span class="font-mono text-amber-400 font-bold">${c.cardNo}</span> <span class="font-medium">${c.cardName}</span></span>
+          ${showRarity ? `<span class="text-slate-400">${c.cardRarity || 'Sem raridade'}</span>` : ''}
+        </div>
+      `).join('');
+    }
+    function cardsToText(cards, includeRarity = false) {
+      return cards.map(c => `${c.cardNo} ${c.cardName}${includeRarity ? ` (${c.cardRarity || 'Sem raridade'})` : ''}`).join(' | ');
+    }
     /**
-     * Filters Pokédex results and renders dynamic HTML table
+     * Filters Pokédex results and renders the table grouped by rarity.
      */
     function filterAndRenderTable() {
       const data = getCurrentlyFilteredResults();
-
-      // Pagination
       const totalPages = Math.ceil(data.length / appState.pageSize) || 1;
       if (appState.currentPage > totalPages) appState.currentPage = totalPages;
-
       const startIndex = (appState.currentPage - 1) * appState.pageSize;
       const paginatedData = data.slice(startIndex, startIndex + appState.pageSize);
-
       const tableHead = document.getElementById('tableHead');
       const tbody = document.getElementById('tableResultsBody');
 
-      // Set Table Headers for Pokédex View
       tableHead.innerHTML = `
         <tr>
           <th class="p-3.5 w-20">Nº Dex</th>
           <th class="p-3.5">Pokémon (Pokédex)</th>
-          <th class="p-3.5 whitespace-nowrap">Geração</th>
-          <th class="p-3.5 text-center">Status Pokédex</th>
-          <th class="p-3.5">Cartas Encontradas na Expansão</th>
-          <th class="p-3.5 text-center">Marca</th>
-          <th class="p-3.5 text-center">Diagnóstico</th>
+          <th class="p-3.5">Common</th>
+          <th class="p-3.5">Uncommon</th>
+          <th class="p-3.5">Rare</th>
+          <th class="p-3.5">Double Rare</th>
+          <th class="p-3.5">Outras Raridades</th>
         </tr>
       `;
-
       tbody.innerHTML = '';
 
       if (paginatedData.length === 0) {
@@ -1037,91 +952,34 @@ Gengar\t94\t1 - Kanto\tSIM`;
       } else {
         paginatedData.forEach(item => {
           const tr = document.createElement('tr');
-          
-          // Highlight Oportunidade (Não capturado + Tem no set)
-          if (item.statusTag === 'OPPORTUNITY') {
-            tr.className = 'bg-amber-500/10 hover:bg-amber-500/20 transition border-l-4 border-l-amber-500';
-          } else {
-            tr.className = 'hover:bg-slate-800/40 transition';
-          }
+          tr.className = item.statusTag === 'OPPORTUNITY'
+            ? 'bg-amber-500/10 hover:bg-amber-500/20 transition border-l-4 border-l-amber-500'
+            : 'hover:bg-slate-800/40 transition';
 
-          // Badge Pokédex Status
-          const dexStatusBadge = item.isCaptured
-            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Capturado
-               </span>`
-            : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
-                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Faltando
-               </span>`;
-
-          // Matched Setlist Cards details
-          let cardsDetailHTML = '';
-          if (item.matchedCards.length > 0) {
-            cardsDetailHTML = sortMatchedCards(item.matchedCards).map(c => `
-              <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800 text-slate-200 border border-slate-700 text-[11px] mr-1.5 mb-1">
-                <span class="font-mono text-amber-400 font-bold">${c.cardNo}</span>
-                <span class="font-medium">${c.cardName}</span>
-                <span class="text-slate-400">(${c.cardRarity})</span>
-              </div>
-            `).join('');
-          } else {
-            cardsDetailHTML = `<span class="text-slate-500 italic text-xs">Nenhuma carta nesta expansão</span>`;
-          }
-
-          // Marcas dos registros correspondentes na Database das Expansões
-          let marksDetailHTML = '';
-          if (item.matchedCards.length > 0) {
-            const marks = [...new Set(
-              sortMatchedCards(item.matchedCards)
-                .map(c => String(c.cardMark || '').trim())
-                .filter(Boolean)
-            )];
-            marksDetailHTML = marks.length > 0
-              ? marks.map(mark => `<span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[11px] font-mono font-semibold mr-1 mb-1">${mark}</span>`).join('')
-              : `<span class="text-slate-500 text-xs">-</span>`;
-          } else {
-            marksDetailHTML = `<span class="text-slate-500 text-xs">-</span>`;
-          }
-          // Diagnostic Tag
-          let diagBadge = '';
-          if (item.statusTag === 'OPPORTUNITY') {
-            diagBadge = `<span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20">
-                          <i data-lucide="sparkles" class="w-4 h-4"></i> Oportunidade
-                         </span>`;
-          } else if (item.statusTag === 'CAPTURED_AND_IN_SET') {
-            diagBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <i data-lucide="check" class="w-3.5 h-3.5"></i> Já Possui
-                         </span>`;
-          } else {
-            diagBadge = `<span class="text-slate-500 text-xs">-</span>`;
-          }
-
+          const groups = groupCardsByRarity(item.matchedCards);
           tr.innerHTML = `
             <td class="p-3.5 font-mono text-amber-400 font-bold">${item.dexNo}</td>
-            <td class="p-3.5 font-bold text-white text-sm">${item.dexName}</td>
-            <td class="p-3.5 whitespace-nowrap text-violet-300 font-medium">${item.generation || 'Sem geração'}</td>
-            <td class="p-3.5 text-center">${dexStatusBadge}</td>
-            <td class="p-3.5">${cardsDetailHTML}</td>
-            <td class="p-3.5 text-center">${marksDetailHTML}</td>
-            <td class="p-3.5 text-center">${diagBadge}</td>
+            <td class="p-3.5">
+              <div class="font-bold text-white text-sm">${item.dexName}</div>
+              <div class="mt-1 text-[11px] text-violet-300">${item.generation || 'Sem geração'}</div>
+            </td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.common)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.uncommon)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.rare)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.doubleRare)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.other, true)}</td>
           `;
-
           tbody.appendChild(tr);
         });
       }
 
-      // Re-initialize icons
       lucide.createIcons();
-
-      // Update Pagination UI
-      document.getElementById('paginationInfo').textContent = 
+      document.getElementById('paginationInfo').textContent =
         `Mostrando ${data.length > 0 ? startIndex + 1 : 0} até ${Math.min(startIndex + appState.pageSize, data.length)} de ${data.length} Pokémons da Pokédex`;
-      
       document.getElementById('pageIndicator').textContent = `Página ${appState.currentPage} de ${totalPages}`;
       document.getElementById('btnPrevPage').disabled = appState.currentPage === 1;
       document.getElementById('btnNextPage').disabled = appState.currentPage === totalPages;
     }
-
     // Event Listeners Initialization
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -1329,30 +1187,47 @@ Gengar\t94\t1 - Kanto\tSIM`;
         appState.currentPage++;
         filterAndRenderTable();
       });
-
-      // Copy only opportunities contained in the active generation/search recorte.
-      document.getElementById('btnCopyMissing').addEventListener('click', () => {
+      // Copy opportunities using the same rarity columns displayed in the table.
+      document.getElementById('btnCopyMissing').addEventListener('click', async () => {
         const opps = getCurrentlyFilteredResults({ applyStatus: false, applySearch: true })
           .filter(d => d.statusTag === 'OPPORTUNITY');
         if (opps.length === 0) {
           showToast('Nenhuma oportunidade encontrada no recorte atual.', 'warning');
           return;
         }
-        let text = "Nº Dex\tPokémon\tGeração\tCartas no Setlist\n";
+        let text = "Nº Dex\tPokémon\tCommon\tUncommon\tRare\tDouble Rare\tOutras Raridades\n";
         opps.forEach(o => {
-          const cardsStr = o.matchedCards.map(c => `${c.cardNo} ${c.cardName} (${c.cardRarity})`).join(' | ');
-          text += `${o.dexNo}\t${o.dexName}\t${o.generation || 'Sem geração'}\t${cardsStr}\n`;
+          const groups = groupCardsByRarity(o.matchedCards);
+          text += [
+            o.dexNo,
+            o.dexName,
+            cardsToText(groups.common),
+            cardsToText(groups.uncommon),
+            cardsToText(groups.rare),
+            cardsToText(groups.doubleRare),
+            cardsToText(groups.other, true)
+          ].join('\t') + '\n';
         });
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast(`${opps.length} oportunidades do recorte atual copiadas!`, 'success');
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            if (!document.execCommand('copy')) throw new Error('Falha ao copiar');
+            document.body.removeChild(textarea);
+          }
+          showToast(`${opps.length} oportunidades do recorte atual copiadas!`, 'success');
+        } catch (error) {
+          console.error('Falha ao copiar oportunidades:', error);
+          showToast('Não foi possível copiar as oportunidades.', 'error');
+        }
       });
-
-      // Export exactly the records represented by the active table filters, without pagination limitation.
+      // Export the active table recorte using the new rarity columns, without pagination limitation.
       document.getElementById('btnExportCSV').addEventListener('click', () => {
         const exportData = getCurrentlyFilteredResults();
         if (exportData.length === 0) {
@@ -1360,24 +1235,28 @@ Gengar\t94\t1 - Kanto\tSIM`;
           return;
         }
         const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-        let csv = "No Dex,Pokemon,Geracao,Status Dex,Cartas Encontradas no Set,Diagnostico\n";
+        let csv = "No Dex,Pokemon,Common,Uncommon,Rare,Double Rare,Outras Raridades\n";
         exportData.forEach(r => {
-          const cardsStr = r.matchedCards.map(c => `${c.cardNo} ${c.cardName}`).join(' ; ');
-          const statusTxt = r.isCaptured ? 'SIM' : 'NAO';
-          const diagTxt = r.statusTag === 'OPPORTUNITY'
-            ? 'OPORTUNIDADE DE CAPTURA'
-            : r.statusTag === 'MISSING_NOT_IN_SET' ? 'NAO ENCONTRADO NO SETLIST' : 'OK';
-          csv += [r.dexNo, r.dexName, r.generation || 'Sem geração', statusTxt, cardsStr, diagTxt]
-            .map(csvCell).join(',') + '\n';
+          const groups = groupCardsByRarity(r.matchedCards);
+          csv += [
+            r.dexNo,
+            r.dexName,
+            cardsToText(groups.common),
+            cardsToText(groups.uncommon),
+            cardsToText(groups.rare),
+            cardsToText(groups.doubleRare),
+            cardsToText(groups.other, true)
+          ].map(csvCell).join(',') + '\n';
         });
         const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute('download', 'pokedex_recorte_filtrado.csv');
+        link.href = url;
+        link.download = 'pokedex_recorte_por_raridade.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+        URL.revokeObjectURL(url);
         showToast(`${exportData.length} registros do recorte atual exportados!`, 'success');
       });
     });

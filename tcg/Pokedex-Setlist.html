@@ -202,24 +202,24 @@
         </div>
 
         <p class="text-xs text-slate-400 mb-3">
-          Cole os dados do Excel/Sheets (colunas <code class="text-amber-300">No. | Mark | Card name | Type | Rarity</code>).
+          Cole os dados do Excel/Sheets/CSV (colunas <code class="text-amber-300">ID | ID local | Nome | Expansao | Raridade</code>).
         </p>
 
         <textarea 
           id="inputSetlist"
-          placeholder="Cole aqui os dados da Setlist TCG..."
+          placeholder="Cole aqui os dados das expansões..."
           class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition"
         ></textarea>
         <div class="mt-4 pt-4 border-t border-slate-800">
           <label for="inputExpansionCode" class="block text-xs font-semibold text-slate-200 mb-1.5">Expansão para análise</label>
           <div class="relative">
             <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
-            <input id="inputExpansionCode" type="text" inputmode="numeric" autocomplete="off" list="expansionCodeSuggestions"
-              placeholder="Digite o código após a barra, por exemplo: 132"
+            <input id="inputExpansionCode" type="text" autocomplete="off" list="expansionCodeSuggestions"
+              placeholder="Digite o identificador da expansão, por exemplo: me02.5"
               class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition">
             <datalist id="expansionCodeSuggestions"></datalist>
           </div>
-          <p id="expansionCodeFeedback" class="mt-2 text-[11px] text-slate-500">Cole a setlist para identificar os códigos disponíveis na coluna “No.”.</p>
+          <p id="expansionCodeFeedback" class="mt-2 text-[11px] text-slate-500">Cole a database para identificar as expansões disponíveis na coluna “ID”.</p>
         </div>
       </div>
     </section>
@@ -448,11 +448,11 @@
   <div id="newExpansionModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="newExpansionModalTitle">
     <div class="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
       <div class="flex items-start justify-between gap-4 p-5 border-b border-slate-800">
-        <div><h2 id="newExpansionModalTitle" class="text-base font-bold text-white">Nova expansão</h2><p class="mt-1 text-xs text-slate-400">Cole os novos dados no mesmo formato usado em “Setlist das Expansões”. Eles serão acrescentados ao final da lista atual.</p></div>
+        <div><h2 id="newExpansionModalTitle" class="text-base font-bold text-white">Nova expansão</h2><p class="mt-1 text-xs text-slate-400">Cole os novos dados no formato “ID | ID local | Nome | Expansao | Raridade”. Eles serão acrescentados ao final da lista atual.</p></div>
         <button id="btnCloseNewExpansion" type="button" class="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" aria-label="Fechar"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="p-5">
-        <textarea id="inputNewExpansion" placeholder="Cole aqui os dados da nova expansão..." class="w-full h-72 bg-slate-950 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition"></textarea>
+        <textarea id="inputNewExpansion" placeholder="Cole aqui os dados da nova expansão (ID, ID local, Nome, Expansao, Raridade)..." class="w-full h-72 bg-slate-950 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition"></textarea>
         <p id="newExpansionLineCount" class="mt-2 text-[11px] text-slate-500">0 linhas para incluir</p>
       </div>
       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-5 pt-0">
@@ -504,19 +504,19 @@ Vulpix\t37\t1 - Kanto\tNão
 Gengar\t94\t1 - Kanto\tSIM`;
 
     const SAMPLE_SETLIST_TSV = 
-`No.\tMark\tCard name\tType\tRarity
-001/132\tI\tBulbasaur\tGrass\tCommon
-002/132\tI\tIvysaur\tGrass\tCommon
-003/132\tI\tMega Venusaurex\tGrass\tDouble Rare
-007/132\tI\tCharmander\tFire\tCommon
-008/132\tI\tCharizard EX\tFire\tUltra Rare
-009/132\tI\tPikachu VMAX\tLightning\tSecret Rare
-045/132\tI\tVoltorb\tLightning\tCommon
-046/132\tI\tElectrode ex\tLightning\tDouble Rare
-010/132\tI\tAlolan Vulpix V\tWater\tDouble Rare
-011/132\tI\tWeedle\tGrass\tCommon
-013/132\tI\tGengar VSTAR\tPsychic\tUltra Rare
-014/132\tI\tSnorlax\tColorless\tRare`;
+`ID\tID local\tNome\tExpansao\tRaridade
+me02.5-001\t001\tBulbasaur\tAscended Heroes\tCommon
+me02.5-002\t002\tIvysaur\tAscended Heroes\tCommon
+me02.5-003\t003\tMega Venusaurex\tAscended Heroes\tDouble Rare
+me02.5-007\t007\tCharmander\tAscended Heroes\tCommon
+me02.5-008\t008\tCharizard EX\tAscended Heroes\tUltra Rare
+me02.5-009\t009\tPikachu VMAX\tAscended Heroes\tSecret Rare
+me02.5-045\t045\tVoltorb\tAscended Heroes\tCommon
+me02.5-046\t046\tElectrode ex\tAscended Heroes\tDouble Rare
+me02.5-010\t010\tAlolan Vulpix V\tAscended Heroes\tDouble Rare
+me02.5-011\t011\tWeedle\tAscended Heroes\tCommon
+me02.5-013\t013\tGengar VSTAR\tAscended Heroes\tUltra Rare
+me02.5-014\t014\tSnorlax\tAscended Heroes\tRare`;
 
     /**
      * Cleans and normalizes Pokémon names to extract the core species name.
@@ -543,90 +543,83 @@ Gengar\t94\t1 - Kanto\tSIM`;
       return name;
     }
 
-    /**
-     * TSV/CSV Line Parser
-     */
+    /** TSV/CSV parser with support for quoted CSV fields. */
+    function parseDelimitedLine(line, delimiter) {
+      const cells = []; let cell = ''; let quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (quoted && line[i + 1] === '"') { cell += '"'; i++; }
+          else quoted = !quoted;
+        } else if (char === delimiter && !quoted) { cells.push(cell.trim()); cell = ''; }
+        else cell += char;
+      }
+      cells.push(cell.trim()); return cells;
+    }
     function parseDelimitedText(text) {
       if (!text || !text.trim()) return [];
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length === 0) return [];
-
+      const lines = text.trim().split(/\r?\n/).filter(line => line.trim());
+      if (!lines.length) return [];
       const firstLine = lines[0];
-      let delimiter = '\t';
-      if (firstLine.includes('\t')) delimiter = '\t';
-      else if (firstLine.includes(';')) delimiter = ';';
-      else if (firstLine.includes(',')) delimiter = ',';
-
-      return lines.map(line => line.split(delimiter).map(cell => cell.trim()));
+      const delimiter = firstLine.includes('\t') ? '\t' : (firstLine.includes(';') ? ';' : ',');
+      return lines.map(line => parseDelimitedLine(line, delimiter));
     }
-
-    /** Extracts the expansion code from values in the format xxx/yyy. */
-    function extractExpansionCode(cardNo) {
-      const match = String(cardNo || '').trim().match(/^\d+\s*\/\s*(\d+)$/);
-      return match ? match[1] : '';
+    function normalizeHeader(value) {
+      return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-
-    function findSetlistNumberColumn(rows) {
+    /** Extracts the expansion identifier from ID, e.g. me02.5-001 -> me02.5. */
+    function extractExpansionCode(cardId) {
+      const value = String(cardId || '').trim();
+      const match = value.match(/^(.+?)-\d+$/);
+      return match ? match[1] : value;
+    }
+    function findSetlistIdColumn(rows) {
       if (!rows.length) return 0;
-      let column = 0;
-      rows[0].forEach((name, index) => {
-        const value = String(name || '').trim().toLowerCase();
-        if (value === 'no.' || value === 'no' || value.includes('número') || value.includes('numero')) column = index;
-      });
-      return column;
+      const index = rows[0].findIndex(name => normalizeHeader(name) === 'id');
+      return index >= 0 ? index : 0;
     }
-
     function hasSetlistHeader(rows) {
       if (!rows.length) return false;
-      return rows[0].some(cell => {
-        const value = String(cell || '').trim().toLowerCase();
-        return value === 'no.' || value === 'no' || value.includes('card name') || value.includes('nome da carta');
-      });
+      const headers = rows[0].map(normalizeHeader);
+      return headers.includes('id') && headers.some(value => value === 'nome' || value === 'name');
     }
-
     function refreshAvailableExpansions() {
       const rows = parseDelimitedText(document.getElementById('inputSetlist').value);
-      const codeInput = document.getElementById('inputExpansionCode');
       const counts = new Map();
       if (rows.length) {
-        const numberColumn = findSetlistNumberColumn(rows);
+        const idColumn = findSetlistIdColumn(rows);
         const startIndex = hasSetlistHeader(rows) ? 1 : 0;
         for (let i = startIndex; i < rows.length; i++) {
-          const code = extractExpansionCode(rows[i][numberColumn]);
+          const code = extractExpansionCode(rows[i][idColumn]);
           if (code) counts.set(code, (counts.get(code) || 0) + 1);
         }
       }
       appState.availableExpansions = counts;
       document.getElementById('expansionCodeSuggestions').innerHTML = [...counts.entries()]
         .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }))
-        .map(([code, count]) => `<option value="${code}">${count} carta${count === 1 ? '' : 's'}</option>`)
-        .join('');
+        .map(([code, count]) => `<option value="${code}">${count} carta${count === 1 ? '' : 's'}</option>`).join('');
       validateExpansionSelection();
     }
-
     function validateExpansionSelection() {
       const codeInput = document.getElementById('inputExpansionCode');
       const feedback = document.getElementById('expansionCodeFeedback');
-      const code = codeInput.value.replace(/\D/g, '');
-      if (codeInput.value !== code) codeInput.value = code;
+      const code = codeInput.value.trim();
       appState.selectedExpansionCode = code;
       appState.selectedExpansionCardCount = appState.availableExpansions.get(code) || 0;
       if (appState.availableExpansions.size === 0) {
         feedback.className = 'mt-2 text-[11px] text-slate-500';
-        feedback.textContent = 'Nenhum código válido no formato xxx/yyy foi identificado na coluna “No.”.';
+        feedback.textContent = 'Nenhum identificador de expansão foi reconhecido na coluna “ID”.';
       } else if (!code) {
-        feedback.className = 'mt-2 text-[11px] text-slate-500';
-        feedback.textContent = '';
+        feedback.className = 'mt-2 text-[11px] text-slate-500'; feedback.textContent = '';
       } else if (appState.availableExpansions.has(code)) {
         const count = appState.availableExpansions.get(code);
         feedback.className = 'mt-2 text-[11px] text-emerald-400';
-        feedback.textContent = `Expansão ${code} encontrada: ${count} carta${count === 1 ? '' : 's'} será${count === 1 ? '' : 'ão'} analisada${count === 1 ? '' : 's'}.`;
+        feedback.textContent = `Expansão ${code} encontrada na coluna “ID”: ${count} carta${count === 1 ? '' : 's'} será${count === 1 ? '' : 'ão'} analisada${count === 1 ? '' : 's'}.`;
       } else {
         feedback.className = 'mt-2 text-[11px] text-red-400';
-        feedback.textContent = `A expansão ${code} não foi encontrada na coluna “No.”.`;
+        feedback.textContent = `A expansão ${code} não foi encontrada na coluna “ID”.`;
       }
     }
-
     /**
      * Runs analysis with Pokédex as Primary Matrix Reference
      */
@@ -642,7 +635,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
       refreshAvailableExpansions();
       const selectedExpansion = appState.selectedExpansionCode;
       if (selectedExpansion && !appState.availableExpansions.has(selectedExpansion)) {
-        showToast(`A expansão ${selectedExpansion} não foi encontrada na coluna “No.”.`, 'error');
+        showToast(`A expansão ${selectedExpansion} não foi encontrada na coluna “ID”.`, 'error');
         document.getElementById('inputExpansionCode').focus();
         return;
       }
@@ -701,37 +694,31 @@ Gengar\t94\t1 - Kanto\tSIM`;
       }
 
       // Step 2: Process Setlist Cards and Map to Pokédex
-      let setNoCol = findSetlistNumberColumn(setlistRows);
-      let setMarkCol = 1;
-      let setNameCol = 2;
-      let setTypeCol = 3;
-      let setRarityCol = 4;
-
+      let setIdCol = 0, setLocalIdCol = 1, setNameCol = 2, setExpansionCol = 3, setRarityCol = 4;
       setlistRows[0].forEach((col, idx) => {
-        const lower = col.toLowerCase();
-        if (lower.includes('no') || lower.includes('num')) setNoCol = idx;
-        if (lower === 'mark' || lower.includes('marca')) setMarkCol = idx;
-        if (lower.includes('card name') || lower.includes('nome') || lower.includes('carta')) setNameCol = idx;
-        if (lower.includes('type') || lower.includes('tipo')) setTypeCol = idx;
-        if (lower.includes('rarity') || lower.includes('raridade')) setRarityCol = idx;
+        const header = normalizeHeader(col);
+        if (header === 'id') setIdCol = idx;
+        if (header === 'id local' || header === 'local id') setLocalIdCol = idx;
+        if (header === 'nome' || header === 'name' || header === 'card name') setNameCol = idx;
+        if (header === 'expansao' || header === 'expansion') setExpansionCol = idx;
+        if (header === 'raridade' || header === 'rarity') setRarityCol = idx;
       });
-
-      const setStartIndex = (setlistRows[0][setNameCol] && setlistRows[0][setNameCol].toLowerCase().includes('card')) ? 1 : 0;
+      const setStartIndex = hasSetlistHeader(setlistRows) ? 1 : 0;
       appState.setlistCards = [];
 
       for (let i = setStartIndex; i < setlistRows.length; i++) {
         const row = setlistRows[i];
         if (!row || row.length === 0) continue;
 
-        const cardNo = row[setNoCol] || `#${i}`;
-        const cardMark = row[setMarkCol] || '';
-        const cardName = row[setNameCol] || row[0] || 'Desconhecido';
-        const cardType = row[setTypeCol] || 'Outro';
-        const cardRarity = row[setRarityCol] || 'Comum';
-        const expansionCode = extractExpansionCode(cardNo);
+        const cardId = row[setIdCol] || `#${i}`;
+        const cardNo = row[setLocalIdCol] || cardId;
+        const cardName = row[setNameCol] || 'Desconhecido';
+        const cardExpansion = row[setExpansionCol] || '';
+        const cardRarity = row[setRarityCol] || 'Sem raridade';
+        const expansionCode = extractExpansionCode(cardId);
         if (selectedExpansion && expansionCode !== selectedExpansion) continue;
         const normCard = normalizeName(cardName);
-        const cardObj = { cardNo, cardMark, cardName, cardType, cardRarity, normCard, expansionCode };
+        const cardObj = { cardId, cardNo, cardName, cardExpansion, cardRarity, normCard, expansionCode };
         appState.setlistCards.push(cardObj);
 
         // Find match in Pokédex Map
@@ -817,7 +804,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
           d.dexName.toLowerCase().includes(q) ||
           d.dexNo.toLowerCase().includes(q) ||
           (d.generation || '').toLowerCase().includes(q) ||
-          d.matchedCards.some(c => c.cardName.toLowerCase().includes(q) || c.cardNo.toLowerCase().includes(q))
+          d.matchedCards.some(c => c.cardName.toLowerCase().includes(q) || c.cardNo.toLowerCase().includes(q) || c.cardId.toLowerCase().includes(q) || c.cardExpansion.toLowerCase().includes(q))
         );
       }
       return data;
@@ -968,12 +955,13 @@ Gengar\t94\t1 - Kanto\tSIM`;
       sortMatchedCards(cards).forEach(card => groups[getRarityBucket(card.cardRarity)].push(card));
       return groups;
     }
-    function renderCardsCell(cards, showRarity = false) {
+    function renderCardsCell(cards) {
       if (!cards.length) return `<span class="text-slate-600 text-xs">-</span>`;
       return cards.map(c => `
         <div class="inline-flex flex-col gap-0.5 px-2 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 text-[11px] mr-1.5 mb-1 align-top">
           <span><span class="font-mono text-amber-400 font-bold">${c.cardNo}</span> <span class="font-medium">${c.cardName}</span></span>
-          ${showRarity ? `<span class="text-slate-400">${c.cardRarity || 'Sem raridade'}</span>` : ''}
+          <span class="text-slate-400">${c.cardRarity || 'Sem raridade'}</span>
+          <span class="text-violet-300">${c.cardExpansion || 'Sem expansão'}</span>
         </div>
       `).join('');
     }
@@ -1030,7 +1018,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
             <td class="p-3.5 align-top">${renderCardsCell(groups.uncommon)}</td>
             <td class="p-3.5 align-top">${renderCardsCell(groups.rare)}</td>
             <td class="p-3.5 align-top">${renderCardsCell(groups.doubleRare)}</td>
-            <td class="p-3.5 align-top">${renderCardsCell(groups.other, true)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.other)}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1171,7 +1159,7 @@ Gengar\t94\t1 - Kanto\tSIM`;
           inputPokedex.value = pokedex;
           inputSetlist.value = setlist;
           inputExpansionCode.value = typeof backup?.data?.selectedExpansionCode === 'string'
-            ? backup.data.selectedExpansionCode.replace(/\D/g, '')
+            ? backup.data.selectedExpansionCode.trim()
             : '';
           updateLineCounts();
           refreshAvailableExpansions();

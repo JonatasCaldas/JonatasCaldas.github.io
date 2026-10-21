@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Explorador de expansoes Pokemon TCG com selecao cumulativa e exportacao CSV." />
+  <meta name="description" content="Explorador de expansoes Pokemon TCG com selecao cumulativa e copia de dados tabulados." />
   <title>TCGdex Set Explorer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tcgdex/sdk@2/dist/tcgdex.browser.global.min.js"></script>
@@ -35,7 +35,7 @@
         <div>
           <p class="text-xs font-bold uppercase tracking-[.22em] text-indigo-600">Pokemon Trading Card Game</p>
           <h1 class="text-2xl font-black tracking-tight text-ink">TCGdex Set Explorer</h1>
-          <p class="mt-1 text-sm text-slate-500">Selecione expansoes do Pokemon TCG cumulativamente, consolide as cartas e exporte em CSV.</p>
+          <p class="mt-1 text-sm text-slate-500">Selecione expansoes do Pokemon TCG cumulativamente, consolide as cartas e copie os dados tabulados.</p>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
@@ -81,7 +81,7 @@
           <div><h2 class="font-extrabold text-ink">Cartas das expansoes selecionadas</h2><p id="tableDescription" class="mt-1 text-sm text-slate-500">Use o painel lateral para adicionar uma ou mais expansoes.</p></div>
           <div class="flex flex-col gap-3 sm:flex-row">
             <div class="relative"><i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"></i><input id="cardSearch" type="search" placeholder="Filtrar cartas..." class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-64" /></div>
-            <button id="downloadBtn" disabled class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><i data-lucide="download" class="size-4"></i>Baixar CSV</button>
+            <button id="copyBtn" disabled class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><i data-lucide="clipboard-copy" class="size-4"></i>Copiar</button>
           </div>
         </div>
         <div id="loadingCards" class="hidden border-b border-slate-100 px-5 py-3 text-sm font-semibold text-indigo-600"><span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="size-4 animate-spin"></i>Carregando cartas...</span></div>
@@ -103,7 +103,7 @@
   const API = 'https://api.tcgdex.net/v2';
   const state = { series: [], details: new Map(), selected: new Map(), cards: [], filtered: [], lang: 'en', source: 'fetch', sdk: null };
   const $ = (s) => document.querySelector(s);
-  const els = { tree: $('#seriesTree'), setSearch: $('#setSearch'), cardSearch: $('#cardSearch'), body: $('#tableBody'), empty: $('#emptyState'), footer: $('#tableFooter'), loading: $('#loadingCards'), download: $('#downloadBtn') };
+  const els = { tree: $('#seriesTree'), setSearch: $('#setSearch'), cardSearch: $('#cardSearch'), body: $('#tableBody'), empty: $('#emptyState'), footer: $('#tableFooter'), loading: $('#loadingCards'), copy: $('#copyBtn') };
 
   const esc = (v='') => String(v).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const imageUrl = (url) => url ? `${url}/low.webp` : '';
@@ -193,7 +193,7 @@
     $('#setsCount').textContent=state.selected.size.toLocaleString('pt-BR'); $('#cardsCount').textContent=state.cards.length.toLocaleString('pt-BR'); $('#selectedSeriesCount').textContent=selectedSeries.toLocaleString('pt-BR');
     $('#selectionText').textContent=state.selected.size ? `${state.selected.size} expansao(oes) selecionada(s)` : 'Nenhuma expansao selecionada';
     $('#tableDescription').textContent=state.selected.size ? 'Os resultados abaixo combinam todas as expansoes marcadas.' : 'Use o painel lateral para adicionar uma ou mais expansoes.';
-    els.download.disabled=!state.cards.length; renderTable();
+    els.copy.disabled=!state.filtered.length; renderTable();
   }
 
   function renderTable(){
@@ -201,17 +201,23 @@
     const has=state.filtered.length>0; els.empty.classList.toggle('hidden',has); els.footer.classList.toggle('hidden',!has); els.footer.classList.toggle('flex',has); $('#visibleCount').textContent=`${state.filtered.length.toLocaleString('pt-BR')} de ${state.cards.length.toLocaleString('pt-BR')} cartas`;
   }
 
-  function csvCell(v){ return `"${String(v??'').replace(/"/g,'""')}"`; }
-  function downloadCSV(){
+  async function copyTableData(){
     const header=['ID','ID local','Nome','Expansao','Raridade'];
-    const rows=state.cards.map(c=>[c.id,c.localId,c.name,c.setName,c.rarity||'Nao informada']);
-    const csv='\uFEFF'+[header,...rows].map(r=>r.map(csvCell).join(';')).join('\r\n');
-    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download=`tcgdex-cartas-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url); notify('CSV gerado com sucesso.');
+    const rows=state.filtered.map(c=>[c.id,c.localId,c.name,c.setName,c.rarity||'Carregando...']);
+    const text=[header,...rows].map(row=>row.map(value=>String(value??'').replace(/\t/g,' ').replace(/\r?\n/g,' ')).join('\t')).join('\r\n');
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (error) {
+      const area=document.createElement('textarea'); area.value=text; area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select();
+      const copied=document.execCommand('copy'); area.remove();
+      if(!copied) throw error;
+    }
+    notify(`${state.filtered.length.toLocaleString('pt-BR')} carta(s) copiada(s).`);
   }
 
   els.tree.addEventListener('click',e=>{ const btn=e.target.closest('.serie-toggle'); if(btn) toggleSerie(btn.dataset.id); });
   els.tree.addEventListener('change',e=>{ if(e.target.matches('.set-check')) setSelection(e.target); });
-  els.setSearch.addEventListener('input',renderTree); els.cardSearch.addEventListener('input',updateAll); els.download.addEventListener('click',downloadCSV);
+  els.setSearch.addEventListener('input',renderTree); els.cardSearch.addEventListener('input',updateAll); els.copy.addEventListener('click',copyTableData);
   $('#clearBtn').addEventListener('click',()=>{ state.selected.clear(); rebuildCards(); renderTree(); });
   $('#reloadBtn').addEventListener('click',loadSeries);
   $('#dataSource').addEventListener('change',e=>{state.source=e.target.value; state.sdk=null; loadSeries();});

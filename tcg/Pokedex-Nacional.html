@@ -7,7 +7,7 @@
 <meta content="#f5f5f7" name="theme-color"/>
 <title>Pokédex Nacional | Progresso da coleção</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tcgdex/sdk@2/dist/tcgdex.browser.global.min.js"></script><script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 tailwind.config={theme:{extend:{colors:{action:'#147d3f',ink:'#1d1d1f',canvas:'#ffffff',parchment:'#f5f5f7',muted:'#6e6e73',line:'#e0e0e0',ok:'#147d3f',danger:'#b42318',warning:'#9a6700',poke:'#147d3f'},fontFamily:{sans:['Inter','system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif']},boxShadow:{soft:'0 14px 40px rgba(0,0,0,.08)'}}}}
@@ -181,7 +181,20 @@ nav button{min-height:64px}
 #expansionsView #setlistFooter{margin-bottom:16px!important;border-radius:20px!important}
 #expansionsView #toastContainer{bottom:calc(5.5rem + env(safe-area-inset-bottom))!important}
 </style><style id="expansions-unified-header-style">#expansionsView #setlistModuleMain{padding-top:0!important}
-#expansionsView #expansionsPageHeader{color:#1d1d1f}</style></head>
+#expansionsView #expansionsPageHeader{color:#1d1d1f}</style><style id="tcg-expansion-selector-style">
+#expansionsView #tcgSeriesResults button{min-height:44px}
+#expansionsView .tcg-series-block{border:1px solid transparent;border-radius:16px}
+#expansionsView .tcg-series-block.open{border-color:var(--line);background:#fff}
+#expansionsView .tcg-set-option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer}
+#expansionsView .tcg-set-option:hover{background:#f0f7f3}
+#expansionsView .tcg-set-option input{accent-color:var(--action);width:17px;height:17px;margin-top:2px}
+#expansionsView .tcg-selected-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #bcdfc7;background:#f0f8f3;color:#106934;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:700;max-width:100%}
+#expansionsView .tcg-selected-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#expansionsView #tcgLoadingOverlay.flex{display:flex!important}
+#expansionsView.tcgdex-busy #btnAnalyze{opacity:.45;pointer-events:none}
+#expansionsView .tcg-series-select-all{display:inline-flex;align-items:center;gap:5px;border:1px solid #bcdfc7;background:#f0f8f3;color:#106934;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;white-space:nowrap}
+#expansionsView .tcg-series-select-all:disabled{opacity:.45;cursor:not-allowed}
+</style></head>
 <body class="bg-parchment text-ink min-h-screen pb-24">
 <div class="toast fixed top-4 left-1/2 z-[120] bg-ink text-white rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-xl" id="toast"><i class="w-4 h-4" data-lucide="check-circle-2"></i><span id="toastText"></span></div>
 <header class="sticky top-0 z-40 bg-parchment/90 backdrop-blur-xl border-b border-black/5" id="appHeader">
@@ -233,32 +246,30 @@ nav button{min-height:64px}
 <section class="grid grid-cols-1 gap-5 mb-6">
 <!-- Field 1: Pokédex TSV Data (Referência Principal) -->
 <!-- Field 2: Setlist TSV Data -->
-<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-<div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
-<h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">Database das Expansões</h2>
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl" id="expansionSelectorCard">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+<div>
+<div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span><h2 class="text-base font-semibold text-slate-100">Database das Expansões</h2></div>
+<p class="text-xs text-slate-400 mt-2">Pesquise uma série, abra o bloco e selecione somente as expansões que deseja considerar.</p>
 </div>
-<div class="flex items-center gap-2 self-start sm:self-auto">
-<button class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition" id="btnNewExpansion" type="button">
-<i class="w-4 h-4" data-lucide="plus"></i> Nova expansão
-            </button>
 <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md font-mono whitespace-nowrap" id="setlistLineCount">0 linhas</span>
 </div>
+<div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(260px,.55fr)] gap-4">
+<div class="rounded-2xl border border-line bg-parchment overflow-hidden">
+<div class="p-4 border-b border-line bg-white">
+<label class="block text-xs font-semibold text-ink mb-2" for="tcgSetSearch">Buscar série ou expansão</label>
+<div class="relative"><i class="absolute left-3 top-3 w-4 h-4 text-muted" data-lucide="search"></i><input autocomplete="off" class="w-full rounded-xl pl-9 pr-3 py-2.5 text-sm" id="tcgSetSearch" placeholder="Ex.: Scarlet &amp; Violet, Base Set..." type="search"/></div>
 </div>
-<p class="text-xs text-slate-400 mb-3">
-          Cole os dados do Excel/Sheets/CSV (colunas <code class="text-amber-300">ID | ID local | Nome | Expansao | Raridade</code>).
-        </p>
-<textarea class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition min-h-[14rem] sm:min-h-[17rem] flex-1" id="inputSetlist" placeholder="Cole aqui os dados das expansões..."></textarea>
-<div class="mt-4 pt-4 border-t border-slate-800">
-<label class="block text-xs font-semibold text-slate-200 mb-1.5" for="inputExpansionCode">Expansão para análise</label>
-<div class="relative">
-<i class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" data-lucide="search"></i>
-<input autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition" id="inputExpansionCode" list="expansionCodeSuggestions" placeholder="Digite o identificador da expansão, por exemplo: me02.5" type="text"/>
-<datalist id="expansionCodeSuggestions"></datalist>
+<div aria-live="polite" class="max-h-80 overflow-y-auto p-2" id="tcgSeriesResults"><div class="p-5 text-sm text-muted">Carregando catálogo de expansões...</div></div>
 </div>
-<p class="mt-2 text-[11px] text-slate-500" id="expansionCodeFeedback">Cole a database para identificar as expansões disponíveis na coluna “ID”.</p>
+<aside class="rounded-2xl border border-line bg-white p-4 min-w-0">
+<div class="flex items-center justify-between gap-3"><div><h3 class="font-semibold text-ink">Selecionadas</h3><p class="text-xs text-muted mt-1" id="tcgSelectionSummary">Nenhuma expansão selecionada</p></div><button class="text-xs font-semibold text-action" id="tcgClearSelection" type="button">Limpar</button></div>
+<div class="mt-3 flex flex-wrap gap-2 max-h-52 overflow-y-auto" id="tcgSelectedSets"><p class="text-xs text-muted">As expansões incluídas aparecerão aqui.</p></div>
+<div class="mt-4 rounded-xl bg-parchment p-3 text-xs text-muted"><strong class="text-ink" id="tcgCardsCount">0 cartas</strong><span> prontas para o comparativo.</span></div>
+</aside>
 </div>
+<textarea aria-hidden="true" class="hidden" id="inputSetlist"></textarea>
+<input id="inputExpansionCode" type="hidden" value=""/><datalist id="expansionCodeSuggestions"></datalist><p class="hidden" id="expansionCodeFeedback"></p>
 </div>
 </section>
 <!-- Matching Engine Configuration Drawer -->
@@ -385,8 +396,6 @@ nav button{min-height:64px}
 <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition" data-filter="missing">
               ❌ Pokédex e Expansão (<span id="cntMissing">0</span>)
             </button>
-
-
 </div>
 <!-- Table Search Input -->
 <div class="relative sm:w-72">
@@ -440,22 +449,15 @@ nav button{min-height:64px}
 </section>
 </div><div class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500" id="setlistFooter">
 <p>Analisador Pokédex vs Setlist TCG • Foco na Coleção &amp; Oportunidades de Captura</p>
-</div><div aria-labelledby="newExpansionModalTitle" aria-modal="true" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center" id="newExpansionModal" role="dialog">
-<div class="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-<div class="flex items-start justify-between gap-4 p-5 border-b border-slate-800">
-<div><h2 class="text-base font-bold text-white" id="newExpansionModalTitle">Nova expansão</h2><p class="mt-1 text-xs text-slate-400">Cole os novos dados no formato “ID | ID local | Nome | Expansao | Raridade”. Eles serão acrescentados ao final da lista atual.</p></div>
-<button aria-label="Fechar" class="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" id="btnCloseNewExpansion" type="button"><i class="w-5 h-5" data-lucide="x"></i></button>
+</div><div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" id="toastContainer"></div></div><div aria-labelledby="tcgLoadingTitle" aria-modal="true" class="hidden fixed inset-0 z-[140] bg-black/45 backdrop-blur-sm p-4 items-center justify-center" id="tcgLoadingOverlay" role="dialog">
+<div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl text-center">
+<span class="mx-auto grid w-14 h-14 place-items-center rounded-full bg-green-50 text-action"><i class="w-7 h-7 animate-spin" data-lucide="loader-circle"></i></span>
+<h2 class="text-xl font-semibold mt-4" id="tcgLoadingTitle">Carregando expansão</h2>
+<p class="text-sm text-muted mt-2" id="tcgLoadingMessage">Buscando cartas e raridades. Aguarde a conclusão.</p>
+<div class="h-2 rounded-full bg-parchment mt-5 overflow-hidden"><div class="h-full bg-action rounded-full transition-all" id="tcgLoadingProgress" style="width:0%"></div></div>
+<p class="text-xs text-muted mt-2" id="tcgLoadingCounter">Preparando...</p>
 </div>
-<div class="p-5">
-<textarea class="w-full h-72 bg-slate-950 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition" id="inputNewExpansion" placeholder="Cole aqui os dados da nova expansão (ID, ID local, Nome, Expansao, Raridade)..."></textarea>
-<p class="mt-2 text-[11px] text-slate-500" id="newExpansionLineCount">0 linhas para incluir</p>
-</div>
-<div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-5 pt-0">
-<button class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition" id="btnCancelNewExpansion" type="button">Cancelar</button>
-<button class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 text-xs font-bold transition" id="btnIncludeNewExpansion" type="button"><i class="w-4 h-4" data-lucide="plus-circle"></i> Incluir</button>
-</div>
-</div>
-</div><div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" id="toastContainer"></div></div></section>
+</div></section>
 <section class="view" id="dataView">
 <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 <div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">ADMINISTRAÇÃO DOS DADOS</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Incluir e compartilhar</h1><p class="text-muted mt-2">Cole uma lista tabulada ou CSV para atualizar sua Pokédex.</p></div>
@@ -507,8 +509,8 @@ function tsv(){return ['Pokémon\tNúmero\tGeração\tCapturado?',...state.pokem
 async function copyTSV(){try{await navigator.clipboard.writeText(tsv());showToast('Listagem copiada como tabulação')}catch(e){const ta=document.createElement('textarea');ta.value=tsv();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('Listagem copiada')}}
 function download(name,content,type){const blob=new Blob(['\ufeff'+content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function exportCSV(){const csv=['Pokémon;Número;Geração;Capturado?',...state.pokemon.sort((a,b)=>a.number-b.number).map(p=>`"${p.name.replace(/"/g,'""')}";${p.number};"${p.generation} - ${p.region||GENERATIONS[p.generation]}";${p.captured?'Sim':'Não'}`)].join('\n');download(`pokedex-${new Date().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8');showToast('CSV gerado')}
-function exportBackup(){const expansionsDatabase=document.getElementById('inputSetlist')?.value||'';const data={metadata:{app:'Pokédex Nacional',version:2,exportedAt:new Date().toISOString()},pokemon:state.pokemon,expansionsDatabase};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup JSON gerado com Pokédex e Expansões')}
-function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(data.expansionsDatabase!==undefined&&typeof data.expansionsDatabase!=='string')throw new Error('Database das Expansões incompatível');const expansionsDatabase=typeof data.expansionsDatabase==='string'?data.expansionsDatabase:'';if(!confirm(`Importar ${data.pokemon.length} registros e restaurar a Database das Expansões?`))return;state=normalize(data);save();const inputSetlist=document.getElementById('inputSetlist');if(inputSetlist){inputSetlist.value=expansionsDatabase;inputSetlist.dispatchEvent(new Event('input',{bubbles:true}))}selectedGenerations.clear();goView('dashboard');showToast('Pokédex e Database das Expansões restauradas com sucesso')}catch(err){showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
+function exportBackup(){const expansionsDatabase=document.getElementById('inputSetlist')?.value||'';const selectedExpansions=typeof window.getSelectedExpansionsBackup==='function'?window.getSelectedExpansionsBackup():[];const data={metadata:{app:'Pokédex Nacional',version:3,exportedAt:new Date().toISOString()},pokemon:state.pokemon,expansionsDatabase,selectedExpansions};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup JSON gerado com Pokédex e expansões selecionadas')}
+function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(data.expansionsDatabase!==undefined&&typeof data.expansionsDatabase!=='string')throw new Error('Database das Expansões incompatível');if(data.selectedExpansions!==undefined&&!Array.isArray(data.selectedExpansions))throw new Error('Seleção de expansões incompatível');const expansionsDatabase=typeof data.expansionsDatabase==='string'?data.expansionsDatabase:'';if(!confirm(`Importar ${data.pokemon.length} registros e restaurar as expansões selecionadas?`))return;state=normalize(data);save();const inputSetlist=document.getElementById('inputSetlist');if(inputSetlist){inputSetlist.value=expansionsDatabase;inputSetlist.dispatchEvent(new Event('input',{bubbles:true}))}if(typeof window.restoreSelectedExpansionsBackup==='function')await window.restoreSelectedExpansionsBackup(data.selectedExpansions||[],expansionsDatabase);selectedGenerations.clear();goView('dashboard');showToast('Pokédex e expansões selecionadas restauradas com sucesso')}catch(err){console.error(err);showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
 renderDashboard();lucide.createIcons();
 </script>
 <script id="expansions-module-script">(()=>{
@@ -1094,54 +1096,7 @@ me02.5-014\t014\tSnorlax\tAscended Heroes\tRare`;
       });
       inputExpansionCode.addEventListener('input', validateExpansionSelection);
 
-      // Modal para acrescentar dados de uma nova expansão ao final da Setlist atual.
-      const newExpansionModal = document.getElementById('newExpansionModal');
-      const inputNewExpansion = document.getElementById('inputNewExpansion');
-      const newExpansionLineCount = document.getElementById('newExpansionLineCount');
-
-      function updateNewExpansionLineCount() {
-        const lines = inputNewExpansion.value.trim() ? inputNewExpansion.value.trim().split(/\r?\n/).length : 0;
-        newExpansionLineCount.textContent = `${lines.toLocaleString()} linha${lines === 1 ? '' : 's'} para incluir`;
-      }
-      function openNewExpansionModal() {
-        inputNewExpansion.value = '';
-        updateNewExpansionLineCount();
-        newExpansionModal.classList.remove('hidden');
-        newExpansionModal.classList.add('flex');
-        document.body.classList.add('overflow-hidden');
-        lucide.createIcons();
-        setTimeout(() => inputNewExpansion.focus(), 0);
-      }
-      function closeNewExpansionModal() {
-        newExpansionModal.classList.add('hidden');
-        newExpansionModal.classList.remove('flex');
-        document.body.classList.remove('overflow-hidden');
-      }
-      document.getElementById('btnNewExpansion').addEventListener('click', openNewExpansionModal);
-      document.getElementById('btnCloseNewExpansion').addEventListener('click', closeNewExpansionModal);
-      document.getElementById('btnCancelNewExpansion').addEventListener('click', closeNewExpansionModal);
-      inputNewExpansion.addEventListener('input', updateNewExpansionLineCount);
-      newExpansionModal.addEventListener('click', event => { if (event.target === newExpansionModal) closeNewExpansionModal(); });
-      document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && !newExpansionModal.classList.contains('hidden')) closeNewExpansionModal();
-      });
-      document.getElementById('btnIncludeNewExpansion').addEventListener('click', () => {
-        const newData = inputNewExpansion.value.trim();
-        if (!newData) {
-          showToast('Cole os dados da nova expansão antes de incluir.', 'warning');
-          inputNewExpansion.focus();
-          return;
-        }
-        const currentData = inputSetlist.value.trimEnd();
-        inputSetlist.value = currentData ? `${currentData}\n${newData}` : newData;
-        updateLineCounts();
-        refreshAvailableExpansions();
-        document.getElementById('resultsSection').classList.add('hidden');
-        closeNewExpansionModal();
-        const includedLines = newData.split(/\r?\n/).length;
-        showToast(`${includedLines.toLocaleString()} linha${includedLines === 1 ? '' : 's'} adicionada${includedLines === 1 ? '' : 's'} à Setlist. Clique em "Comparar" para processar o conjunto atualizado.`, 'success');
-      });
-
+      // A inclusão manual foi substituída pelo seletor integrado à TCGdex.
       // Analyze Button
       document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
 
@@ -1306,5 +1261,80 @@ me02.5-014\t014\tSnorlax\tAscended Heroes\tRare`;
       }, 3500);
     }
   
-})();</script></body>
+})();</script>
+<script id="tcgdex-selector-module">
+(() => {
+  'use strict';
+  const API='https://api.tcgdex.net/v2';
+  const state={series:[],details:new Map(),selected:new Map(),rarityCache:new Map(),busy:false,lang:'en'};
+  const $=id=>document.getElementById(id);
+  const els={search:$('tcgSetSearch'),results:$('tcgSeriesResults'),selected:$('tcgSelectedSets'),summary:$('tcgSelectionSummary'),count:$('tcgCardsCount'),clear:$('tcgClearSelection'),textarea:$('inputSetlist'),overlay:$('tcgLoadingOverlay'),message:$('tcgLoadingMessage'),progress:$('tcgLoadingProgress'),counter:$('tcgLoadingCounter'),view:$('expansionsView')};
+  if(!Object.values(els).every(Boolean)) return;
+  const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const getJson=async path=>{const r=await fetch(`${API}/${state.lang}/${path}`);if(!r.ok)throw new Error(`TCGdex respondeu ${r.status}`);return r.json()};
+  const setBusy=(busy,message='')=>{state.busy=busy;els.view.classList.toggle('tcgdex-busy',busy);els.overlay.classList.toggle('hidden',!busy);els.overlay.classList.toggle('flex',busy);els.message.textContent=message||'Buscando cartas e raridades. Aguarde a conclusão.';els.results.querySelectorAll('input,button').forEach(el=>el.disabled=busy);els.clear.disabled=busy;document.body.classList.toggle('overflow-hidden',busy);lucide.createIcons()};
+  const progress=(done,total,label)=>{const pct=total?Math.round(done/total*100):0;els.progress.style.width=`${pct}%`;els.counter.textContent=total?`${done.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} ${label}`:'Preparando...'};
+  async function loadSeries(){
+    els.results.innerHTML='<div class="p-5 text-sm text-muted">Carregando catálogo de expansões...</div>';
+    try{state.series=(await getJson('series')).filter(s=>String(s.id).toLowerCase()!=='tcgp').sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));renderSeries()}
+    catch(error){els.results.innerHTML=`<div class="p-5 text-sm text-danger">Não foi possível carregar o catálogo.<br><small>${esc(error.message)}</small></div>`}
+  }
+  function renderSeries(){
+    const q=els.search.value.trim().toLocaleLowerCase('pt-BR');
+    const visible=state.series.filter(series=>series.name.toLocaleLowerCase('pt-BR').includes(q)||(state.details.get(series.id)?.sets||[]).some(set=>set.name.toLocaleLowerCase('pt-BR').includes(q)||String(set.id).toLowerCase().includes(q)));
+    els.results.innerHTML=visible.map(series=>{const detail=state.details.get(series.id),sets=detail?.sets||[];return `<section class="tcg-series-block ${detail?'open':''} mb-1"><button type="button" class="tcg-series-toggle w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-parchment" data-series-id="${esc(series.id)}"><span class="grid w-8 h-8 shrink-0 place-items-center rounded-lg bg-green-50 text-action"><i data-lucide="folder" class="w-4 h-4"></i></span><span class="min-w-0 flex-1"><strong class="block truncate text-sm text-ink">${esc(series.name)}</strong><small class="text-muted">${detail?`${sets.length} expansões`:'Clique para visualizar'}</small></span><i data-lucide="chevron-down" class="w-4 h-4 text-muted ${detail?'rotate-180':''}"></i></button>${detail?`<div class="pl-5 pr-2 pb-2"><div class="flex justify-end px-2 pb-1"><button type="button" class="tcg-series-select-all" data-series-id="${esc(series.id)}"><i data-lucide="check-check" class="w-3.5 h-3.5"></i>${sets.every(set=>state.selected.has(set.id))?'Todas selecionadas':'Selecionar todas'}</button></div>${sets.map(set=>`<label class="tcg-set-option"><input type="checkbox" class="tcg-set-check" data-series-id="${esc(series.id)}" data-set-id="${esc(set.id)}" ${state.selected.has(set.id)?'checked':''}><span class="min-w-0"><span class="block text-sm font-semibold text-ink">${esc(set.name)}</span><small class="text-muted">${esc(set.id)}</small></span></label>`).join('')}</div>`:''}</section>`}).join('')||'<p class="p-5 text-center text-sm text-muted">Nenhum resultado. Abra uma série para pesquisar suas expansões.</p>';
+    if(state.busy)els.results.querySelectorAll('input,button').forEach(el=>el.disabled=true);lucide.createIcons();
+  }
+  async function toggleSeries(id){if(state.busy)return;if(state.details.has(id)){state.details.delete(id);renderSeries();return}setBusy(true,'Carregando o bloco de expansões...');progress(0,0);try{const detail=await getJson(`series/${encodeURIComponent(id)}`);state.details.set(id,detail)}catch(error){window.showToast?.(`Não foi possível carregar a série: ${error.message}`,'circle-alert')}finally{setBusy(false);renderSeries()}}
+  async function getRarity(card){
+    if(card.rarity)return card.rarity;if(state.rarityCache.has(card.id))return state.rarityCache.get(card.id);
+    try{const detail=await getJson(`cards/${encodeURIComponent(card.id)}`);const rarity=detail.rarity||'Não informada';state.rarityCache.set(card.id,rarity);return rarity}catch(error){console.warn('Raridade indisponível',card.id,error);state.rarityCache.set(card.id,'Não informada');return 'Não informada'}
+  }
+  async function loadSetData(setId,seriesId,onProgress){
+    const set=await getJson(`sets/${encodeURIComponent(setId)}`);const cards=set.cards||[];const enriched=new Array(cards.length);let done=0;const queue=cards.map((card,index)=>({card,index}));
+    const workers=Array.from({length:Math.min(6,queue.length||1)},async()=>{while(queue.length){const {card,index}=queue.shift();const rarity=await getRarity(card);enriched[index]={id:card.id,localId:card.localId||'',name:card.name||'',setName:set.name||setId,rarity};done++;onProgress?.(done,cards.length,set.name||setId)}});
+    await Promise.all(workers);return {id:setId,name:set.name||setId,seriesId,cards:enriched};
+  }
+  async function addSet(setId,seriesId){
+    if(state.busy||state.selected.has(setId))return;
+    setBusy(true,'Carregando cartas e raridades da expansão. Nenhuma outra expansão poderá ser adicionada até a conclusão.');progress(0,0);
+    try{const loaded=await loadSetData(setId,seriesId,(done,total)=>progress(done,total,'cartas processadas'));state.selected.set(setId,loaded);syncDatabase();window.showToast?.(`${loaded.name} adicionada ao comparativo`,'check-circle-2')}
+    catch(error){window.showToast?.(`Falha ao carregar ${setId}: ${error.message}`,'circle-alert')}
+    finally{setBusy(false);renderSeries();renderSelection()}
+  }
+  async function selectAllSeries(seriesId){
+    if(state.busy)return;const detail=state.details.get(seriesId);if(!detail)return;
+    const pending=(detail.sets||[]).filter(set=>!state.selected.has(set.id));if(!pending.length){window.showToast?.('Todas as expansões desta série já estão selecionadas','check-circle-2');return}
+    setBusy(true,`Carregando ${pending.length} expansões da série. Aguarde todas as cartas e raridades.`);let completed=0;
+    try{
+      for(const set of pending){els.message.textContent=`Carregando ${set.name} (${completed+1} de ${pending.length}). Buscando cartas e raridades.`;progress(completed,pending.length,'expansões concluídas');const loaded=await loadSetData(set.id,seriesId);state.selected.set(set.id,loaded);completed++;progress(completed,pending.length,'expansões concluídas');syncDatabase();renderSelection()}
+      window.showToast?.(`${completed} expansão(ões) adicionada(s) ao comparativo`,'check-circle-2');
+    }catch(error){window.showToast?.(`Carregamento interrompido: ${error.message}`,'circle-alert')}
+    finally{setBusy(false);renderSeries();renderSelection()}
+  }
+  function removeSet(setId){if(state.busy)return;state.selected.delete(setId);syncDatabase();renderSeries();renderSelection()}
+  function syncDatabase(){
+    const cards=[...state.selected.values()].flatMap(item=>item.cards);const lines=[['ID','ID local','Nome','Expansao','Raridade'],...cards.map(c=>[c.id,c.localId,c.name,c.setName,c.rarity])];
+    els.textarea.value=cards.length?lines.map(row=>row.map(value=>String(value??'').replace(/\t|\r?\n/g,' ')).join('\t')).join('\n'):'';els.textarea.dispatchEvent(new Event('input',{bubbles:true}));els.count.textContent=`${cards.length.toLocaleString('pt-BR')} carta${cards.length===1?'':'s'}`;
+  }
+  function renderSelection(){
+    const items=[...state.selected.values()];els.summary.textContent=items.length?`${items.length} expansão(ões) selecionada(s)`:'Nenhuma expansão selecionada';
+    els.selected.innerHTML=items.length?items.map(item=>`<span class="tcg-selected-chip"><span title="${esc(item.name)}">${esc(item.name)}</span><button type="button" class="tcg-remove-set" data-set-id="${esc(item.id)}" aria-label="Remover ${esc(item.name)}"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></span>`).join(''):'<p class="text-xs text-muted">As expansões incluídas aparecerão aqui.</p>';lucide.createIcons();
+  }
+  els.results.addEventListener('click',event=>{const selectAll=event.target.closest('.tcg-series-select-all');if(selectAll){event.stopPropagation();selectAllSeries(selectAll.dataset.seriesId);return}const button=event.target.closest('.tcg-series-toggle');if(button)toggleSeries(button.dataset.seriesId)});
+  els.results.addEventListener('change',event=>{const input=event.target.closest('.tcg-set-check');if(!input)return;input.checked?addSet(input.dataset.setId,input.dataset.seriesId):removeSet(input.dataset.setId)});
+  els.selected.addEventListener('click',event=>{const button=event.target.closest('.tcg-remove-set');if(button)removeSet(button.dataset.setId)});
+  els.search.addEventListener('input',renderSeries);
+  els.clear.addEventListener('click',()=>{if(state.busy)return;state.selected.clear();syncDatabase();renderSeries();renderSelection()});
+  window.getSelectedExpansionsBackup=()=>[...state.selected.values()].map(item=>({id:item.id,name:item.name,seriesId:item.seriesId,cards:item.cards.map(card=>({...card}))}));
+  window.restoreSelectedExpansionsBackup=async(items,database='')=>{
+    state.selected.clear();
+    if(Array.isArray(items)&&items.length){items.forEach(item=>{if(item&&item.id&&Array.isArray(item.cards))state.selected.set(item.id,{id:item.id,name:item.name||item.id,seriesId:item.seriesId||'',cards:item.cards.map(card=>({id:card.id||'',localId:card.localId||'',name:card.name||'',setName:card.setName||item.name||item.id,rarity:card.rarity||'Não informada'}))})});syncDatabase()}
+    else{els.textarea.value=database||'';els.textarea.dispatchEvent(new Event('input',{bubbles:true}));const rows=(database||'').trim()?database.trim().split(/\r?\n/).length-1:0;els.count.textContent=`${Math.max(0,rows).toLocaleString('pt-BR')} carta${rows===1?'':'s'}`}
+    renderSeries();renderSelection();
+  };
+  loadSeries();renderSelection();
+})();
+</script>
+</body>
 </html>

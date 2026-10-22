@@ -1,15 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f5f5f7">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="#f5f5f7" name="theme-color"/>
 <title>Pokédex Nacional | Progresso da coleção</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-tailwind.config={theme:{extend:{colors:{action:'#147d3f',ink:'#1d1d1f',canvas:'#ffffff',parchment:'#f5f5f7',muted:'#6e6e73',line:'#e0e0e0',ok:'#147d3f',danger:'#b42318',warning:'#9a6700',poke:'#147d3f'},fontFamily:{sans:['Inter','system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif']},boxShadow:{soft:'0 14px 40px rgba(0,0,0,.08)'}}}}}
+tailwind.config={theme:{extend:{colors:{action:'#147d3f',ink:'#1d1d1f',canvas:'#ffffff',parchment:'#f5f5f7',muted:'#6e6e73',line:'#e0e0e0',ok:'#147d3f',danger:'#b42318',warning:'#9a6700',poke:'#147d3f'},fontFamily:{sans:['Inter','system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif']},boxShadow:{soft:'0 14px 40px rgba(0,0,0,.08)'}}}}
 </script>
 <style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{font-size:16px;letter-spacing:-.01em;-webkit-tap-highlight-color:transparent}.view{display:none}.view.active{display:block}.btn{min-height:44px;transition:transform .16s ease,background-color .16s ease,border-color .16s ease}.btn:active{transform:scale(.97)}.card{border:1px solid rgba(0,0,0,.08)}.focusable:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(20,125,63,.35);outline-offset:2px}.toast{transform:translate(-50%,-150%);opacity:0}.toast.show{transform:translate(-50%,0);opacity:1}.nav-active{color:#147d3f}.status-toggle{width:52px;height:30px;border-radius:999px;background:#d2d2d7;padding:3px;transition:.2s}.status-toggle span{display:block;width:24px;height:24px;border-radius:50%;background:white;box-shadow:0 1px 5px rgba(0,0,0,.22);transition:.2s}.status-toggle.on{background:#147d3f}.status-toggle.on span{transform:translateX(22px)}.generation-chip.active{background:#1d1d1f;color:#fff;border-color:#1d1d1f}.progress-ring{transform:rotate(-90deg);transform-origin:50% 50%}.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}.modal{display:none}.modal.open{display:flex}input:not([type="checkbox"]):not([type="file"]),select,textarea{color:#1d1d1f;background:#fff;border:1px solid #86868b}input::placeholder,textarea::placeholder{color:#59595f;opacity:1}.table-wrap{overflow:auto}.table-wrap table{min-width:760px}.sort-btn{display:inline-flex;align-items:center;gap:5px}.mobile-card{display:none}@media(max-width:700px){.desktop-table{display:none}.mobile-card{display:block}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
@@ -115,70 +116,357 @@ nav button{min-height:64px}
 }
 
 </style>
-</head>
+<style id="expansions-integrated-theme">
+    #expansionsView .setlist-shell{color-scheme:light;--action:#147d3f;--ink:#1d1d1f;--canvas:#fff;--parchment:#f5f5f7;--muted:#6e6e73;--line:#e0e0e0;--danger:#b42318;--warning:#9a6700}
+    #expansionsView *{box-sizing:border-box}#expansionsView html{scroll-behavior:smooth;background:var(--parchment)}
+    #expansionsView .setlist-shell{font-size:16px;letter-spacing:-.01em;-webkit-tap-highlight-color:transparent;background:var(--parchment)!important;color:var(--ink)!important;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;padding-bottom:env(safe-area-inset-bottom)}
+    #expansionsView button, #expansionsView input, #expansionsView select, #expansionsView textarea{font:inherit}#expansionsView button{cursor:pointer}#expansionsView img, #expansionsView svg, #expansionsView canvas{max-width:100%}
+    #expansionsView button:focus-visible, #expansionsView input:focus-visible, #expansionsView select:focus-visible, #expansionsView textarea:focus-visible, #expansionsView summary:focus-visible{outline:3px solid rgba(20,125,63,.35)!important;outline-offset:2px}
+    #expansionsView ::-webkit-scrollbar{width:8px;height:8px}#expansionsView ::-webkit-scrollbar-track{background:#ededf0}#expansionsView ::-webkit-scrollbar-thumb{background:#b8b8be;border-radius:99px}#expansionsView ::-webkit-scrollbar-thumb:hover{background:#8e8e93}
+    #expansionsView #setlistToolbar{background:rgba(245,245,247,.9)!important;border-color:rgba(0,0,0,.06)!important;backdrop-filter:blur(20px);padding-top:env(safe-area-inset-top)}
+    #expansionsView #setlistToolbar>div{height:64px!important}#expansionsView #setlistToolbar .w-10.h-10{width:36px!important;height:36px!important;border-radius:999px!important;background:#147d3f!important;box-shadow:none!important}
+    #expansionsView #setlistToolbar h1{color:var(--ink)!important;font-size:19px!important;font-weight:600!important}#expansionsView #setlistToolbar h1 span{background:#e7f3eb!important;color:#147d3f!important;border-color:#bcdfc7!important}
+    #expansionsView #setlistToolbar p{color:var(--muted)!important}
+    #expansionsView #setlistToolbar button{min-height:44px;border-radius:999px!important;transition:transform .16s ease,background-color .16s ease,border-color .16s ease!important}
+    #expansionsView #setlistToolbar button:active, #expansionsView #btnAnalyze:active, #expansionsView #resultsSection button:active{transform:scale(.97)}
+    #expansionsView #btnImportJSON, #expansionsView #btnClearAll{background:#fff!important;color:var(--ink)!important;border-color:var(--line)!important}
+    #expansionsView #btnExportJSON{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important}
+    #expansionsView #btnImportJSON i, #expansionsView #btnExportJSON i{color:currentColor!important}#expansionsView #btnClearAll:hover{color:var(--danger)!important;background:#fff!important}
+    #expansionsView #setlistModuleMain{padding-top:32px!important;padding-bottom:48px!important;gap:0}
+    #expansionsView #setlistModuleMain>section.grid{gap:20px!important}
+    #expansionsView #setlistModuleMain>section.grid>div, #expansionsView #resultsSection>div.bg-slate-900, #expansionsView #newExpansionModal>div{background:#fff!important;border:1px solid rgba(0,0,0,.08)!important;border-radius:24px!important;box-shadow:0 14px 40px rgba(0,0,0,.06)!important}
+    #expansionsView #setlistModuleMain>section.grid>div h2, #expansionsView #resultsSection h2, #expansionsView #resultsSection h3, #expansionsView #newExpansionModal h2{color:var(--ink)!important;font-weight:600!important}
+    #expansionsView #setlistModuleMain p, #expansionsView .text-slate-400, #expansionsView .text-slate-500{color:var(--muted)!important}#expansionsView .text-slate-100, #expansionsView .text-slate-200, #expansionsView .text-slate-300, #expansionsView .text-white{color:var(--ink)!important}
+    #expansionsView code, #expansionsView .text-amber-300, #expansionsView .text-amber-400{color:var(--action)!important}
+    #expansionsView #setlistModuleMain textarea, #expansionsView #setlistModuleMain input:not([type="checkbox"]), #expansionsView #setlistModuleMain select, #expansionsView #newExpansionModal textarea{background:#fff!important;color:var(--ink)!important;border-color:#86868b!important;border-radius:16px!important}
+    #expansionsView #setlistModuleMain textarea::placeholder, #expansionsView #setlistModuleMain input::placeholder, #expansionsView #newExpansionModal textarea::placeholder{color:#59595f!important;opacity:1}
+    #expansionsView #setlistModuleMain textarea:focus, #expansionsView #setlistModuleMain input:focus, #expansionsView #setlistModuleMain select:focus, #expansionsView #newExpansionModal textarea:focus{border-color:var(--action)!important;box-shadow:0 0 0 3px rgba(20,125,63,.18)!important}
+    #expansionsView #pokedexLineCount, #expansionsView #setlistLineCount{background:var(--parchment)!important;color:var(--muted)!important;border-radius:999px!important}
+    #expansionsView #btnNewExpansion{background:var(--action)!important;border-color:var(--action)!important;border-radius:999px!important;min-height:36px}
+    #expansionsView #setlistModuleMain>section.bg-slate-900\/60{background:#fff!important;border:1px solid rgba(0,0,0,.08)!important;border-radius:24px!important;padding:20px!important}
+    #expansionsView #setlistModuleMain>section.bg-slate-900\/60 summary{color:var(--ink)!important;font-size:14px!important}#expansionsView #setlistModuleMain>section.bg-slate-900\/60 summary i{color:var(--action)!important}
+    #expansionsView #setlistModuleMain>section.bg-slate-900\/60 details>div{border-color:var(--line)!important}#expansionsView #setlistModuleMain label{color:var(--ink)!important}
+    #expansionsView #btnAnalyze{background:var(--action)!important;border-radius:999px!important;box-shadow:none!important;min-height:52px;transform:none;color:#fff!important}
+    #expansionsView #btnAnalyze:hover{background:#106934!important;transform:none!important}
+    #expansionsView #resultsSection>div:first-child{border-color:var(--line)!important;padding-top:32px!important}
+    #expansionsView #resultsSection>div:first-child>h2 i{color:var(--action)!important}
+    #expansionsView #resultsSection .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4>div{background:#fff!important;border:1px solid rgba(0,0,0,.08)!important;border-radius:20px!important;box-shadow:none!important;animation:none!important}
+    #expansionsView #resultsSection .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4>div:nth-child(2){background:#f4faf6!important;border-color:#bcdfc7!important}
+    #expansionsView #resultsSection .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4>div:nth-child(4){background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important}
+    #expansionsView #resultsSection .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4>div:nth-child(4) *{color:#fff!important}
+    #expansionsView #statTotalDex, #expansionsView #statCapturedDex, #expansionsView #statMissingNoSet{color:var(--ink)!important;font-weight:600!important}#expansionsView .text-emerald-400, #expansionsView .text-emerald-300\/80{color:var(--action)!important}
+    #expansionsView #resultsSection>div.bg-slate-900{padding:24px!important}#expansionsView #resultsSection>div.bg-slate-900>div:first-child{border-color:var(--line)!important}
+    #expansionsView #btnCopyMissing, #expansionsView #btnExportCSV, #expansionsView #btnPrevPage, #expansionsView #btnNextPage, #expansionsView #btnSelectAllGenerations, #expansionsView #btnClearGenerations{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:999px!important;min-height:40px}
+    #expansionsView #btnCopyMissing i, #expansionsView #btnExportCSV i{color:var(--action)!important}
+    #expansionsView #filterPillsContainer{background:var(--parchment)!important;border-color:var(--line)!important;border-radius:999px!important;padding:4px!important}
+    #expansionsView .tab-btn{color:var(--muted)!important;border-radius:999px!important}#expansionsView .tab-btn.bg-amber-500\/20{background:var(--action)!important;color:#fff!important;border-color:var(--action)!important;box-shadow:none!important}
+    #expansionsView #generationFilterArea{background:var(--parchment)!important;border-color:var(--line)!important;border-radius:18px!important}
+    #expansionsView .generation-option{background:#fff!important;color:var(--ink)!important;border-color:var(--line)!important;border-radius:999px!important}#expansionsView .generation-option:has(input:checked){background:var(--action)!important;color:#fff!important;border-color:var(--action)!important}
+    #expansionsView .generation-checkbox{accent-color:var(--action)!important}
+    #expansionsView #resultsSection .overflow-x-auto{border-color:var(--line)!important;border-radius:18px!important;background:#fff!important}
+    #expansionsView #tableHead{background:var(--parchment)!important;color:var(--muted)!important;border-color:var(--line)!important}#expansionsView #tableResultsBody{background:#fff!important;color:var(--ink)!important}#expansionsView #tableResultsBody tr{border-color:var(--line)!important}#expansionsView #tableResultsBody tr:hover{background:#f8f8fa!important}
+    #expansionsView #tableResultsBody tr.border-l-amber-500{background:#f3faf5!important;border-left-color:var(--action)!important}#expansionsView #tableResultsBody tr.border-l-amber-500:hover{background:#eaf6ee!important}
+    #expansionsView #tableResultsBody .text-amber-400{color:var(--action)!important}#expansionsView #tableResultsBody .text-violet-300{color:var(--muted)!important}
+    #expansionsView #tableResultsBody .bg-slate-800{background:var(--parchment)!important;color:var(--ink)!important;border-color:var(--line)!important;border-radius:10px!important}
+    #expansionsView #paginationInfo, #expansionsView #pageIndicator{color:var(--muted)!important}#expansionsView #pageIndicator{color:var(--ink)!important}
+    #expansionsView #setlistFooter{background:var(--parchment)!important;border-color:var(--line)!important;color:var(--muted)!important}
+    #expansionsView #newExpansionModal{background:rgba(29,29,31,.48)!important}#expansionsView #newExpansionModal>div>div{border-color:var(--line)!important}#expansionsView #btnCloseNewExpansion, #expansionsView #btnCancelNewExpansion{background:#fff!important;color:var(--ink)!important;border-color:var(--line)!important;border-radius:999px!important}#expansionsView #btnIncludeNewExpansion{background:var(--action)!important;border-color:var(--action)!important;border-radius:999px!important}
+    #expansionsView #toastContainer>div{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important;border-radius:999px!important}
+    @media(max-width:700px){#expansionsView .setlist-shell{font-size:16px;overflow-x:hidden}#expansionsView #setlistToolbar>div{height:60px!important;padding-left:12px!important;padding-right:12px!important}#expansionsView #setlistToolbar p{display:none}#expansionsView #setlistToolbar h1{font-size:16px!important}#expansionsView #setlistToolbar .w-10.h-10{width:34px!important;height:34px!important}#expansionsView #setlistToolbar button{width:44px;min-width:44px;padding-left:0!important;padding-right:0!important;justify-content:center;font-size:0!important}#expansionsView #setlistToolbar button i{width:18px!important;height:18px!important}#expansionsView #setlistModuleMain{padding:24px 14px 36px!important}#expansionsView #setlistModuleMain>section.grid>div{padding:18px!important;border-radius:22px!important}#expansionsView #setlistModuleMain textarea{font-size:16px!important;min-height:230px}#expansionsView #setlistModuleMain input, #expansionsView #setlistModuleMain select{font-size:16px!important}#expansionsView #btnAnalyze{width:100%;justify-content:center;padding-left:18px!important;padding-right:18px!important}#expansionsView #resultsSection>div.bg-slate-900{padding:16px!important;border-radius:22px!important}#expansionsView #resultsSection>div.bg-slate-900>div:first-child{align-items:stretch}#expansionsView #resultsSection>div.bg-slate-900>div:first-child>div:last-child{display:grid;grid-template-columns:1fr 1fr;width:100%}#expansionsView #btnCopyMissing, #expansionsView #btnExportCSV{justify-content:center;padding-left:10px!important;padding-right:10px!important}#expansionsView .overflow-x-auto table{min-width:920px}#expansionsView #filterPillsContainer{border-radius:18px!important;width:100%;display:grid;grid-template-columns:1fr 1fr}#expansionsView .tab-btn{justify-content:center}#expansionsView .pulse-opportunity{animation:none!important}#expansionsView #newExpansionModal{padding:12px!important}#expansionsView #newExpansionModal>div{border-radius:22px!important}}
+    @media(max-width:420px){#expansionsView #resultsSection>div.bg-slate-900>div:first-child>div:last-child{grid-template-columns:1fr}#expansionsView #filterPillsContainer{grid-template-columns:1fr}#expansionsView .text-lg{font-size:1rem!important}}
+    @media(prefers-reduced-motion:reduce){#expansionsView *, #expansionsView *::before, #expansionsView *::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  
+#expansionsView .setlist-shell{background:transparent!important;color:#1d1d1f!important;padding-bottom:0!important}
+#expansionsView #setlistModuleMain{padding-top:20px!important;padding-bottom:36px!important}
+#expansionsView #setlistFooter{margin-bottom:16px!important;border-radius:20px!important}
+#expansionsView #toastContainer{bottom:calc(5.5rem + env(safe-area-inset-bottom))!important}
+</style><style id="expansions-unified-header-style">#expansionsView #setlistModuleMain{padding-top:0!important}
+#expansionsView #expansionsPageHeader{color:#1d1d1f}</style></head>
 <body class="bg-parchment text-ink min-h-screen pb-24">
-<div id="toast" class="toast fixed top-4 left-1/2 z-[120] bg-ink text-white rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-xl"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span id="toastText"></span></div>
-
-<header class="sticky top-0 z-40 bg-parchment/90 backdrop-blur-xl border-b border-black/5">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-    <button onclick="goView('dashboard')" class="focusable flex items-center gap-2 font-semibold text-[19px]" aria-label="Ir para o painel">
-      <span class="w-9 h-9 rounded-full bg-poke text-white grid place-items-center"><i data-lucide="circle-dot" class="w-5 h-5"></i></span>
-      <span class="hidden sm:inline">Pokédex Nacional</span>
-    </button>
-    <div class="flex items-center gap-2">
-      <input id="importInput" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
-      <button onclick="document.getElementById('importInput').click()" class="btn focusable rounded-full bg-white border border-line px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" title="Importar backup JSON"><i data-lucide="upload" class="w-4 h-4"></i><span class="hidden sm:inline">Importar</span></button>
-      <button onclick="exportBackup()" class="btn focusable rounded-full bg-ink text-white px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" title="Exportar backup JSON"><i data-lucide="download" class="w-4 h-4"></i><span class="hidden sm:inline">Backup</span></button>
-    </div>
-  </div>
+<div class="toast fixed top-4 left-1/2 z-[120] bg-ink text-white rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-xl" id="toast"><i class="w-4 h-4" data-lucide="check-circle-2"></i><span id="toastText"></span></div>
+<header class="sticky top-0 z-40 bg-parchment/90 backdrop-blur-xl border-b border-black/5" id="appHeader">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+<button aria-label="Ir para o painel" class="focusable flex items-center gap-2 font-semibold text-[19px]" onclick="goView('dashboard')">
+<span class="w-9 h-9 rounded-full bg-poke text-white grid place-items-center"><i class="w-5 h-5" data-lucide="circle-dot"></i></span>
+<span class="hidden sm:inline">Pokédex Nacional</span>
+</button>
+<div class="flex items-center gap-2">
+<input accept=".json,application/json" class="hidden" id="importInput" onchange="importBackup(event)" type="file"/>
+<button class="btn focusable rounded-full bg-white border border-line px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" onclick="document.getElementById('importInput').click()" title="Importar backup JSON"><i class="w-4 h-4" data-lucide="upload"></i><span class="hidden sm:inline">Importar</span></button>
+<button class="btn focusable rounded-full bg-ink text-white px-3 sm:px-4 text-sm font-semibold flex items-center gap-2" onclick="exportBackup()" title="Exportar backup JSON"><i class="w-4 h-4" data-lucide="download"></i><span class="hidden sm:inline">Backup</span></button>
+</div>
+</div>
 </header>
-
 <main>
-<section id="dashboardView" class="view active">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-    <div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">PROGRESSO DA COLEÇÃO</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Visão geral</h1><p class="text-muted mt-2">Acompanhe sua jornada por todas as regiões da Pokédex Nacional.</p></div>
-    <section id="heroSummary" class="bg-ink text-white rounded-[28px] p-6 sm:p-8 mb-7"></section>
-    <div id="metricCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7"></div>
-    <div class="grid lg:grid-cols-[.9fr_1.1fr] gap-5 mb-7">
-      <section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex items-start justify-between gap-3"><div><h2 class="text-2xl font-semibold">Distribuição geral</h2><p class="text-sm text-muted mt-1">Capturados e pendentes.</p></div><i data-lucide="chart-pie" class="text-action"></i></div><div class="h-72 mt-4"><canvas id="overallChart"></canvas></div></section>
-      <section class="bg-white card rounded-3xl p-5 sm:p-6"><div><h2 class="text-2xl font-semibold">Progresso por geração</h2><p class="text-sm text-muted mt-1">Comparativo das regiões cadastradas.</p></div><div class="h-72 mt-4"><canvas id="generationChart"></canvas></div></section>
-    </div>
-    <section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3"><div><h2 class="text-2xl font-semibold">Jornada pelas regiões</h2><p class="text-muted text-sm mt-1">Detalhamento acumulado da coleção.</p></div><button onclick="goView('pokedex')" class="btn rounded-full bg-action text-white px-5 text-sm font-semibold flex items-center justify-center gap-2"><i data-lucide="list-filter" class="w-4 h-4"></i>Ver Pokédex</button></div><div id="generationList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-5"></div></section>
-  </div>
+<section class="view active" id="dashboardView">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+<div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">PROGRESSO DA COLEÇÃO</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Visão geral</h1><p class="text-muted mt-2">Acompanhe sua jornada por todas as regiões da Pokédex Nacional.</p></div>
+<section class="bg-ink text-white rounded-[28px] p-6 sm:p-8 mb-7" id="heroSummary"></section>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7" id="metricCards"></div>
+<div class="grid lg:grid-cols-[.9fr_1.1fr] gap-5 mb-7">
+<section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex items-start justify-between gap-3"><div><h2 class="text-2xl font-semibold">Distribuição geral</h2><p class="text-sm text-muted mt-1">Capturados e pendentes.</p></div><i class="text-action" data-lucide="chart-pie"></i></div><div class="h-72 mt-4"><canvas id="overallChart"></canvas></div></section>
+<section class="bg-white card rounded-3xl p-5 sm:p-6"><div><h2 class="text-2xl font-semibold">Progresso por geração</h2><p class="text-sm text-muted mt-1">Comparativo das regiões cadastradas.</p></div><div class="h-72 mt-4"><canvas id="generationChart"></canvas></div></section>
+</div>
+<section class="bg-white card rounded-3xl p-5 sm:p-6"><div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3"><div><h2 class="text-2xl font-semibold">Jornada pelas regiões</h2><p class="text-muted text-sm mt-1">Detalhamento acumulado da coleção.</p></div><button class="btn rounded-full bg-action text-white px-5 text-sm font-semibold flex items-center justify-center gap-2" onclick="goView('pokedex')"><i class="w-4 h-4" data-lucide="list-filter"></i>Ver Pokédex</button></div><div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-5" id="generationList"></div></section>
+</div>
 </section>
-
-<section id="pokedexView" class="view">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7"><div><p class="text-poke text-sm font-semibold mb-2">REGISTRO NACIONAL</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Minha Pokédex</h1><p class="text-muted mt-2">Pesquise, filtre e registre capturas em um único toque.</p></div><button onclick="goView('data')" class="btn bg-action text-white rounded-full px-6 font-semibold flex items-center justify-center gap-2"><i data-lucide="plus" class="w-5 h-5"></i>Adicionar dados</button></div>
-    <section class="bg-white card rounded-3xl p-4 sm:p-5 mb-5">
-      <div class="grid lg:grid-cols-[1fr_auto] gap-4 lg:items-center">
-        <label class="relative"><i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-muted"></i><input id="searchInput" oninput="renderPokedex()" class="focusable w-full h-12 rounded-full pl-12 pr-4" placeholder="Nome ou número, ex.: Bulbasaur ou 001" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="none"></label>
-        <div class="flex flex-wrap gap-2"><select id="statusFilter" onchange="renderPokedex()" class="focusable h-12 rounded-full px-4 text-sm font-semibold"><option value="all">Todos os status</option><option value="captured">Capturados</option><option value="missing">Ainda faltam</option></select><button onclick="clearFilters()" class="btn rounded-full px-4 bg-parchment text-sm font-semibold">Limpar filtros</button></div>
-      </div>
-      <div class="mt-4"><div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">Gerações <span class="text-muted font-normal">(seleção cumulativa)</span></p><button onclick="toggleAllGenerations()" class="text-action text-sm font-semibold">Selecionar todas</button></div><div id="generationFilters" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 mt-3"></div></div>
-    </section>
-    <div id="resultSummary" class="text-sm text-muted mb-3"></div>
-    <section class="desktop-table bg-white card rounded-3xl table-wrap">
-      <table class="w-full border-collapse"><thead class="bg-parchment/80 text-left text-xs uppercase text-muted"><tr><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('number')">Número <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('name')">Pokémon <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('generation')">Geração / Região <i data-lucide="arrow-up-down" class="w-3.5"></i></button></th><th class="px-5 py-4">Status</th><th class="px-5 py-4 text-right">Captura rápida</th></tr></thead><tbody id="pokedexTable" class="divide-y divide-line"></tbody></table>
-    </section>
-    <div id="pokedexCards" class="mobile-card space-y-3"></div>
-    <div id="emptyState" class="hidden bg-white border border-dashed border-line rounded-3xl p-12 text-center"><i data-lucide="search-x" class="w-9 h-9 text-muted mx-auto"></i><h3 class="font-semibold mt-3">Nenhum Pokémon encontrado</h3><p class="text-muted text-sm mt-1">Ajuste a pesquisa ou os filtros.</p></div>
-  </div>
+<section class="view" id="pokedexView">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7"><div><p class="text-poke text-sm font-semibold mb-2">REGISTRO NACIONAL</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Minha Pokédex</h1><p class="text-muted mt-2">Pesquise, filtre e registre capturas em um único toque.</p></div><button class="btn bg-action text-white rounded-full px-6 font-semibold flex items-center justify-center gap-2" onclick="goView('data')"><i class="w-5 h-5" data-lucide="plus"></i>Adicionar dados</button></div>
+<section class="bg-white card rounded-3xl p-4 sm:p-5 mb-5">
+<div class="grid lg:grid-cols-[1fr_auto] gap-4 lg:items-center">
+<label class="relative"><i class="w-5 h-5 absolute left-4 top-3.5 text-muted" data-lucide="search"></i><input autocapitalize="none" autocomplete="off" class="focusable w-full h-12 rounded-full pl-12 pr-4" enterkeyhint="search" id="searchInput" inputmode="search" oninput="renderPokedex()" placeholder="Nome ou número, ex.: Bulbasaur ou 001"/></label>
+<div class="flex flex-wrap gap-2"><select class="focusable h-12 rounded-full px-4 text-sm font-semibold" id="statusFilter" onchange="renderPokedex()"><option value="all">Todos os status</option><option value="captured">Capturados</option><option value="missing">Ainda faltam</option></select><button class="btn rounded-full px-4 bg-parchment text-sm font-semibold" onclick="clearFilters()">Limpar filtros</button></div>
+</div>
+<div class="mt-4"><div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">Gerações <span class="text-muted font-normal">(seleção cumulativa)</span></p><button class="text-action text-sm font-semibold" onclick="toggleAllGenerations()">Selecionar todas</button></div><div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 mt-3" id="generationFilters"></div></div>
 </section>
+<div class="text-sm text-muted mb-3" id="resultSummary"></div>
+<section class="desktop-table bg-white card rounded-3xl table-wrap">
+<table class="w-full border-collapse"><thead class="bg-parchment/80 text-left text-xs uppercase text-muted"><tr><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('number')">Número <i class="w-3.5" data-lucide="arrow-up-down"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('name')">Pokémon <i class="w-3.5" data-lucide="arrow-up-down"></i></button></th><th class="px-5 py-4"><button class="sort-btn" onclick="setSort('generation')">Geração / Região <i class="w-3.5" data-lucide="arrow-up-down"></i></button></th><th class="px-5 py-4">Status</th><th class="px-5 py-4 text-right">Captura rápida</th></tr></thead><tbody class="divide-y divide-line" id="pokedexTable"></tbody></table>
+</section>
+<div class="mobile-card space-y-3" id="pokedexCards"></div>
+<div class="hidden bg-white border border-dashed border-line rounded-3xl p-12 text-center" id="emptyState"><i class="w-9 h-9 text-muted mx-auto" data-lucide="search-x"></i><h3 class="font-semibold mt-3">Nenhum Pokémon encontrado</h3><p class="text-muted text-sm mt-1">Ajuste a pesquisa ou os filtros.</p></div>
+</div>
+</section>
+<section class="view" id="expansionsView"><div class="setlist-shell"><div class="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12" id="expansionsPageHeader"><div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">GESTÃO DE EXPANSÕES</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Expansões</h1><p class="text-muted mt-2">Compare a Pokédex com as setlists e identifique oportunidades para completar sua coleção.</p></div></div><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8" id="setlistModuleMain">
+<!-- Input Section: Two Tabular Data Fields -->
+<section class="grid grid-cols-1 gap-5 mb-6">
+<!-- Field 1: Pokédex TSV Data (Referência Principal) -->
+<!-- Field 2: Setlist TSV Data -->
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+<h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">Database das Expansões</h2>
+</div>
+<div class="flex items-center gap-2 self-start sm:self-auto">
+<button class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 transition" id="btnNewExpansion" type="button">
+<i class="w-4 h-4" data-lucide="plus"></i> Nova expansão
+            </button>
+<span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md font-mono whitespace-nowrap" id="setlistLineCount">0 linhas</span>
+</div>
+</div>
+<p class="text-xs text-slate-400 mb-3">
+          Cole os dados do Excel/Sheets/CSV (colunas <code class="text-amber-300">ID | ID local | Nome | Expansao | Raridade</code>).
+        </p>
+<textarea class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition min-h-[14rem] sm:min-h-[17rem] flex-1" id="inputSetlist" placeholder="Cole aqui os dados das expansões..."></textarea>
+<div class="mt-4 pt-4 border-t border-slate-800">
+<label class="block text-xs font-semibold text-slate-200 mb-1.5" for="inputExpansionCode">Expansão para análise</label>
+<div class="relative">
+<i class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" data-lucide="search"></i>
+<input autocomplete="off" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition" id="inputExpansionCode" list="expansionCodeSuggestions" placeholder="Digite o identificador da expansão, por exemplo: me02.5" type="text"/>
+<datalist id="expansionCodeSuggestions"></datalist>
+</div>
+<p class="mt-2 text-[11px] text-slate-500" id="expansionCodeFeedback">Cole a database para identificar as expansões disponíveis na coluna “ID”.</p>
+</div>
+</div>
+</section>
+<!-- Matching Engine Configuration Drawer -->
+<section class="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
+<details class="group">
+<summary class="cursor-pointer text-xs font-semibold text-slate-300 flex items-center justify-between select-none">
+<span class="flex items-center gap-2">
+<i class="w-4 h-4 text-blue-400" data-lucide="sliders"></i>
+            Configurações Avançadas de Busca &amp; Mapeamento
+          </span>
+<i class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" data-lucide="chevron-down"></i>
+</summary>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-800 text-xs">
+<div>
+<label class="block font-medium text-slate-300 mb-1">Sensibilidade de Correspondência de Nomes</label>
+<select class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200" id="matchSensitivity">
+<option selected="" value="smart">Inteligente (Detecta Voltorb, Voltorb ex, Pikachu VMAX, etc.)</option>
+<option value="exact">Exata (Apenas se o nome for idêntico)</option>
+</select>
+</div>
+<div>
+<label class="block font-medium text-slate-300 mb-1">Modo de Exibição Padrão</label>
+<select class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200" id="defaultViewMode">
+<option selected="" value="pokedex">Matriz Pokédex (Foco na Coleção)</option>
+<option value="setlist">Matriz Setlist (Foco nas Cartas TCG)</option>
+</select>
+</div>
+<div>
+<label class="block font-medium text-slate-300 mb-1">Priorizar Oportunidades de Captura</label>
+<select class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200" id="prioritizeOpportunities">
+<option selected="" value="yes">Sim (Mostrar Pokémons "Não" capturados com cartas no Setlist no topo)</option>
+<option value="no">Não (Manter ordem original)</option>
+</select>
+</div>
+</div>
+</details>
+</section>
+<!-- Trigger Action Button -->
+<div class="flex justify-center pt-2">
+<button class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-base shadow-xl shadow-red-600/25 hover:shadow-red-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200" id="btnAnalyze">
+<i class="w-6 h-6" data-lucide="play-circle"></i>
+        Comparar Pokédex com Expansões
+      </button>
+</div>
+<!-- Dashboard Results Section -->
+<section class="hidden space-y-8 pt-4" id="resultsSection">
+<div class="border-t border-slate-800 pt-8">
+<h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+<i class="w-6 h-6 text-amber-400" data-lucide="bar-chart-3"></i>
+<span id="resultsTitle">Resumo do Diagnóstico da Pokédex</span>
+</h2>
+<!-- KPI Metrics Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Total Pokémons Pokédex -->
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+<div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total de Cartas da Pokédex</div>
+<div class="text-3xl font-extrabold text-white mt-2" id="statTotalDex">0</div>
+<div class="text-xs text-slate-500 mt-1">Analisados da sua coleção</div>
+<div class="absolute -right-2 -bottom-2 opacity-10">
+<i class="w-20 h-20 text-white" data-lucide="book-open"></i>
+</div>
+</div>
+<!-- Já Capturados na Pokédex -->
+<div class="bg-slate-900 border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent rounded-2xl p-5 relative overflow-hidden">
+<div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Já Capturados</div>
+<div class="text-3xl font-extrabold text-emerald-400 mt-2" id="statCapturedDex">0</div>
+<div class="text-xs text-emerald-300/80 mt-1" id="statCapturedPct">0% da Pokédex informada</div>
+<div class="absolute -right-2 -bottom-2 opacity-10">
+<i class="w-20 h-20 text-emerald-500" data-lucide="check-circle-2"></i>
+</div>
+</div>
+<!-- Faltando e Sem Carta na Setlist -->
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+<div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ausente na Pokedéx e Expansão</div>
+<div class="text-3xl font-extrabold text-slate-400 mt-2" id="statMissingNoSet">0</div>
+<div class="text-xs text-slate-500 mt-1">Não constam nessas expansões</div>
+<div class="absolute -right-2 -bottom-2 opacity-10">
+<i class="w-20 h-20 text-slate-500" data-lucide="slash"></i>
+</div>
+</div>
+<!-- Highlight KPI: Oportunidades no Setlist -->
+<div class="bg-slate-900 border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent rounded-2xl p-5 relative overflow-hidden pulse-opportunity">
+<div class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+<i class="w-4 h-4" data-lucide="target"></i> <span id="opportunityKpiLabel">Oportunidades nas Expansões</span>
+</div>
+<div class="text-3xl font-extrabold text-amber-300 mt-2" id="statOpportunities">0</div>
+<div class="text-xs text-amber-200/80 mt-1" id="statOpportunitiesSub">Ausente na Pokedéx, mas presente nas expansões</div>
+<div class="absolute -right-2 -bottom-2 opacity-10">
+<i class="w-20 h-20 text-amber-400" data-lucide="sparkles"></i>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Table Section -->
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+<!-- Header Controls & Mode Switcher -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+<div>
+<h3 class="text-base font-bold text-white flex items-center gap-2">
+<i class="w-5 h-5 text-amber-400" data-lucide="table"></i>
+              Detalhamento de Referência
+            </h3>
+<p class="text-xs text-slate-400">Veja exatamente os Pokémons da sua Pokédex que possuem carta no Setlist</p>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" id="btnCopyMissing">
+<i class="w-3.5 h-3.5 text-amber-400" data-lucide="copy"></i>
+              Copiar Oportunidades
+            </button>
+<button class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" id="btnExportCSV">
+<i class="w-3.5 h-3.5 text-emerald-400" data-lucide="download"></i>
+              Exportar CSV
+            </button>
+</div>
+</div>
+<!-- Filter Tabs & Search Bar -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+<!-- Status Filter Pills -->
+<div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800 self-start flex-wrap gap-1" id="filterPillsContainer">
+<button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-amber-300 bg-amber-500/20 border border-amber-500/30 transition shadow flex items-center gap-1" data-filter="opportunity">
+              🎯 Oportunidades na Expansão (<span id="cntOpportunity">0</span>)
+            </button>
+<button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition" data-filter="missing">
+              ❌ Pokédex e Expansão (<span id="cntMissing">0</span>)
+            </button>
 
-<section id="dataView" class="view">
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-    <div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">ADMINISTRAÇÃO DOS DADOS</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Incluir e compartilhar</h1><p class="text-muted mt-2">Cole uma lista tabulada ou CSV para atualizar sua Pokédex.</p></div>
-    <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-5">
-      <section class="bg-white card rounded-3xl p-5 sm:p-6"><h2 class="text-2xl font-semibold">Importação em lote</h2><p class="text-sm text-muted mt-1">Aceita tabulação, ponto e vírgula ou vírgula. A primeira linha pode conter cabeçalho.</p><label class="block mt-5"><span class="text-sm font-semibold">Dados da Pokédex</span><textarea id="bulkInput" rows="14" oninput="previewBulk()" class="focusable mt-2 w-full rounded-2xl px-4 py-3 font-mono text-sm resize-y" placeholder="Pokémon\tNúmero\tGeração\tCapturado?\nBulbasaur\t1\t1 - Kanto\tNão"></textarea></label><div id="bulkPreview" class="mt-3 rounded-2xl bg-parchment p-4 text-sm text-muted">Cole os dados para validar antes de incluir.</div><div class="grid sm:grid-cols-2 gap-3 mt-4"><button onclick="addBulkData()" class="btn rounded-full bg-action text-white font-semibold flex items-center justify-center gap-2"><i data-lucide="database-zap" class="w-4 h-4"></i>Incluir / atualizar</button><button onclick="loadSample()" class="btn rounded-full bg-white border border-line font-semibold">Carregar exemplo</button></div></section>
-      <div class="space-y-5"><section class="bg-ink text-white rounded-3xl p-6"><i data-lucide="copy" class="w-7 h-7 text-blue-300"></i><h2 class="text-2xl font-semibold mt-5">Copiar listagem</h2><p class="text-white/65 text-sm mt-2">Copie toda a Pokédex como texto tabulado para colar no Excel, Sheets ou editor de texto.</p><button onclick="copyTSV()" class="btn mt-5 w-full rounded-full bg-white text-ink font-semibold flex items-center justify-center gap-2"><i data-lucide="clipboard-copy" class="w-4 h-4"></i>Copiar como tabulação</button><button onclick="exportCSV()" class="btn mt-2 w-full rounded-full bg-white/10 border border-white/25 text-white font-semibold flex items-center justify-center gap-2"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Baixar CSV</button></section><section class="bg-white card rounded-3xl p-6"><h2 class="text-xl font-semibold">Segurança dos dados</h2><p class="text-muted text-sm mt-2">Os dados ficam neste navegador. Use o backup JSON para migrar ou restaurar tudo sem perda.</p><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="exportBackup()" class="btn rounded-full bg-ink text-white text-sm font-semibold">Exportar JSON</button><button onclick="document.getElementById('importInput').click()" class="btn rounded-full bg-white border border-line text-sm font-semibold">Importar JSON</button></div></section></div>
-    </div>
-  </div>
+
+</div>
+<!-- Table Search Input -->
+<div class="relative sm:w-72">
+<i class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" data-lucide="search"></i>
+<input class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50" id="searchTable" placeholder="Buscar Pokémon, Voltorb, nº..." type="text"/>
+</div>
+</div>
+<!-- Cumulative Generation Filter -->
+<div class="hidden rounded-xl border border-slate-800 bg-slate-950/60 p-3" id="generationFilterArea">
+<div class="flex flex-col gap-3">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 text-xs font-semibold text-slate-200">
+<i class="w-4 h-4 text-violet-400" data-lucide="layers-3"></i> Filtrar por geração
+                </div>
+<p class="mt-1 text-[11px] text-slate-500">Selecione uma ou mais gerações. As seleções são cumulativas.</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" id="btnSelectAllGenerations" type="button">Todas</button>
+<button class="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" id="btnClearGenerations" type="button">Limpar</button>
+</div>
+</div>
+<div aria-label="Filtro por geração" class="flex flex-wrap gap-2" id="generationFilterOptions"></div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="overflow-x-auto rounded-xl border border-slate-800">
+<table class="w-full text-left text-xs text-slate-300">
+<thead class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider select-none" id="tableHead">
+<!-- Rendered dynamically depending on View Mode -->
+</thead>
+<tbody class="divide-y divide-slate-800/60 bg-slate-900/40" id="tableResultsBody">
+<!-- Dynamic rows rendered via JavaScript -->
+</tbody>
+</table>
+</div>
+<!-- Pagination Controls -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 text-xs text-slate-400">
+<div id="paginationInfo">Mostrando 0 de 0 registros</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed" id="btnPrevPage">
+              Anterior
+            </button>
+<span class="font-mono text-slate-200 px-2" id="pageIndicator">Página 1</span>
+<button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed" id="btnNextPage">
+              Próxima
+            </button>
+</div>
+</div>
+</div>
+</section>
+</div><div class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500" id="setlistFooter">
+<p>Analisador Pokédex vs Setlist TCG • Foco na Coleção &amp; Oportunidades de Captura</p>
+</div><div aria-labelledby="newExpansionModalTitle" aria-modal="true" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm p-4 items-center justify-center" id="newExpansionModal" role="dialog">
+<div class="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+<div class="flex items-start justify-between gap-4 p-5 border-b border-slate-800">
+<div><h2 class="text-base font-bold text-white" id="newExpansionModalTitle">Nova expansão</h2><p class="mt-1 text-xs text-slate-400">Cole os novos dados no formato “ID | ID local | Nome | Expansao | Raridade”. Eles serão acrescentados ao final da lista atual.</p></div>
+<button aria-label="Fechar" class="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" id="btnCloseNewExpansion" type="button"><i class="w-5 h-5" data-lucide="x"></i></button>
+</div>
+<div class="p-5">
+<textarea class="w-full h-72 bg-slate-950 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-y transition" id="inputNewExpansion" placeholder="Cole aqui os dados da nova expansão (ID, ID local, Nome, Expansao, Raridade)..."></textarea>
+<p class="mt-2 text-[11px] text-slate-500" id="newExpansionLineCount">0 linhas para incluir</p>
+</div>
+<div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-5 pt-0">
+<button class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition" id="btnCancelNewExpansion" type="button">Cancelar</button>
+<button class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 text-xs font-bold transition" id="btnIncludeNewExpansion" type="button"><i class="w-4 h-4" data-lucide="plus-circle"></i> Incluir</button>
+</div>
+</div>
+</div><div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" id="toastContainer"></div></div></section>
+<section class="view" id="dataView">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+<div class="mb-8"><p class="text-poke text-sm font-semibold mb-2">ADMINISTRAÇÃO DOS DADOS</p><h1 class="text-4xl sm:text-5xl font-semibold tracking-[-.04em]">Incluir e compartilhar</h1><p class="text-muted mt-2">Cole uma lista tabulada ou CSV para atualizar sua Pokédex.</p></div>
+<div class="grid lg:grid-cols-[1.15fr_.85fr] gap-5">
+<section class="bg-white card rounded-3xl p-5 sm:p-6"><h2 class="text-2xl font-semibold">Importação em lote</h2><p class="text-sm text-muted mt-1">Aceita tabulação, ponto e vírgula ou vírgula. A primeira linha pode conter cabeçalho.</p><label class="block mt-5"><span class="text-sm font-semibold">Dados da Pokédex</span><textarea class="focusable mt-2 w-full rounded-2xl px-4 py-3 font-mono text-sm resize-y" id="bulkInput" oninput="previewBulk()" placeholder="Pokémon\tNúmero\tGeração\tCapturado?\nBulbasaur\t1\t1 - Kanto\tNão" rows="14"></textarea></label><div class="mt-3 rounded-2xl bg-parchment p-4 text-sm text-muted" id="bulkPreview">Cole os dados para validar antes de incluir.</div><div class="grid sm:grid-cols-2 gap-3 mt-4"><button class="btn rounded-full bg-action text-white font-semibold flex items-center justify-center gap-2" onclick="addBulkData()"><i class="w-4 h-4" data-lucide="database-zap"></i>Incluir / atualizar</button><button class="btn rounded-full bg-white border border-line font-semibold" onclick="loadSample()">Carregar exemplo</button></div></section>
+<div class="space-y-5"><section class="bg-ink text-white rounded-3xl p-6"><i class="w-7 h-7 text-blue-300" data-lucide="copy"></i><h2 class="text-2xl font-semibold mt-5">Copiar listagem</h2><p class="text-white/65 text-sm mt-2">Copie toda a Pokédex como texto tabulado para colar no Excel, Sheets ou editor de texto.</p><button class="btn mt-5 w-full rounded-full bg-white text-ink font-semibold flex items-center justify-center gap-2" onclick="copyTSV()"><i class="w-4 h-4" data-lucide="clipboard-copy"></i>Copiar como tabulação</button><button class="btn mt-2 w-full rounded-full bg-white/10 border border-white/25 text-white font-semibold flex items-center justify-center gap-2" onclick="exportCSV()"><i class="w-4 h-4" data-lucide="file-spreadsheet"></i>Baixar CSV</button></section><section class="bg-white card rounded-3xl p-6"><h2 class="text-xl font-semibold">Segurança dos dados</h2><p class="text-muted text-sm mt-2">Os dados ficam neste navegador. Use o backup JSON para migrar ou restaurar tudo sem perda.</p><div class="grid grid-cols-2 gap-2 mt-4"><button class="btn rounded-full bg-ink text-white text-sm font-semibold" onclick="exportBackup()">Exportar JSON</button><button class="btn rounded-full bg-white border border-line text-sm font-semibold" onclick="document.getElementById('importInput').click()">Importar JSON</button></div></section></div>
+</div>
+</div>
 </section>
 </main>
-
-<nav aria-label="Navegação principal" class="fixed bottom-0 inset-x-0 z-50 bg-white/92 backdrop-blur-xl border-t border-black/5 pb-[env(safe-area-inset-bottom)]"><div class="max-w-lg mx-auto h-16 grid grid-cols-3"><button id="navDashboard" onclick="goView('dashboard')" class="focusable nav-active flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Painel</button><button id="navPokedex" onclick="goView('pokedex')" class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="list-checks" class="w-5 h-5"></i>Pokédex</button><button id="navData" onclick="goView('data')" class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1"><i data-lucide="database" class="w-5 h-5"></i>Dados</button></div></nav>
-
+<nav aria-label="Navegação principal" class="fixed bottom-0 inset-x-0 z-50 bg-white/92 backdrop-blur-xl border-t border-black/5 pb-[env(safe-area-inset-bottom)]"><div class="max-w-lg mx-auto h-16 grid grid-cols-4"><button class="focusable nav-active flex flex-col items-center justify-center text-xs font-semibold gap-1" id="navDashboard" onclick="goView('dashboard')"><i class="w-5 h-5" data-lucide="layout-dashboard"></i>Painel</button><button class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1" id="navPokedex" onclick="goView('pokedex')"><i class="w-5 h-5" data-lucide="list-checks"></i>Pokédex</button><button class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1" id="navExpansions" onclick="goView('expansions')"><i class="w-5 h-5" data-lucide="layers-3"></i>Expansões</button><button class="focusable text-muted flex flex-col items-center justify-center text-xs font-semibold gap-1" id="navData" onclick="goView('data')"><i class="w-5 h-5" data-lucide="database"></i>Dados</button></div></nav>
 <script>
 const STORAGE='pokedex-nacional-v1';
 const GENERATIONS={1:'Kanto',2:'Johto',3:'Hoenn',4:'Sinnoh',5:'Unova',6:'Kalos',7:'Alola',8:'Galar',9:'Paldea'};
@@ -188,9 +476,12 @@ function uid(){return crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'
 function normalize(data){return {pokemon:(Array.isArray(data?.pokemon)?data.pokemon:[]).map(p=>({id:p.id||uid(),name:String(p.name||'').trim(),number:Number(p.number)||0,generation:Math.min(9,Math.max(1,Number(p.generation)||1)),region:p.region||GENERATIONS[Number(p.generation)]||'',captured:!!p.captured,capturedAt:p.capturedAt||null,updatedAt:p.updatedAt||new Date().toISOString()})).filter(p=>p.name&&p.number>0)}}
 function loadState(){try{const raw=localStorage.getItem(STORAGE);if(raw)return normalize(JSON.parse(raw))}catch(e){}return normalize({pokemon:parseBulk(SAMPLE)})}
 function save(){localStorage.setItem(STORAGE,JSON.stringify(state))}
+window.getMissingPokemonForExpansions=()=>state.pokemon.filter(p=>!p.captured).map(p=>({name:p.name,number:p.number,generation:p.generation,region:p.region,captured:false}));
+window.getCapturedPokemonCount=()=>state.pokemon.filter(p=>p.captured).length;
+window.getTotalPokemonCount=()=>state.pokemon.length;
 function escapeHtml(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function showToast(msg,icon='check-circle-2'){const t=document.getElementById('toast');document.getElementById('toastText').textContent=msg;t.querySelector('i').setAttribute('data-lucide',icon);lucide.createIcons();t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3000)}
-function goView(view){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(view+'View').classList.add('active');['Dashboard','Pokedex','Data'].forEach(n=>{const el=document.getElementById('nav'+n);el.className=`focusable ${n.toLowerCase()===view?'nav-active':'text-muted'} flex flex-col items-center justify-center text-xs font-semibold gap-1`});if(view==='dashboard')renderDashboard();if(view==='pokedex')renderPokedex();scrollTo({top:0,behavior:'smooth'});lucide.createIcons()}
+function goView(view){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(view+'View').classList.add('active');['Dashboard','Pokedex','Expansions','Data'].forEach(n=>{const el=document.getElementById('nav'+n);el.className=`focusable ${n.toLowerCase()===view?'nav-active':'text-muted'} flex flex-col items-center justify-center text-xs font-semibold gap-1`});if(view==='dashboard')renderDashboard();if(view==='pokedex')renderPokedex();scrollTo({top:0,behavior:'smooth'});lucide.createIcons()}
 function stats(items=state.pokemon){const total=items.length,captured=items.filter(p=>p.captured).length;return {total,captured,missing:total-captured,pct:total?captured/total*100:0}}
 function renderDashboard(){const s=stats();document.getElementById('heroSummary').innerHTML=`<div class="grid md:grid-cols-[1fr_auto] gap-6 items-center"><div><p class="text-white/60 text-sm font-semibold">CONCLUSÃO DA POKÉDEX</p><p class="text-5xl sm:text-6xl font-semibold tracking-[-.05em] mt-2">${s.pct.toFixed(1)}%</p><p class="text-white/65 mt-3">${s.captured} de ${s.total} Pokémon capturados.</p><div class="h-3 bg-white/15 rounded-full mt-6 overflow-hidden"><div class="h-full bg-green-400 rounded-full" style="width:${s.pct}%"></div></div></div><div class="w-40 h-40 relative mx-auto"><svg viewBox="0 0 120 120" class="w-full h-full"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="10"/><circle class="progress-ring" cx="60" cy="60" r="50" fill="none" stroke="#4ade80" stroke-width="10" stroke-linecap="round" stroke-dasharray="${Math.PI*100}" stroke-dashoffset="${Math.PI*100*(1-s.pct/100)}"/></svg><div class="absolute inset-0 grid place-items-center"><i data-lucide="trophy" class="w-10 h-10 text-green-300"></i></div></div></div>`;
 const metrics=[['Total considerado',s.total,'database'],['Capturados',s.captured,'circle-check-big'],['Ainda faltam',s.missing,'circle-dashed'],['Progresso',s.pct.toFixed(1)+'%','trending-up']];document.getElementById('metricCards').innerHTML=metrics.map((m,i)=>`<div class="bg-white card rounded-2xl p-4 sm:p-5"><i data-lucide="${m[2]}" class="w-5 h-5 ${i===1?'text-ok':i===2?'text-danger':'text-action'}"></i><p class="text-xs text-muted mt-4">${m[0]}</p><p class="text-2xl font-semibold mt-1">${m[1]}</p></div>`).join('');
@@ -216,9 +507,804 @@ function tsv(){return ['Pokémon\tNúmero\tGeração\tCapturado?',...state.pokem
 async function copyTSV(){try{await navigator.clipboard.writeText(tsv());showToast('Listagem copiada como tabulação')}catch(e){const ta=document.createElement('textarea');ta.value=tsv();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('Listagem copiada')}}
 function download(name,content,type){const blob=new Blob(['\ufeff'+content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function exportCSV(){const csv=['Pokémon;Número;Geração;Capturado?',...state.pokemon.sort((a,b)=>a.number-b.number).map(p=>`"${p.name.replace(/"/g,'""')}";${p.number};"${p.generation} - ${p.region||GENERATIONS[p.generation]}";${p.captured?'Sim':'Não'}`)].join('\n');download(`pokedex-${new Date().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8');showToast('CSV gerado')}
-function exportBackup(){const data={metadata:{app:'Pokédex Nacional',version:1,exportedAt:new Date().toISOString()},pokemon:state.pokemon};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup JSON gerado')}
-function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(!confirm(`Importar ${data.pokemon.length} registros e substituir os dados atuais?`))return;state=normalize(data);save();selectedGenerations.clear();goView('dashboard');showToast('Backup restaurado com sucesso')}catch(err){showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
+function exportBackup(){const expansionsDatabase=document.getElementById('inputSetlist')?.value||'';const data={metadata:{app:'Pokédex Nacional',version:2,exportedAt:new Date().toISOString()},pokemon:state.pokemon,expansionsDatabase};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup JSON gerado com Pokédex e Expansões')}
+function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(data.expansionsDatabase!==undefined&&typeof data.expansionsDatabase!=='string')throw new Error('Database das Expansões incompatível');const expansionsDatabase=typeof data.expansionsDatabase==='string'?data.expansionsDatabase:'';if(!confirm(`Importar ${data.pokemon.length} registros e restaurar a Database das Expansões?`))return;state=normalize(data);save();const inputSetlist=document.getElementById('inputSetlist');if(inputSetlist){inputSetlist.value=expansionsDatabase;inputSetlist.dispatchEvent(new Event('input',{bubbles:true}))}selectedGenerations.clear();goView('dashboard');showToast('Pokédex e Database das Expansões restauradas com sucesso')}catch(err){showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
 renderDashboard();lucide.createIcons();
 </script>
-</body>
+<script id="expansions-module-script">(()=>{
+'use strict';
+
+    /* Application State */
+    const appState = {
+      pokedexList: [],      // Pokédex entries array
+      pokedexMap: new Map(), // Key: normalized name -> Pokédex entry
+      setlistCards: [],     // Raw parsed setlist cards
+      availableExpansions: new Map(), // code after slash -> card count
+      selectedExpansionCode: '',
+      selectedExpansionCardCount: 0,
+      matchedResults: [],   // Pokédex-centric matched list
+      setlistResults: [],   // Setlist-centric matched list
+      activeViewMode: 'pokedex', // 'pokedex' | 'setlist'
+      activeFilter: 'opportunity', // 'opportunity' | 'missing'
+      searchQuery: '',
+      selectedGenerations: new Set(),
+      currentPage: 1,
+      pageSize: 30,
+};
+
+    // Updated Sample Datasets (Includes Voltorb explicitly for user testing)
+    const SAMPLE_POKEDEX_TSV = 
+`Pokémon\tNúmero\tGeração\tCapturado?
+Bulbasaur\t1\t1 - Kanto\tNão
+Ivysaur\t2\t1 - Kanto\tNão
+Venusaur\t3\t1 - Kanto\tNão
+Charmander\t4\t1 - Kanto\tNão
+Charmeleon\t5\t1 - Kanto\tNão
+Charizard\t6\t1 - Kanto\tNão
+Squirtle\t7\t1 - Kanto\tNão
+Wartortle\t8\t1 - Kanto\tNão
+Blastoise\t9\t1 - Kanto\tNão
+Weedle\t13\t1 - Kanto\tSIM
+Pikachu\t25\t1 - Kanto\tSIM
+Voltorb\t100\t1 - Kanto\tNão
+Electrode\t101\t1 - Kanto\tNão
+Vulpix\t37\t1 - Kanto\tNão
+Gengar\t94\t1 - Kanto\tSIM`;
+
+    const SAMPLE_SETLIST_TSV = 
+`ID\tID local\tNome\tExpansao\tRaridade
+me02.5-001\t001\tBulbasaur\tAscended Heroes\tCommon
+me02.5-002\t002\tIvysaur\tAscended Heroes\tCommon
+me02.5-003\t003\tMega Venusaurex\tAscended Heroes\tDouble Rare
+me02.5-007\t007\tCharmander\tAscended Heroes\tCommon
+me02.5-008\t008\tCharizard EX\tAscended Heroes\tUltra Rare
+me02.5-009\t009\tPikachu VMAX\tAscended Heroes\tSecret Rare
+me02.5-045\t045\tVoltorb\tAscended Heroes\tCommon
+me02.5-046\t046\tElectrode ex\tAscended Heroes\tDouble Rare
+me02.5-010\t010\tAlolan Vulpix V\tAscended Heroes\tDouble Rare
+me02.5-011\t011\tWeedle\tAscended Heroes\tCommon
+me02.5-013\t013\tGengar VSTAR\tAscended Heroes\tUltra Rare
+me02.5-014\t014\tSnorlax\tAscended Heroes\tRare`;
+
+    /**
+     * Cleans and normalizes Pokémon names to extract the core species name.
+     * Example: "Voltorb", "Voltorb ex" -> "voltorb"
+     */
+    function normalizeName(rawName) {
+      if (!rawName) return '';
+      let name = rawName.toString().trim().toLowerCase();
+      name = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      name = name
+        .replace(/\balolan\b/g, 'alola')
+        .replace(/\bgalarian\b/g, 'galar')
+        .replace(/\bhisui\b/g, 'hisui')
+        .replace(/\bhisuian\b/g, 'hisui')
+        .replace(/\bpaldean\b/g, 'paldea')
+        .replace(/\b(vmax|vstar|tag team|break|lv\.x|prime|legend|radiant|shining|ultra)\b/g, '')
+        .replace(/\b(mega|primal|dark|light|rocket's|team)\b/g, '')
+        .replace(/(ex|gx|v|star)$/i, '')
+        .replace(/ex$/i, '')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim();
+
+      return name;
+    }
+
+    /** TSV/CSV parser with support for quoted CSV fields. */
+    function parseDelimitedLine(line, delimiter) {
+      const cells = []; let cell = ''; let quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (quoted && line[i + 1] === '"') { cell += '"'; i++; }
+          else quoted = !quoted;
+        } else if (char === delimiter && !quoted) { cells.push(cell.trim()); cell = ''; }
+        else cell += char;
+      }
+      cells.push(cell.trim()); return cells;
+    }
+    function parseDelimitedText(text) {
+      if (!text || !text.trim()) return [];
+      const lines = text.trim().split(/\r?\n/).filter(line => line.trim());
+      if (!lines.length) return [];
+      const firstLine = lines[0];
+      const delimiter = firstLine.includes('\t') ? '\t' : (firstLine.includes(';') ? ';' : ',');
+      return lines.map(line => parseDelimitedLine(line, delimiter));
+    }
+    function normalizeHeader(value) {
+      return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    /** Extracts the expansion identifier from ID, e.g. me02.5-001 -> me02.5. */
+    function extractExpansionCode(cardId) {
+      const value = String(cardId || '').trim();
+      const match = value.match(/^(.+?)-\d+$/);
+      return match ? match[1] : value;
+    }
+    function findSetlistIdColumn(rows) {
+      if (!rows.length) return 0;
+      const index = rows[0].findIndex(name => normalizeHeader(name) === 'id');
+      return index >= 0 ? index : 0;
+    }
+    function hasSetlistHeader(rows) {
+      if (!rows.length) return false;
+      const headers = rows[0].map(normalizeHeader);
+      return headers.includes('id') && headers.some(value => value === 'nome' || value === 'name');
+    }
+    function refreshAvailableExpansions() {
+      const rows = parseDelimitedText(document.getElementById('inputSetlist').value);
+      const counts = new Map();
+      if (rows.length) {
+        const idColumn = findSetlistIdColumn(rows);
+        const startIndex = hasSetlistHeader(rows) ? 1 : 0;
+        for (let i = startIndex; i < rows.length; i++) {
+          const code = extractExpansionCode(rows[i][idColumn]);
+          if (code) counts.set(code, (counts.get(code) || 0) + 1);
+        }
+      }
+      appState.availableExpansions = counts;
+      document.getElementById('expansionCodeSuggestions').innerHTML = [...counts.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }))
+        .map(([code, count]) => `<option value="${code}">${count} carta${count === 1 ? '' : 's'}</option>`).join('');
+      validateExpansionSelection();
+    }
+    function validateExpansionSelection() {
+      const codeInput = document.getElementById('inputExpansionCode');
+      const feedback = document.getElementById('expansionCodeFeedback');
+      const code = codeInput.value.trim();
+      appState.selectedExpansionCode = code;
+      appState.selectedExpansionCardCount = appState.availableExpansions.get(code) || 0;
+      if (appState.availableExpansions.size === 0) {
+        feedback.className = 'mt-2 text-[11px] text-slate-500';
+        feedback.textContent = 'Nenhum identificador de expansão foi reconhecido na coluna “ID”.';
+      } else if (!code) {
+        feedback.className = 'mt-2 text-[11px] text-slate-500'; feedback.textContent = '';
+      } else if (appState.availableExpansions.has(code)) {
+        const count = appState.availableExpansions.get(code);
+        feedback.className = 'mt-2 text-[11px] text-emerald-400';
+        feedback.textContent = `Expansão ${code} encontrada na coluna “ID”: ${count} carta${count === 1 ? '' : 's'} será${count === 1 ? '' : 'ão'} analisada${count === 1 ? '' : 's'}.`;
+      } else {
+        feedback.className = 'mt-2 text-[11px] text-red-400';
+        feedback.textContent = `A expansão ${code} não foi encontrada na coluna “ID”.`;
+      }
+    }
+    /**
+     * Runs analysis with Pokédex as Primary Matrix Reference
+     */
+    function runAnalysis() {
+      const missingPokemon = typeof window.getMissingPokemonForExpansions === 'function' ? window.getMissingPokemonForExpansions() : [];
+      const pokedexRaw = [['Nome', 'Número', 'Geração', 'Status'].join('\t'), ...missingPokemon.map(p => [p.name, p.number, `${p.generation} - ${p.region}`, 'Ainda falta'].join('\t'))].join('\n');
+      const setlistRaw = document.getElementById('inputSetlist').value;
+      if (missingPokemon.length === 0) { showToast('Não há Pokémon com status “Ainda falta” na Pokédex.', 'info'); return; }
+      if (!setlistRaw.trim()) { showToast('Preencha a Database das Expansões antes de comparar.', 'warning'); return; }
+
+      refreshAvailableExpansions();
+      const selectedExpansion = appState.selectedExpansionCode;
+      if (selectedExpansion && !appState.availableExpansions.has(selectedExpansion)) {
+        showToast(`A expansão ${selectedExpansion} não foi encontrada na coluna “ID”.`, 'error');
+        document.getElementById('inputExpansionCode').focus();
+        return;
+      }
+
+      const pokedexRows = parseDelimitedText(pokedexRaw);
+      const setlistRows = parseDelimitedText(setlistRaw);
+
+      if (pokedexRows.length === 0 || setlistRows.length === 0) {
+        showToast('Erro ao ler as linhas das tabelas. Verifique a formatação.', 'error');
+        return;
+      }
+
+      // Step 1: Process Pokédex Entries
+      appState.pokedexList = [];
+      appState.pokedexMap.clear();
+
+      let dexNameCol = 0;
+      let dexNoCol = 1;
+      let dexGenerationCol = 2;
+      let dexStatusCol = pokedexRows[0].length - 1;
+
+      pokedexRows[0].forEach((col, idx) => {
+        const lower = col.toLowerCase();
+        if (lower.includes('pokémon') || lower.includes('pokemon') || lower.includes('nome')) dexNameCol = idx;
+        if (lower.includes('número') || lower.includes('numero') || lower.includes('no') || lower.includes('#')) dexNoCol = idx;
+        if (lower.includes('geração') || lower.includes('geracao') || lower.includes('generation')) dexGenerationCol = idx;
+        if (lower.includes('capturado') || lower.includes('status') || lower.includes('caught')) dexStatusCol = idx;
+      });
+
+      const dexStartIndex = (pokedexRows[0][dexNameCol].toLowerCase().includes('poké') || 
+                             pokedexRows[0][dexNameCol].toLowerCase().includes('nome')) ? 1 : 0;
+
+      for (let i = dexStartIndex; i < pokedexRows.length; i++) {
+        const row = pokedexRows[i];
+        if (!row || row.length <= dexNameCol) continue;
+
+        const dexName = row[dexNameCol];
+        const dexNo = row[dexNoCol] || `#${i}`;
+        const generation = row[dexGenerationCol] || 'Sem geração';
+        const statusVal = row[dexStatusCol] ? row[dexStatusCol].toUpperCase() : '';
+        const isCaptured = ['SIM', 'S', 'YES', 'TRUE', '1', 'OK', 'JÁ'].includes(statusVal);
+        const normName = normalizeName(dexName);
+
+        if (normName) {
+          const dexEntry = {
+            dexNo,
+            dexName,
+            generation,
+            normName,
+            isCaptured,
+            matchedCards: [] // Will hold cards from Setlist
+          };
+          appState.pokedexList.push(dexEntry);
+          appState.pokedexMap.set(normName, dexEntry);
+        }
+      }
+
+      // Step 2: Process Setlist Cards and Map to Pokédex
+      let setIdCol = 0, setLocalIdCol = 1, setNameCol = 2, setExpansionCol = 3, setRarityCol = 4;
+      setlistRows[0].forEach((col, idx) => {
+        const header = normalizeHeader(col);
+        if (header === 'id') setIdCol = idx;
+        if (header === 'id local' || header === 'local id') setLocalIdCol = idx;
+        if (header === 'nome' || header === 'name' || header === 'card name') setNameCol = idx;
+        if (header === 'expansao' || header === 'expansion') setExpansionCol = idx;
+        if (header === 'raridade' || header === 'rarity') setRarityCol = idx;
+      });
+      const setStartIndex = hasSetlistHeader(setlistRows) ? 1 : 0;
+      appState.setlistCards = [];
+
+      for (let i = setStartIndex; i < setlistRows.length; i++) {
+        const row = setlistRows[i];
+        if (!row || row.length === 0) continue;
+
+        const cardId = row[setIdCol] || `#${i}`;
+        const cardNo = row[setLocalIdCol] || cardId;
+        const cardName = row[setNameCol] || 'Desconhecido';
+        const cardExpansion = row[setExpansionCol] || '';
+        const cardRarity = row[setRarityCol] || 'Sem raridade';
+        const expansionCode = extractExpansionCode(cardId);
+        if (selectedExpansion && expansionCode !== selectedExpansion) continue;
+        const normCard = normalizeName(cardName);
+        const cardObj = { cardId, cardNo, cardName, cardExpansion, cardRarity, normCard, expansionCode };
+        appState.setlistCards.push(cardObj);
+
+        // Find match in Pokédex Map
+        let matchedDex = null;
+        if (appState.pokedexMap.has(normCard)) {
+          matchedDex = appState.pokedexMap.get(normCard);
+        } else {
+          // Fallback token matching
+          for (let [dexKey, dexVal] of appState.pokedexMap.entries()) {
+            if (normCard.includes(dexKey) || dexKey.includes(normCard)) {
+              matchedDex = dexVal;
+              break;
+            }
+          }
+        }
+
+        if (matchedDex) {
+          matchedDex.matchedCards.push(cardObj);
+        }
+      }
+
+      // Step 3: Compute Pokédex Matches & Categorize
+      appState.matchedResults = appState.pokedexList.map(dex => {
+        const hasCardsInSet = dex.matchedCards.length > 0;
+        
+        let statusTag = '';
+        if (!dex.isCaptured && hasCardsInSet) {
+          statusTag = 'OPPORTUNITY'; // Marked 'Não' in Pokédex, BUT card exists in Setlist!
+        } else if (dex.isCaptured && hasCardsInSet) {
+          statusTag = 'CAPTURED_AND_IN_SET';
+        } else if (dex.isCaptured && !hasCardsInSet) {
+          statusTag = 'CAPTURED_NOT_IN_SET';
+        } else {
+          statusTag = 'MISSING_NOT_IN_SET';
+        }
+
+        return {
+          ...dex,
+          hasCardsInSet,
+          statusTag
+        };
+      });
+
+      // Sort: Prioritize Opportunities first (Não + Tem na Setlist)
+      appState.matchedResults.sort((a, b) => {
+        if (a.statusTag === 'OPPORTUNITY' && b.statusTag !== 'OPPORTUNITY') return -1;
+        if (a.statusTag !== 'OPPORTUNITY' && b.statusTag === 'OPPORTUNITY') return 1;
+        return 0;
+      });
+
+      appState.selectedGenerations.clear();
+      renderGenerationFilters();
+      renderDashboard();
+      showToast('Análise concluída com sucesso!', 'success');
+    }
+
+    /**
+     * Renders Stats Dashboard and Charts
+     */
+    function getGenerationFilteredResults() {
+      if (appState.selectedGenerations.size === 0) return [...appState.matchedResults];
+      return appState.matchedResults.filter(item =>
+        appState.selectedGenerations.has(item.generation || 'Sem geração')
+      );
+    }
+
+    function getCurrentlyFilteredResults({ applyStatus = true, applySearch = true } = {}) {
+      let data = getGenerationFilteredResults();
+
+      if (applyStatus) {
+        if (appState.activeFilter === 'opportunity') {
+          data = data.filter(d => d.statusTag === 'OPPORTUNITY');
+        } else if (appState.activeFilter === 'missing') {
+          data = data.filter(d => d.statusTag === 'MISSING_NOT_IN_SET');
+        }
+      }
+
+      if (applySearch && appState.searchQuery) {
+        const q = appState.searchQuery.toLowerCase();
+        data = data.filter(d =>
+          d.dexName.toLowerCase().includes(q) ||
+          d.dexNo.toLowerCase().includes(q) ||
+          (d.generation || '').toLowerCase().includes(q) ||
+          d.matchedCards.some(c => c.cardName.toLowerCase().includes(q) || c.cardNo.toLowerCase().includes(q) || c.cardId.toLowerCase().includes(q) || c.cardExpansion.toLowerCase().includes(q))
+        );
+      }
+      return data;
+    }
+
+    function updateDashboardForGenerationFilter() {
+      const dexData = getGenerationFilteredResults();
+      const totalDex = dexData.length;
+      const opportunities = dexData.filter(d => d.statusTag === 'OPPORTUNITY');
+      const capturedCount = typeof window.getCapturedPokemonCount === 'function' ? window.getCapturedPokemonCount() : 0;
+      const pokedexTotal = typeof window.getTotalPokemonCount === 'function' ? window.getTotalPokemonCount() : 0;
+      const missingNoSet = dexData.filter(d => d.statusTag === 'MISSING_NOT_IN_SET');
+
+      document.getElementById('statOpportunities').textContent = opportunities.length.toLocaleString();
+      document.getElementById('statTotalDex').textContent = totalDex.toLocaleString();
+      document.getElementById('statCapturedDex').textContent = capturedCount.toLocaleString();
+      document.getElementById('statCapturedPct').textContent = pokedexTotal > 0
+        ? `${((capturedCount / pokedexTotal) * 100).toFixed(1)}% da Pokédex cadastrada`
+        : '0% da Pokédex cadastrada';
+      document.getElementById('statMissingNoSet').textContent = missingNoSet.length.toLocaleString();
+      document.getElementById('cntOpportunity').textContent = opportunities.length;
+      document.getElementById('cntMissing').textContent = missingNoSet.length;
+    }
+
+    function renderDashboard() {
+      updateDashboardForGenerationFilter();
+      const selectedExpansion = appState.selectedExpansionCode;
+      document.getElementById('resultsTitle').textContent = selectedExpansion
+        ? `Diagnóstico da expansão ${selectedExpansion}`
+        : 'Resumo do Diagnóstico da Pokédex';
+      document.getElementById('opportunityKpiLabel').textContent = selectedExpansion
+        ? `Buscar na expansão ${selectedExpansion}`
+        : 'Oportunidades na Expansão';
+      document.getElementById('statOpportunitiesSub').textContent = selectedExpansion
+        ? `${appState.selectedExpansionCardCount} cartas processadas nesta expansão`
+        : 'Pokedéx "Não", Expansão "Sim"';
+      document.getElementById('resultsSection').classList.remove('hidden');
+      filterAndRenderTable();
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+    function renderGenerationFilters() {
+      const area = document.getElementById('generationFilterArea');
+      const container = document.getElementById('generationFilterOptions');
+      const generations = [...new Set(appState.matchedResults.map(item => item.generation || 'Sem geração'))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true, sensitivity: 'base' }));
+      container.innerHTML = '';
+      area.classList.toggle('hidden', generations.length === 0);
+      generations.forEach(generation => {
+        const label = document.createElement('label');
+        label.className = 'generation-option inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-300 cursor-pointer transition select-none';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = generation;
+        checkbox.checked = appState.selectedGenerations.has(generation);
+        checkbox.className = 'generation-checkbox accent-violet-500 w-3.5 h-3.5';
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) appState.selectedGenerations.add(generation);
+          else appState.selectedGenerations.delete(generation);
+          appState.currentPage = 1;
+          updateGenerationFilterStyles();
+          updateDashboardForGenerationFilter();
+          filterAndRenderTable();
+        });
+        const text = document.createElement('span');
+        text.textContent = generation;
+        label.append(checkbox, text);
+        container.appendChild(label);
+      });
+      updateGenerationFilterStyles();
+      lucide.createIcons();
+    }
+
+    function updateGenerationFilterStyles() {
+      document.querySelectorAll('.generation-option').forEach(label => {
+        const checked = label.querySelector('input').checked;
+        label.className = checked
+          ? 'generation-option inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-violet-500/50 bg-violet-500/15 text-violet-200 text-xs font-semibold cursor-pointer transition select-none'
+          : 'generation-option inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-300 cursor-pointer hover:border-violet-500/60 hover:text-white transition select-none';
+      });
+    }
+
+    // Ordem de prioridade das raridades na coluna "Cartas Encontradas no Setlist".
+    const RARITY_DISPLAY_ORDER = [
+      'Common',
+      'Uncommon',
+      'Rare',
+      'Double Rare',
+      'Illustration Rare',
+      'Ultra Rare',
+      'Special Illustration Rare',
+      'Hyper Rare',
+      'Mega Hyper Rare',
+      'Mega Attack Rare',
+      'Futuristic Rare',
+      'RGB Rare',
+      'Shiny Rare',
+      'Shiny Ultra Rare',
+      'ACE SPEC Rare'
+    ];
+
+    const rarityOrderMap = new Map(
+      RARITY_DISPLAY_ORDER.map((rarity, index) => [rarity.toLowerCase(), index])
+    );
+
+    function extractNumericCardOrder(cardNo) {
+      const match = String(cardNo || '').match(/\d+/);
+      return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+    }
+
+    function sortMatchedCards(cards) {
+      return [...cards].sort((a, b) => {
+        const rarityA = String(a.cardRarity || '').trim();
+        const rarityB = String(b.cardRarity || '').trim();
+        const keyA = rarityA.toLowerCase();
+        const keyB = rarityB.toLowerCase();
+        const orderA = rarityOrderMap.has(keyA) ? rarityOrderMap.get(keyA) : RARITY_DISPLAY_ORDER.length;
+        const orderB = rarityOrderMap.has(keyB) ? rarityOrderMap.get(keyB) : RARITY_DISPLAY_ORDER.length;
+
+        if (orderA !== orderB) return orderA - orderB;
+
+        // Raridades não previstas ficam por último e são agrupadas pelo nome.
+        if (orderA === RARITY_DISPLAY_ORDER.length) {
+          const rarityComparison = rarityA.localeCompare(rarityB, 'pt-BR', { sensitivity: 'base' });
+          if (rarityComparison !== 0) return rarityComparison;
+        }
+
+        // Dentro da mesma classificação, ordena pelo primeiro número da carta.
+        const numberComparison = extractNumericCardOrder(a.cardNo) - extractNumericCardOrder(b.cardNo);
+        if (numberComparison !== 0) return numberComparison;
+
+        return String(a.cardNo || '').localeCompare(String(b.cardNo || ''), 'pt-BR', {
+          numeric: true,
+          sensitivity: 'base'
+        });
+      });
+    }
+    function getRarityBucket(cardRarity) {
+      const rarity = String(cardRarity || '').trim().toLowerCase();
+      if (rarity === 'common') return 'common';
+      if (rarity === 'uncommon') return 'uncommon';
+      if (rarity === 'rare') return 'rare';
+      if (rarity === 'double rare') return 'doubleRare';
+      return 'other';
+    }
+    function groupCardsByRarity(cards) {
+      const groups = { common: [], uncommon: [], rare: [], doubleRare: [], other: [] };
+      sortMatchedCards(cards).forEach(card => groups[getRarityBucket(card.cardRarity)].push(card));
+      return groups;
+    }
+    function renderCardsCell(cards) {
+      if (!cards.length) return `<span class="text-slate-600 text-xs">-</span>`;
+      return cards.map(c => `
+        <div class="inline-flex flex-col gap-0.5 px-2 py-1.5 rounded-md bg-slate-800 text-slate-200 border border-slate-700 text-[11px] mr-1.5 mb-1 align-top">
+          <span><span class="font-mono text-amber-400 font-bold">${c.cardNo}</span> <span class="font-medium">${c.cardName}</span></span>
+          <span class="text-slate-400">${c.cardRarity || 'Sem raridade'}</span>
+          <span class="text-violet-300">${c.cardExpansion || 'Sem expansão'}</span>
+        </div>
+      `).join('');
+    }
+    function cardsToText(cards, includeRarity = false) {
+      return cards.map(c => `${c.cardNo} ${c.cardName}${includeRarity ? ` (${c.cardRarity || 'Sem raridade'})` : ''}`).join(' | ');
+    }
+    /**
+     * Filters Pokédex results and renders the table grouped by rarity.
+     */
+    function filterAndRenderTable() {
+      const data = getCurrentlyFilteredResults();
+      const totalPages = Math.ceil(data.length / appState.pageSize) || 1;
+      if (appState.currentPage > totalPages) appState.currentPage = totalPages;
+      const startIndex = (appState.currentPage - 1) * appState.pageSize;
+      const paginatedData = data.slice(startIndex, startIndex + appState.pageSize);
+      const tableHead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableResultsBody');
+
+      tableHead.innerHTML = `
+        <tr>
+          <th class="p-3.5 w-20">Nº Dex</th>
+          <th class="p-3.5">Pokémon (Pokédex)</th>
+          <th class="p-3.5">Common</th>
+          <th class="p-3.5">Uncommon</th>
+          <th class="p-3.5">Rare</th>
+          <th class="p-3.5">Double Rare</th>
+          <th class="p-3.5">Outras Raridades</th>
+        </tr>
+      `;
+      tbody.innerHTML = '';
+
+      if (paginatedData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-slate-500">
+              Nenhum registro encontrado para este filtro ou busca.
+            </td>
+          </tr>`;
+      } else {
+        paginatedData.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = item.statusTag === 'OPPORTUNITY'
+            ? 'bg-amber-500/10 hover:bg-amber-500/20 transition border-l-4 border-l-amber-500'
+            : 'hover:bg-slate-800/40 transition';
+
+          const groups = groupCardsByRarity(item.matchedCards);
+          tr.innerHTML = `
+            <td class="p-3.5 font-mono text-amber-400 font-bold">${item.dexNo}</td>
+            <td class="p-3.5">
+              <div class="font-bold text-white text-sm">${item.dexName}</div>
+              <div class="mt-1 text-[11px] text-violet-300">${item.generation || 'Sem geração'}</div>
+            </td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.common)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.uncommon)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.rare)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.doubleRare)}</td>
+            <td class="p-3.5 align-top">${renderCardsCell(groups.other)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      lucide.createIcons();
+      document.getElementById('paginationInfo').textContent =
+        `Mostrando ${data.length > 0 ? startIndex + 1 : 0} até ${Math.min(startIndex + appState.pageSize, data.length)} de ${data.length} Pokémons da Pokédex`;
+      document.getElementById('pageIndicator').textContent = `Página ${appState.currentPage} de ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = appState.currentPage === 1;
+      document.getElementById('btnNextPage').disabled = appState.currentPage === totalPages;
+    }
+    // Event Listeners Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const inputSetlist = document.getElementById('inputSetlist');
+      const inputExpansionCode = document.getElementById('inputExpansionCode');
+      let expansionRefreshTimer = null;
+
+      function updateLineCounts() {
+        const sLines = inputSetlist.value.trim() ? inputSetlist.value.trim().split('\n').length : 0;
+        document.getElementById('setlistLineCount').textContent = `${sLines.toLocaleString()} linhas`;
+      }
+
+      inputSetlist.addEventListener('input', () => {
+        updateLineCounts();
+        clearTimeout(expansionRefreshTimer);
+        expansionRefreshTimer = setTimeout(refreshAvailableExpansions, 250);
+      });
+      inputExpansionCode.addEventListener('input', validateExpansionSelection);
+
+      // Modal para acrescentar dados de uma nova expansão ao final da Setlist atual.
+      const newExpansionModal = document.getElementById('newExpansionModal');
+      const inputNewExpansion = document.getElementById('inputNewExpansion');
+      const newExpansionLineCount = document.getElementById('newExpansionLineCount');
+
+      function updateNewExpansionLineCount() {
+        const lines = inputNewExpansion.value.trim() ? inputNewExpansion.value.trim().split(/\r?\n/).length : 0;
+        newExpansionLineCount.textContent = `${lines.toLocaleString()} linha${lines === 1 ? '' : 's'} para incluir`;
+      }
+      function openNewExpansionModal() {
+        inputNewExpansion.value = '';
+        updateNewExpansionLineCount();
+        newExpansionModal.classList.remove('hidden');
+        newExpansionModal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+        lucide.createIcons();
+        setTimeout(() => inputNewExpansion.focus(), 0);
+      }
+      function closeNewExpansionModal() {
+        newExpansionModal.classList.add('hidden');
+        newExpansionModal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+      }
+      document.getElementById('btnNewExpansion').addEventListener('click', openNewExpansionModal);
+      document.getElementById('btnCloseNewExpansion').addEventListener('click', closeNewExpansionModal);
+      document.getElementById('btnCancelNewExpansion').addEventListener('click', closeNewExpansionModal);
+      inputNewExpansion.addEventListener('input', updateNewExpansionLineCount);
+      newExpansionModal.addEventListener('click', event => { if (event.target === newExpansionModal) closeNewExpansionModal(); });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !newExpansionModal.classList.contains('hidden')) closeNewExpansionModal();
+      });
+      document.getElementById('btnIncludeNewExpansion').addEventListener('click', () => {
+        const newData = inputNewExpansion.value.trim();
+        if (!newData) {
+          showToast('Cole os dados da nova expansão antes de incluir.', 'warning');
+          inputNewExpansion.focus();
+          return;
+        }
+        const currentData = inputSetlist.value.trimEnd();
+        inputSetlist.value = currentData ? `${currentData}\n${newData}` : newData;
+        updateLineCounts();
+        refreshAvailableExpansions();
+        document.getElementById('resultsSection').classList.add('hidden');
+        closeNewExpansionModal();
+        const includedLines = newData.split(/\r?\n/).length;
+        showToast(`${includedLines.toLocaleString()} linha${includedLines === 1 ? '' : 's'} adicionada${includedLines === 1 ? '' : 's'} à Setlist. Clique em "Comparar" para processar o conjunto atualizado.`, 'success');
+      });
+
+      // Analyze Button
+      document.getElementById('btnAnalyze').addEventListener('click', runAnalysis);
+
+      // Os controles de importar, exportar e limpar pertenciam ao cabeçalho removido.
+      // Seus listeners foram eliminados para não interromper a inicialização dos filtros.
+
+      // Filter Pills
+      const filterPillsContainer = document.getElementById('filterPillsContainer');
+      const updateStatusFilterStyles = () => {
+        filterPillsContainer.querySelectorAll('.tab-btn').forEach(button => {
+          const isActive = button.dataset.filter === appState.activeFilter;
+          button.className = isActive
+            ? 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 transition shadow flex items-center gap-1'
+            : 'tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1';
+          button.setAttribute('aria-pressed', String(isActive));
+        });
+      };
+      filterPillsContainer.addEventListener('click', event => {
+        const button = event.target.closest('.tab-btn[data-filter]');
+        if (!button || !filterPillsContainer.contains(button)) return;
+        appState.activeFilter = button.dataset.filter;
+        appState.currentPage = 1;
+        updateStatusFilterStyles();
+        filterAndRenderTable();
+      });
+      updateStatusFilterStyles();
+
+      // Generation filter actions
+      document.getElementById('btnSelectAllGenerations').addEventListener('click', () => {
+        document.querySelectorAll('.generation-checkbox').forEach(checkbox => {
+          checkbox.checked = true;
+          appState.selectedGenerations.add(checkbox.value);
+        });
+        appState.currentPage = 1;
+        updateGenerationFilterStyles();
+        updateDashboardForGenerationFilter();
+        filterAndRenderTable();
+      });
+      document.getElementById('btnClearGenerations').addEventListener('click', () => {
+        appState.selectedGenerations.clear();
+        document.querySelectorAll('.generation-checkbox').forEach(checkbox => checkbox.checked = false);
+        appState.currentPage = 1;
+        updateGenerationFilterStyles();
+        updateDashboardForGenerationFilter();
+        filterAndRenderTable();
+      });
+
+      // Search Bar
+      document.getElementById('searchTable').addEventListener('input', (e) => {
+        appState.searchQuery = e.target.value.trim();
+        appState.currentPage = 1;
+        filterAndRenderTable();
+      });
+
+      // Pagination
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (appState.currentPage > 1) {
+          appState.currentPage--;
+          filterAndRenderTable();
+        }
+      });
+
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        appState.currentPage++;
+        filterAndRenderTable();
+      });
+      // Copy opportunities using the same rarity columns displayed in the table.
+      document.getElementById('btnCopyMissing').addEventListener('click', async () => {
+        const opps = getCurrentlyFilteredResults({ applyStatus: false, applySearch: true })
+          .filter(d => d.statusTag === 'OPPORTUNITY');
+        if (opps.length === 0) {
+          showToast('Nenhuma oportunidade encontrada no recorte atual.', 'warning');
+          return;
+        }
+        let text = "Nº Dex\tPokémon\tCommon\tUncommon\tRare\tDouble Rare\tOutras Raridades\n";
+        opps.forEach(o => {
+          const groups = groupCardsByRarity(o.matchedCards);
+          text += [
+            o.dexNo,
+            o.dexName,
+            cardsToText(groups.common),
+            cardsToText(groups.uncommon),
+            cardsToText(groups.rare),
+            cardsToText(groups.doubleRare),
+            cardsToText(groups.other, true)
+          ].join('\t') + '\n';
+        });
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            if (!document.execCommand('copy')) throw new Error('Falha ao copiar');
+            document.body.removeChild(textarea);
+          }
+          showToast(`${opps.length} oportunidades do recorte atual copiadas!`, 'success');
+        } catch (error) {
+          console.error('Falha ao copiar oportunidades:', error);
+          showToast('Não foi possível copiar as oportunidades.', 'error');
+        }
+      });
+      // Export the active table recorte using the new rarity columns, without pagination limitation.
+      document.getElementById('btnExportCSV').addEventListener('click', () => {
+        const exportData = getCurrentlyFilteredResults();
+        if (exportData.length === 0) {
+          showToast('Nenhum registro disponível no recorte atual para exportar.', 'warning');
+          return;
+        }
+        const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+        let csv = "No Dex,Pokemon,Common,Uncommon,Rare,Double Rare,Outras Raridades\n";
+        exportData.forEach(r => {
+          const groups = groupCardsByRarity(r.matchedCards);
+          csv += [
+            r.dexNo,
+            r.dexName,
+            cardsToText(groups.common),
+            cardsToText(groups.uncommon),
+            cardsToText(groups.rare),
+            cardsToText(groups.doubleRare),
+            cardsToText(groups.other, true)
+          ].map(csvCell).join(',') + '\n';
+        });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pokedex_recorte_por_raridade.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast(`${exportData.length} registros do recorte atual exportados!`, 'success');
+      });
+    });
+
+    /**
+     * Custom Toast Notification system
+     */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let colors = 'bg-slate-800 text-slate-100 border-slate-700';
+      if (type === 'success') colors = 'bg-emerald-950 text-emerald-200 border-emerald-800';
+      if (type === 'warning') colors = 'bg-amber-950 text-amber-200 border-amber-800';
+      if (type === 'error') colors = 'bg-red-950 text-red-200 border-red-800';
+
+      toast.className = `px-4 py-3 rounded-xl border ${colors} shadow-xl text-xs font-medium flex items-center gap-2 pointer-events-auto transform transition-all duration-300 opacity-0 translate-y-2`;
+      toast.innerHTML = `<span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  
+})();</script></body>
 </html>

@@ -101,7 +101,7 @@
 (() => {
   'use strict';
   const API = 'https://api.tcgdex.net/v2';
-  const state = { series: [], details: new Map(), selected: new Map(), cards: [], filtered: [], lang: 'en', source: 'fetch', sdk: null };
+  const state = { series: [], details: new Map(), selected: new Map(), cards: [], filtered: [], rarityCache: new Map(), rarityRequests: new Map(), lang: 'en', source: 'fetch', sdk: null };
   const $ = (s) => document.querySelector(s);
   const els = { tree: $('#seriesTree'), setSearch: $('#setSearch'), cardSearch: $('#cardSearch'), body: $('#tableBody'), empty: $('#emptyState'), footer: $('#tableFooter'), loading: $('#loadingCards'), copy: $('#copyBtn') };
 
@@ -125,7 +125,7 @@
   };
 
   async function loadSeries() {
-    state.series=[]; state.details.clear(); state.selected.clear(); state.cards=[];
+    state.series=[]; state.details.clear(); state.selected.clear(); state.cards=[]; state.rarityCache.clear(); state.rarityRequests.clear();
     els.tree.innerHTML = Array.from({length:7},()=>'<div class="skeleton mb-2 h-12 rounded-xl"></div>').join('');
     updateAll();
     try { state.series = (await data.listSeries()).filter(serie => String(serie.id).toLowerCase() !== 'tcgp').sort((a,b)=>a.name.localeCompare(b.name)); renderTree(); }
@@ -143,10 +143,21 @@
           <span class="min-w-0 flex-1"><strong class="block truncate text-sm text-ink">${esc(s.name)}</strong><small class="text-slate-400">${d ? `${sets.length} expansoes` : 'Clique para carregar'}</small></span>
           <i data-lucide="chevron-down" class="size-4 text-slate-400 transition ${d?'rotate-180':''}"></i>
         </button>
-        ${d ? `<div class="mb-2 ml-6 border-l border-slate-200 pl-3">${sets.map(set=>`<label class="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-indigo-50/60"><input type="checkbox" class="set-check mt-0.5 size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" data-serie-id="${esc(s.id)}" data-serie-name="${esc(s.name)}" data-set-id="${esc(set.id)}" ${state.selected.has(set.id)?'checked':''}><span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-700">${esc(set.name)}</span><small class="text-slate-400">${esc(set.id)}</small></span></label>`).join('')}</div>`:''}
+        ${d ? `<div class="mb-2 ml-6 border-l border-slate-200 pl-3">
+          <label class="flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 hover:bg-indigo-50">
+            <input type="checkbox" class="serie-check size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" data-serie-id="${esc(s.id)}" data-serie-name="${esc(s.name)}" ${sets.length && sets.every(set=>state.selected.has(set.id))?'checked':''}>
+            <span class="text-sm font-extrabold text-indigo-700">Selecionar todas (${sets.length})</span>
+          </label>
+          ${sets.map(set=>`<label class="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-indigo-50/60"><input type="checkbox" class="set-check mt-0.5 size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" data-serie-id="${esc(s.id)}" data-serie-name="${esc(s.name)}" data-set-id="${esc(set.id)}" ${state.selected.has(set.id)?'checked':''}><span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-700">${esc(set.name)}</span><small class="text-slate-400">${esc(set.id)}</small></span></label>`).join('')}
+        </div>`:''}
       </section>`;
     }).join('') || '<p class="p-5 text-center text-sm text-slate-500">Nenhum resultado.</p>';
     lucide.createIcons();
+    els.tree.querySelectorAll('.serie-check').forEach(input => {
+      const sets = state.details.get(input.dataset.serieId)?.sets || [];
+      const selectedCount = sets.filter(set => state.selected.has(set.id)).length;
+      input.indeterminate = selectedCount > 0 && selectedCount < sets.length;
+    });
   }
 
   async function toggleSerie(id) {
@@ -162,25 +173,78 @@
       input.disabled=true; els.loading.classList.remove('hidden');
       try { const set=await data.getSet(setId); if (String(set.serie?.id || serieId).toLowerCase() === 'tcgp') throw new Error('Este set pertence ao Pokemon TCG Pocket e foi bloqueado.'); state.selected.set(setId,{set,serieId,serieName}); rebuildCards(); }
       catch(e){ input.checked=false; notify(`Nao foi possivel carregar ${setId}: ${e.message}`,true); }
-      finally { input.disabled=false; els.loading.classList.add('hidden'); }
-    } else { state.selected.delete(setId); rebuildCards(); }
+      finally { input.disabled=false; els.loading.classList.add('hidden'); renderTree(); }
+    } else { state.selected.delete(setId); rebuildCards(); renderTree(); }
+  }
+
+  async function setSerieSelection(input) {
+    const { serieId, serieName } = input.dataset;
+    const sets = state.details.get(serieId)?.sets || [];
+    input.disabled = true;
+    els.loading.classList.remove('hidden');
+    try {
+      if (!input.checked) {
+        sets.forEach(set => state.selected.delete(set.id));
+      } else {
+        const pending = sets.filter(set => !state.selected.has(set.id));
+        const queue = [...pending];
+        const workers = Array.from({ length: Math.min(4, queue.length) }, async () => {
+          while (queue.length) {
+            const summary = queue.shift();
+            try {
+              const set = await data.getSet(summary.id);
+              if (String(set.serie?.id || serieId).toLowerCase() === 'tcgp') continue;
+              state.selected.set(set.id, { set, serieId, serieName });
+            } catch (error) {
+              console.warn(`Nao foi possivel carregar ${summary.id}`, error);
+              notify(`Nao foi possivel carregar ${summary.id}: ${error.message}`, true);
+            }
+          }
+        });
+        await Promise.all(workers);
+      }
+      rebuildCards();
+      renderTree();
+    } finally {
+      input.disabled = false;
+      els.loading.classList.add('hidden');
+    }
   }
 
   async function enrichRarities(cards) {
-    const pending = cards.filter(card => !card.rarity);
-    const workers = Array.from({ length: Math.min(6, pending.length) }, async () => {
-      while (pending.length) {
-        const card = pending.shift();
-        try { const detail = await data.getCard(card.id); card.rarity = detail.rarity || 'Nao informada'; }
-        catch (error) { console.warn(`Raridade indisponivel para ${card.id}`, error); card.rarity = 'Nao informada'; }
-        renderTable();
+    const ids = [...new Set(cards.map(card => card.id))];
+    const pending = ids.filter(id => !state.rarityCache.has(id));
+    const queue = [...pending];
+    let renderPending = false;
+    const scheduleRender = () => {
+      if (renderPending) return;
+      renderPending = true;
+      requestAnimationFrame(() => { renderPending = false; renderTable(); });
+    };
+    const loadRarity = async (id) => {
+      if (state.rarityCache.has(id)) return state.rarityCache.get(id);
+      if (!state.rarityRequests.has(id)) {
+        state.rarityRequests.set(id, data.getCard(id)
+          .then(detail => detail.rarity || 'Nao informada')
+          .catch(error => { console.warn(`Raridade indisponivel para ${id}`, error); return 'Nao informada'; })
+          .then(rarity => { state.rarityCache.set(id, rarity); return rarity; })
+          .finally(() => state.rarityRequests.delete(id)));
+      }
+      return state.rarityRequests.get(id);
+    };
+    const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
+      while (queue.length) {
+        const id = queue.shift();
+        const rarity = await loadRarity(id);
+        state.cards.forEach(card => { if (card.id === id) card.rarity = rarity; });
+        scheduleRender();
       }
     });
     await Promise.all(workers);
   }
 
   function rebuildCards(){
-    state.cards=[...state.selected.values()].flatMap(({set,serieName}) => (set.cards||[]).map(card=>({ ...card, setId:set.id, setName:set.name, serieName:set.serie?.name||serieName, releaseDate:set.releaseDate||'', rarity:card.rarity||'' })));
+    state.cards=[...state.selected.values()].flatMap(({set,serieName}) => (set.cards||[]).map(card=>({ ...card, setId:set.id, setName:set.name, serieName:set.serie?.name||serieName, releaseDate:set.releaseDate||'', rarity:card.rarity||state.rarityCache.get(card.id)||'' })));
     state.cards.sort((a,b)=> a.setName.localeCompare(b.setName) || String(a.localId).localeCompare(String(b.localId),undefined,{numeric:true}));
     updateAll();
     enrichRarities(state.cards);
@@ -216,7 +280,7 @@
   }
 
   els.tree.addEventListener('click',e=>{ const btn=e.target.closest('.serie-toggle'); if(btn) toggleSerie(btn.dataset.id); });
-  els.tree.addEventListener('change',e=>{ if(e.target.matches('.set-check')) setSelection(e.target); });
+  els.tree.addEventListener('change',e=>{ if(e.target.matches('.set-check')) setSelection(e.target); if(e.target.matches('.serie-check')) setSerieSelection(e.target); });
   els.setSearch.addEventListener('input',renderTree); els.cardSearch.addEventListener('input',updateAll); els.copy.addEventListener('click',copyTableData);
   $('#clearBtn').addEventListener('click',()=>{ state.selected.clear(); rebuildCards(); renderTree(); });
   $('#reloadBtn').addEventListener('click',loadSeries);

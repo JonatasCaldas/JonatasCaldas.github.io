@@ -575,41 +575,34 @@ function importBackup(e){const file=e.target.files[0];if(!file)return;const r=ne
 // Sincronizacao offline-first com o snapshot seguro do Supabase.
 window.PokedexCloudSync=(()=>{
   'use strict';
-  const META_KEY='pokedex_nacional_cloud_sync_v1';
-  const SCHEMA_VERSION=6;
-  let restoring=false,timer=null,syncing=false,pending=false,lastAuthWarning=0;
+  const TABLE='pokedex_public_state';
+  const RECORD_KEY='principal';
+  const META_KEY='pokedex_nacional_cloud_sync_v2';
+  const SCHEMA_VERSION=7;
+  let restoring=false,timer=null,syncing=false,pending=false;
 
   const now=()=>new Date().toISOString();
-  const validDate=value=>{const time=Date.parse(value||'');return Number.isFinite(time)?time:0};
+  const toTime=value=>{const time=Date.parse(value||'');return Number.isFinite(time)?time:0};
   const readMeta=()=>{try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch{return {}}};
   const writeMeta=patch=>localStorage.setItem(META_KEY,JSON.stringify({...readMeta(),...patch}));
-  const localStorageSnapshot=()=>{const snapshot={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key!==META_KEY)snapshot[key]=localStorage.getItem(key)}return snapshot};
+  const storageSnapshot=()=>{const data={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key!==META_KEY)data[key]=localStorage.getItem(key)}return data};
 
-  function buildSnapshot(clientUpdatedAt=now()){
+  function buildSnapshot(changedAt=now()){
+    let savedHighlights=[];
+    try{savedHighlights=JSON.parse(localStorage.getItem('pokedex_nacional_highlights_v2')||'[]')}catch{}
     return {
-      metadata:{app:'Pokédex Nacional',version:SCHEMA_VERSION,savedAt:clientUpdatedAt,scope:'complete-user-data'},
+      metadata:{app:'Pokédex Nacional',version:SCHEMA_VERSION,savedAt:changedAt,scope:'public-shared'},
       pokemon:state.pokemon||[],
       trackers:state.trackers||[],
-      highlights:JSON.parse(localStorage.getItem('pokedex_nacional_highlights_v2')||'[]'),
+      highlights:Array.isArray(savedHighlights)?savedHighlights:[],
       expansionsDatabase:document.getElementById('inputSetlist')?.value||'',
       selectedExpansions:typeof window.getSelectedExpansionsBackup==='function'?window.getSelectedExpansionsBackup():[],
-      localStorageSnapshot:localStorageSnapshot()
+      localStorageSnapshot:storageSnapshot()
     };
   }
 
-  async function session(showWarning=false){
-    const {data,error}=await db.auth.getSession();
-    if(error)throw error;
-    const current=data?.session||null;
-    if(!current&&showWarning&&Date.now()-lastAuthWarning>12000){
-      lastAuthWarning=Date.now();
-      showToast('Entre na sua conta para sincronizar com o Supabase','log-in');
-    }
-    return current;
-  }
-
   async function applySnapshot(snapshot,cloudDate){
-    if(!snapshot||typeof snapshot!=='object')return;
+    if(!snapshot||typeof snapshot!=='object')return false;
     restoring=true;
     try{
       if(snapshot.localStorageSnapshot&&typeof snapshot.localStorageSnapshot==='object'){
@@ -627,78 +620,84 @@ window.PokedexCloudSync=(()=>{
       renderDashboard();
       if(document.getElementById('pokedexView')?.classList.contains('active'))renderPokedex();
       if(document.getElementById('trackerView')?.classList.contains('active'))window.Tracker?.open();
-      writeMeta({localUpdatedAt:cloudDate,lastCloudUpdatedAt:cloudDate,lastSyncAt:now()});
+      writeMeta({localUpdatedAt:cloudDate,lastCloudUpdatedAt:cloudDate,lastSyncAt:now(),pending:false});
+      return true;
     }finally{restoring=false}
   }
 
+  async function getCloud(){
+    const {data,error}=await db.from(TABLE).select('record_key,schema_version,data,client_updated_at,updated_at').eq('record_key',RECORD_KEY).maybeSingle();
+    if(error)throw error;
+    return data||null;
+  }
+
   async function push(reason='alteracao-local'){
-    if(restoring){return false}
+    if(restoring)return false;
     if(syncing){pending=true;return false}
-    const currentSession=await session(true);
-    if(!currentSession)return false;
     syncing=true;
     try{
       const meta=readMeta();
       const clientUpdatedAt=meta.localUpdatedAt||now();
-      const snapshot=buildSnapshot(clientUpdatedAt);
-      const {data,error}=await db.rpc('save_pokedex_app_state',{p_data:snapshot,p_schema_version:SCHEMA_VERSION,p_client_updated_at:clientUpdatedAt});
+      const current=await getCloud();
+      const cloudDate=current?.client_updated_at||current?.updated_at;
+      if(current&&toTime(cloudDate)>toTime(clientUpdatedAt)){
+        await applySnapshot(current.data,cloudDate);
+        showToast('Alterações mais recentes do Supabase foram restauradas','cloud-download');
+        return false;
+      }
+      const payload={record_key:RECORD_KEY,schema_version:SCHEMA_VERSION,data:buildSnapshot(clientUpdatedAt),client_updated_at:clientUpdatedAt};
+      const {error}=await db.from(TABLE).upsert(payload,{onConflict:'record_key'});
       if(error)throw error;
-      if(data?.ignored){await pull();return false}
-      writeMeta({lastCloudUpdatedAt:clientUpdatedAt,lastSyncAt:now(),lastReason:reason});
+      writeMeta({lastCloudUpdatedAt:clientUpdatedAt,lastSyncAt:now(),lastReason:reason,pending:false});
       return true;
     }catch(error){
-      console.error('Falha na sincronizacao com o Supabase:',error);
-      showToast('Dados mantidos offline. A sincronizacao sera tentada novamente.','cloud-off');
+      console.error('Falha ao salvar no Supabase:',error);
+      writeMeta({pending:true,lastError:String(error?.message||error)});
+      showToast('Dados salvos localmente. Nova tentativa quando a conexão voltar.','cloud-off');
       return false;
     }finally{
       syncing=false;
-      if(pending){pending=false;schedule('alteracao-pendente',500)}
+      if(pending){pending=false;schedule('alteracao-pendente',400)}
     }
   }
 
-  function schedule(reason='alteracao-local',delay=900){
+  function schedule(reason='alteracao-local',delay=700){
     if(restoring)return;
     writeMeta({localUpdatedAt:now(),pending:true,lastReason:reason});
     clearTimeout(timer);
-    timer=setTimeout(()=>push(reason).then(ok=>{if(ok)writeMeta({pending:false})}),delay);
+    timer=setTimeout(()=>push(reason),delay);
   }
 
   async function pull(){
-    const currentSession=await session(false);
-    if(!currentSession)return false;
-    const {data,error}=await db.rpc('load_pokedex_app_state');
-    if(error)throw error;
-    if(!data?.data)return false;
-    const cloudDate=data.clientUpdatedAt||data.updatedAt||data.data?.metadata?.savedAt;
+    const current=await getCloud();
+    if(!current?.data)return false;
+    const cloudDate=current.client_updated_at||current.updated_at||current.data?.metadata?.savedAt;
     const meta=readMeta();
     const localDate=meta.localUpdatedAt||meta.lastCloudUpdatedAt;
-    if(validDate(cloudDate)>validDate(localDate)){
-      await applySnapshot(data.data,cloudDate);
-      showToast('Dados mais recentes restaurados do Supabase','cloud-download');
-      return true;
-    }
-    if(validDate(localDate)>validDate(cloudDate))await push('conflito-local-mais-recente');
+    if(!localDate||toTime(cloudDate)>toTime(localDate))return applySnapshot(current.data,cloudDate);
+    if(toTime(localDate)>toTime(cloudDate))await push('local-mais-recente');
     return false;
   }
 
   async function initialize(){
     try{
-      const currentSession=await session(false);
-      if(!currentSession){writeMeta({authenticated:false});return}
-      writeMeta({authenticated:true,userId:currentSession.user.id});
-      const restored=await pull();
-      const {data}=await db.rpc('load_pokedex_app_state');
-      if(!restored&&!data?.data){writeMeta({localUpdatedAt:readMeta().localUpdatedAt||now()});await push('primeiro-envio')}
+      const current=await getCloud();
+      if(current?.data){
+        const cloudDate=current.client_updated_at||current.updated_at||current.data?.metadata?.savedAt;
+        const meta=readMeta();
+        const localDate=meta.localUpdatedAt||meta.lastCloudUpdatedAt;
+        if(!localDate||toTime(cloudDate)>toTime(localDate))await applySnapshot(current.data,cloudDate);
+        else if(toTime(localDate)>toTime(cloudDate))await push('inicializacao-local-mais-recente');
+      }else{
+        writeMeta({localUpdatedAt:readMeta().localUpdatedAt||now()});
+        await push('primeiro-envio');
+      }
     }catch(error){
-      console.error('Falha ao iniciar a sincronizacao:',error);
-      showToast('Aplicacao iniciada no modo offline','cloud-off');
+      console.error('Falha ao iniciar sincronização pública:',error);
+      showToast('Aplicação iniciada com a cópia local','cloud-off');
     }
   }
 
-  db.auth.onAuthStateChange((event,currentSession)=>{
-    writeMeta({authenticated:!!currentSession,userId:currentSession?.user?.id||null});
-    if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')setTimeout(initialize,0);
-  });
   window.addEventListener('online',()=>initialize());
   window.addEventListener('load',()=>setTimeout(initialize,350));
   return {initialize,pull,push,schedule,isRestoring:()=>restoring};

@@ -214,7 +214,105 @@ nav button{min-height:64px}
 #trackerView .tracker-thumb{width:44px;height:62px;object-fit:cover;border-radius:7px;background:#eee}#trackerView .tracker-row-selected{background:#f0f8f3}#trackerView .tracker-symbol{width:44px;height:44px;object-fit:contain}.tracker-modal.open{display:flex}#trackerImagePreview{display:none;position:fixed;z-index:130;width:230px;pointer-events:none;filter:drop-shadow(0 16px 28px rgba(0,0,0,.3))}#trackerImagePreview.show{display:block}
 #trackerMarketSection[hidden]{display:none!important}.tracker-market-card{min-height:118px}.tracker-market-card button{max-width:100%}.tracker-signal-buy{border-color:#86efac;background:#f0fdf4;color:#166534}.tracker-signal-opportunity{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}.tracker-signal-monitor{border-color:#fde68a;background:#fffbeb;color:#92400e}.tracker-signal-wait{border-color:#fecaca;background:#fef2f2;color:#b42318}.tracker-signal-insufficient{border-color:#e0e0e0;background:#f5f5f7;color:#6e6e73}.tracker-detail-panel{max-height:min(92vh,900px)}.tracker-history-row:last-child{border-bottom:0}
 @media(max-width:700px){#trackerView .tracker-desktop{display:none!important}#trackerView .tracker-mobile{display:block!important}}@media(min-width:701px){#trackerView .tracker-mobile{display:none!important}}
-</style></head>
+</style>
+<style id="mobile-operability-fixes">
+/* Ajustes focados em rolagem, viewport dinamico e operacao por toque. */
+html{
+  min-height:100%;
+  height:auto;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  min-height:100vh;
+  min-height:100dvh;
+  height:auto;
+  overflow-x:hidden;
+  overflow-y:auto;
+  position:relative;
+  touch-action:pan-y pinch-zoom;
+  -webkit-overflow-scrolling:touch;
+}
+main,.view,.view.active{min-width:0;max-width:100%}
+.view.active{min-height:calc(100dvh - 124px)}
+
+/* O bloqueio da pagina so ocorre enquanto houver uma camada modal realmente aberta. */
+body.mobile-scroll-lock{
+  overflow:hidden!important;
+  overscroll-behavior:none;
+  touch-action:none;
+}
+
+/* Camadas e paineis continuam rolando no celular quando excedem a altura disponivel. */
+.modal.open,
+#tcgLoadingOverlay.flex{
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.highlight-modal-panel,
+.tracker-detail-panel,
+#trackerPriceModal>div,
+#newExpansionModal>div,
+#tcgLoadingOverlay>div{
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Areas com rolagem propria recebem gesto vertical explicito. */
+.table-wrap,.overflow-x-auto,.overflow-y-auto,
+#tcgSeriesResults,#tcgSelectedSets,#trackerCatalogRows{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.table-wrap,.overflow-x-auto{touch-action:pan-x pan-y}
+
+@media(max-width:700px){
+  body{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+  main{width:100%;overflow:visible}
+  .view,.view.active{overflow:visible}
+
+  /* Evita que cabecalhos, filtros e botoes largos empurrem a pagina lateralmente. */
+  .flex,.grid{min-width:0}
+  button,input,select,textarea{max-width:100%}
+  button{touch-action:manipulation}
+  input,select,textarea{touch-action:manipulation pan-y}
+
+  /* Navegacao inferior utilizavel mesmo em telas estreitas. */
+  nav>div{height:auto!important;min-height:64px}
+  nav button{min-width:0;padding:6px 2px;font-size:10px!important;line-height:1.1}
+  nav button i,nav button svg{flex:0 0 auto}
+
+  /* Modais ocupam a largura util e mantem rolagem interna. */
+  .modal.open,#tcgLoadingOverlay.flex{align-items:flex-start;padding:10px!important}
+  .highlight-modal-panel,.tracker-detail-panel,#trackerPriceModal>div,#tcgLoadingOverlay>div{
+    width:100%;
+    max-height:calc(100dvh - 20px);
+    margin:auto 0;
+  }
+
+  /* Cards operacionais com alvos de toque confortaveis. */
+  #trackerCards article{align-items:stretch}
+  #trackerCards article>.btn,
+  #trackerCards article>.status-toggle{min-height:44px}
+  #trackerCards article>.flex.flex-wrap{width:100%}
+  #trackerCards article>.flex.flex-wrap>.btn{flex:1 1 140px}
+
+  /* Tabelas extensas permanecem acessiveis por rolagem horizontal sem travar a vertical. */
+  .table-wrap,.overflow-x-auto{max-width:100%;overflow-x:auto;overflow-y:visible}
+}
+
+@media(max-width:380px){
+  nav button{font-size:9px!important;letter-spacing:-.02em}
+  nav button i,nav button svg{width:18px!important;height:18px!important}
+}
+</style>
+
+</head>
 <script id="supabase-connection-config">
 // Conexao com o Supabase. A chave anon pode ficar no cliente somente com RLS habilitado.
 const supabaseUrl = 'https://zhyhdlespsxkctmujbit.supabase.co';
@@ -1768,5 +1866,49 @@ $('trackerAdd').addEventListener('click',start);$('trackerDetailClose').addEvent
 $('trackerContent').addEventListener('click',e=>{let x;if(x=e.target.closest('[data-start]'))return start();if(x=e.target.closest('[data-back]')){ui.page=ui.page==='review'?'catalog':'home';return render()}if(x=e.target.closest('[data-series]'))return toggleSeries(x.dataset.series);if(x=e.target.closest('[data-set]'))return choose(x.dataset.set,x.dataset.seriesId);if(x=e.target.closest('[data-save]'))return saveReview();if(x=e.target.closest('[data-delete-tracker]')){const id=x.dataset.deleteTracker,name=x.dataset.trackerName||id;if(!confirm(`Excluir o agrupamento \"${name}\"?\n\nTambém serão removidos o progresso de coleta, as cartas monitoradas e todo o histórico de preços deste agrupamento.`))return;const index=sets().findIndex(t=>t.setId===id);if(index>=0){sets().splice(index,1);save();home();lucide.createIcons();showToast(`${name} removida do Tracker`,'trash-2')}return}if(x=e.target.closest('[data-open]')){ui.setId=x.dataset.open;ui.page='detail';ui.query='';ui.rarity='';ui.filter='all';return render()}if(x=e.target.closest('[data-home]')){ui.page='home';return render()}if(x=e.target.closest('[data-bulk]')){reviewFiltered().forEach(c=>c.included=x.dataset.bulk==='select');return reviewRows()}if(x=e.target.closest('[data-filter]')){ui.filter=x.dataset.filter;return cards()}if(x=e.target.closest('[data-collected]'))return toggle(x.dataset.collected,'collected');if(x=e.target.closest('[data-monitor]'))return toggle(x.dataset.monitor,'monitored');if(x=e.target.closest('[data-price]'))return price(x.dataset.price);if(x=e.target.closest('[data-repeat]'))return repeatPrice(x.dataset.repeat);if(x=e.target.closest('[data-remove-card]')){const t=current(),c=card(x.dataset.removeCard);if(!t||!c)return;if(!confirm(`Remover a carta \"${c.name}\" do agrupamento \"${t.setName}\"?\n\nO status de coleta, o monitoramento e todo o histórico de preços desta carta também serão removidos.`))return;t.cards=t.cards.filter(item=>item.id!==c.id);save();detail();renderMarket();lucide.createIcons();showToast(`${c.name} removida do agrupamento`,'trash-2');return}if(x=e.target.closest('[data-card-detail]'))return openCardDetail(ui.setId,x.dataset.cardDetail)});
 $('trackerContent').addEventListener('input',e=>{if(e.target.id==='trackerCatalogSearch'){ui.query=e.target.value;$('trackerCatalogRows').innerHTML=catalogRows();lucide.createIcons()}if(e.target.id==='trackerReviewSearch')reviewRows();if(e.target.id==='trackerSearch'){ui.query=e.target.value;cards()}});$('trackerContent').addEventListener('change',e=>{if(e.target.matches('[data-check]')){let c=ui.review.cards.find(x=>x.id===e.target.dataset.check);c.included=e.target.checked;reviewRows()}if(['trackerReviewFilter','trackerReviewRarity'].includes(e.target.id))reviewRows();if(e.target.id==='trackerRarity'){ui.rarity=e.target.value;cards()}});$('trackerContent').addEventListener('mouseover',e=>{let x=e.target.closest('[data-preview]');if(!x||innerWidth<701)return;let p=$('trackerImagePreview'),r=x.getBoundingClientRect();p.src=x.dataset.preview;p.style.left=Math.min(innerWidth-245,r.right+10)+'px';p.style.top=Math.max(10,r.top-90)+'px';p.classList.add('show')});$('trackerContent').addEventListener('mouseout',e=>{if(e.target.closest('[data-preview]'))$('trackerImagePreview').classList.remove('show')});
 window.Tracker={open};
-})();</script></body>
+})();</script>
+<script id="mobile-scroll-controller">
+(() => {
+  'use strict';
+  const body = document.body;
+  if (!body) return;
+
+  const hasVisibleOverlay = () => Boolean(
+    document.querySelector(
+      '.modal.open, #tcgLoadingOverlay.flex, #newExpansionModal.flex, [aria-modal="true"].open'
+    )
+  );
+
+  const syncScrollLock = () => {
+    const locked = hasVisibleOverlay();
+    body.classList.toggle('mobile-scroll-lock', locked);
+    /* Remove bloqueios antigos do Tailwind quando nenhuma camada estiver aberta. */
+    if (!locked) body.classList.remove('overflow-hidden');
+  };
+
+  const observer = new MutationObserver(syncScrollLock);
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'hidden']
+  });
+
+  window.addEventListener('pageshow', syncScrollLock);
+  window.addEventListener('resize', syncScrollLock, { passive: true });
+  window.addEventListener('orientationchange', syncScrollLock, { passive: true });
+  document.addEventListener('DOMContentLoaded', syncScrollLock, { once: true });
+
+  /* Garante que a troca de view nunca herde uma posicao ou bloqueio de rolagem invalido. */
+  document.querySelector('nav')?.addEventListener('click', () => {
+    requestAnimationFrame(() => {
+      syncScrollLock();
+      if (!hasVisibleOverlay()) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  });
+
+  syncScrollLock();
+})();
+</script>
+
+</body>
 </html>

@@ -527,8 +527,17 @@ const SAMPLE=`Pokémon\tNúmero\tGeração\tCapturado?\nBulbasaur\t1\t1 - Kanto\
 let state=loadState();let selectedGenerations=new Set();let sort={key:'number',dir:1};let overallChart=null,generationChart=null;
 function uid(){return crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
 function normalize(data){return {trackers:Array.isArray(data?.trackers)?data.trackers:[],pokemon:(Array.isArray(data?.pokemon)?data.pokemon:[]).map(p=>({id:p.id||uid(),name:String(p.name||'').trim(),number:Number(p.number)||0,generation:Math.min(9,Math.max(1,Number(p.generation)||1)),region:p.region||GENERATIONS[Number(p.generation)]||'',captured:!!p.captured,capturedAt:p.capturedAt||null,updatedAt:p.updatedAt||new Date().toISOString()})).filter(p=>p.name&&p.number>0)}}
-function loadState(){try{const raw=localStorage.getItem(STORAGE);if(raw)return normalize(JSON.parse(raw))}catch(e){}return normalize({pokemon:parseBulk(SAMPLE)})}
-function save(){localStorage.setItem(STORAGE,JSON.stringify(state))}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE);
+    if(raw)return normalize(JSON.parse(raw));
+  }catch(error){console.warn('Falha ao carregar a copia local da Pokedex:',error)}
+  return normalize({pokemon:parseBulk(SAMPLE)});
+}
+function save(){
+  localStorage.setItem(STORAGE,JSON.stringify(state));
+  window.PokedexCloudSync?.schedule('estado-principal');
+}
 window.getMissingPokemonForExpansions=()=>state.pokemon.filter(p=>!p.captured).map(p=>({name:p.name,number:p.number,generation:p.generation,region:p.region,captured:false}));
 window.getCapturedPokemonCount=()=>state.pokemon.filter(p=>p.captured).length;
 window.getTotalPokemonCount=()=>state.pokemon.length;
@@ -562,6 +571,139 @@ function download(name,content,type){const blob=new Blob(['\ufeff'+content],{typ
 function exportCSV(){const csv=['Pokémon;Número;Geração;Capturado?',...state.pokemon.sort((a,b)=>a.number-b.number).map(p=>`"${p.name.replace(/"/g,'""')}";${p.number};"${p.generation} - ${p.region||GENERATIONS[p.generation]}";${p.captured?'Sim':'Não'}`)].join('\n');download(`pokedex-${new Date().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8');showToast('CSV gerado')}
 function exportBackup(){const expansionsDatabase=document.getElementById('inputSetlist')?.value||'';const selectedExpansions=typeof window.getSelectedExpansionsBackup==='function'?window.getSelectedExpansionsBackup():[];const localStorageSnapshot={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key!==null)localStorageSnapshot[key]=localStorage.getItem(key)}const data={metadata:{app:'Pokédex Nacional',version:5,exportedAt:new Date().toISOString(),scope:'complete-user-data'},pokemon:state.pokemon,trackers:state.trackers||[],expansionsDatabase,selectedExpansions,localStorageSnapshot};download(`backup-pokedex-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');showToast('Backup completo gerado com Pokédex, Tracker, destaques, preços e configurações')}
 function importBackup(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data.pokemon))throw new Error('Formato incompatível');if(data.expansionsDatabase!==undefined&&typeof data.expansionsDatabase!=='string')throw new Error('Database das Expansões incompatível');if(data.selectedExpansions!==undefined&&!Array.isArray(data.selectedExpansions))throw new Error('Seleção de expansões incompatível');if(data.trackers!==undefined&&!Array.isArray(data.trackers))throw new Error('Dados do Tracker incompatíveis');if(data.localStorageSnapshot!==undefined&&(typeof data.localStorageSnapshot!=='object'||Array.isArray(data.localStorageSnapshot)||data.localStorageSnapshot===null))throw new Error('Snapshot local incompatível');const expansionsDatabase=typeof data.expansionsDatabase==='string'?data.expansionsDatabase:'';const trackerCount=Array.isArray(data.trackers)?data.trackers.length:0;if(!confirm(`Restaurar o backup completo?\n\nPokédex: ${data.pokemon.length} registros\nTracker: ${trackerCount} agrupamento(s)\nDestaques, preços e configurações locais também serão restaurados quando disponíveis.`))return;if(data.localStorageSnapshot){Object.entries(data.localStorageSnapshot).forEach(([key,value])=>{if(typeof value==='string')localStorage.setItem(key,value)})}state=normalize(data);save();const inputSetlist=document.getElementById('inputSetlist');if(inputSetlist){inputSetlist.value=expansionsDatabase;inputSetlist.dispatchEvent(new Event('input',{bubbles:true}))}if(typeof window.restoreSelectedExpansionsBackup==='function')await window.restoreSelectedExpansionsBackup(data.selectedExpansions||[],expansionsDatabase);selectedGenerations.clear();goView('dashboard');showToast('Backup completo restaurado com sucesso')}catch(err){console.error(err);showToast('Arquivo JSON incompatível','circle-alert')}finally{e.target.value=''}};r.readAsText(file)}
+
+// Sincronizacao offline-first com o snapshot seguro do Supabase.
+window.PokedexCloudSync=(()=>{
+  'use strict';
+  const META_KEY='pokedex_nacional_cloud_sync_v1';
+  const SCHEMA_VERSION=6;
+  let restoring=false,timer=null,syncing=false,pending=false,lastAuthWarning=0;
+
+  const now=()=>new Date().toISOString();
+  const validDate=value=>{const time=Date.parse(value||'');return Number.isFinite(time)?time:0};
+  const readMeta=()=>{try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch{return {}}};
+  const writeMeta=patch=>localStorage.setItem(META_KEY,JSON.stringify({...readMeta(),...patch}));
+  const localStorageSnapshot=()=>{const snapshot={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key!==META_KEY)snapshot[key]=localStorage.getItem(key)}return snapshot};
+
+  function buildSnapshot(clientUpdatedAt=now()){
+    return {
+      metadata:{app:'Pokédex Nacional',version:SCHEMA_VERSION,savedAt:clientUpdatedAt,scope:'complete-user-data'},
+      pokemon:state.pokemon||[],
+      trackers:state.trackers||[],
+      highlights:JSON.parse(localStorage.getItem('pokedex_nacional_highlights_v2')||'[]'),
+      expansionsDatabase:document.getElementById('inputSetlist')?.value||'',
+      selectedExpansions:typeof window.getSelectedExpansionsBackup==='function'?window.getSelectedExpansionsBackup():[],
+      localStorageSnapshot:localStorageSnapshot()
+    };
+  }
+
+  async function session(showWarning=false){
+    const {data,error}=await db.auth.getSession();
+    if(error)throw error;
+    const current=data?.session||null;
+    if(!current&&showWarning&&Date.now()-lastAuthWarning>12000){
+      lastAuthWarning=Date.now();
+      showToast('Entre na sua conta para sincronizar com o Supabase','log-in');
+    }
+    return current;
+  }
+
+  async function applySnapshot(snapshot,cloudDate){
+    if(!snapshot||typeof snapshot!=='object')return;
+    restoring=true;
+    try{
+      if(snapshot.localStorageSnapshot&&typeof snapshot.localStorageSnapshot==='object'){
+        Object.entries(snapshot.localStorageSnapshot).forEach(([key,value])=>{if(typeof value==='string'&&key!==META_KEY)localStorage.setItem(key,value)});
+      }
+      state=normalize({pokemon:Array.isArray(snapshot.pokemon)?snapshot.pokemon:[],trackers:Array.isArray(snapshot.trackers)?snapshot.trackers:[]});
+      localStorage.setItem(STORAGE,JSON.stringify(state));
+      if(Array.isArray(snapshot.highlights))localStorage.setItem('pokedex_nacional_highlights_v2',JSON.stringify(snapshot.highlights));
+      const database=typeof snapshot.expansionsDatabase==='string'?snapshot.expansionsDatabase:'';
+      const input=document.getElementById('inputSetlist');
+      if(input){input.value=database;input.dispatchEvent(new Event('input',{bubbles:true}))}
+      if(typeof window.restoreSelectedExpansionsBackup==='function')await window.restoreSelectedExpansionsBackup(snapshot.selectedExpansions||[],database);
+      window.loadHighlightsStructure?.(true);
+      selectedGenerations.clear();
+      renderDashboard();
+      if(document.getElementById('pokedexView')?.classList.contains('active'))renderPokedex();
+      if(document.getElementById('trackerView')?.classList.contains('active'))window.Tracker?.open();
+      writeMeta({localUpdatedAt:cloudDate,lastCloudUpdatedAt:cloudDate,lastSyncAt:now()});
+    }finally{restoring=false}
+  }
+
+  async function push(reason='alteracao-local'){
+    if(restoring){return false}
+    if(syncing){pending=true;return false}
+    const currentSession=await session(true);
+    if(!currentSession)return false;
+    syncing=true;
+    try{
+      const meta=readMeta();
+      const clientUpdatedAt=meta.localUpdatedAt||now();
+      const snapshot=buildSnapshot(clientUpdatedAt);
+      const {data,error}=await db.rpc('save_pokedex_app_state',{p_data:snapshot,p_schema_version:SCHEMA_VERSION,p_client_updated_at:clientUpdatedAt});
+      if(error)throw error;
+      if(data?.ignored){await pull();return false}
+      writeMeta({lastCloudUpdatedAt:clientUpdatedAt,lastSyncAt:now(),lastReason:reason});
+      return true;
+    }catch(error){
+      console.error('Falha na sincronizacao com o Supabase:',error);
+      showToast('Dados mantidos offline. A sincronizacao sera tentada novamente.','cloud-off');
+      return false;
+    }finally{
+      syncing=false;
+      if(pending){pending=false;schedule('alteracao-pendente',500)}
+    }
+  }
+
+  function schedule(reason='alteracao-local',delay=900){
+    if(restoring)return;
+    writeMeta({localUpdatedAt:now(),pending:true,lastReason:reason});
+    clearTimeout(timer);
+    timer=setTimeout(()=>push(reason).then(ok=>{if(ok)writeMeta({pending:false})}),delay);
+  }
+
+  async function pull(){
+    const currentSession=await session(false);
+    if(!currentSession)return false;
+    const {data,error}=await db.rpc('load_pokedex_app_state');
+    if(error)throw error;
+    if(!data?.data)return false;
+    const cloudDate=data.clientUpdatedAt||data.updatedAt||data.data?.metadata?.savedAt;
+    const meta=readMeta();
+    const localDate=meta.localUpdatedAt||meta.lastCloudUpdatedAt;
+    if(validDate(cloudDate)>validDate(localDate)){
+      await applySnapshot(data.data,cloudDate);
+      showToast('Dados mais recentes restaurados do Supabase','cloud-download');
+      return true;
+    }
+    if(validDate(localDate)>validDate(cloudDate))await push('conflito-local-mais-recente');
+    return false;
+  }
+
+  async function initialize(){
+    try{
+      const currentSession=await session(false);
+      if(!currentSession){writeMeta({authenticated:false});return}
+      writeMeta({authenticated:true,userId:currentSession.user.id});
+      const restored=await pull();
+      const {data}=await db.rpc('load_pokedex_app_state');
+      if(!restored&&!data?.data){writeMeta({localUpdatedAt:readMeta().localUpdatedAt||now()});await push('primeiro-envio')}
+    }catch(error){
+      console.error('Falha ao iniciar a sincronizacao:',error);
+      showToast('Aplicacao iniciada no modo offline','cloud-off');
+    }
+  }
+
+  db.auth.onAuthStateChange((event,currentSession)=>{
+    writeMeta({authenticated:!!currentSession,userId:currentSession?.user?.id||null});
+    if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')setTimeout(initialize,0);
+  });
+  window.addEventListener('online',()=>initialize());
+  window.addEventListener('load',()=>setTimeout(initialize,350));
+  return {initialize,pull,push,schedule,isRestoring:()=>restoring};
+})();
+
 renderDashboard();lucide.createIcons();
 </script>
 <script id="expansions-module-script">(()=>{
@@ -1366,7 +1508,7 @@ me02.5-014\t014\tSnorlax\tAscended Heroes\tRare`;
   function removeSet(setId){if(state.busy)return;state.selected.delete(setId);syncDatabase();renderSeries();renderSelection()}
   function syncDatabase(){
     const cards=[...state.selected.values()].flatMap(item=>item.cards);const lines=[['ID','ID local','Nome','Expansao','Raridade'],...cards.map(c=>[c.id,c.localId,c.name,c.setName,c.rarity])];
-    els.textarea.value=cards.length?lines.map(row=>row.map(value=>String(value??'').replace(/\t|\r?\n/g,' ')).join('\t')).join('\n'):'';els.textarea.dispatchEvent(new Event('input',{bubbles:true}));els.count.textContent=`${cards.length.toLocaleString('pt-BR')} carta${cards.length===1?'':'s'}`;
+    els.textarea.value=cards.length?lines.map(row=>row.map(value=>String(value??'').replace(/\t|\r?\n/g,' ')).join('\t')).join('\n'):'';els.textarea.dispatchEvent(new Event('input',{bubbles:true}));els.count.textContent=`${cards.length.toLocaleString('pt-BR')} carta${cards.length===1?'':'s'}`;window.PokedexCloudSync?.schedule('expansoes');
   }
   function renderSelection(){
     const items=[...state.selected.values()];els.summary.textContent=items.length?`${items.length} expansão(ões) selecionada(s)`:'Nenhuma expansão selecionada';
@@ -1402,8 +1544,19 @@ let highlights=loadStore(), step=1, selectedCard=null, editingId=null, searchTim
 const CARD_SEARCH_PAGE_SIZE=30;
 const cardSearchState={results:[],currentPage:1,query:'',requestId:0};
 const cardSetDateCache=new Map();
-function loadStore(){try{const v=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(v)?v:[]}catch{return []}}
-function saveStore(){localStorage.setItem(STORE,JSON.stringify(highlights))}
+function loadStore(){
+  try{
+    const value=JSON.parse(localStorage.getItem(STORE)||'[]');
+    return Array.isArray(value)?value:[];
+  }catch(error){
+    console.warn('Falha ao carregar a copia local dos destaques:',error);
+    return [];
+  }
+}
+function saveStore(){
+  localStorage.setItem(STORE,JSON.stringify(highlights));
+  window.PokedexCloudSync?.schedule('destaques');
+}
 function imageUrl(c){return c?.image?`${c.image}/high.webp`:''}
 function setName(c){return c?.set?.name||c?.setName||'Expansão não informada'}
 function categoryTags(keys){return (keys||[]).map(k=>CATEGORIES[k]?`<span class="inline-flex items-center gap-1 rounded-full bg-parchment text-ink px-2.5 py-1 text-xs font-semibold">${CATEGORIES[k].emoji} ${CATEGORIES[k].label}</span>`:'').join('')}

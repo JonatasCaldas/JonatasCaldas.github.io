@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Orçamento Visual</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF + AutoTable para geração do relatório -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+
+        /* Custom Scrollbar for Canvas feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Smooth transitions for fade effects */
+        .fade-transition {
+            transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+        }
+        
+        .dimmed {
+            opacity: 0.3;
+            filter: grayscale(40%);
+        }
+
+        /* Canvas SVG path animation */
+        path.connection-line {
+            transition: stroke 0.3s ease, stroke-width 0.3s ease, opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col overflow-hidden text-slate-800">
+
+    <!-- Header & Dashboard Summary -->
+    <header class="bg-white border-b border-slate-200 shadow-sm z-20 shrink-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 xl:gap-6">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestor de Orçamento</h1>
+                    <p class="text-sm text-slate-500">Mapeamento visual de receitas e despesas</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl border border-slate-200 shrink-0" aria-label="Controles de zoom">
+                <button id="zoom-out-btn" type="button" class="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600" title="Reduzir zoom" aria-label="Reduzir zoom"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                <button id="zoom-level-btn" type="button" class="min-w-16 px-2 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-white" title="Restaurar zoom para 100%">100%</button>
+                <button id="zoom-in-btn" type="button" class="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600" title="Ampliar zoom" aria-label="Ampliar zoom"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                <button id="zoom-fit-btn" type="button" class="px-2 py-1.5 rounded-lg text-xs font-semibold text-blue-600 hover:bg-white" title="Ajustar o quadro à largura disponível">Ajustar</button>
+            </div>
+            <!-- Summary Stats and actions -->
+            <div class="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 w-full xl:w-auto">
+                <div class="flex items-center justify-center gap-5 sm:gap-8 bg-slate-50 px-4 sm:px-6 py-3 rounded-2xl border border-slate-100 shrink-0">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Previsto</p>
+                    <p class="text-xl font-bold text-slate-700" id="header-total-expected">R$ 0,00</p>
+                </div>
+                <div class="w-px h-10 bg-slate-200"></div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Alocado</p>
+                    <p class="text-xl font-bold text-emerald-600" id="header-total-allocated">R$ 0,00</p>
+                </div>
+                    <div class="w-20 h-20 hidden sm:block">
+                        <!-- Chart.js Canvas -->
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
+                    <button id="export-backup-btn" type="button" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors shadow-sm" title="Baixar todos os dados em JSON">
+                        <i data-lucide="download" class="w-4 h-4"></i><span class="text-sm font-semibold">Exportar backup</span>
+                    </button>
+                    <button id="import-backup-btn" type="button" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors shadow-sm" title="Restaurar dados de um arquivo JSON">
+                        <i data-lucide="upload" class="w-4 h-4"></i><span class="text-sm font-semibold">Importar backup</span>
+                    </button>
+                    <input id="import-backup-input" type="file" accept="application/json,.json" class="hidden" aria-hidden="true">
+                    <button id="report-btn" type="button" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-800 text-white hover:bg-blue-600 transition-colors shadow-sm">
+                        <i data-lucide="file-down" class="w-4 h-4"></i><span class="text-sm font-semibold">Gerar relatório PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Canvas Area (Scrollable Workspace) -->
+    <main class="flex-1 w-full overflow-auto relative bg-[#f4f7fb] cursor-grab active:cursor-grabbing" id="canvas-container">
+        
+        <!-- The Board (Fixed Minimum Width for spatial layout) -->
+        <div id="board" class="relative min-w-[1100px] min-h-full mx-auto p-12 flex justify-between gap-32">
+            
+            <!-- SVG Layer for Connection Lines -->
+            <svg id="svg-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+            
+            <!-- Left Column: Incomes -->
+            <div class="w-[400px] flex flex-col gap-6 z-10" id="incomes-col">
+                
+                <button id="add-income-btn" class="group flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 hover:text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 transition-all">
+                    <i data-lucide="plus-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    <span class="font-medium">Adicionar Nova Receita</span>
+                </button>
+                
+                <!-- Income cards will be injected here -->
+                <div id="incomes-list" class="flex flex-col gap-6"></div>
+            </div>
+
+            <!-- Right Column: Expenses (Fixed 5 Categories) -->
+            <div class="w-[400px] flex flex-col gap-6 z-10" id="expenses-col">
+                <!-- Expense cards will be injected here -->
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        // --- DATA & STATE ---
+        const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        
+        const expenseCategories = [
+            { id: 'mobilidade', title: 'Mobilidade', icon: 'car', color: 'text-blue-500', bg: 'bg-blue-500', fill: 'bg-blue-100', stroke: '#3b82f6' },
+            { id: 'alimentacao', title: 'Alimentação', icon: 'utensils', color: 'text-orange-500', bg: 'bg-orange-500', fill: 'bg-orange-100', stroke: '#f97316' },
+            { id: 'hospedagem', title: 'Hospedagem', icon: 'home', color: 'text-indigo-500', bg: 'bg-indigo-500', fill: 'bg-indigo-100', stroke: '#6366f1' },
+            { id: 'lazer', title: 'Lazer', icon: 'smile', color: 'text-pink-500', bg: 'bg-pink-500', fill: 'bg-pink-100', stroke: '#ec4899' },
+            { id: 'presentes', title: 'Presentes', icon: 'gift', color: 'text-purple-500', bg: 'bg-purple-500', fill: 'bg-purple-100', stroke: '#a855f7' },
+            { id: 'emergencia', title: 'Emergência', icon: 'life-buoy', color: 'text-rose-500', bg: 'bg-rose-500', fill: 'bg-rose-100', stroke: '#f43f5e' }
+        ];
+
+        let state = {
+            expenses: {
+                'mobilidade': { expected: 0 },
+                'alimentacao': { expected: 0 },
+                'hospedagem': { expected: 0 },
+                'lazer': { expected: 0 },
+                'presentes': { expected: 0 },
+                'emergencia': { expected: 0 }
+            },
+            incomes: [
+                { id: 'inc-' + Date.now(), title: 'Salário Mensal', total: 4000, allocations: [] }
+            ]
+        };
+
+        let summaryChart;
+        const STORAGE_KEY = 'gestor-orcamento-visual-v1';
+        const MIN_ZOOM = 0.5;
+        const MAX_ZOOM = 1.5;
+        const ZOOM_STEP = 0.1;
+        let currentZoom = 1;
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return;
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.expenses && Array.isArray(parsed.incomes)) {
+                    state = parsed;
+                    expenseCategories.forEach(cat => {
+                        if (!state.expenses[cat.id]) state.expenses[cat.id] = { expected: 0 };
+                    });
+                }
+            } catch (error) {
+                console.warn('Não foi possível carregar os dados locais.', error);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn('Não foi possível salvar os dados localmente.', error);
+            }
+        }
+
+        function exportBackup() {
+            const backup = {
+                app: 'Gestor de Orçamento Visual',
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                data: state
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `backup-gestor-orcamento-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+        function isValidBackupData(data) {
+            return data && typeof data === 'object' &&
+                data.expenses && typeof data.expenses === 'object' &&
+                Array.isArray(data.incomes) &&
+                data.incomes.every(inc => inc && typeof inc === 'object' && Array.isArray(inc.allocations));
+        }
+        async function importBackup(file) {
+            if (!file) return;
+            try {
+                const content = await file.text();
+                const parsed = JSON.parse(content);
+                const importedState = parsed?.data ?? parsed;
+                if (!isValidBackupData(importedState)) {
+                    throw new Error('Estrutura de backup inválida.');
+                }
+                if (!confirm('A importação substituirá todos os dados atuais pelos dados do arquivo. Deseja continuar?')) return;
+                state = importedState;
+                expenseCategories.forEach(cat => {
+                    if (!state.expenses[cat.id]) state.expenses[cat.id] = { expected: 0 };
+                });
+                saveState();
+                renderExpenses();
+                renderIncomes();
+                updateAllSummaries();
+                requestAnimationFrame(drawLines);
+                alert('Backup restaurado com sucesso.');
+            } catch (error) {
+                console.error('Falha ao importar backup.', error);
+                alert('Não foi possível importar o backup. Selecione um arquivo JSON válido gerado por esta aplicação.');
+            } finally {
+                document.getElementById('import-backup-input').value = '';
+            }
+        }
+        function applyZoom(value) {
+            currentZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(value) || 1));
+            currentZoom = Math.round(currentZoom * 10) / 10;
+            const board = document.getElementById('board');
+            board.style.zoom = currentZoom;
+            document.getElementById('zoom-level-btn').textContent = `${Math.round(currentZoom * 100)}%`;
+            document.getElementById('zoom-out-btn').disabled = currentZoom <= MIN_ZOOM;
+            document.getElementById('zoom-in-btn').disabled = currentZoom >= MAX_ZOOM;
+            requestAnimationFrame(drawLines);
+        }
+
+        function fitBoardToView() {
+            const container = document.getElementById('canvas-container');
+            const board = document.getElementById('board');
+            board.style.zoom = 1;
+            const available = Math.max(320, container.clientWidth - 24);
+            const target = Math.min(1, available / board.scrollWidth);
+            applyZoom(Math.max(MIN_ZOOM, Math.floor(target * 10) / 10));
+            container.scrollLeft = 0;
+        }
+
+        function getAllocatedForExpense(expenseId) {
+            return state.incomes.reduce((total, inc) => total + inc.allocations
+                .filter(al => al.expenseId === expenseId)
+                .reduce((sum, al) => sum + (Number(al.amount) || 0), 0), 0);
+        }
+
+        function generateReport() {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão e tente novamente.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            const totalIncome = state.incomes.reduce((sum, inc) => sum + (Number(inc.total) || 0), 0);
+            const totalExpected = expenseCategories.reduce((sum, cat) => sum + (Number(state.expenses[cat.id]?.expected) || 0), 0);
+            const totalAllocated = state.incomes.reduce((sum, inc) => sum + inc.allocations.reduce((sub, al) => sub + (Number(al.amount) || 0), 0), 0);
+            const totalAvailable = totalIncome - totalAllocated;
+            const generatedAt = new Date();
+
+            doc.setFontSize(18);
+            doc.text('Relatório do Gestor de Orçamento', 14, 18);
+            doc.setFontSize(9);
+            doc.setTextColor(90);
+            doc.text(`Gerado em ${generatedAt.toLocaleString('pt-BR')}`, 14, 24);
+            doc.setTextColor(0);
+
+            doc.autoTable({
+                startY: 30,
+                head: [['Resumo', 'Valor']],
+                body: [
+                    ['Total de receitas', formatCurrency(totalIncome)],
+                    ['Total de despesas previstas', formatCurrency(totalExpected)],
+                    ['Total destinado', formatCurrency(totalAllocated)],
+                    ['Saldo ainda não destinado', formatCurrency(totalAvailable)]
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59] }
+            });
+
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 8,
+                head: [['Receita', 'Valor total', 'Destinado', 'Disponível']],
+                body: state.incomes.length ? state.incomes.map(inc => {
+                    const allocated = inc.allocations.reduce((sum, al) => sum + (Number(al.amount) || 0), 0);
+                    return [inc.title || 'Receita sem nome', formatCurrency(inc.total), formatCurrency(allocated), formatCurrency((Number(inc.total) || 0) - allocated)];
+                }) : [['Nenhuma receita cadastrada', '-', '-', '-']],
+                theme: 'striped',
+                headStyles: { fillColor: [5, 150, 105] }
+            });
+
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 8,
+                head: [['Despesa', 'Previsto', 'Destinado', 'Diferença', 'Situação']],
+                body: expenseCategories.map(cat => {
+                    const expected = Number(state.expenses[cat.id]?.expected) || 0;
+                    const allocated = getAllocatedForExpense(cat.id);
+                    const difference = allocated - expected;
+                    let status = 'Atingido';
+                    if (expected === 0 && allocated === 0) status = 'Sem valores';
+                    else if (difference < 0) status = 'Falta destinar';
+                    else if (difference > 0) status = 'Acima do previsto';
+                    return [cat.title, formatCurrency(expected), formatCurrency(allocated), formatCurrency(Math.abs(difference)), status];
+                }),
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] }
+            });
+
+            const allocationRows = [];
+            state.incomes.forEach(inc => inc.allocations.forEach(al => {
+                const cat = expenseCategories.find(c => c.id === al.expenseId);
+                allocationRows.push([inc.title || 'Receita sem nome', cat?.title || al.expenseId, formatCurrency(al.amount)]);
+            }));
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 8,
+                head: [['Origem da receita', 'Destinação', 'Valor']],
+                body: allocationRows.length ? allocationRows : [['Nenhuma destinação cadastrada', '-', '-']],
+                theme: 'grid',
+                headStyles: { fillColor: [124, 58, 237] }
+            });
+
+            const fileDate = generatedAt.toISOString().slice(0, 10);
+            doc.save(`relatorio-orcamento-${fileDate}.pdf`);
+        }
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            lucide.createIcons();
+            initChart();
+            renderExpenses();
+            renderIncomes();
+            updateAllSummaries();
+            
+            // Allow lines to be drawn after layout confirms
+            setTimeout(drawLines, 100);
+            
+            // Listeners for resizing and adding incomes
+            window.addEventListener('resize', drawLines);
+            document.getElementById('add-income-btn').addEventListener('click', handleAddIncome);
+            document.getElementById('zoom-out-btn').addEventListener('click', () => applyZoom(currentZoom - ZOOM_STEP));
+            document.getElementById('zoom-in-btn').addEventListener('click', () => applyZoom(currentZoom + ZOOM_STEP));
+            document.getElementById('zoom-level-btn').addEventListener('click', () => applyZoom(1));
+            document.getElementById('zoom-fit-btn').addEventListener('click', fitBoardToView);
+            document.getElementById('report-btn').addEventListener('click', generateReport);
+            document.getElementById('export-backup-btn').addEventListener('click', exportBackup);
+            document.getElementById('import-backup-btn').addEventListener('click', () => document.getElementById('import-backup-input').click());
+            document.getElementById('import-backup-input').addEventListener('change', event => importBackup(event.target.files[0]));
+            applyZoom(1);
+            
+            // Event delegation for the board inputs and buttons
+            setupBoardDelegation();
+        });
+
+        // --- RENDERERS ---
+        function renderExpenses() {
+            const container = document.getElementById('expenses-col');
+            container.innerHTML = '';
+            
+            expenseCategories.forEach(cat => {
+                const exp = state.expenses[cat.id];
+                const card = document.createElement('div');
+                card.className = `expense-card fade-transition bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col gap-4 relative overflow-hidden`;
+                card.id = `exp-${cat.id}`;
+                card.dataset.id = cat.id;
+
+                // Decorative background gradient
+                const deco = document.createElement('div');
+                deco.className = `absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 ${cat.bg}`;
+                card.appendChild(deco);
+
+                card.innerHTML += `
+                    <div class="flex items-center gap-3 relative z-10">
+                        <div class="p-3 rounded-2xl ${cat.fill} ${cat.color}">
+                            <i data-lucide="${cat.icon}" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800">${cat.title}</h3>
+                    </div>
+                    
+                    <div class="space-y-4 relative z-10">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Custo Previsto (R$)</label>
+                            <input type="number" data-target="${cat.id}" class="expense-expected mt-1 w-full text-lg px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" value="${exp.expected || ''}" placeholder="0.00">
+                        </div>
+                        
+                        <div class="flex justify-between text-sm items-end">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-slate-400 font-medium uppercase">Alocado</span>
+                                <span class="exp-allocated font-bold text-slate-700 text-base">R$ 0,00</span>
+                            </div>
+                            <span class="exp-missing font-medium text-slate-500">Completo</span>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden w-full relative shadow-inner">
+                            <div class="exp-bar absolute top-0 left-0 h-full bg-slate-300 transition-all duration-700 ease-out w-0 rounded-full"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+            
+            // Add hover events for highlights
+            document.querySelectorAll('.expense-card').forEach(el => {
+                el.addEventListener('mouseenter', () => handleHover('expense', el.dataset.id, true));
+                el.addEventListener('mouseleave', () => handleHover('expense', el.dataset.id, false));
+            });
+        }
+
+        function renderIncomes() {
+            const container = document.getElementById('incomes-list');
+            container.innerHTML = '';
+            
+            state.incomes.forEach(inc => {
+                const card = document.createElement('div');
+                card.className = 'income-card fade-transition bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200 relative z-10';
+                card.id = `inc-${inc.id}`;
+                card.dataset.id = inc.id;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <input type="text" data-inc="${inc.id}" class="income-title font-bold text-xl text-slate-800 bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-emerald-500 outline-none w-full transition-colors pb-1" value="${inc.title}" placeholder="Nome da Receita">
+                        <button class="del-income-btn text-slate-300 hover:text-red-500 transition-colors p-1" data-inc="${inc.id}">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Valor Total da Receita (R$)</label>
+                        <input type="number" data-inc="${inc.id}" class="income-total mt-1 w-full text-lg font-medium px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" value="${inc.total || ''}" placeholder="0.00">
+                    </div>
+                    
+                    <div class="flex justify-between items-center text-sm py-2">
+                        <span class="text-slate-500">Disponível para alocar:</span>
+                        <strong class="inc-available text-emerald-600 text-base bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">R$ 0,00</strong>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <i data-lucide="split" class="w-4 h-4"></i> Destinações
+                        </h4>
+                        
+                        <div class="allocations-container space-y-2 mb-3 relative">
+                            <!-- Allocations rendered here dynamically -->
+                        </div>
+                        
+                        <!-- Add Allocation Form -->
+                        <div class="flex gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <select id="sel-${inc.id}" class="flex-1 bg-white border border-slate-200 rounded-lg px-2 text-sm outline-none text-slate-700 font-medium focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                                <option value="" disabled selected>Selecione...</option>
+                                ${expenseCategories.map(cat => `<option value="${cat.id}">${cat.title}</option>`).join('')}
+                            </select>
+                            <input type="number" id="amt-${inc.id}" placeholder="R$" class="w-24 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium">
+                            <button class="add-allocation-btn bg-slate-800 text-white p-2 rounded-lg hover:bg-emerald-600 transition-colors shadow-sm" data-inc="${inc.id}">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+                renderAllocationsList(inc.id);
+            });
+            lucide.createIcons();
+
+            document.querySelectorAll('.income-card').forEach(el => {
+                el.addEventListener('mouseenter', () => handleHover('income', el.dataset.id, true));
+                el.addEventListener('mouseleave', () => handleHover('income', el.dataset.id, false));
+            });
+        }
+
+        function renderAllocationsList(incomeId) {
+            const inc = state.incomes.find(i => i.id === incomeId);
+            const container = document.querySelector(`#inc-${incomeId} .allocations-container`);
+            if(!container) return;
+            
+            container.innerHTML = '';
+            
+            if (inc.allocations.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-2">Nenhuma destinação criada.</p>`;
+                updateIncomeAvailable(incomeId);
+                return;
+            }
+
+            inc.allocations.forEach(al => {
+                const cat = expenseCategories.find(c => c.id === al.expenseId);
+                const el = document.createElement('div');
+                // The crucial ID for line drawing target
+                el.id = `alloc-${inc.id}-${al.expenseId}`;
+                el.className = `allocation-item flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm text-sm group hover:border-${cat.stroke.replace('#','')} transition-colors`;
+                
+                el.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full ${cat.bg}"></div>
+                        <span class="font-semibold text-slate-700">${cat.title}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-900">${formatCurrency(al.amount)}</span>
+                        <button class="del-allocation-btn text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" data-inc="${inc.id}" data-al="${al.id}">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+            lucide.createIcons();
+            updateIncomeAvailable(incomeId);
+        }
+
+        // --- UPDATERS ---
+        function updateIncomeAvailable(incomeId) {
+            const inc = state.incomes.find(i => i.id === incomeId);
+            if(!inc) return;
+            const allocated = inc.allocations.reduce((sum, al) => sum + al.amount, 0);
+            const available = (inc.total || 0) - allocated;
+            
+            const card = document.getElementById(`inc-${incomeId}`);
+            if(!card) return;
+            const textEl = card.querySelector('.inc-available');
+            textEl.textContent = formatCurrency(available);
+            
+            if (available < 0) {
+                textEl.className = 'inc-available text-red-600 font-bold text-base bg-red-50 px-3 py-1 rounded-lg border border-red-100';
+            } else {
+                textEl.className = 'inc-available text-emerald-600 font-bold text-base bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100';
+            }
+        }
+
+        function updateExpenseUI(expenseId) {
+            const exp = state.expenses[expenseId];
+            let allocated = 0;
+            state.incomes.forEach(inc => {
+                inc.allocations.forEach(al => {
+                    if (al.expenseId === expenseId) allocated += al.amount;
+                });
+            });
+
+            const expected = exp.expected || 0;
+            const missing = expected - allocated;
+            
+            const card = document.getElementById(`exp-${expenseId}`);
+            if(!card) return;
+
+            card.querySelector('.exp-allocated').textContent = formatCurrency(allocated);
+            
+            const missingEl = card.querySelector('.exp-missing');
+            if (expected === 0 && allocated === 0) {
+                missingEl.textContent = 'Sem meta';
+                missingEl.className = 'exp-missing text-slate-400 font-medium text-xs';
+            } else if (missing > 0) {
+                missingEl.textContent = `Falta: ${formatCurrency(missing)}`;
+                missingEl.className = 'exp-missing text-amber-500 font-bold text-xs bg-amber-50 px-2 py-1 rounded-md';
+            } else if (missing < 0) {
+                missingEl.textContent = `Sobra: ${formatCurrency(Math.abs(missing))}`;
+                missingEl.className = 'exp-missing text-blue-500 font-bold text-xs bg-blue-50 px-2 py-1 rounded-md';
+            } else {
+                missingEl.textContent = 'Atingido';
+                missingEl.className = 'exp-missing text-emerald-500 font-bold text-xs bg-emerald-50 px-2 py-1 rounded-md';
+            }
+
+            const bar = card.querySelector('.exp-bar');
+            let pct = expected > 0 ? (allocated / expected) * 100 : 0;
+            if (allocated > 0 && expected === 0) pct = 100; // Overfunded with 0 target
+            if (pct > 100) pct = 100;
+            
+            bar.style.width = `${pct}%`;
+            
+            // Color logic for bar
+            const catInfo = expenseCategories.find(c => c.id === expenseId);
+            if (pct >= 100) {
+                bar.className = `exp-bar absolute top-0 left-0 h-full transition-all duration-700 ease-out rounded-full bg-emerald-500`;
+            } else if (pct > 0) {
+                bar.className = `exp-bar absolute top-0 left-0 h-full transition-all duration-700 ease-out rounded-full ${catInfo.bg}`;
+            } else {
+                bar.className = `exp-bar absolute top-0 left-0 h-full w-0 transition-all duration-700 ease-out rounded-full`;
+            }
+        }
+
+        function updateAllSummaries() {
+            let totalExpected = 0;
+            let totalAllocated = 0;
+            
+            expenseCategories.forEach(cat => {
+                totalExpected += (state.expenses[cat.id].expected || 0);
+                updateExpenseUI(cat.id);
+            });
+            
+            state.incomes.forEach(inc => {
+                inc.allocations.forEach(al => { totalAllocated += al.amount; });
+            });
+
+            document.getElementById('header-total-expected').textContent = formatCurrency(totalExpected);
+            document.getElementById('header-total-allocated').textContent = formatCurrency(totalAllocated);
+            
+            updateChart();
+            saveState();
+        }
+
+        // --- EVENT DELEGATION ---
+        function setupBoardDelegation() {
+            const board = document.getElementById('board');
+            
+            // Inputs change
+            board.addEventListener('input', e => {
+                if (e.target.matches('.expense-expected')) {
+                    const id = e.target.dataset.target;
+                    state.expenses[id].expected = parseFloat(e.target.value) || 0;
+                    updateExpenseUI(id);
+                    updateAllSummaries();
+                }
+                
+                if (e.target.matches('.income-title')) {
+                    const incId = e.target.dataset.inc;
+                    const inc = state.incomes.find(i => i.id === incId);
+                    if(inc) {
+                        inc.title = e.target.value;
+                        saveState();
+                    }
+                }
+                
+                if (e.target.matches('.income-total')) {
+                    const incId = e.target.dataset.inc;
+                    const inc = state.incomes.find(i => i.id === incId);
+                    if(inc) {
+                        inc.total = parseFloat(e.target.value) || 0;
+                        updateIncomeAvailable(incId);
+                        updateAllSummaries(); // Incomes don't change global allocated directly, but keeps consistency
+                    }
+                }
+            });
+
+            // Buttons click
+            board.addEventListener('click', e => {
+                const addAllocBtn = e.target.closest('.add-allocation-btn');
+                if (addAllocBtn) {
+                    const incId = addAllocBtn.dataset.inc;
+                    const select = document.getElementById(`sel-${incId}`);
+                    const amtInp = document.getElementById(`amt-${incId}`);
+                    const expId = select.value;
+                    const amt = parseFloat(amtInp.value);
+                    
+                    if (expId && amt > 0) {
+                        const inc = state.incomes.find(i => i.id === incId);
+                        // Check if allocation to this expense already exists, if so, add to it
+                        const existingAl = inc.allocations.find(a => a.expenseId === expId);
+                        if(existingAl) {
+                            existingAl.amount += amt;
+                        } else {
+                            inc.allocations.push({ id: Date.now().toString(), expenseId: expId, amount: amt });
+                        }
+                        
+                        amtInp.value = '';
+                        select.value = '';
+                        renderAllocationsList(incId);
+                        updateAllSummaries();
+                        drawLines();
+                    }
+                }
+
+                const delAllocBtn = e.target.closest('.del-allocation-btn');
+                if (delAllocBtn) {
+                    const incId = delAllocBtn.dataset.inc;
+                    const alId = delAllocBtn.dataset.al;
+                    const inc = state.incomes.find(i => i.id === incId);
+                    if(inc) {
+                        inc.allocations = inc.allocations.filter(a => a.id !== alId);
+                        renderAllocationsList(incId);
+                        updateAllSummaries();
+                        drawLines();
+                    }
+                }
+
+                const delIncBtn = e.target.closest('.del-income-btn');
+                if (delIncBtn) {
+                    const incId = delIncBtn.dataset.inc;
+                    state.incomes = state.incomes.filter(i => i.id !== incId);
+                    renderIncomes(); // Re-render whole list because cards moved
+                    updateAllSummaries();
+                    drawLines();
+                }
+            });
+        }
+
+        function handleAddIncome() {
+            state.incomes.push({
+                id: 'inc-' + Date.now(),
+                title: '',
+                total: 0,
+                allocations: []
+            });
+            renderIncomes();
+            updateAllSummaries();
+            drawLines();
+        }
+
+        // --- CANVAS / SVG LINES LOGIC ---
+        function getRelativePos(element, relativeTo) {
+            let x = 0, y = 0;
+            while (element && element !== relativeTo) {
+                x += element.offsetLeft;
+                y += element.offsetTop;
+                element = element.offsetParent;
+            }
+            return { x, y };
+        }
+
+        function drawLines() {
+            const svg = document.getElementById('svg-layer');
+            const board = document.getElementById('board');
+            svg.innerHTML = ''; // clear
+
+            state.incomes.forEach(income => {
+                income.allocations.forEach(al => {
+                    const startEl = document.getElementById(`alloc-${income.id}-${al.expenseId}`);
+                    const endEl = document.getElementById(`exp-${al.expenseId}`);
+                    const catInfo = expenseCategories.find(c => c.id === al.expenseId);
+
+                    if (startEl && endEl) {
+                        // Calculate positions relative to the board
+                        const startPos = getRelativePos(startEl, board);
+                        const endPos = getRelativePos(endEl, board);
+
+                        const startX = startPos.x + startEl.offsetWidth;
+                        const startY = startPos.y + startEl.offsetHeight / 2;
+                        
+                        const endX = endPos.x;
+                        const endY = endPos.y + endEl.offsetHeight / 2;
+
+                        // Create cubic bezier curve for natural flow
+                        const distance = Math.abs(endX - startX);
+                        const cpXOffset = distance * 0.4; // control point distance
+
+                        const cp1X = startX + cpXOffset;
+                        const cp1Y = startY;
+                        const cp2X = endX - cpXOffset;
+                        const cp2Y = endY;
+
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`);
+                        path.setAttribute('fill', 'none');
+                        path.setAttribute('stroke', '#cbd5e1'); // default slate-300
+                        path.setAttribute('stroke-width', '2');
+                        path.setAttribute('stroke-linecap', 'round');
+                        path.classList.add('connection-line');
+                        path.id = `line-${income.id}-${al.expenseId}`;
+                        
+                        // Store target color in dataset for hover effect
+                        path.dataset.activeColor = catInfo.stroke;
+
+                        svg.appendChild(path);
+                    }
+                });
+            });
+        }
+
+        // --- HOVER / FOCUS EFFECTS (FADE & COLOR LINKS) ---
+        function handleHover(type, id, isHovering) {
+            const allIncomes = document.querySelectorAll('.income-card');
+            const allExpenses = document.querySelectorAll('.expense-card');
+            const allLines = document.querySelectorAll('path.connection-line');
+
+            if (isHovering) {
+                // Dim everything first
+                allIncomes.forEach(c => c.classList.add('dimmed'));
+                allExpenses.forEach(c => c.classList.add('dimmed'));
+                allLines.forEach(l => {
+                    l.style.opacity = '0.1';
+                    l.setAttribute('stroke', '#e2e8f0');
+                });
+
+                if (type === 'income') {
+                    // Highlight hovered income
+                    const activeInc = document.getElementById(`inc-${id}`);
+                    if(activeInc) activeInc.classList.remove('dimmed');
+
+                    const incData = state.incomes.find(i => i.id === id);
+                    if (incData) {
+                        incData.allocations.forEach(al => {
+                            // Un-dim target expenses
+                            const targetExp = document.getElementById(`exp-${al.expenseId}`);
+                            if(targetExp) targetExp.classList.remove('dimmed');
+                            
+                            // Colorize line
+                            const line = document.getElementById(`line-${id}-${al.expenseId}`);
+                            if(line) {
+                                line.style.opacity = '1';
+                                line.setAttribute('stroke', line.dataset.activeColor);
+                                line.setAttribute('stroke-width', '4');
+                            }
+                        });
+                    }
+                } else if (type === 'expense') {
+                    // Highlight hovered expense
+                    const activeExp = document.getElementById(`exp-${id}`);
+                    if(activeExp) activeExp.classList.remove('dimmed');
+
+                    // Find and highlight all incomes providing to this expense
+                    state.incomes.forEach(inc => {
+                        const provides = inc.allocations.some(a => a.expenseId === id);
+                        if (provides) {
+                            const sourceInc = document.getElementById(`inc-${inc.id}`);
+                            if(sourceInc) sourceInc.classList.remove('dimmed');
+
+                            const line = document.getElementById(`line-${inc.id}-${id}`);
+                            if(line) {
+                                line.style.opacity = '1';
+                                line.setAttribute('stroke', line.dataset.activeColor);
+                                line.setAttribute('stroke-width', '4');
+                            }
+                        }
+                    });
+                }
+            } else {
+                // Reset all
+                allIncomes.forEach(c => c.classList.remove('dimmed'));
+                allExpenses.forEach(c => c.classList.remove('dimmed'));
+                allLines.forEach(l => {
+                    l.style.opacity = '1';
+                    l.setAttribute('stroke', '#cbd5e1'); // back to slate-300
+                    l.setAttribute('stroke-width', '2');
+                });
+            }
+        }
+
+        // --- DASHBOARD CHART ---
+        function initChart() {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+            
+            summaryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: expenseCategories.map(c => c.title),
+                    datasets: [{
+                        data: expenseCategories.map(c => 1), // dummy initial
+                        backgroundColor: expenseCategories.map(c => c.stroke),
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    label += formatCurrency(context.raw);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!summaryChart) return;
+            const data = expenseCategories.map(cat => {
+                // We show distribution of what is EXPECTED. If 0, show what's allocated instead to not have empty charts.
+                const exp = state.expenses[cat.id].expected || 0;
+                if (exp > 0) return exp;
+                
+                // Fallback to allocated if expected is 0
+                let alloc = 0;
+                state.incomes.forEach(i => i.allocations.forEach(a => { if(a.expenseId === cat.id) alloc += a.amount }));
+                return alloc;
+            });
+            
+            // If completely empty, show uniform dummy data for UI aesthetic
+            const isEmpty = data.every(v => v === 0);
+            if(isEmpty) {
+                summaryChart.data.datasets[0].data = expenseCategories.map(() => 1);
+                summaryChart.data.datasets[0].backgroundColor = expenseCategories.map(() => '#f1f5f9');
+            } else {
+                summaryChart.data.datasets[0].data = data;
+                summaryChart.data.datasets[0].backgroundColor = expenseCategories.map(c => c.stroke);
+            }
+            
+            summaryChart.update();
+        }
+
+        // Custom dragging for horizontal scroll behavior (Canvas-like Panning)
+        const canvasContainer = document.getElementById('canvas-container');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        canvasContainer.addEventListener('mousedown', (e) => {
+            // Only drag if clicking on the background, not inside a card
+            if(e.target.closest('.income-card') || e.target.closest('.expense-card') || e.target.closest('button')) return;
+            isDown = true;
+            canvasContainer.classList.add('active');
+            startX = e.pageX - canvasContainer.offsetLeft;
+            scrollLeft = canvasContainer.scrollLeft;
+        });
+        canvasContainer.addEventListener('mouseleave', () => { isDown = false; canvasContainer.classList.remove('active'); });
+        canvasContainer.addEventListener('mouseup', () => { isDown = false; canvasContainer.classList.remove('active'); });
+        canvasContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - canvasContainer.offsetLeft;
+            const walk = (x - startX) * 1.5; 
+            canvasContainer.scrollLeft = scrollLeft - walk;
+        });
+
+    </script>
+</body>
+</html>

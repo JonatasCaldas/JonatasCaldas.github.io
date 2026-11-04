@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Command + C</title>
+  <title>Command</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -21,7 +21,7 @@
   <aside class="hidden lg:flex w-64 bg-white border-r border-slate-200 fixed inset-y-0 z-30 flex-col">
     <div class="h-20 px-6 flex items-center border-b border-slate-100">
       <div class="w-10 h-10 rounded-xl bg-blue-600 text-white grid place-items-center"><i data-lucide="radar"></i></div>
-      <div class="ml-3"><strong class="block text-ink">Command + C</strong><span class="text-xs text-slate-500">Gestão de demandas</span></div>
+      <div class="ml-3"><strong class="block text-ink">Command</strong><span class="text-xs text-slate-500">Gestão de demandas</span></div>
     </div>
     <nav id="sideNav" class="p-3 space-y-1 flex-1"></nav>
     <div class="p-4 border-t text-xs text-slate-500">Os dados ficam somente neste navegador.</div>
@@ -81,7 +81,7 @@ function matchesFocus(d){
 }
 function filtered(){return state.demands.filter(d=>(filters.team==='all'||d.team===filters.team)&&(filters.status==='all'||d.status===filters.status)&&(!filters.query||norm(d.title+' '+d.details+' '+d.owner).includes(norm(filters.query)))&&matchesFocus(d))}
 function parseCSV(text){let rows=[],row=[],cell='',q=false;for(let i=0;i<text.length;i++){let c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++}else if(c==='"'){q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=c}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];let h=rows.shift().map(norm);return rows.map(r=>Object.fromEntries(h.map((x,i)=>[x,(r[i]||'').trim()]))) }
-function convertRows(rows,team,file){let now=iso(new Date());return rows.map((r,i)=>{let title=r['manchete']||r['demanda']||r['titulo']||r['tarefa']||r[Object.keys(r)[0]]||`Demanda ${i+1}`;let done=r['o que foi feito?']||r['o que foi feito']||r['entrega']||r['objetivo']||'';let details=r['status']||r['detalhes']||r['descricao']||'';let rawStatus=r['progresso']||r['situacao']||r['estado']||r['status']||'';let date=extractLatestDate(details,r['quando']||r['data']);return{id:uid(),title,done,details,status:mapStatus(rawStatus),owner:(r['quem?']||r['quem']||r['responsavel']||'').replace(/\\</g,'<'),team,sourceFile:file,updatedAt:date,importedAt:now,dependencies:detectDeps(details),createdAt:now}}).filter(d=>d.title)}
+function convertRows(rows,team,file){let now=iso(new Date());return rows.map((r,i)=>{let title=r['manchete']||r['demanda']||r['titulo']||r['tarefa']||r[Object.keys(r)[0]]||`Demanda ${i+1}`;let done=r['historico']||r['o que foi feito?']||r['o que foi feito']||r['entrega']||r['objetivo']||'';let details=r['status mais recente']||r['status']||r['detalhes']||r['descricao']||'';let rawStatus=r['progresso']||r['situacao']||r['estado']||r['status']||'';let date=extractLatestDate(details,r['quando']||r['data']);return{id:uid(),title,done,details,status:mapStatus(rawStatus),owner:(r['quem?']||r['quem']||r['responsavel']||'').replace(/\\</g,'<'),team,sourceFile:file,updatedAt:date,importedAt:now,dependencies:detectDeps(details),createdAt:now}}).filter(d=>d.title)}
 function badge(status){let c=status==='Concluído'?'emerald':status==='Pausado'?'slate':'blue';return `<span class="inline-flex items-center justify-center text-center min-h-6 px-2 py-1 rounded-full bg-${c}-50 text-${c}-700 text-xs font-medium leading-none">${status}</span>`}
 function card(label,value,icon,color='blue',sub=''){return `<div class="bg-white border border-slate-200 rounded-2xl p-5"><div class="flex justify-between"><div><p class="text-sm text-slate-500">${label}</p><strong class="text-3xl text-ink mt-2 block">${value}</strong><small class="text-slate-400">${sub}</small></div><div class="w-11 h-11 rounded-xl bg-${color}-50 text-${color}-600 grid place-items-center"><i data-lucide="${icon}"></i></div></div></div>`}
 function actionCard(label,value,icon,color,focusType){return `<button type="button" onclick="openDemandFilter('${focusType}')" class="w-full bg-white border border-slate-200 rounded-2xl p-5 text-left hover:border-${color}-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-${color}-500 transition" aria-label="Filtrar demandas: ${label}"><div class="flex justify-between"><div><p class="text-sm text-slate-500">${label}</p><strong class="text-3xl text-ink mt-2 block">${value}</strong><small class="text-${color}-600 font-medium">Clique para ver as atividades</small></div><div class="w-11 h-11 rounded-xl bg-${color}-50 text-${color}-600 grid place-items-center"><i data-lucide="${icon}"></i></div></div></button>`}

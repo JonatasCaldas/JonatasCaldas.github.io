@@ -148,6 +148,14 @@
                     <h2 class="font-heading font-medium text-lg">2. Dados de Preventiva</h2>
                 </div>
                 <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1.5 mb-2">
+                        <label for="grupoPreventiva" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipes exibidas nos gráficos</label>
+                        <select id="grupoPreventiva" onchange="alterarGrupoPreventiva(this.value)" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                            <option value="luz_bas_sct">LUZ, BAS e SCT</option>
+                            <option value="bas_cvn_gua">BAS, CVN e GUA</option>
+                        </select>
+                        <p id="avisoGrupoPreventiva" class="hidden text-xs text-error mt-1" aria-live="polite"></p>
+                    </div>
                     <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe.</p>
                     <button onclick="abrirModalPreventiva()" class="w-full bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline font-medium py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="list-plus" class="w-5 h-5"></i>
@@ -621,6 +629,11 @@
         let lastDtFimObj = null;
 
         const mesesDoAno = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+        const GRUPOS_PREVENTIVA = {
+            luz_bas_sct: { rotulo: 'LUZ, BAS e SCT', equipes: ['LUZ', 'BAS', 'SCT'] },
+            bas_cvn_gua: { rotulo: 'BAS, CVN e GUA', equipes: ['BAS', 'CVN', 'GUA'] }
+        };
+        let grupoPreventivaSelecionado = 'luz_bas_sct';
         const chartColors = { 
             primary:'#006b5f', 
             primaryContainer:'#14b8a6', 
@@ -702,6 +715,13 @@
             const parqueVPSalvo = localStorage.getItem('mch_parque_vp');
             if (parqueVPSalvo) try { dadosParqueVP = JSON.parse(parqueVPSalvo); } catch (e) {}
             
+            const grupoPreventivaSalvo = localStorage.getItem('mch_preventiva_grupo_exibicao');
+            if (grupoPreventivaSalvo && GRUPOS_PREVENTIVA[grupoPreventivaSalvo]) {
+                grupoPreventivaSelecionado = grupoPreventivaSalvo;
+            }
+            const seletorGrupoPreventiva = document.getElementById('grupoPreventiva');
+            if (seletorGrupoPreventiva) seletorGrupoPreventiva.value = grupoPreventivaSelecionado;
+            sincronizarExclusivoLinha10();
             const prevMensalSalva = localStorage.getItem('mch_preventiva_mensal');
             if (prevMensalSalva) try { 
                 dadosPreventivaMensal = JSON.parse(prevMensalSalva); 
@@ -893,6 +913,7 @@
             const emptyState = document.getElementById('listaParqueVPVazia');
             const table = tbody.parentElement;
             tbody.innerHTML = '';
+            atualizarAvisoGrupoPreventiva();
             
             if (dadosParqueVP.length === 0) { 
                 table.classList.add('hidden'); 
@@ -992,6 +1013,42 @@
                     renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
                 }
             }
+        }
+
+        function obterGrupoPreventivaSelecionado() {
+            return GRUPOS_PREVENTIVA[grupoPreventivaSelecionado] || GRUPOS_PREVENTIVA.luz_bas_sct;
+        }
+        function equipePertenceAoGrupoPreventiva(equipe) {
+            const nomes = obterGrupoPreventivaSelecionado().equipes.map(normalizarTexto);
+            return nomes.includes(normalizarTexto(equipe));
+        }
+        function atualizarAvisoGrupoPreventiva() {
+            const aviso = document.getElementById('avisoGrupoPreventiva');
+            if (!aviso) return;
+            const cadastradas = new Set(dadosParqueVP.map(item => normalizarTexto(item.equipe)));
+            const ausentes = obterGrupoPreventivaSelecionado().equipes.filter(equipe => !cadastradas.has(normalizarTexto(equipe)));
+            if (ausentes.length) {
+                aviso.textContent = `Equipe${ausentes.length > 1 ? 's' : ''} não cadastrada${ausentes.length > 1 ? 's' : ''} no Parque VP: ${ausentes.join(', ')}.`;
+                aviso.classList.remove('hidden');
+            } else {
+                aviso.textContent = '';
+                aviso.classList.add('hidden');
+            }
+        }
+        function sincronizarExclusivoLinha10() {
+            const checkExclusivoL10 = document.getElementById('checkExclusivoL10');
+            if (checkExclusivoL10) {
+                checkExclusivoL10.checked = grupoPreventivaSelecionado === 'luz_bas_sct';
+            }
+        }
+        function alterarGrupoPreventiva(valor) {
+            if (!GRUPOS_PREVENTIVA[valor]) return;
+            grupoPreventivaSelecionado = valor;
+            localStorage.setItem('mch_preventiva_grupo_exibicao', valor);
+            sincronizarExclusivoLinha10();
+            atualizarAvisoGrupoPreventiva();
+            renderizarGraficoPreventiva();
+            renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
         }
 
         // ========== GERENCIAMENTO DE PREVENTIVA ==========
@@ -2031,61 +2088,25 @@
         // --- FUNÇÕES DE RENDERIZAÇÃO DA PREVENTIVA ---
 
         function renderizarGraficoPreventiva() {
-            if(chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
-
+            if (chartInstances.preventivaPerc) chartInstances.preventivaPerc.destroy();
             const cP = document.getElementById('chartPreventivaPerc');
-            if(!cP) return;
+            if (!cP) return;
 
-            // --- Lógica Chart % por grupo de linhas ---
-            const isLinha10Grafico = equipe => {
-                const nome = normalizarTexto(equipe);
-                return nome === 'sct' || nome === 'luz';
-            };
-
-            const calcularSerieMensal = filtroEquipe => {
-                const equipesGrupo = dadosParqueVP.filter(eq => filtroEquipe(eq.equipe));
-                const parqueGrupo = equipesGrupo.reduce((total, eq) => total + (Number(eq.quantidade) || 0), 0);
-                const nomesGrupo = new Set(equipesGrupo.map(eq => normalizarTexto(eq.equipe)));
-
-                return mesesDoAno.map((mes, idx) => {
-                    const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
-                    if (!md || parqueGrupo === 0) return 0;
-
-                    const realizadoGrupo = md.dados.reduce((total, d) => {
-                        return nomesGrupo.has(normalizarTexto(d.equipe))
-                            ? total + (Number(d.valor) || 0)
-                            : total;
-                    }, 0);
-
-                    const perc = Math.round((realizadoGrupo / parqueGrupo) * 100);
-                    return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
-                });
-            };
-
-            const dadosLinhas111213 = calcularSerieMensal(equipe => !isLinha10Grafico(equipe));
-            const dadosLinha10 = calcularSerieMensal(equipe => isLinha10Grafico(equipe));
-
-            const dPerc = [
-                {
-                    type: 'bar',
-                    label: 'Exclusivo Linhas 11, 12 e 13',
-                    data: dadosLinhas111213,
-                    backgroundColor: '#000000',
-                    borderRadius: 4
-                },
-                {
-                    type: 'bar',
-                    label: 'Exclusivo Linha 10',
-                    data: dadosLinha10,
-                    backgroundColor: chartColors.secondary,
-                    borderRadius: 4
-                }
-            ];
+            const grupo = obterGrupoPreventivaSelecionado();
+            const equipesGrupo = dadosParqueVP.filter(eq => equipePertenceAoGrupoPreventiva(eq.equipe));
+            const parqueGrupo = equipesGrupo.reduce((total, eq) => total + (Number(eq.quantidade) || 0), 0);
+            const nomesGrupo = new Set(equipesGrupo.map(eq => normalizarTexto(eq.equipe)));
+            const dadosGrupo = mesesDoAno.map((mes, idx) => {
+                const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
+                if (!md || parqueGrupo === 0) return 0;
+                const realizado = md.dados.reduce((total, d) => nomesGrupo.has(normalizarTexto(d.equipe)) ? total + (Number(d.valor) || 0) : total, 0);
+                return Math.min(100, Math.round((realizado / parqueGrupo) * 100));
+            });
 
             const customDataLabelsPercPlugin = {
                 id: 'customDataLabelsPerc',
                 afterDatasetsDraw(chart) {
-                    const { ctx, data } = chart;
+                    const { ctx } = chart;
                     ctx.save();
                     chart.data.datasets.forEach((dataset, i) => {
                         const meta = chart.getDatasetMeta(i);
@@ -2093,14 +2114,11 @@
                         meta.data.forEach((element, index) => {
                             const value = dataset.data[index];
                             if (value === undefined || value === null) return;
-                            
                             const text = value + '%';
                             ctx.font = '600 13px Inter';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'bottom';
-                            
                             const yPos = value === 0 ? element.y - 2 : element.y - 6;
-                            
                             ctx.strokeStyle = '#ffffff';
                             ctx.lineWidth = 3;
                             ctx.lineJoin = 'round';
@@ -2114,145 +2132,84 @@
             };
 
             chartInstances.preventivaPerc = new Chart(cP.getContext('2d'), {
-                type: 'bar', 
-                data: { labels: mesesDoAno, datasets: dPerc },
-                options: { 
-                    responsive:true, 
-                    maintainAspectRatio:false, 
-                    layout:{padding:{top:30}}, 
-                    scales:{
-                        x:{grid:{display:false}}, 
-                        y:{beginAtZero:true, max:100, min:0, ticks:{callback:v=>v+'%'}}
-                    }, 
-                    plugins:{
-                        legend:{
-                            display:true,
-                            position:'bottom',
-                            labels:{usePointStyle:true, pointStyle:'rectRounded'}
-                        }
-                    } 
+                type: 'bar',
+                data: {
+                    labels: mesesDoAno,
+                    datasets: [{ type:'bar', label:grupo.rotulo, data:dadosGrupo, backgroundColor:chartColors.secondary, borderRadius:4 }]
                 },
-                plugins: [customDataLabelsPercPlugin]
+                options: {
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    layout:{padding:{top:30}},
+                    scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,max:100,min:0,ticks:{callback:v=>v+'%'}} },
+                    plugins:{ legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'rectRounded'}} }
+                },
+                plugins:[customDataLabelsPercPlugin]
             });
 
-            // --- Lógica Gráficos Dinâmicos por Equipe ---
             const containerEquipes = document.getElementById('containerEquipesPreventiva');
-            if(!containerEquipes) return;
-
-            if(chartInstances.equipes && Array.isArray(chartInstances.equipes)) {
-                chartInstances.equipes.forEach(c => c && c.destroy());
-            }
+            if (!containerEquipes) return;
+            if (chartInstances.equipes && Array.isArray(chartInstances.equipes)) chartInstances.equipes.forEach(c => c && c.destroy());
             chartInstances.equipes = [];
             containerEquipes.innerHTML = '';
 
-            const equipesSort = [...dadosParqueVP].sort((a, b) => a.equipe.localeCompare(b.equipe));
-
+            const ordemGrupo = grupo.equipes.map(normalizarTexto);
+            const equipesSort = [...equipesGrupo].sort((a, b) => ordemGrupo.indexOf(normalizarTexto(a.equipe)) - ordemGrupo.indexOf(normalizarTexto(b.equipe)));
             equipesSort.forEach((eq, index) => {
                 const lightness = Math.min(22 + (index * 15), 90);
                 const teamColor = `hsl(131, 100%, ${lightness}%)`;
-
                 const colDiv = document.createElement('div');
-                colDiv.className = "bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col";
-                
+                colDiv.className = 'bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col';
                 const title = document.createElement('h3');
-                title.className = "font-heading font-medium text-lg mb-4 text-on-surface";
+                title.className = 'font-heading font-medium text-lg mb-4 text-on-surface';
                 title.textContent = eq.equipe;
-
                 const chartWrapper = document.createElement('div');
-                chartWrapper.className = "flex-1 relative min-h-[250px]";
-
+                chartWrapper.className = 'flex-1 relative min-h-[250px]';
                 const canvas = document.createElement('canvas');
                 chartWrapper.appendChild(canvas);
-                
                 colDiv.appendChild(title);
                 colDiv.appendChild(chartWrapper);
                 containerEquipes.appendChild(colDiv);
 
-                const qParque = eq.quantidade;
-
+                const qParque = Number(eq.quantidade) || 0;
                 const dadosEqPerc = mesesDoAno.map((mes, idx) => {
-                    if (qParque <= 0 || !qParque) return null;
-                    
+                    if (qParque <= 0) return null;
                     const md = dadosPreventivaMensal.find(m => m.mesReferencia === idx + 1);
                     if (!md) return 0;
-                    
-                    const dt = md.dados.find(d => d.equipe === eq.equipe);
-                    const val = (dt && typeof dt.valor === 'number') ? dt.valor : 0;
-
-                    let perc = Math.round((val / qParque) * 100);
-                    return perc > 100 ? 100 : perc; // Trava a visualização no máximo em 100%
+                    const dt = md.dados.find(d => normalizarTexto(d.equipe) === normalizarTexto(eq.equipe));
+                    const val = dt ? Number(dt.valor) || 0 : 0;
+                    return Math.min(100, Math.round((val / qParque) * 100));
                 });
-
-                const dEq = [{
-                    type: 'bar',
-                    label: eq.equipe,
-                    data: dadosEqPerc,
-                    backgroundColor: teamColor,
-                    borderRadius: 4
-                }];
-
                 const pluginEqLabels = {
-                    id: `labels_eq_${index}`,
+                    id:`labels_eq_${index}`,
                     afterDatasetsDraw(chart) {
-                        const { ctx, data } = chart;
+                        const { ctx } = chart;
                         ctx.save();
-                        chart.data.datasets.forEach((dataset, i) => {
-                            const meta = chart.getDatasetMeta(i);
-                            if (meta.hidden) return;
-                            meta.data.forEach((element, idx) => {
-                                const value = dataset.data[idx];
-                                
-                                if (value === null || value === undefined) {
-                                    const zeroY = chart.scales.y.getPixelForValue(0);
-                                    ctx.save();
-                                    ctx.translate(element.x, zeroY - 5);
-                                    ctx.rotate(-Math.PI / 2);
-                                    ctx.fillStyle = '#6c7a77'; 
-                                    ctx.font = 'italic 500 11px Inter';
-                                    ctx.textAlign = 'left';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.fillText('Sem dados', 0, 0);
-                                    ctx.restore();
-                                    return;
-                                }
-
-                                const text = value + '%';
-                                ctx.font = '600 12px Inter';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-
-                                const yPos = value === 0 ? element.y - 2 : element.y - 6;
-
-                                ctx.strokeStyle = '#ffffff';
-                                ctx.lineWidth = 3;
-                                ctx.lineJoin = 'round';
-                                ctx.strokeText(text, element.x, yPos);
-                                ctx.fillStyle = chartColors.text;
-                                ctx.fillText(text, element.x, yPos);
-                            });
+                        chart.getDatasetMeta(0).data.forEach((element, idx) => {
+                            const value = chart.data.datasets[0].data[idx];
+                            if (value === null || value === undefined) return;
+                            const text = value + '%';
+                            ctx.font = '600 12px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            const yPos = value === 0 ? element.y - 2 : element.y - 6;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 3;
+                            ctx.strokeText(text, element.x, yPos);
+                            ctx.fillStyle = chartColors.text;
+                            ctx.fillText(text, element.x, yPos);
                         });
                         ctx.restore();
                     }
                 };
-
-                const instance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar',
-                    data: { labels: mesesDoAno, datasets: dEq },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: { padding: { top: 25 } },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: { beginAtZero: true, max: 100, min: 0, ticks: { callback: v => v + '%' } }
-                        },
-                        plugins: { legend: { display: false } }
-                    },
-                    plugins: [pluginEqLabels]
-                });
-
-                chartInstances.equipes.push(instance);
+                chartInstances.equipes.push(new Chart(canvas.getContext('2d'), {
+                    type:'bar',
+                    data:{labels:mesesDoAno,datasets:[{label:eq.equipe,data:dadosEqPerc,backgroundColor:teamColor,borderRadius:4}]},
+                    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:25}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,max:100,min:0,ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:false}}},
+                    plugins:[pluginEqLabels]
+                }));
             });
+            atualizarAvisoGrupoPreventiva();
         }
 
         // Lógica Gráfico: Número de Falhas x Percentual de Preventiva
@@ -2278,7 +2235,7 @@
             const numMeses = mesesFiltro.size || 1;
 
             // Consolida os dados por equipe e ordena do maior para o menor percentual de preventiva.
-            const dadosEquipes = [...dadosParqueVP].map(eq => {
+            const dadosEquipes = dadosParqueVP.filter(eq => equipePertenceAoGrupoPreventiva(eq.equipe)).map(eq => {
                 let percentualPreventiva = 0;
                 if (eq.quantidade && eq.quantidade > 0) {
                     let somaValores = 0;
@@ -2472,8 +2429,9 @@
                     mch_dataInicio: document.getElementById('dataInicio').value, 
                     mch_dataFim: document.getElementById('dataFim').value, 
                     mch_parque: dadosParqueInstalado, 
-                    mch_parque_vp: dadosParqueVP, 
-                    mch_preventiva_mensal: dadosPreventivaMensal 
+                    mch_parque_vp: dadosParqueVP,
+                    mch_preventiva_mensal: dadosPreventivaMensal,
+                    mch_preventiva_grupo_exibicao: grupoPreventivaSelecionado 
                 } 
             }, null, 2)], { type:'application/json' });
             
@@ -2530,10 +2488,17 @@
                         localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP)); 
                         renderizarListaParqueVP(); 
                     }
-                    if(est.mch_preventiva_mensal) { 
-                        dadosPreventivaMensal = est.mch_preventiva_mensal; 
-                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal)); 
-                        atualizarProgressoPreventiva(); 
+                    if(est.mch_preventiva_mensal) {
+                        dadosPreventivaMensal = est.mch_preventiva_mensal;
+                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+                        atualizarProgressoPreventiva();
+                    }
+                    if(est.mch_preventiva_grupo_exibicao && GRUPOS_PREVENTIVA[est.mch_preventiva_grupo_exibicao]) {
+                        grupoPreventivaSelecionado = est.mch_preventiva_grupo_exibicao;
+                        localStorage.setItem('mch_preventiva_grupo_exibicao', grupoPreventivaSelecionado);
+                        document.getElementById('grupoPreventiva').value = grupoPreventivaSelecionado;
+                        sincronizarExclusivoLinha10();
+                        atualizarAvisoGrupoPreventiva();
                     }
                     
                     document.getElementById('errorMessage').classList.add('hidden');

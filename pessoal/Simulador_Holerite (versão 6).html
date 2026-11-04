@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Salário</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Configuração -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: { DEFAULT: '#2BA8A2', light: '#3CC4BD', dark: '#1E8C86', bg: '#E8F6F5' },
+                        accent: { DEFAULT: '#FFD23F', light: '#FFE47A', dark: '#E6B800' },
+                        coral: { DEFAULT: '#EF6C4A', light: '#FF8A6A', dark: '#D45233' },
+                        cream: '#FFF8E7',
+                        sky: '#5DADE2',
+                        surface: { base: '#EFF8F7', card: '#FFFFFF' }
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px rgba(43, 168, 162, 0.1)',
+                        'coral-glow': '0 4px 20px rgba(239, 108, 74, 0.35)',
+                        'teal-glow': '0 4px 20px rgba(43, 168, 162, 0.3)',
+                        'accent-glow': '0 4px 20px rgba(255, 210, 63, 0.4)',
+                    },
+                    letterSpacing: {
+                        wide: '0.04em',
+                        wider: '0.06em',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Oculta views inativas */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tooltip customizado estilo Flip7 */
+        .tooltip-icon { position: relative; display: inline-flex; cursor: help; }
+        .tooltip-icon .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1E8C86;
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-size: 0.75rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(30, 140, 134, 0.3);
+        }
+        .tooltip-icon .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%; left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #1E8C86 transparent transparent transparent;
+        }
+        .tooltip-icon:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        /* Estilização da barra de rolagem para inputs e cards */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #E8F6F5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #3CC4BD; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2BA8A2; }
+        .tooltip-icon:focus .tooltip-text, .tooltip-icon:focus-within .tooltip-text { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-4px); }
+        .field-error { border: 2px solid #EF6C4A !important; }
+        #error-modal.inline-notice { position: static; background: transparent; backdrop-filter: none; height: auto; width: auto; display: block; margin-bottom: 1rem; }
+        @media (max-width: 640px) { .tooltip-icon .tooltip-text { position: fixed; left: 1rem; right: 1rem; bottom: 5.5rem; width: auto; transform: none; } .tooltip-icon:focus .tooltip-text { transform: none; } }
+    </style>
+</head>
+<body class="bg-surface-base text-primary-dark min-h-screen flex flex-col md:flex-row">
+
+    <!-- Navegação (Menu Lateral/Inferior) -->
+    <nav class="bg-white shadow-card z-40 md:w-24 md:flex-col md:fixed md:inset-y-0 md:left-0 flex fixed inset-x-0 bottom-0 justify-around md:justify-start pt-2 md:pt-8 pb-4 md:pb-8 border-t md:border-t-0 md:border-r border-primary-light/20">
+        <!-- Logo Vibe -->
+        <div class="hidden md:flex flex-col items-center mb-8 px-2">
+
+        </div>
+
+        <button onclick="switchView('simulador')" id="nav-simulador" class="nav-btn group flex flex-col items-center gap-1 w-20 md:w-full md:mb-6 p-2 rounded-2xl transition-all text-primary font-bold">
+            <div class="icon-container p-3 rounded-2xl bg-primary-bg group-[.active]:bg-primary group-[.active]:text-white transition-colors group-[.active]:shadow-teal-glow">
+                <i data-lucide="calculator" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[10px] md:text-xs uppercase tracking-wider group-[.active]:text-primary-dark text-gray-500">Holerite mensal</span>
+        </button>
+
+        <button onclick="switchView('ferias')" id="nav-ferias" class="nav-btn group flex flex-col items-center gap-1 w-20 md:w-full md:mb-6 p-2 rounded-2xl transition-all text-gray-500 hover:text-primary font-bold">
+            <div class="icon-container p-3 rounded-2xl bg-transparent hover:bg-primary-bg group-[.active]:bg-primary group-[.active]:text-white transition-colors group-[.active]:shadow-teal-glow">
+                <i data-lucide="palmtree" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[10px] md:text-xs uppercase tracking-wider group-[.active]:text-primary-dark">Férias</span>
+        </button>
+
+        <button onclick="switchView('decimo-terceiro')" id="nav-decimo-terceiro" class="nav-btn group flex flex-col items-center gap-1 w-20 md:w-full md:mb-6 p-2 rounded-2xl transition-all text-gray-500 hover:text-primary font-bold">
+            <div class="icon-container p-3 rounded-2xl bg-transparent hover:bg-primary-bg group-[.active]:bg-primary group-[.active]:text-white transition-colors group-[.active]:shadow-teal-glow">
+                <i data-lucide="calendar-check-2" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[10px] md:text-xs uppercase tracking-wider group-[.active]:text-primary-dark">13º Salário</span>
+        </button>
+        <button onclick="switchView('config')" id="nav-config" class="nav-btn group flex flex-col items-center gap-1 w-20 md:w-full p-2 rounded-2xl transition-all text-gray-500 hover:text-primary font-bold md:mt-auto">
+            <div class="icon-container p-3 rounded-2xl bg-transparent hover:bg-primary-bg group-[.active]:bg-primary group-[.active]:text-white transition-colors group-[.active]:shadow-teal-glow">
+                <i data-lucide="settings-2" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[10px] md:text-xs uppercase tracking-wider group-[.active]:text-primary-dark">Ajustes</span>
+        </button>
+    </nav>
+
+    <!-- Área Principal de Conteúdo -->
+    <main class="flex-1 md:ml-24 p-4 md:p-8 lg:p-10 mb-20 md:mb-0 max-w-6xl mx-auto w-full">
+        
+        <!-- Header Decorativo (Ribbon Style) -->
+        <header class="mb-8 text-center relative z-10 pt-4">
+            <div class="inline-block relative">
+                <!-- Fundo Skew -->
+                <div class="absolute inset-0 bg-cream border-2 border-primary-dark transform -skew-x-6 rounded-xl shadow-card z-0"></div>
+                <h1 class="relative z-10 text-3xl md:text-5xl font-extrabold text-primary-dark tracking-wider py-4 px-8 flex items-center justify-center gap-3">
+                    <span id="page-title-prefix">SIMULADOR DE</span>
+                    <span id="page-title-highlight" class="text-accent drop-shadow-[0_2px_0_#1E8C86] rotate-3 text-4xl md:text-6xl">HOLERITE</span>
+                </h1>
+            </div>
+        </header>
+
+        <!-- VIEW: SIMULADOR -->
+        <div id="view-simulador" class="view-section active">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
+                
+                <!-- PROVENTOS CARD -->
+                <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-primary-light p-6 md:p-8 flex flex-col">
+                    <h2 class="text-xl font-extrabold mb-6 flex items-center gap-2 border-b-[3px] border-dashed border-primary-bg pb-3 text-primary-dark">
+                        <i data-lucide="plus-circle" class="text-primary w-6 h-6"></i> Proventos
+                    </h2>
+                    
+                    <div class="space-y-5 flex-grow">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="col-span-2">
+                                <label for="salario-base" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Salário Base *</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">R$</span>
+                                    <input type="number" id="salario-base" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none" placeholder="3500.00">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dias-trabalhados" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Dias</label>
+                                <input type="number" id="dias-trabalhados" value="30" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold text-center focus:ring-2 focus:ring-primary-light transition-all outline-none" min="0">
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label for="adicionais-percent" class="block text-xs font-bold text-primary-dark uppercase tracking-wide">Adicionais (%)</label>
+                                <span id="adicionais-calculado" class="text-xs font-extrabold text-primary"></span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="adicionais-percent" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none" placeholder="Ex: 10" min="0">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold">%</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label for="anuenio-percent" class="block text-xs font-bold text-primary-dark uppercase tracking-wide">Anuênio (%)</label>
+                                <span id="anuenio-calculado" class="text-xs font-extrabold text-primary"></span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="anuenio-percent" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none" placeholder="Ex: 5" min="0">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold">%</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="outros-proventos" class="flex items-center gap-2 text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">
+                                Outros Proventos
+                                <button type="button" class="tooltip-icon text-primary" aria-label="Ajuda sobre outros proventos"><i data-lucide="info" class="w-4 h-4"></i><span class="tooltip-text">Bônus, comissões, etc. Use ';' para separar múltiplos valores.</span></button>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">R$</span>
+                                <input type="text" id="outros-proventos" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none" placeholder="100,50; 200; 30">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DESCONTOS CARD -->
+                <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-coral p-6 md:p-8 flex flex-col">
+                    <h2 class="text-xl font-extrabold mb-6 flex items-center gap-2 border-b-[3px] border-dashed border-coral-light/30 pb-3 text-coral-dark">
+                        <i data-lucide="minus-circle" class="text-coral w-6 h-6"></i> Descontos
+                    </h2>
+                    
+                    <div class="space-y-5 flex-grow">
+                        <div>
+                            <label for="adiantamento" class="block text-xs font-bold text-coral-dark uppercase tracking-wide mb-1">Adiantamento (35%)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-coral/70 font-bold">R$</span>
+                                <input type="number" id="adiantamento" class="block w-full bg-gray-100 border-none rounded-xl h-12 pl-12 pr-4 text-gray-500 font-bold cursor-not-allowed outline-none" readonly>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="plano-saude" class="block text-xs font-bold text-coral-dark uppercase tracking-wide mb-1">Plano de Saúde</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-coral font-bold">R$</span>
+                                <input type="number" id="plano-saude" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-coral-light transition-all outline-none" placeholder="150.00">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="plano-odontologico" class="block text-xs font-bold text-coral-dark uppercase tracking-wide mb-1">Plano Odontológico</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-coral font-bold">R$</span>
+                                <input type="number" id="plano-odontologico" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-coral-light transition-all outline-none" placeholder="50.00">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="outros-descontos" class="flex items-center gap-2 text-xs font-bold text-coral-dark uppercase tracking-wide mb-1">
+                                Outros Descontos
+                                <button type="button" class="tooltip-icon text-coral" aria-label="Ajuda sobre outros descontos"><i data-lucide="info" class="w-4 h-4"></i><span class="tooltip-text">Vales, contribuições. Use ';' para separar múltiplos valores.</span></button>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-coral font-bold">R$</span>
+                                <input type="text" id="outros-descontos" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-coral-light transition-all outline-none" placeholder="50,20; 15; 25,80">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BOTÃO CALCULAR -->
+            <div class="text-center mb-10 relative z-20">
+                <button id="calcular" class="inline-flex items-center justify-center gap-3 bg-gradient-to-b from-accent-light to-accent text-primary-dark font-extrabold text-lg py-4 px-10 rounded-full shadow-accent-glow hover:scale-105 active:scale-95 transition-all duration-200 uppercase tracking-wider group">
+                    <i data-lucide="zap" class="w-6 h-6 text-primary-dark group-hover:animate-pulse"></i>
+                    Calcular Salário
+                </button>
+            </div>
+
+            <!-- RESULTADO -->
+            <div id="resultado" class="hidden transform transition-all duration-500 ease-out">
+                <div class="bg-surface-card rounded-[32px] p-6 md:p-10 shadow-card border-t-8 border-primary relative overflow-hidden">
+                    <!-- Decorativo fundo -->
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-bg rounded-full opacity-50 pointer-events-none"></div>
+                    
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-center text-primary-dark mb-8 uppercase tracking-wide relative z-10">Demonstrativo</h2>
+                    
+                    <div class="overflow-x-auto relative z-10 rounded-2xl border-2 border-primary-bg">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-primary-dark uppercase bg-primary-bg font-extrabold tracking-wider">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 rounded-tl-2xl">Descrição</th>
+                                    <th scope="col" class="px-6 py-4 text-right">Proventos</th>
+                                    <th scope="col" class="px-6 py-4 text-right rounded-tr-2xl">Descontos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultado-tbody" class="font-medium"></tbody>
+                            <tfoot class="font-extrabold text-primary-dark bg-cream border-t-2 border-primary-bg">
+                                <tr>
+                                    <th scope="row" class="px-6 py-4 text-base uppercase">Totais</th>
+                                    <td id="total-proventos" class="px-6 py-4 text-right text-primary text-lg"></td>
+                                    <td id="total-descontos" class="px-6 py-4 text-right text-coral text-lg"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Resumo Cards Menores -->
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+                        <div class="bg-cream p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                            <p class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Base INSS</p>
+                            <p id="base-inss" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                        </div>
+                        <div class="bg-cream p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                            <p class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Base IRRF</p>
+                            <p id="base-irrf" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                        </div>
+                        <div class="bg-primary-bg p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                            <p class="text-[10px] uppercase font-bold text-primary tracking-wider">FGTS do Mês</p>
+                            <p id="fgts-mes" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <!-- Salário Líquido Final -->
+                    <div class="mt-8 bg-gradient-to-r from-primary to-primary-light p-6 md:p-8 rounded-[24px] shadow-teal-glow flex flex-col sm:flex-row justify-between items-center text-white relative z-10 overflow-hidden group">
+                        <i data-lucide="coins" class="absolute -right-4 -bottom-4 w-32 h-32 text-white opacity-20 transform -rotate-12 group-hover:scale-110 transition-transform duration-500"></i>
+                        <h3 class="text-lg uppercase font-bold tracking-widest mb-2 sm:mb-0 relative z-10">Líquido a Receber</h3>
+                        <p id="salario-liquido" class="text-3xl md:text-4xl font-extrabold relative z-10">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: FÉRIAS -->
+        <div id="view-ferias" class="view-section">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-primary p-6 md:p-10">
+                    <h2 class="text-2xl font-extrabold mb-8 flex items-center gap-3 border-b-[3px] border-dashed border-primary-bg pb-4 text-primary-dark uppercase tracking-wide">
+                        <i data-lucide="palmtree" class="text-primary w-8 h-8"></i> Salário de Férias
+                    </h2>
+                    
+                    <div id="ferias-base-banner" class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-primary-bg p-4">
+                        <div><p class="text-[10px] uppercase font-bold text-primary">Base utilizada</p><p id="ferias-base-value" class="font-extrabold text-primary-dark">Salário não informado</p></div>
+                        <button type="button" data-go-salary class="text-sm font-bold text-primary underline underline-offset-4">Editar salário</button>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-cream p-6 rounded-2xl">
+                            <div class="flex justify-between items-end mb-2">
+                                <label for="dias-ferias" class="block text-sm font-bold text-primary-dark uppercase tracking-wide">Dias de Férias</label>
+                                <span id="valor-ferias-calculado" class="text-sm font-extrabold text-primary"></span>
+                            </div>
+                            <input type="number" id="dias-ferias" class="block w-full bg-white border-2 border-primary-bg rounded-xl h-14 px-4 text-primary-dark font-bold focus:border-primary-light focus:ring-0 transition-all outline-none text-lg" placeholder="Ex: 30" min="1" max="30">
+                        </div>
+
+                        <div class="bg-primary-bg p-6 rounded-2xl flex justify-between items-center">
+                            <div>
+                                <label class="block text-xs font-bold text-primary uppercase tracking-wide mb-1">Gratificação (2/3)*</label>
+                                <p class="text-xs text-primary-dark/60 font-medium">Calculada automaticamente</p>
+                            </div>
+                            <span id="gratificacao-calculada" class="text-xl font-extrabold text-primary-dark">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-10">
+                        <button id="calcular-ferias" class="inline-flex items-center justify-center gap-3 bg-gradient-to-b from-accent-light to-accent text-primary-dark font-extrabold text-lg py-4 px-10 rounded-full shadow-accent-glow hover:scale-105 active:scale-95 transition-all duration-200 uppercase tracking-wider w-full sm:w-auto">
+                            <i data-lucide="calculator" class="w-6 h-6 text-primary-dark"></i>
+                            Calcular Férias
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RESULTADO FÉRIAS -->
+                <div id="resultado-ferias" class="hidden mt-8 transform transition-all duration-500 ease-out">
+                    <div class="bg-surface-card rounded-[32px] p-6 md:p-10 shadow-card border-t-8 border-sky relative">
+                        <h2 class="text-xl md:text-2xl font-extrabold text-center text-primary-dark mb-6 uppercase tracking-wide">Salário Férias</h2>
+                        
+                        <div class="overflow-x-auto rounded-2xl border-2 border-primary-bg mb-6">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-primary-dark uppercase bg-primary-bg font-extrabold tracking-wider">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4">Descrição</th>
+                                        <th scope="col" class="px-6 py-4 text-right">Proventos</th>
+                                        <th scope="col" class="px-6 py-4 text-right">Descontos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultado-tbody-ferias" class="font-medium"></tbody>
+                                <tfoot class="font-extrabold text-primary-dark bg-cream border-t-2 border-primary-bg">
+                                    <tr>
+                                        <th scope="row" class="px-6 py-4 text-base uppercase">Totais</th>
+                                        <td id="total-proventos-ferias" class="px-6 py-4 text-right text-primary text-lg"></td>
+                                        <td id="total-descontos-ferias" class="px-6 py-4 text-right text-coral text-lg"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-sky to-[#4ea0d6] p-6 rounded-[24px] shadow-sky-glow flex flex-col sm:flex-row justify-between items-center text-white relative overflow-hidden group">
+                             <i data-lucide="sun" class="absolute -left-4 -top-4 w-24 h-24 text-white opacity-20 transform rotate-12 group-hover:rotate-45 transition-transform duration-1000"></i>
+                            <h3 class="text-base uppercase font-bold tracking-widest mb-1 sm:mb-0 relative z-10">Líquido a Receber</h3>
+                            <p id="salario-liquido-ferias" class="text-2xl md:text-3xl font-extrabold relative z-10">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTADO SALÁRIO RESIDUAL -->
+                <div id="resultado-residual" class="hidden mt-8 transform transition-all duration-500 ease-out">
+                    <div class="bg-surface-card rounded-[32px] p-6 md:p-10 shadow-card border-t-8 border-primary relative overflow-hidden">
+                        <!-- Decorativo fundo -->
+                        <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-bg rounded-full opacity-50 pointer-events-none"></div>
+                        
+                        <h2 class="text-xl md:text-2xl font-extrabold text-center text-primary-dark mb-6 uppercase tracking-wide relative z-10">Salário Próximo Mês</h2>
+                        
+                        <div class="overflow-x-auto relative z-10 rounded-2xl border-2 border-primary-bg mb-6">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-primary-dark uppercase bg-primary-bg font-extrabold tracking-wider">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4 rounded-tl-2xl">Descrição</th>
+                                        <th scope="col" class="px-6 py-4 text-right">Proventos</th>
+                                        <th scope="col" class="px-6 py-4 text-right rounded-tr-2xl">Descontos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultado-tbody-residual" class="font-medium"></tbody>
+                                <tfoot class="font-extrabold text-primary-dark bg-cream border-t-2 border-primary-bg">
+                                    <tr>
+                                        <th scope="row" class="px-6 py-4 text-base uppercase">Totais</th>
+                                        <td id="total-proventos-residual" class="px-6 py-4 text-right text-primary text-lg"></td>
+                                        <td id="total-descontos-residual" class="px-6 py-4 text-right text-coral text-lg"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Resumo Cards Menores -->
+                        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+                            <div class="bg-cream p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                                <p class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Base INSS</p>
+                                <p id="base-inss-residual" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                            </div>
+                            <div class="bg-cream p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                                <p class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Base IRRF</p>
+                                <p id="base-irrf-residual" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                            </div>
+                            <div class="bg-primary-bg p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
+                                <p class="text-[10px] uppercase font-bold text-primary tracking-wider">FGTS do Mês</p>
+                                <p id="fgts-mes-residual" class="text-lg font-extrabold text-primary-dark">R$ 0,00</p>
+                            </div>
+                        </div>
+
+                        <!-- Salário Líquido Final -->
+                        <div class="mt-8 bg-gradient-to-r from-primary to-primary-light p-6 md:p-8 rounded-[24px] shadow-teal-glow flex flex-col sm:flex-row justify-between items-center text-white relative z-10 overflow-hidden group">
+                            <i data-lucide="coins" class="absolute -right-4 -bottom-4 w-32 h-32 text-white opacity-20 transform -rotate-12 group-hover:scale-110 transition-transform duration-500"></i>
+                            <h3 class="text-base uppercase font-bold tracking-widest mb-1 sm:mb-0 relative z-10">Líquido a Receber</h3>
+                            <p id="salario-liquido-residual" class="text-2xl md:text-3xl font-extrabold relative z-10">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: 13º SALÁRIO -->
+        <div id="view-decimo-terceiro" class="view-section">
+            <div class="max-w-5xl mx-auto space-y-8">
+                <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-accent p-6 md:p-8">
+                    <h2 class="text-2xl font-extrabold mb-8 flex items-center gap-3 border-b-[3px] border-dashed border-primary-bg pb-4 text-primary-dark uppercase tracking-wide">
+                        <i data-lucide="calendar-check-2" class="text-primary w-8 h-8"></i> 13º Salário
+                    </h2>
+                    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-primary-bg p-4">
+                        <div><p class="text-[10px] uppercase font-bold text-primary">Salário-base compartilhado</p><p id="decimo-base-note" class="font-extrabold text-primary-dark">Use o mesmo valor do holerite mensal</p></div>
+                        <button type="button" data-go-salary class="text-sm font-bold text-primary underline underline-offset-4">Editar salário</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label for="decimo-salario-base" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Salário Bruto</label>
+                            <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">R$</span><input type="number" id="decimo-salario-base" min="0" step="0.01" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light outline-none"></div>
+                        </div>
+                        <div>
+                            <label for="decimo-meses" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Meses trabalhados (avos)</label>
+                            <input type="number" id="decimo-meses" min="1" max="12" step="1" value="12" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light outline-none">
+                        </div>
+                        <div>
+                            <label for="decimo-variaveis" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Média de Variáveis / Horas Extras</label>
+                            <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">R$</span><input type="number" id="decimo-variaveis" min="0" step="0.01" value="0" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light outline-none"></div>
+                        </div>
+                        <div>
+                            <label for="decimo-dependentes" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Dependentes para IRPF</label>
+                            <input type="number" id="decimo-dependentes" min="0" step="1" value="0" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light outline-none">
+                        </div>
+                        <div>
+                            <label for="decimo-pensao" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Pensão Alimentícia</label>
+                            <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-coral font-bold">R$</span><input type="number" id="decimo-pensao" min="0" step="0.01" value="0" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-coral-light outline-none"></div>
+                        </div>
+                        <div>
+                            <label for="decimo-mes-primeira" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Pagamento da 1ª Parcela</label>
+                            <select id="decimo-mes-primeira" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light outline-none">
+                                <option value="Novembro">Novembro</option><option value="Férias">Adiantamento nas Férias</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-center mt-8"><button id="calcular-decimo" class="inline-flex items-center justify-center gap-3 bg-gradient-to-b from-accent-light to-accent text-primary-dark font-extrabold text-lg py-4 px-10 rounded-full shadow-accent-glow hover:scale-105 active:scale-95 transition-all uppercase tracking-wider"><i data-lucide="calculator" class="w-6 h-6"></i>Calcular 13º</button></div>
+                </div>
+
+                <div id="resultado-decimo" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-[24px] shadow-card border-t-8 border-primary p-6">
+                        <p class="text-xs font-extrabold text-primary uppercase tracking-wider mb-4">Resumo Geral</p>
+                        <div class="space-y-3 text-sm"><div class="flex justify-between gap-3"><span>Salário de base</span><strong id="decimo-out-base"></strong></div><div class="flex justify-between gap-3"><span>Avos considerados</span><strong id="decimo-out-avos"></strong></div><div class="flex justify-between gap-3 pt-3 border-t border-primary-bg"><span>Total bruto</span><strong id="decimo-out-total" class="text-primary text-lg"></strong></div></div>
+                    </div>
+                    <div class="bg-white rounded-[24px] shadow-card border-t-8 border-accent p-6">
+                        <p class="text-xs font-extrabold text-primary-dark uppercase tracking-wider mb-4">1ª Parcela</p>
+                        <div class="space-y-3 text-sm"><div class="flex justify-between gap-3"><span>Pagamento</span><strong id="decimo-out-mes"></strong></div><div class="flex justify-between gap-3"><span>Valor bruto</span><strong id="decimo-out-primeira-bruto"></strong></div><div class="flex justify-between gap-3 pt-3 border-t border-primary-bg"><span>Líquido a receber</span><strong id="decimo-out-primeira-liquido" class="text-primary text-lg"></strong></div></div>
+                    </div>
+                    <div class="bg-white rounded-[24px] shadow-card border-t-8 border-coral p-6">
+                        <p class="text-xs font-extrabold text-coral-dark uppercase tracking-wider mb-4">2ª Parcela</p>
+                        <div class="space-y-3 text-sm"><div class="flex justify-between gap-3"><span>Valor bruto remanescente</span><strong id="decimo-out-segunda-bruto"></strong></div><div class="flex justify-between gap-3"><span>INSS total</span><strong id="decimo-out-inss" class="text-coral"></strong></div><div class="flex justify-between gap-3"><span>IRPF total</span><strong id="decimo-out-irpf" class="text-coral"></strong></div><div class="flex justify-between gap-3 pt-3 border-t border-primary-bg"><span>Líquido final</span><strong id="decimo-out-segunda-liquido" class="text-primary text-lg"></strong></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: CONFIGURAÇÕES -->
+        <div id="view-config" class="view-section">
+            <div class="max-w-4xl mx-auto space-y-8">
+                
+                <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-primary p-6 md:p-8">
+                    <h3 class="text-lg font-extrabold text-primary-dark mb-6 border-b-[3px] border-dashed border-primary-bg pb-3 uppercase flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-primary"></i> Dependentes (IRRF)
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="dependentes" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Nº de Dependentes</label>
+                            <input type="number" id="dependentes" class="block w-full bg-cream border-none rounded-xl h-12 px-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none" value="0">
+                        </div>
+                        <div>
+                            <label for="valor-dependente" class="block text-xs font-bold text-primary-dark uppercase tracking-wide mb-1">Dedução por Dependente</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">R$</span>
+                                <input type="number" id="valor-dependente" class="block w-full bg-cream border-none rounded-xl h-12 pl-12 pr-4 text-primary-dark font-bold focus:ring-2 focus:ring-primary-light transition-all outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <details class="group bg-white rounded-[24px] shadow-card"><summary class="cursor-pointer list-none p-6 font-extrabold text-primary-dark flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary rounded-[24px]"><span class="flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i>Configurações avançadas de impostos</span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform group-open:rotate-180"></i></summary><div class="px-6 pb-6"><p class="text-sm text-gray-500 mb-5">Altere somente quando houver atualização oficial das faixas e deduções.</p><div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Tabela INSS -->
+                    <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-primary p-6 md:p-8">
+                        <h3 class="text-lg font-extrabold text-primary-dark mb-4 border-b-[3px] border-dashed border-primary-bg pb-3 uppercase">Tabela INSS</h3>
+                        <div id="inss-table-inputs" class="space-y-3"></div>
+                    </div>
+                    
+                    <!-- Tabela IRRF -->
+                    <div class="bg-surface-card rounded-[24px] shadow-card border-l-[6px] border-primary p-6 md:p-8">
+                        <h3 class="text-lg font-extrabold text-primary-dark mb-4 border-b-[3px] border-dashed border-primary-bg pb-3 uppercase">Tabela IRRF</h3>
+                        <div id="irrf-table-inputs" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-10">
+                    <button id="save-config" class="inline-flex items-center justify-center gap-3 bg-primary text-white font-extrabold text-lg py-4 px-10 rounded-full shadow-teal-glow hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all duration-200 uppercase tracking-wider">
+                        <i data-lucide="save" class="w-6 h-6"></i>
+                        Salvar Configurações
+                    </button>
+                    
+                    <div id="save-confirmation" class="hidden mt-6 inline-flex items-center gap-2 px-6 py-3 bg-green-100 text-green-700 font-bold rounded-2xl mx-auto shadow-sm">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i> Configurações atualizadas!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal de Erro (Estilizado) -->
+    <div id="error-modal" class="hidden fixed inset-0 bg-primary-dark/80 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="relative mx-4 p-8 border-t-8 border-coral w-full max-w-sm shadow-coral-glow rounded-[24px] bg-white transform transition-all">
+            <div class="text-center flex flex-col items-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-coral-light/20 mb-4">
+                    <i data-lucide="alert-triangle" class="h-8 w-8 text-coral"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-primary-dark uppercase tracking-wide">Atenção</h3>
+                <p id="error-message" class="text-sm text-gray-500 font-medium mt-3 mb-6"></p>
+                <button id="close-modal" class="w-full px-6 py-3 bg-coral text-white font-extrabold rounded-full shadow-coral-glow hover:bg-coral-dark hover:scale-105 active:scale-95 transition-all uppercase tracking-wider">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicializa ícones Lucide
+        lucide.createIcons();
+
+        // --- SELETORES GLOBAIS (VIEWS) ---
+        const views = {
+            'simulador': document.getElementById('view-simulador'),
+            'ferias': document.getElementById('view-ferias'),
+            'decimo-terceiro': document.getElementById('view-decimo-terceiro'),
+            'config': document.getElementById('view-config')
+        };
+        const navBtns = {
+            'simulador': document.getElementById('nav-simulador'),
+            'ferias': document.getElementById('nav-ferias'),
+            'decimo-terceiro': document.getElementById('nav-decimo-terceiro'),
+            'config': document.getElementById('nav-config')
+        };
+        
+        const errorModal = document.getElementById('error-modal');
+        const errorMessage = document.getElementById('error-message');
+        const closeModalBtn = document.getElementById('close-modal');
+
+        // --- SELETORES DO SIMULADOR ---
+        const salarioBaseInput = document.getElementById('salario-base');
+        const diasTrabalhadosInput = document.getElementById('dias-trabalhados');
+        const anuenioPercentInput = document.getElementById('anuenio-percent');
+        const anuenioCalculadoDisplay = document.getElementById('anuenio-calculado');
+        const adicionaisPercentInput = document.getElementById('adicionais-percent');
+        const adicionaisCalculadoDisplay = document.getElementById('adicionais-calculado');
+        const outrosProventosInput = document.getElementById('outros-proventos');
+        const adiantamentoInput = document.getElementById('adiantamento');
+        const planoSaudeInput = document.getElementById('plano-saude');
+        const planoOdontologicoInput = document.getElementById('plano-odontologico');
+        const outrosDescontosInput = document.getElementById('outros-descontos');
+        const calcularBtn = document.getElementById('calcular');
+        const resultadoDiv = document.getElementById('resultado');
+
+        // --- SELETORES DAS FÉRIAS ---
+        const diasFeriasInput = document.getElementById('dias-ferias');
+        const valorFeriasCalculadoDisplay = document.getElementById('valor-ferias-calculado');
+        const gratificacaoCalculadaDisplay = document.getElementById('gratificacao-calculada');
+        const calcularFeriasBtn = document.getElementById('calcular-ferias');
+        const resultadoFeriasDiv = document.getElementById('resultado-ferias');
+        const resultadoResidualDiv = document.getElementById('resultado-residual');
+
+        // --- SELETORES DO 13º SALÁRIO ---
+        const decimoSalarioBaseInput = document.getElementById('decimo-salario-base');
+        const decimoMesesInput = document.getElementById('decimo-meses');
+        const decimoVariaveisInput = document.getElementById('decimo-variaveis');
+        const decimoDependentesInput = document.getElementById('decimo-dependentes');
+        const decimoPensaoInput = document.getElementById('decimo-pensao');
+        const decimoMesPrimeiraInput = document.getElementById('decimo-mes-primeira');
+        const calcularDecimoBtn = document.getElementById('calcular-decimo');
+        const resultadoDecimoDiv = document.getElementById('resultado-decimo');
+        // --- SELETORES DAS CONFIGURAÇÕES ---
+        const dependentesInputConfig = document.getElementById('dependentes');
+        const valorDependenteInput = document.getElementById('valor-dependente');
+        const inssTableContainer = document.getElementById('inss-table-inputs');
+        const irrfTableContainer = document.getElementById('irrf-table-inputs');
+        const saveConfigBtn = document.getElementById('save-config');
+        const saveConfirmation = document.getElementById('save-confirmation');
+        
+        // --- FUNÇÕES AUXILIARES ---
+        const formatCurrency = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        
+        const addRow = (tbody, description, provento, desconto) => {
+            const row = tbody.insertRow();
+            row.className = 'border-b border-primary-bg/50 hover:bg-cream/50 transition-colors';
+            row.innerHTML = `
+                <th scope="row" class="px-6 py-4 font-bold text-primary-dark whitespace-nowrap">${description}</th>
+                <td class="px-6 py-4 text-right text-primary font-bold">${provento ? formatCurrency(provento) : ''}</td>
+                <td class="px-6 py-4 text-right text-coral font-bold">${desconto ? formatCurrency(desconto) : ''}</td>
+            `;
+        };
+
+        const showError = (message) => {
+            errorMessage.innerText = message;
+            errorModal.classList.remove('hidden');
+        };
+        const hideError = () => errorModal.classList.add('hidden');
+
+        // --- LÓGICA DE NAVEGAÇÃO POR VIEWS ---
+        window.switchView = (viewId) => {
+            // Esconde todas as views e remove active dos botoes
+            Object.keys(views).forEach(key => {
+                views[key].classList.remove('active');
+                navBtns[key].classList.remove('active');
+            });
+            // Mostra a selecionada
+            views[viewId].classList.add('active');
+            navBtns[viewId].classList.add('active');
+            
+            // Rolar pro topo no mobile ao trocar de view
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // --- LÓGICA DE CONFIGURAÇÕES ---
+        const defaultConfig = {
+            dependentes: 0, valorPorDependente: 189.59,
+            inssTable: [{ ate: 1518.00, aliquota: 7.5 }, { ate: 2793.88, aliquota: 9 }, { ate: 4190.83, aliquota: 12 }, { ate: 8157.41, aliquota: 14 }],
+            irrfTable: [{ base: 2259.20, aliquota: 0, deducao: 0 }, { base: 2826.65, aliquota: 7.5, deducao: 169.44 }, { base: 3751.05, aliquota: 15, deducao: 381.44 }, { base: 4664.68, aliquota: 22.5, deducao: 662.77 }, { base: Infinity, aliquota: 27.5, deducao: 896.00 }]
+        };
+
+        const createTableInputs = (container, tableData, type) => {
+            container.innerHTML = '';
+            tableData.forEach(row => {
+                const div = document.createElement('div');
+                if (type === 'inss') {
+                    div.className = 'grid grid-cols-2 gap-3 items-center bg-cream p-3 rounded-xl border border-transparent focus-within:border-primary-light transition-colors';
+                    div.innerHTML = `
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Até R$</label>
+                            <input type="number" value="${row.ate}" class="w-full bg-transparent font-bold text-primary-dark outline-none data-inss-ate">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Alíquota (%)</label>
+                            <input type="number" value="${row.aliquota}" class="w-full bg-transparent font-bold text-primary-dark outline-none data-inss-aliquota">
+                        </div>`;
+                } else {
+                    div.className = 'grid grid-cols-1 sm:grid-cols-3 gap-3 items-center bg-cream p-3 rounded-xl border border-transparent focus-within:border-primary-light transition-colors';
+                    div.innerHTML = `
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Base até R$</label>
+                            <input type="number" value="${row.base === Infinity ? '' : row.base}" placeholder="Acima de" class="w-full bg-transparent font-bold text-primary-dark outline-none data-irrf-base">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Alíquota (%)</label>
+                            <input type="number" value="${row.aliquota}" class="w-full bg-transparent font-bold text-primary-dark outline-none data-irrf-aliquota">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Dedução (R$)</label>
+                            <input type="number" value="${row.deducao}" class="w-full bg-transparent font-bold text-primary-dark outline-none data-irrf-deducao">
+                        </div>`;
+                }
+                container.appendChild(div);
+            });
+        };
+
+        const saveConfig = () => {
+            const newConfig = { dependentes: parseInt(dependentesInputConfig.value) || 0, valorPorDependente: parseFloat(valorDependenteInput.value) || 0, inssTable: [], irrfTable: [] };
+            document.querySelectorAll('#inss-table-inputs > div').forEach(row => newConfig.inssTable.push({ ate: parseFloat(row.querySelector('.data-inss-ate').value) || 0, aliquota: parseFloat(row.querySelector('.data-inss-aliquota').value) || 0 }));
+            document.querySelectorAll('#irrf-table-inputs > div').forEach(row => {
+                const baseValue = row.querySelector('.data-irrf-base').value;
+                newConfig.irrfTable.push({ base: baseValue === '' ? Infinity : parseFloat(baseValue) || 0, aliquota: parseFloat(row.querySelector('.data-irrf-aliquota').value) || 0, deducao: parseFloat(row.querySelector('.data-irrf-deducao').value) || 0 });
+            });
+            localStorage.setItem('holeriteConfig', JSON.stringify(newConfig));
+            saveConfirmation.classList.remove('hidden');
+            setTimeout(() => saveConfirmation.classList.add('hidden'), 3000);
+        };
+
+        const loadConfig = () => {
+            const config = JSON.parse(localStorage.getItem('holeriteConfig')) || defaultConfig;
+            dependentesInputConfig.value = config.dependentes;
+            valorDependenteInput.value = config.valorPorDependente;
+            createTableInputs(inssTableContainer, config.inssTable, 'inss');
+            createTableInputs(irrfTableContainer, config.irrfTable, 'irrf');
+        };
+
+        // --- LÓGICA DO SIMULADOR (UI & PERSISTÊNCIA) ---
+        const saveDataSimulador = () => {
+            const data = {
+                salarioBase: salarioBaseInput.value,
+                diasTrabalhados: diasTrabalhadosInput.value,
+                anuenioPercent: anuenioPercentInput.value,
+                adicionaisPercent: adicionaisPercentInput.value,
+                outrosProventos: outrosProventosInput.value,
+                planoSaude: planoSaudeInput.value,
+                planoOdontologico: planoOdontologicoInput.value,
+                outrosDescontos: outrosDescontosInput.value,
+            };
+            localStorage.setItem('holeriteData', JSON.stringify(data));
+        };
+
+        const loadDataSimulador = () => {
+            const savedData = JSON.parse(localStorage.getItem('holeriteData'));
+            if (savedData) {
+                salarioBaseInput.value = savedData.salarioBase || '';
+                diasTrabalhadosInput.value = savedData.diasTrabalhados || '30';
+                anuenioPercentInput.value = savedData.anuenioPercent || '';
+                adicionaisPercentInput.value = savedData.adicionaisPercent || '';
+                outrosProventosInput.value = savedData.outrosProventos || '';
+                planoSaudeInput.value = savedData.planoSaude || '';
+                planoOdontologicoInput.value = savedData.planoOdontologico || '';
+                outrosDescontosInput.value = savedData.outrosDescontos || '';
+                updateAnuenioDisplay(); updateAdicionaisDisplay(); updateAdiantamentoDisplay();
+            }
+        };
+
+        const updateAnuenioDisplay = () => {
+            const valorAnuenio = (parseFloat(salarioBaseInput.value) || 0) * (parseFloat(anuenioPercentInput.value) || 0) / 100;
+            anuenioCalculadoDisplay.textContent = (valorAnuenio > 0) ? `+ ${formatCurrency(valorAnuenio)}` : '';
+        };
+        const updateAdicionaisDisplay = () => {
+            const valorAdicionais = (parseFloat(salarioBaseInput.value) || 0) * (parseFloat(adicionaisPercentInput.value) || 0) / 100;
+            adicionaisCalculadoDisplay.textContent = (valorAdicionais > 0) ? `+ ${formatCurrency(valorAdicionais)}` : '';
+        };
+        const updateAdiantamentoDisplay = () => {
+            const valorAdiantamento = (parseFloat(salarioBaseInput.value) || 0) * 0.35;
+            adiantamentoInput.value = valorAdiantamento > 0 ? valorAdiantamento.toFixed(2) : '';
+        };
+        
+        // --- LÓGICA DE CÁLCULO (FUNÇÕES REUTILIZÁVEIS) ---
+        const calcularDescontoINSS = (baseCalculo, config) => {
+            let descontoINSS = 0, salarioFaixaAnterior = 0;
+            for(const faixa of config.inssTable) {
+                if(baseCalculo > salarioFaixaAnterior) {
+                    const baseNestaFaixa = Math.min(baseCalculo, faixa.ate) - salarioFaixaAnterior;
+                    descontoINSS += baseNestaFaixa * (faixa.aliquota / 100);
+                    salarioFaixaAnterior = faixa.ate;
+                }
+            }
+            return parseFloat(descontoINSS.toFixed(2));
+        };
+
+        const calcularDescontoIRRF = (baseCalculo, descontoINSS, config, opcoes = {}) => {
+            const quantidadeDependentes = opcoes.dependentes ?? config.dependentes;
+            const pensaoAlimenticia = Math.max(0, Number(opcoes.pensaoAlimenticia) || 0);
+            const deducaoDependentes = quantidadeDependentes * config.valorPorDependente;
+            const baseCalculoIRRF = Math.max(0, baseCalculo - descontoINSS - deducaoDependentes - pensaoAlimenticia);
+            let descontoIRRF = 0;
+            let faixaIrrf = config.irrfTable.find(f => baseCalculoIRRF <= f.base) || config.irrfTable[config.irrfTable.length-1];
+            if (faixaIrrf.aliquota > 0) {
+                 descontoIRRF = (baseCalculoIRRF * (faixaIrrf.aliquota / 100)) - faixaIrrf.deducao;
+            }
+            return descontoIRRF < 0 ? 0 : parseFloat(descontoIRRF.toFixed(2));
+        };
+
+        // --- CÁLCULO DO 13º SALÁRIO ---
+        // Função pura: não lê nem altera DOM/localStorage.
+        const calcularDecimoTerceiro = (dados) => {
+            const numero = (valor) => Number.isFinite(Number(valor)) ? Number(valor) : 0;
+            const salarioBruto = numero(dados.salarioBruto);
+            const anuenioPercent = Math.max(0, numero(dados.anuenioPercent));
+            const adicionaisPercent = Math.max(0, numero(dados.adicionaisPercent));
+            const mediaVariaveis = Math.max(0, numero(dados.mediaVariaveis));
+            const mesesTrabalhados = Math.trunc(numero(dados.mesesTrabalhados));
+            const dependentes = Math.max(0, Math.trunc(numero(dados.dependentes)));
+            const pensaoAlimenticia = Math.max(0, numero(dados.pensaoAlimenticia));
+            const config = dados.config;
+            if (salarioBruto <= 0) throw new Error('Informe um Salário Bruto maior que zero.');
+            if (mesesTrabalhados < 1 || mesesTrabalhados > 12) throw new Error('Os meses trabalhados devem estar entre 1 e 12.');
+            if (!config?.inssTable?.length || !config?.irrfTable?.length) throw new Error('As tabelas de INSS e IRPF não estão configuradas.');
+
+            const valorAnuenio = Number((salarioBruto * anuenioPercent / 100).toFixed(2));
+            const valorAdicionais = Number((salarioBruto * adicionaisPercent / 100).toFixed(2));
+            const salarioBase = Number((salarioBruto + valorAnuenio + valorAdicionais + mediaVariaveis).toFixed(2));
+            const totalBruto = Number(((salarioBase / 12) * mesesTrabalhados).toFixed(2));
+            const primeiraParcela = Number((totalBruto * 0.5).toFixed(2));
+
+            // Na 2ª parcela, INSS e IRPF incidem sobre o valor total do 13º.
+            // Depois dos tributos, desconta-se o adiantamento pago na 1ª parcela.
+            const inssTotal = calcularDescontoINSS(totalBruto, config);
+            const baseIRPF = Math.max(0, totalBruto - inssTotal - (dependentes * config.valorPorDependente) - pensaoAlimenticia);
+            const irpfTotal = calcularDescontoIRRF(totalBruto, inssTotal, config, { dependentes, pensaoAlimenticia });
+            const segundaBruta = Number((totalBruto - primeiraParcela).toFixed(2));
+            const segundaLiquida = Number((totalBruto - inssTotal - irpfTotal - primeiraParcela).toFixed(2));
+            const formatados = Object.fromEntries(Object.entries({ salarioBase, totalBruto, primeiraParcela, segundaBruta, inssTotal, baseIRPF, irpfTotal, segundaLiquida }).map(([chave, valor]) => [chave, formatCurrency(valor)]));
+
+            return { salarioBase, mesesTrabalhados, totalBruto, primeiraParcela, primeiraLiquida: primeiraParcela, segundaBruta, inssTotal, baseIRPF, irpfTotal, segundaLiquida, mesPrimeiraParcela: dados.mesPrimeiraParcela || 'Novembro', formatados };
+        };
+        window.calcularDecimoTerceiro = calcularDecimoTerceiro;
+
+        const carregarPadroesDecimo = () => {
+            const savedData = JSON.parse(localStorage.getItem('holeriteData')) || {};
+            const config = JSON.parse(localStorage.getItem('holeriteConfig')) || defaultConfig;
+            decimoSalarioBaseInput.value = savedData.salarioBase || salarioBaseInput.value || '';
+            decimoDependentesInput.value = config.dependentes || 0;
+            const salvo = JSON.parse(localStorage.getItem('holeriteDecimoData'));
+            if (salvo) {
+                decimoSalarioBaseInput.value = salvo.salarioBruto || decimoSalarioBaseInput.value;
+                decimoMesesInput.value = salvo.mesesTrabalhados || 12;
+                decimoVariaveisInput.value = salvo.mediaVariaveis || 0;
+                decimoDependentesInput.value = salvo.dependentes ?? decimoDependentesInput.value;
+                decimoPensaoInput.value = salvo.pensaoAlimenticia || 0;
+                decimoMesPrimeiraInput.value = salvo.mesPrimeiraParcela || 'Novembro';
+            }
+        };
+
+        const executarCalculoDecimo = () => {
+            try {
+                const dados = {
+                    salarioBruto: decimoSalarioBaseInput.value,
+                    anuenioPercent: (JSON.parse(localStorage.getItem('holeriteData')) || {}).anuenioPercent || 0,
+                    adicionaisPercent: (JSON.parse(localStorage.getItem('holeriteData')) || {}).adicionaisPercent || 0,
+                    mesesTrabalhados: decimoMesesInput.value,
+                    mediaVariaveis: decimoVariaveisInput.value,
+                    dependentes: decimoDependentesInput.value,
+                    pensaoAlimenticia: decimoPensaoInput.value,
+                    mesPrimeiraParcela: decimoMesPrimeiraInput.value,
+                    config: JSON.parse(localStorage.getItem('holeriteConfig')) || defaultConfig
+                };
+                const r = calcularDecimoTerceiro(dados);
+                localStorage.setItem('holeriteDecimoData', JSON.stringify({ ...dados, config: undefined }));
+                document.getElementById('decimo-out-base').textContent = r.formatados.salarioBase;
+                document.getElementById('decimo-out-avos').textContent = `${r.mesesTrabalhados}/12`;
+                document.getElementById('decimo-out-total').textContent = r.formatados.totalBruto;
+                document.getElementById('decimo-out-mes').textContent = r.mesPrimeiraParcela;
+                document.getElementById('decimo-out-primeira-bruto').textContent = r.formatados.primeiraParcela;
+                document.getElementById('decimo-out-primeira-liquido').textContent = r.formatados.primeiraParcela;
+                document.getElementById('decimo-out-segunda-bruto').textContent = r.formatados.segundaBruta;
+                document.getElementById('decimo-out-inss').textContent = `- ${r.formatados.inssTotal}`;
+                document.getElementById('decimo-out-irpf').textContent = `- ${r.formatados.irpfTotal}`;
+                document.getElementById('decimo-out-segunda-liquido').textContent = r.formatados.segundaLiquida;
+                resultadoDecimoDiv.classList.remove('hidden');
+            } catch (erro) { showError(erro.message); }
+        };
+
+        // --- CÁLCULO PRINCIPAL DO HOLERITE (SIMULADOR) ---
+        const calcularHolerite = () => {
+            const config = JSON.parse(localStorage.getItem('holeriteConfig')) || defaultConfig;
+            if (!config) { showError("Configurações não encontradas. Salve-as primeiro."); return; }
+            resultadoDiv.classList.add('hidden');
+            saveDataSimulador();
+
+            const salarioBaseOriginal = parseFloat(salarioBaseInput.value) || 0;
+            const diasTrabalhados = parseFloat(diasTrabalhadosInput.value) || 30;
+
+            if (salarioBaseOriginal <= 0) { showError("O Salário Base é obrigatório."); return; }
+            
+            const salarioBase = (diasTrabalhados === 30) ? salarioBaseOriginal : (salarioBaseOriginal / 30) * diasTrabalhados;
+            
+            const valorAnuenio = parseFloat(((parseFloat(anuenioPercentInput.value) || 0) / 100 * salarioBase).toFixed(2));
+            const valorAdicionais = parseFloat(((parseFloat(adicionaisPercentInput.value) || 0) / 100 * salarioBase).toFixed(2));
+            
+            const outrosProventosString = outrosProventosInput.value || '';
+            const outrosProventos = outrosProventosString
+                .split(';')
+                .reduce((total, valor) => {
+                    if (valor.trim() === '') return total;
+                    const valorNumerico = parseFloat(valor.trim().replace(',', '.')) || 0;
+                    return total + valorNumerico;
+                }, 0);
+                
+            const totalProventos = salarioBase + valorAnuenio + valorAdicionais + outrosProventos;
+
+            const descontoINSS = calcularDescontoINSS(totalProventos, config);
+            const descontoIRRF = calcularDescontoIRRF(totalProventos, descontoINSS, config);
+
+            const adiantamento = parseFloat(adiantamentoInput.value) || 0;
+            const planoSaude = parseFloat(planoSaudeInput.value) || 0;
+            const planoOdontologico = parseFloat(planoOdontologicoInput.value) || 0;
+            
+            const outrosDescontosString = outrosDescontosInput.value || '';
+            const outrosDescontos = outrosDescontosString
+                .split(';')
+                .reduce((total, valor) => {
+                    if (valor.trim() === '') return total;
+                    const valorNumerico = parseFloat(valor.trim().replace(',', '.')) || 0;
+                    return total + valorNumerico;
+                }, 0);
+
+            const totalDescontos = descontoINSS + descontoIRRF + adiantamento + planoSaude + planoOdontologico + outrosDescontos;
+            
+            const tbody = document.getElementById('resultado-tbody');
+            tbody.innerHTML = ''; 
+            addRow(tbody, `Salário Base (${diasTrabalhados} dias)`, salarioBase);
+            if (valorAdicionais > 0) addRow(tbody, `Adicionais (${adicionaisPercentInput.value}%)`, valorAdicionais);
+            if (valorAnuenio > 0) addRow(tbody, `Anuênio (${anuenioPercentInput.value}%)`, valorAnuenio);
+            if (outrosProventos > 0) addRow(tbody, 'Outros Proventos', outrosProventos);
+            addRow(tbody, 'INSS', null, descontoINSS);
+            if (descontoIRRF > 0) addRow(tbody, 'IRRF', null, descontoIRRF);
+            if (adiantamento > 0) addRow(tbody, 'Adiantamento', null, adiantamento);
+            if (planoSaude > 0) addRow(tbody, 'Plano de Saúde', null, planoSaude);
+            if (planoOdontologico > 0) addRow(tbody, 'Plano Odontológico', null, planoOdontologico);
+            if (outrosDescontos > 0) addRow(tbody, 'Outros Descontos', null, outrosDescontos);
+
+            document.getElementById('total-proventos').textContent = formatCurrency(totalProventos);
+            document.getElementById('total-descontos').textContent = formatCurrency(totalDescontos);
+            document.getElementById('salario-liquido').textContent = formatCurrency(totalProventos - totalDescontos);
+            document.getElementById('base-inss').textContent = formatCurrency(totalProventos);
+            const baseIRRF = totalProventos - descontoINSS - (config.dependentes * config.valorPorDependente);
+            document.getElementById('base-irrf').textContent = formatCurrency(baseIRRF > 0 ? baseIRRF : 0);
+            document.getElementById('fgts-mes').textContent = formatCurrency(totalProventos * 0.08);
+
+            resultadoDiv.classList.remove('hidden');
+        };
+
+        // --- LÓGICA DA PÁGINA DE FÉRIAS ---
+        const updateFeriasDisplay = () => {
+            const savedData = JSON.parse(localStorage.getItem('holeriteData'));
+            const salarioBase = savedData ? (parseFloat(savedData.salarioBase) || 0) : 0;
+            const anuenioPercent = savedData ? (parseFloat(savedData.anuenioPercent) || 0) : 0;
+            const adicionaisPercent = savedData ? (parseFloat(savedData.adicionaisPercent) || 0) : 0;
+            const diasFerias = parseFloat(diasFeriasInput.value) || 0;
+
+            if (salarioBase > 0 && diasFerias > 0) {
+                const valorAnuenio = (salarioBase * anuenioPercent) / 100;
+                const valorAdicionais = (salarioBase * adicionaisPercent) / 100;
+                const remuneracaoTotal = salarioBase + valorAnuenio + valorAdicionais;
+
+                const valorFerias = (remuneracaoTotal / 30) * diasFerias;
+                
+                const baseParaGratificacao = (salarioBase / 30) * diasFerias;
+                const gratificacao = (baseParaGratificacao / 3) * 2; // (2/3) como consta no original
+                
+                valorFeriasCalculadoDisplay.textContent = formatCurrency(valorFerias);
+                gratificacaoCalculadaDisplay.textContent = formatCurrency(gratificacao);
+            } else {
+                valorFeriasCalculadoDisplay.textContent = '';
+                gratificacaoCalculadaDisplay.textContent = '';
+            }
+        };
+        
+        const calcularFerias = () => {
+            const config = JSON.parse(localStorage.getItem('holeriteConfig')) || defaultConfig;
+            const savedData = JSON.parse(localStorage.getItem('holeriteData'));
+            const salarioBase = savedData ? (parseFloat(savedData.salarioBase) || 0) : 0;
+            const anuenioPercent = savedData ? (parseFloat(savedData.anuenioPercent) || 0) : 0;
+            const adicionaisPercent = savedData ? (parseFloat(savedData.adicionaisPercent) || 0) : 0;
+            const diasFerias = parseFloat(diasFeriasInput.value) || 0;
+
+            if (salarioBase <= 0) { showError("Salário Base não definido na tela 'Holerite'."); return; }
+            if (diasFerias <= 0 || diasFerias > 30) { showError("Número de dias de férias inválido."); return; }
+
+            const valorAnuenio = (salarioBase * anuenioPercent) / 100;
+            const valorAdicionais = (salarioBase * adicionaisPercent) / 100;
+            const remuneracaoTotal = salarioBase + valorAnuenio + valorAdicionais;
+
+            const valorFerias = (remuneracaoTotal / 30) * diasFerias;
+            
+            const baseParaGratificacao = (salarioBase / 30) * diasFerias;
+            const gratificacao = (baseParaGratificacao / 3) * 2;
+            
+            const totalProventosFerias = valorFerias + gratificacao;
+            
+            const baseINSSFerias = baseParaGratificacao + gratificacao;
+            const descontoINSS = calcularDescontoINSS(baseINSSFerias, config);
+            const descontoIRRF = calcularDescontoIRRF(totalProventosFerias, descontoINSS, config);
+            const totalDescontosFerias = descontoINSS + descontoIRRF;
+
+            const tbody = document.getElementById('resultado-tbody-ferias');
+            tbody.innerHTML = '';
+            addRow(tbody, 'Valor Férias', valorFerias);
+            addRow(tbody, 'Gratificação Férias (2/3)', gratificacao);
+            addRow(tbody, 'INSS sobre Férias', null, descontoINSS);
+            if (descontoIRRF > 0) addRow(tbody, 'IRRF sobre Férias', null, descontoIRRF);
+
+            document.getElementById('total-proventos-ferias').textContent = formatCurrency(totalProventosFerias);
+            document.getElementById('total-descontos-ferias').textContent = formatCurrency(totalDescontosFerias);
+            document.getElementById('salario-liquido-ferias').textContent = formatCurrency(totalProventosFerias - totalDescontosFerias);
+            
+            resultadoFeriasDiv.classList.remove('hidden');
+
+            // --- LÓGICA DO SALÁRIO RESIDUAL ---
+            const diasResiduais = 30 - diasFerias;
+            
+            if (diasResiduais > 0) {
+                // Recupera descontos fixos originais
+                const planoSaude = savedData ? (parseFloat(savedData.planoSaude) || 0) : 0;
+                const planoOdontologico = savedData ? (parseFloat(savedData.planoOdontologico) || 0) : 0;
+
+                // Cálculos proporcionais aos dias restantes
+                const salarioBaseResidual = (salarioBase / 30) * diasResiduais;
+                const valorAnuenioResidual = (salarioBaseResidual * anuenioPercent) / 100;
+                const valorAdicionaisResidual = (salarioBaseResidual * adicionaisPercent) / 100;
+
+                const totalProventosResidual = salarioBaseResidual + valorAnuenioResidual + valorAdicionaisResidual;
+
+                // Cálculo dos impostos residuais
+                const descontoINSSResidual = calcularDescontoINSS(totalProventosResidual, config);
+                const descontoIRRFResidual = calcularDescontoIRRF(totalProventosResidual, descontoINSSResidual, config);
+
+                const totalDescontosResidual = descontoINSSResidual + descontoIRRFResidual + planoSaude + planoOdontologico;
+
+                // Montagem da tabela
+                const tbodyResidual = document.getElementById('resultado-tbody-residual');
+                tbodyResidual.innerHTML = '';
+                addRow(tbodyResidual, `Salário Base (${diasResiduais} dias)`, salarioBaseResidual);
+                if (valorAdicionaisResidual > 0) addRow(tbodyResidual, `Adicionais (${adicionaisPercent}%)`, valorAdicionaisResidual);
+                if (valorAnuenioResidual > 0) addRow(tbodyResidual, `Anuênio (${anuenioPercent}%)`, valorAnuenioResidual);
+                addRow(tbodyResidual, 'INSS', null, descontoINSSResidual);
+                if (descontoIRRFResidual > 0) addRow(tbodyResidual, 'IRRF', null, descontoIRRFResidual);
+                if (planoSaude > 0) addRow(tbodyResidual, 'Plano de Saúde', null, planoSaude);
+                if (planoOdontologico > 0) addRow(tbodyResidual, 'Plano Odontológico', null, planoOdontologico);
+
+                // Exibição dos totais
+                document.getElementById('total-proventos-residual').textContent = formatCurrency(totalProventosResidual);
+                document.getElementById('total-descontos-residual').textContent = formatCurrency(totalDescontosResidual);
+                document.getElementById('salario-liquido-residual').textContent = formatCurrency(totalProventosResidual - totalDescontosResidual);
+
+                // Atualização dos resumos
+                document.getElementById('base-inss-residual').textContent = formatCurrency(totalProventosResidual);
+                const baseIRRFResidual = totalProventosResidual - descontoINSSResidual - (config.dependentes * config.valorPorDependente);
+                document.getElementById('base-irrf-residual').textContent = formatCurrency(baseIRRFResidual > 0 ? baseIRRFResidual : 0);
+                document.getElementById('fgts-mes-residual').textContent = formatCurrency(totalProventosResidual * 0.08);
+
+                resultadoResidualDiv.classList.remove('hidden');
+            } else {
+                resultadoResidualDiv.classList.add('hidden');
+            }
+
+            saveDataFerias(diasFerias, true);
+        };
+        
+        const saveDataFerias = (diasFerias, hasResult) => {
+            const data = { diasFerias: diasFerias, hasResult: hasResult };
+            localStorage.setItem('holeriteFeriasData', JSON.stringify(data));
+        };
+        
+        const loadDataFerias = () => {
+             const savedData = JSON.parse(localStorage.getItem('holeriteFeriasData'));
+             if(savedData) {
+                diasFeriasInput.value = savedData.diasFerias || '';
+                updateFeriasDisplay();
+                if(savedData.hasResult) calcularFerias();
+             }
+        };
+
+        // --- EVENT LISTENERS ---
+        saveConfigBtn.addEventListener('click', saveConfig);
+        closeModalBtn.addEventListener('click', hideError);
+        
+        // Listeners do Simulador
+        salarioBaseInput.addEventListener('input', () => { updateAnuenioDisplay(); updateAdicionaisDisplay(); updateAdiantamentoDisplay(); });
+        anuenioPercentInput.addEventListener('input', updateAnuenioDisplay);
+        adicionaisPercentInput.addEventListener('input', updateAdicionaisDisplay);
+        calcularBtn.addEventListener('click', calcularHolerite);
+
+        // Listeners de Férias
+        diasFeriasInput.addEventListener('input', updateFeriasDisplay);
+        calcularFeriasBtn.addEventListener('click', calcularFerias);
+        calcularDecimoBtn.addEventListener('click', executarCalculoDecimo);
+        
+        // Carga inicial
+        loadConfig();
+        loadDataSimulador();
+        loadDataFerias();
+        carregarPadroesDecimo();
+
+        // --- APRIMORAMENTOS EXCLUSIVOS DE UX (sem alterar fórmulas de cálculo) ---
+        const pageTitlePrefix = document.getElementById('page-title-prefix');
+        const pageTitleHighlight = document.getElementById('page-title-highlight');
+        const autosaveStatus = document.getElementById('autosave-status');
+        const titleByView = {
+            simulador: ['SIMULADOR DE', 'HOLERITE'], ferias: ['SIMULADOR DE', 'FÉRIAS'],
+            'decimo-terceiro': ['SIMULADOR DE', '13º SALÁRIO'], config: ['AJUSTES E', 'TABELAS']
+        };
+        const originalSwitchView = window.switchView;
+        window.switchView = (viewId) => {
+            originalSwitchView(viewId);
+            const [prefix, highlight] = titleByView[viewId];
+            pageTitlePrefix.textContent = prefix; pageTitleHighlight.textContent = highlight;
+            if (viewId === 'ferias') refreshSharedBase();
+            if (viewId === 'decimo-terceiro') syncSharedSalary();
+        };
+        const showSaved = () => {
+            autosaveStatus.querySelector('span').textContent = 'Salvo agora';
+            clearTimeout(showSaved.timer);
+            showSaved.timer = setTimeout(() => autosaveStatus.querySelector('span').textContent = 'Dados salvos automaticamente', 1400);
+        };
+        const refreshSharedBase = () => {
+            const value = parseFloat(salarioBaseInput.value) || 0;
+            document.getElementById('ferias-base-value').textContent = value > 0 ? formatCurrency(value) : 'Salário não informado';
+        };
+        const syncSharedSalary = () => {
+            if (!decimoSalarioBaseInput.dataset.userEdited && salarioBaseInput.value) decimoSalarioBaseInput.value = salarioBaseInput.value;
+            const value = parseFloat(decimoSalarioBaseInput.value) || 0;
+            document.getElementById('decimo-base-note').textContent = value > 0 ? formatCurrency(value) : 'Salário não informado';
+        };
+        decimoSalarioBaseInput.addEventListener('input', () => { decimoSalarioBaseInput.dataset.userEdited = 'true'; syncSharedSalary(); });
+        document.querySelectorAll('[data-go-salary]').forEach(btn => btn.addEventListener('click', () => { switchView('simulador'); setTimeout(() => salarioBaseInput.focus(), 350); }));
+
+        // Persistência durante o preenchimento e recálculo apenas quando o resultado já estiver aberto.
+        const simulatorInputs = [salarioBaseInput, diasTrabalhadosInput, anuenioPercentInput, adicionaisPercentInput, outrosProventosInput, planoSaudeInput, planoOdontologicoInput, outrosDescontosInput];
+        let recalcTimer;
+        simulatorInputs.forEach(input => input.addEventListener('input', () => {
+            saveDataSimulador(); refreshSharedBase(); showSaved();
+            clearTimeout(recalcTimer);
+            if (!resultadoDiv.classList.contains('hidden') && (parseFloat(salarioBaseInput.value) || 0) > 0) recalcTimer = setTimeout(calcularHolerite, 350);
+        }));
+        [diasFeriasInput].forEach(input => input.addEventListener('input', () => { saveDataFerias(input.value, false); showSaved(); }));
+        [decimoMesesInput, decimoVariaveisInput, decimoDependentesInput, decimoPensaoInput, decimoMesPrimeiraInput].forEach(input => input.addEventListener('input', showSaved));
+
+        // Mantém botões como ação explícita e leva o usuário ao resultado.
+        calcularBtn.addEventListener('click', () => setTimeout(() => !resultadoDiv.classList.contains('hidden') && resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50));
+        calcularFeriasBtn.addEventListener('click', () => setTimeout(() => !resultadoFeriasDiv.classList.contains('hidden') && resultadoFeriasDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50));
+        calcularDecimoBtn.addEventListener('click', () => setTimeout(() => !resultadoDecimoDiv.classList.contains('hidden') && resultadoDecimoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50));
+
+        // Inicia um cenário novo sem apagar tabelas fiscais personalizadas.
+        document.getElementById('clear-simulation').addEventListener('click', () => {
+            if (!confirm('Limpar os dados das simulações e iniciar um novo cenário?')) return;
+            ['holeriteData', 'holeriteFeriasData', 'holeriteDecimoData'].forEach(key => localStorage.removeItem(key));
+            simulatorInputs.forEach(input => input.value = input.id === 'dias-trabalhados' ? '30' : '');
+            diasFeriasInput.value = ''; decimoSalarioBaseInput.value = ''; decimoMesesInput.value = '12'; decimoVariaveisInput.value = '0'; decimoPensaoInput.value = '0';
+            delete decimoSalarioBaseInput.dataset.userEdited;
+            resultadoDiv.classList.add('hidden'); resultadoFeriasDiv.classList.add('hidden'); resultadoResidualDiv.classList.add('hidden'); resultadoDecimoDiv.classList.add('hidden');
+            updateAnuenioDisplay(); updateAdicionaisDisplay(); updateAdiantamentoDisplay(); updateFeriasDisplay(); refreshSharedBase(); syncSharedSalary(); showSaved();
+            switchView('simulador'); salarioBaseInput.focus();
+        });
+        refreshSharedBase(); syncSharedSalary(); lucide.createIcons();
+    });
+    </script>
+</body>
+</html>

@@ -151,8 +151,8 @@
                     <div class="flex flex-col gap-1.5 mb-2">
                         <label for="grupoPreventiva" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipes exibidas nos gráficos</label>
                         <select id="grupoPreventiva" onchange="alterarGrupoPreventiva(this.value)" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
-                            <option value="luz_bas_sct">LUZ, BAS e SCT</option>
-                            <option value="bas_cvn_gua">BAS, CVN e GUA</option>
+                            <option value="luz_sct">LUZ e SCT</option>
+                            <option value="luz_bas_cvn_gua">LUZ, BAS, CVN e GUA</option>
                         </select>
                         <p id="avisoGrupoPreventiva" class="hidden text-xs text-error mt-1" aria-live="polite"></p>
                     </div>
@@ -630,10 +630,10 @@
 
         const mesesDoAno = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
         const GRUPOS_PREVENTIVA = {
-            luz_bas_sct: { rotulo: 'LUZ, BAS e SCT', equipes: ['LUZ', 'BAS', 'SCT'] },
-            bas_cvn_gua: { rotulo: 'BAS, CVN e GUA', equipes: ['BAS', 'CVN', 'GUA'] }
+            luz_sct: { rotulo: 'LUZ e SCT', equipes: ['LUZ', 'SCT'] },
+            luz_bas_cvn_gua: { rotulo: 'LUZ, BAS, CVN e GUA', equipes: ['LUZ', 'BAS', 'CVN', 'GUA'] }
         };
-        let grupoPreventivaSelecionado = 'luz_bas_sct';
+        let grupoPreventivaSelecionado = 'luz_sct';
         const chartColors = { 
             primary:'#006b5f', 
             primaryContainer:'#14b8a6', 
@@ -1016,7 +1016,7 @@
         }
 
         function obterGrupoPreventivaSelecionado() {
-            return GRUPOS_PREVENTIVA[grupoPreventivaSelecionado] || GRUPOS_PREVENTIVA.luz_bas_sct;
+            return GRUPOS_PREVENTIVA[grupoPreventivaSelecionado] || GRUPOS_PREVENTIVA.luz_sct;
         }
         function equipePertenceAoGrupoPreventiva(equipe) {
             const nomes = obterGrupoPreventivaSelecionado().equipes.map(normalizarTexto);
@@ -1038,7 +1038,7 @@
         function sincronizarExclusivoLinha10() {
             const checkExclusivoL10 = document.getElementById('checkExclusivoL10');
             if (checkExclusivoL10) {
-                checkExclusivoL10.checked = grupoPreventivaSelecionado === 'luz_bas_sct';
+                checkExclusivoL10.checked = grupoPreventivaSelecionado === 'luz_sct';
             }
         }
         function alterarGrupoPreventiva(valor) {

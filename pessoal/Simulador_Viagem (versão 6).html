@@ -80,20 +80,17 @@
             </div>
             <!-- Summary Stats and actions -->
             <div class="flex flex-row flex-wrap items-center justify-center xl:justify-end gap-3 lg:gap-4 w-full xl:w-auto">
-                <div class="flex items-center justify-center gap-5 sm:gap-8 bg-slate-50 px-4 sm:px-6 py-3 rounded-2xl border border-slate-100 shrink-0">
-                <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Previsto</p>
-                    <p class="text-xl font-bold text-slate-700" id="header-total-expected">R$ 0,00</p>
-                </div>
-                <div class="w-px h-10 bg-slate-200"></div>
-                <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Alocado</p>
-                    <p class="text-xl font-bold text-emerald-600" id="header-total-allocated">R$ 0,00</p>
-                </div>
-                    <div class="w-20 h-20 hidden sm:block">
-                        <!-- Chart.js Canvas -->
-                        <canvas id="summaryChart"></canvas>
+                <div class="flex items-center gap-4 bg-slate-50 px-4 sm:px-6 py-3 rounded-2xl border border-slate-100 shrink-0">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Total de Receitas x Total de Despesas</p>
+                        <div class="flex items-center gap-5 sm:gap-8">
+                            <div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total de Receitas</p><p class="text-xl font-bold text-slate-700" id="header-total-income">R$ 0,00</p></div>
+                            <div class="w-px h-10 bg-slate-200"></div>
+                            <div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total de Despesas</p><p class="text-xl font-bold text-blue-600" id="header-total-expenses">R$ 0,00</p></div>
+                        </div>
+                        <p id="header-balance" class="mt-2 text-sm font-semibold text-slate-500">Orçamento conciliado</p>
                     </div>
+                    <div class="w-20 h-20 hidden sm:block"><canvas id="summaryChart"></canvas></div>
                 </div>
                 <div class="flex flex-nowrap items-center justify-center lg:justify-end gap-2">
                     <button id="export-backup-btn" type="button" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors shadow-sm" title="Baixar todos os dados em JSON">
@@ -115,7 +112,7 @@
     <main class="flex-1 w-full overflow-auto relative bg-[#f4f7fb] cursor-grab active:cursor-grabbing" id="canvas-container">
         
         <!-- The Board (Fixed Minimum Width for spatial layout) -->
-        <div id="board" class="relative min-w-[1100px] min-h-full mx-auto p-12 flex justify-between gap-32">
+        <div id="board" class="relative min-w-[1100px] min-h-full mx-auto p-12 flex justify-center gap-12">
             
             <!-- SVG Layer for Connection Lines -->
             <svg id="svg-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
@@ -169,10 +166,11 @@
 
         let summaryChart;
         const STORAGE_KEY = 'gestor-orcamento-visual-v1';
-        const MIN_ZOOM = 0.5;
+        const MIN_ZOOM = 0.3;
         const MAX_ZOOM = 1.5;
         const ZOOM_STEP = 0.1;
         let currentZoom = 1;
+        let pinnedHighlight = null;
 
         function loadState() {
             try {
@@ -269,6 +267,26 @@
             container.scrollLeft = 0;
         }
 
+        function fitConnectedToView(type, id) {
+            const container = document.getElementById('canvas-container');
+            const board = document.getElementById('board');
+            const elements = [];
+            if (type === 'income') {
+                const card = document.getElementById(`inc-${id}`); if (card) elements.push(card);
+                state.incomes.find(item => item.id === id)?.allocations.forEach(al => { const el = document.getElementById(`exp-${al.expenseId}`); if (el) elements.push(el); });
+            } else {
+                const card = document.getElementById(`exp-${id}`); if (card) elements.push(card);
+                state.incomes.forEach(inc => { if (inc.allocations.some(al => al.expenseId === id)) { const el = document.getElementById(`inc-${inc.id}`); if (el) elements.push(el); } });
+            }
+            if (!elements.length) return;
+            board.style.zoom = 1;
+            const boxes = elements.map(el => { const p = getRelativePos(el, board); return {left:p.x, top:p.y, right:p.x+el.offsetWidth, bottom:p.y+el.offsetHeight}; });
+            const pad = 48;
+            const bounds = {left:Math.min(...boxes.map(b=>b.left))-pad, top:Math.min(...boxes.map(b=>b.top))-pad, right:Math.max(...boxes.map(b=>b.right))+pad, bottom:Math.max(...boxes.map(b=>b.bottom))+pad};
+            const target = Math.min(1, Math.max(280, container.clientWidth-24)/(bounds.right-bounds.left), Math.max(240, container.clientHeight-24)/(bounds.bottom-bounds.top));
+            applyZoom(Math.max(MIN_ZOOM, Math.floor(target*10)/10));
+            requestAnimationFrame(() => container.scrollTo({left:Math.max(0,((bounds.left+bounds.right)/2)*currentZoom-container.clientWidth/2), top:Math.max(0,((bounds.top+bounds.bottom)/2)*currentZoom-container.clientHeight/2), behavior:'smooth'}));
+        }
         function getAllocatedForExpense(expenseId) {
             return state.incomes.reduce((total, inc) => total + inc.allocations
                 .filter(al => al.expenseId === expenseId)
@@ -618,9 +636,14 @@
                 inc.allocations.forEach(al => { totalAllocated += al.amount; });
             });
 
-            document.getElementById('header-total-expected').textContent = formatCurrency(totalExpected);
-            document.getElementById('header-total-allocated').textContent = formatCurrency(totalAllocated);
-            
+            const totalIncome = state.incomes.reduce((sum, inc) => sum + (Number(inc.total) || 0), 0);
+            const balance = totalIncome - totalExpected;
+            document.getElementById('header-total-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('header-total-expenses').textContent = formatCurrency(totalExpected);
+            const balanceEl = document.getElementById('header-balance');
+            if (balance > 0) { balanceEl.textContent = `Falta destinar ${formatCurrency(balance)} das receitas`; balanceEl.className = 'mt-2 text-sm font-semibold text-amber-600'; }
+            else if (balance < 0) { balanceEl.textContent = `Falta alocar ${formatCurrency(Math.abs(balance))} para as despesas`; balanceEl.className = 'mt-2 text-sm font-semibold text-red-600'; }
+            else { balanceEl.textContent = 'Orçamento conciliado'; balanceEl.className = 'mt-2 text-sm font-semibold text-emerald-600'; }
             updateChart();
             saveState();
         }
@@ -660,6 +683,16 @@
 
             // Buttons click
             board.addEventListener('click', e => {
+                const clickedCard = e.target.closest('.income-card, .expense-card');
+                const isInteractive = e.target.closest('input, select, button, textarea, a');
+                if (clickedCard && !isInteractive) {
+                    const type = clickedCard.classList.contains('income-card') ? 'income' : 'expense';
+                    const id = clickedCard.dataset.id;
+                    if (pinnedHighlight?.type === type && pinnedHighlight?.id === id) { pinnedHighlight = null; resetHighlight(); }
+                    else { pinnedHighlight = {type, id}; applyHighlight(type, id); fitConnectedToView(type, id); }
+                    return;
+                }
+                if (!clickedCard) { pinnedHighlight = null; resetHighlight(); }
                 const addAllocBtn = e.target.closest('.add-allocation-btn');
                 if (addAllocBtn) {
                     const incId = addAllocBtn.dataset.inc;
@@ -783,73 +816,22 @@
         }
 
         // --- HOVER / FOCUS EFFECTS (FADE & COLOR LINKS) ---
-        function handleHover(type, id, isHovering) {
-            const allIncomes = document.querySelectorAll('.income-card');
-            const allExpenses = document.querySelectorAll('.expense-card');
-            const allLines = document.querySelectorAll('path.connection-line');
-
-            if (isHovering) {
-                // Dim everything first
-                allIncomes.forEach(c => c.classList.add('dimmed'));
-                allExpenses.forEach(c => c.classList.add('dimmed'));
-                allLines.forEach(l => {
-                    l.style.opacity = '0.1';
-                    l.setAttribute('stroke', '#e2e8f0');
-                });
-
-                if (type === 'income') {
-                    // Highlight hovered income
-                    const activeInc = document.getElementById(`inc-${id}`);
-                    if(activeInc) activeInc.classList.remove('dimmed');
-
-                    const incData = state.incomes.find(i => i.id === id);
-                    if (incData) {
-                        incData.allocations.forEach(al => {
-                            // Un-dim target expenses
-                            const targetExp = document.getElementById(`exp-${al.expenseId}`);
-                            if(targetExp) targetExp.classList.remove('dimmed');
-                            
-                            // Colorize line
-                            const line = document.getElementById(`line-${id}-${al.expenseId}`);
-                            if(line) {
-                                line.style.opacity = '1';
-                                line.setAttribute('stroke', line.dataset.activeColor);
-                                line.setAttribute('stroke-width', '4');
-                            }
-                        });
-                    }
-                } else if (type === 'expense') {
-                    // Highlight hovered expense
-                    const activeExp = document.getElementById(`exp-${id}`);
-                    if(activeExp) activeExp.classList.remove('dimmed');
-
-                    // Find and highlight all incomes providing to this expense
-                    state.incomes.forEach(inc => {
-                        const provides = inc.allocations.some(a => a.expenseId === id);
-                        if (provides) {
-                            const sourceInc = document.getElementById(`inc-${inc.id}`);
-                            if(sourceInc) sourceInc.classList.remove('dimmed');
-
-                            const line = document.getElementById(`line-${inc.id}-${id}`);
-                            if(line) {
-                                line.style.opacity = '1';
-                                line.setAttribute('stroke', line.dataset.activeColor);
-                                line.setAttribute('stroke-width', '4');
-                            }
-                        }
-                    });
-                }
+        function resetHighlight() {
+            document.querySelectorAll('.income-card, .expense-card').forEach(c => c.classList.remove('dimmed'));
+            document.querySelectorAll('path.connection-line').forEach(l => { l.style.opacity='1'; l.setAttribute('stroke','#cbd5e1'); l.setAttribute('stroke-width','2'); });
+        }
+        function applyHighlight(type, id) {
+            document.querySelectorAll('.income-card, .expense-card').forEach(c => c.classList.add('dimmed'));
+            document.querySelectorAll('path.connection-line').forEach(l => { l.style.opacity='0.1'; l.setAttribute('stroke','#e2e8f0'); l.setAttribute('stroke-width','2'); });
+            if (type === 'income') {
+                document.getElementById(`inc-${id}`)?.classList.remove('dimmed');
+                state.incomes.find(i=>i.id===id)?.allocations.forEach(al => { document.getElementById(`exp-${al.expenseId}`)?.classList.remove('dimmed'); const l=document.getElementById(`line-${id}-${al.expenseId}`); if(l){l.style.opacity='1';l.setAttribute('stroke',l.dataset.activeColor);l.setAttribute('stroke-width','4');} });
             } else {
-                // Reset all
-                allIncomes.forEach(c => c.classList.remove('dimmed'));
-                allExpenses.forEach(c => c.classList.remove('dimmed'));
-                allLines.forEach(l => {
-                    l.style.opacity = '1';
-                    l.setAttribute('stroke', '#cbd5e1'); // back to slate-300
-                    l.setAttribute('stroke-width', '2');
-                });
+                document.getElementById(`exp-${id}`)?.classList.remove('dimmed');
+                state.incomes.forEach(inc => { if(inc.allocations.some(al=>al.expenseId===id)){ document.getElementById(`inc-${inc.id}`)?.classList.remove('dimmed'); const l=document.getElementById(`line-${inc.id}-${id}`); if(l){l.style.opacity='1';l.setAttribute('stroke',l.dataset.activeColor);l.setAttribute('stroke-width','4');} } });
             }
         }
+        function handleHover(type, id, isHovering) { if (pinnedHighlight) return; isHovering ? applyHighlight(type,id) : resetHighlight(); }
 
         // --- DASHBOARD CHART ---
         function initChart() {

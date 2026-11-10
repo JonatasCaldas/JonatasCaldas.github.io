@@ -62,6 +62,8 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
         .status-dot { width: 12px; height: 12px; border-radius: 9999px; display:inline-block; flex: 0 0 12px; }
+        .modelo-status { display:inline-flex; align-items:center; gap:4px; margin-left:4px; font-size:11px; font-weight:600; white-space:nowrap; }
+        .modelo-status-icon { font-size:13px; line-height:1; font-weight:700; }
         
         .resumo-legenda { display:inline-flex; gap:10px; align-items:center; font-size: 12px; color: #3c4947; }
         .resumo-legenda .leg-item { display:inline-flex; gap:6px; align-items:center; margin-right:10px; }
@@ -76,6 +78,12 @@
             gap:8px; 
             padding:8px 0; 
         }
+
+        .acao-icone { position:relative; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; opacity:.68; transition:opacity .2s, background-color .2s, color .2s; }
+        .acao-icone:hover, .acao-icone:focus-visible { opacity:1; background:#f0edec; outline:none; box-shadow:0 0 0 2px #fcf9f8,0 0 0 4px #006b5f; }
+        .acao-icone::after { content:attr(data-tooltip); position:absolute; right:0; bottom:calc(100% + 8px); z-index:50; width:max-content; max-width:220px; padding:6px 8px; border-radius:5px; background:#1c1b1b; color:#fff; font-size:11px; line-height:1.2; white-space:nowrap; opacity:0; visibility:hidden; transform:translateY(3px); transition:opacity .15s, transform .15s, visibility .15s; pointer-events:none; }
+        .acao-icone::before { content:''; position:absolute; right:15px; bottom:calc(100% + 3px); border:5px solid transparent; border-top-color:#1c1b1b; opacity:0; visibility:hidden; transition:opacity .15s, visibility .15s; pointer-events:none; }
+        .acao-icone:hover::after, .acao-icone:focus-visible::after, .acao-icone:hover::before, .acao-icone:focus-visible::before { opacity:1; visibility:visible; transform:translateY(0); }
     </style>
 
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -91,7 +99,7 @@
             <div>
                 <div class="flex items-center gap-3 text-primary mb-1">
                     <i data-lucide="cpu" class="w-6 h-6"></i>
-                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 1.4.3</h1>
+                    <h1 class="font-heading font-semibold text-2xl tracking-tight text-on-surface">MCE Analytics 2.0</h1>
                 </div>
                 <p class="text-sm text-on-surface-variant">Relatório Consolidado GOT</p>
             </div>
@@ -100,9 +108,30 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+        <div id="sidebarScroll" class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+            <!-- Preparação do relatório -->
+            <section id="preparacaoRelatorio" class="rounded-xl border border-outline-variant bg-surface-container-low p-4 space-y-3" aria-labelledby="preparacaoTitulo">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 id="preparacaoTitulo" class="font-heading font-semibold text-base text-on-surface">Preparação do relatório</h2>
+                        <p id="preparacaoResumo" class="text-xs text-on-surface-variant mt-1" aria-live="polite">Verificando etapas...</p>
+                    </div>
+                    <span id="preparacaoContador" class="shrink-0 rounded-full bg-surface-container-lowest border border-outline-variant px-2 py-1 text-xs font-semibold text-on-surface-variant">0/4</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-surface-dim overflow-hidden" aria-hidden="true">
+                    <div id="preparacaoBarra" class="h-full bg-primary transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div class="space-y-1" role="list">
+                    <button type="button" id="prepParqueMCE" onclick="navegarPreparacao('parqueMCE')" class="w-full flex items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" role="listitem"></button>
+                    <button type="button" id="prepEquipesVP" onclick="navegarPreparacao('equipesVP')" class="w-full flex items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" role="listitem"></button>
+                    <button type="button" id="prepFalhas" onclick="navegarPreparacao('falhas')" class="w-full flex items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" role="listitem"></button>
+                    <button type="button" id="prepPeriodo" onclick="navegarPreparacao('periodo')" class="w-full flex items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" role="listitem"></button>
+                </div>
+                <div id="preparacaoAlerta" class="hidden rounded-md border border-error/20 bg-error/5 px-3 py-2 text-xs text-error" aria-live="polite"></div>
+                <button type="button" id="preparacaoCorrigir" onclick="corrigirPrimeiraPendencia()" class="hidden w-full border border-primary text-primary hover:bg-primary/5 font-medium py-2 px-3 rounded-md text-xs transition-colors">Corrigir configuração</button>
+            </section>
             <!-- Período -->
-            <section class="space-y-4">
+            <section id="secaoPeriodo" class="space-y-4">
                 <div class="flex items-center gap-2 text-on-surface">
                     <i data-lucide="calendar" class="w-5 h-5 text-tertiary"></i>
                     <h2 class="font-heading font-medium text-lg">Período de Análise</h2>
@@ -110,32 +139,49 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
                         <label for="dataInicio" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Inicial</label>
-                        <input type="date" id="dataInicio" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                        <input type="date" id="dataInicio" aria-describedby="erroDataInicio sugestaoPeriodoDados" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                        <p id="erroDataInicio" class="hidden text-xs text-error" role="alert"></p>
                     </div>
                     <div class="flex flex-col gap-1.5">
                         <label for="dataFim" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Data Final</label>
-                        <input type="date" id="dataFim" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                        <input type="date" id="dataFim" aria-describedby="erroDataFim sugestaoPeriodoDados" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
+                        <p id="erroDataFim" class="hidden text-xs text-error" role="alert"></p>
                     </div>
+                </div>
+                <div id="avisoPeriodoLongo" class="hidden rounded-md border border-tertiary/30 bg-tertiary/5 px-3 py-2 text-xs text-tertiary" role="status"></div>
+                <div id="sugestaoPeriodoDados" class="hidden rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-on-surface-variant" role="status" aria-live="polite">
+                    <span id="sugestaoPeriodoTexto"></span>
+                    <button type="button" id="btnUsarPeriodoDados" onclick="usarPeriodoSugerido()" class="ml-1 font-semibold text-primary hover:text-primary-container underline underline-offset-2">Use esse período</button>
                 </div>
             </section>
 
             <hr class="border-outline-variant/50">
 
             <!-- Dados de Falhas -->
-            <section class="space-y-4">
+            <section id="secaoDadosFalhas" class="space-y-4">
                 <div class="flex items-center gap-2 text-on-surface">
                     <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
                     <h2 class="font-heading font-medium text-lg">1. Dados de Falhas</h2>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="indMes" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores do Mês (Cole do Excel)</label>
-                    <textarea id="indMes" rows="3" placeholder="Cole os dados das falhas recentes aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                    <label for="indMes" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Dados do período atual <span class="normal-case tracking-normal text-error">· obrigatório</span></label>
+                    <div class="flex items-start justify-between gap-3">
+                        <p id="descricaoIndMes" class="text-xs text-on-surface-variant">Cole os registros que serão analisados no período selecionado.</p>
+                        <button type="button" onclick="abrirModalFormatoEsperado('indMes')" class="shrink-0 text-xs font-semibold text-primary hover:text-primary-container underline underline-offset-2">Ver formato esperado</button>
+                    </div>
+                    <textarea id="indMes" rows="3" aria-describedby="descricaoIndMes feedbackIndMes" placeholder="Cole os registros do período selecionado aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                    <div id="feedbackIndMes" class="hidden rounded-md border px-3 py-3 text-xs space-y-2" aria-live="polite"></div>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="indPassados" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Indicadores Passados (Cole do Excel)</label>
-                    <textarea id="indPassados" rows="3" placeholder="Cole os dados do histórico aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                    <label for="indPassados" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Histórico comparativo <span class="normal-case tracking-normal text-error">· obrigatório</span></label>
+                    <div class="flex items-start justify-between gap-3">
+                        <p id="descricaoIndPassados" class="text-xs text-on-surface-variant">Cole os registros equivalentes do ano anterior usados nos comparativos históricos.</p>
+                        <button type="button" onclick="abrirModalFormatoEsperado('indPassados')" class="shrink-0 text-xs font-semibold text-primary hover:text-primary-container underline underline-offset-2">Ver formato esperado</button>
+                    </div>
+                    <textarea id="indPassados" rows="3" aria-describedby="descricaoIndPassados feedbackIndPassados" placeholder="Cole os registros equivalentes do ano anterior aqui..." class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface transition-colors resize-none"></textarea>
+                    <div id="feedbackIndPassados" class="hidden rounded-md border px-3 py-3 text-xs space-y-2" aria-live="polite"></div>
                 </div>
             </section>
 
@@ -145,27 +191,21 @@
             <section class="space-y-4">
                 <div class="flex items-center gap-2 text-on-surface">
                     <i data-lucide="shield-check" class="w-5 h-5 text-secondary"></i>
-                    <h2 class="font-heading font-medium text-lg">2. Dados de Preventiva</h2>
+                    <h2 class="font-heading font-medium text-lg">2. Dados de Preventiva <span class="text-xs font-normal text-on-surface-variant">· complementar</span></h2>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <div class="flex flex-col gap-1.5 mb-2">
-                        <label for="grupoPreventiva" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipes exibidas nos gráficos</label>
-                        <select id="grupoPreventiva" onchange="alterarGrupoPreventiva(this.value)" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors">
-                            <option value="luz_sct">LUZ e SCT</option>
-                            <option value="luz_bas_cvn_gua">LUZ, BAS, CVN e GUA</option>
-                        </select>
-                        <p id="avisoGrupoPreventiva" class="hidden text-xs text-error mt-1" aria-live="polite"></p>
-                    </div>
-                    <p class="text-xs text-on-surface-variant">Insira sequencialmente o volume de preventivas mensais por equipe.</p>
-                    <button onclick="abrirModalPreventiva()" class="w-full bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline font-medium py-2.5 px-4 rounded transition-all duration-200 flex items-center justify-center gap-2">
-                        <i data-lucide="list-plus" class="w-5 h-5"></i>
-                        <span>Inserir Novo Mês</span>
-                    </button>
+                    <p id="avisoGrupoPreventiva" class="hidden text-xs text-error" aria-live="polite"></p>
+                    <p class="text-xs text-on-surface-variant">Preencha ou edite diretamente o mês correspondente. Cada referência permanece fixa no calendário anual.</p>
                     <div class="flex justify-between items-center px-1 mt-1">
                         <span class="text-xs font-semibold text-on-surface-variant">Progresso Anual:</span>
                         <span class="text-xs font-bold text-primary" id="preventivaProgress">0/12</span>
                     </div>
-                    <div id="listaPreventivaSidebar" class="flex flex-col gap-1 mt-1 max-h-[140px] overflow-y-auto pr-1"></div>
+                    <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
+                        <div class="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-surface-container-low border-b border-outline-variant text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                            <span>Mês</span><span>Situação</span><span>Ação</span>
+                        </div>
+                        <div id="listaPreventivaSidebar" class="divide-y divide-outline-variant/50 max-h-[360px] overflow-y-auto"></div>
+                    </div>
                 </div>
             </section>
 
@@ -175,7 +215,7 @@
             <section class="space-y-4">
                 <div class="flex items-center gap-2 text-on-surface">
                     <i data-lucide="clipboard-list" class="w-5 h-5 text-primary"></i>
-                    <h2 class="font-heading font-medium text-lg">3. Recomendações GOT</h2>
+                    <h2 class="font-heading font-medium text-lg">3. Recomendações GOT <span class="text-xs font-normal text-on-surface-variant">· opcional</span></h2>
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label for="recomendacoesText" class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Comentários e Ações</label>
@@ -189,53 +229,61 @@
             </div>
         </div>
 
-        <div class="p-6 border-t border-outline-variant bg-surface-container flex flex-col gap-3">
-            <button id="btnProcessar" onclick="processarDados()" class="w-full bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-3 px-4 rounded transition-all duration-200 flex justify-center items-center gap-2">
-                <i data-lucide="play-circle" class="w-5 h-5"></i>
-                <span>Processar Dados</span>
-            </button>
-            <button onclick="limparCampos()" class="w-full border border-outline hover:bg-surface-dim text-on-surface font-medium py-2 px-4 rounded transition-all duration-200 text-sm">
-                Limpar Campos
-            </button>
-        </div>
     </aside>
 
     <!-- Main -->
     <main class="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
         <div id="dashboardView" class="flex-1 flex flex-col h-full overflow-hidden">
-            <header class="h-20 px-10 flex items-center justify-between border-b border-outline-variant bg-surface-container-lowest shrink-0">
-                <div>
+            <header class="min-h-24 px-8 py-3 flex items-center justify-between gap-6 border-b border-outline-variant bg-surface-container-lowest shrink-0">
+                <div class="min-w-0">
                     <h2 class="font-heading text-xl font-semibold text-on-surface">Dashboard Consolidado</h2>
-                    <p class="text-sm text-on-surface-variant" id="dashboardSubtitle">Aguardando processamento de dados...</p>
+                    <p id="statusSalvamentoLocal" class="text-xs text-secondary mt-0.5" aria-live="polite">Alterações salvas neste navegador</p>
+                    <p id="avisoAlteracoesPendentes" class="hidden text-xs font-semibold text-error mt-0.5" role="status" aria-live="polite">⚠ Há alterações ainda não aplicadas ao relatório.</p>
+                    <p class="text-sm text-on-surface-variant truncate" id="dashboardSubtitle">Aguardando processamento de dados...</p>
                 </div>
-
-                <div class="flex items-center gap-3">
-                    <input type="file" id="fileImport" accept=".json" class="hidden" onchange="processarImportacao(event)">
-
-                    <label class="flex items-center gap-2 text-sm font-medium text-on-surface-variant cursor-pointer select-none mx-1 hover:text-primary transition-colors">
-                        <div class="relative flex items-center justify-center">
-                            <input type="checkbox" id="checkExclusivoL10" class="peer appearance-none w-[18px] h-[18px] border-2 border-outline-variant rounded-full checked:bg-primary checked:border-primary cursor-pointer transition-colors outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 focus:ring-offset-surface">
-                            <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                <div class="flex items-end gap-5 shrink-0">
+                    <div class="flex flex-col gap-1" aria-label="Contexto do relatório">
+                        <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Contexto do relatório</span>
+                        <div class="flex items-center gap-4 rounded-md border border-outline-variant bg-surface-container-low px-3 py-2">
+                            <div>
+                                <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Escopo</span>
+                                <span id="contextoEscopo" class="block text-xs font-semibold text-on-surface">Todas as equipes VP</span>
+                            </div>
+                            <div class="w-px h-7 bg-outline-variant"></div>
+                            <div>
+                                <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Período</span>
+                                <span id="contextoPeriodo" class="block text-xs font-semibold text-on-surface whitespace-nowrap">Não definido</span>
+                            </div>
                         </div>
-                        Exclusivo Linha 10
-                    </label>
-
-                    <button onclick="triggerImportarDados()" class="bg-surface hover:bg-secondary/10 text-secondary border border-secondary px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                        Importar Dados
-                    </button>
-
-                    <button onclick="salvarDadosJSON()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Salvar Dados
-                    </button>
-
-                    <div class="w-px h-6 bg-outline-variant mx-1"></div>
-
-                    <button id="btnExportar" onclick="exportarPDF()" class="opacity-50 cursor-not-allowed pointer-events-none bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        Baixar Relatório PDF
-                    </button>
+                    </div>
+                    <div class="flex flex-col gap-1" aria-label="Ações do relatório">
+                        <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Ações</span>
+                        <div class="flex items-center gap-2">
+                            <button id="btnProcessar" onclick="processarDados()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <span>Atualizar relatório</span>
+                            </button>
+                            <button id="btnExportar" onclick="exportarPDF()" class="opacity-50 cursor-not-allowed pointer-events-none bg-surface-container-highest hover:bg-outline-variant text-on-surface border border-outline px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all duration-200">
+                                <i data-lucide="file-down" class="w-4 h-4"></i>
+                                Baixar PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative flex flex-col gap-1">
+                        <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Menu</span>
+                        <button id="btnMaisOpcoes" type="button" onclick="toggleMaisOpcoes(event)" aria-haspopup="menu" aria-expanded="false" class="border border-outline-variant bg-surface hover:bg-surface-container px-3 py-2 rounded font-medium text-sm flex items-center gap-2 text-on-surface transition-colors">
+                            <i data-lucide="ellipsis" class="w-4 h-4"></i>
+                            Mais opções
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <div id="menuMaisOpcoes" class="hidden absolute right-0 top-full mt-2 z-40 w-56 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-xl" role="menu">
+                            <input type="file" id="fileImport" accept=".json" class="hidden" onchange="processarImportacao(event)">
+                            <button type="button" onclick="salvarDadosJSON(); fecharMaisOpcoes();" class="w-full px-4 py-3 text-left text-sm text-on-surface hover:bg-surface-container flex items-center gap-3" role="menuitem"><i data-lucide="download" class="w-4 h-4 text-primary"></i>Exportar backup</button>
+                            <button type="button" onclick="triggerImportarDados(); fecharMaisOpcoes();" class="w-full px-4 py-3 text-left text-sm text-on-surface hover:bg-surface-container flex items-center gap-3" role="menuitem"><i data-lucide="upload-cloud" class="w-4 h-4 text-secondary"></i>Restaurar backup</button>
+                            <div class="border-t border-outline-variant"></div>
+                            <button type="button" onclick="abrirModalReiniciarRelatorio(); fecharMaisOpcoes();" class="w-full px-4 py-3 text-left text-sm text-error hover:bg-error/5 flex items-center gap-3" role="menuitem"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Reiniciar relatório</button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -245,7 +293,7 @@
                     <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center opacity-60">
                         <i data-lucide="bar-chart-2" class="w-16 h-16 text-outline mb-4"></i>
                         <h3 class="font-heading text-lg font-medium">Nenhum dado processado</h3>
-                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Insira os dados copiados do Excel no painel lateral e clique em "Processar Dados" para visualizar os gráficos.</p>
+                        <p class="text-sm text-on-surface-variant max-w-md mt-2">Insira os dados copiados do Excel no painel lateral e clique em "Atualizar relatório" para visualizar os gráficos.</p>
                     </div>
 
                     <div id="noDataState" class="hidden flex-col items-center justify-center py-20 text-center opacity-80">
@@ -278,12 +326,12 @@
                                         <div class="mb-3">
                                             <div class="resumo-legenda">
                                                 <div class="leg-item">
-                                                    <span class="status-dot" style="background:#db0000;"></span>
-                                                    <span>Falha</span>
+                                                    <span class="status-dot" style="background:#db0000;" aria-hidden="true"></span>
+                                                    <span><strong aria-hidden="true">●</strong> Com falha</span>
                                                 </div>
                                                 <div class="leg-item">
-                                                    <span class="status-dot" style="background:#16a34a;"></span>
-                                                    <span>Sem Falhas</span>
+                                                    <span class="status-dot" style="background:#16a34a;" aria-hidden="true"></span>
+                                                    <span><strong aria-hidden="true">✓</strong> Sem falha</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -333,7 +381,10 @@
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Parque Instalado x Falhas</h3>
+                                    <div class="mb-4">
+                                        <h3 class="font-heading font-medium text-lg text-on-surface">Parque Instalado x Falhas</h3>
+                                        <p class="text-xs text-on-surface-variant mt-1">Compara, por modelo, a quantidade cadastrada no parque, o total de falhas no período e o percentual de falhas sobre o parque.</p>
+                                    </div>
                                     <div class="flex-1 relative min-h-[350px]">
                                         <canvas id="chartParqueFalhas"></canvas>
                                     </div>
@@ -345,13 +396,19 @@
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Média de Falhas por Máquina (Acumulado do Ano)</h3>
+                                    <div class="mb-4">
+                                        <h3 class="font-heading font-medium text-lg text-on-surface">Média de Falhas por Máquina (Acumulado do Ano)</h3>
+                                        <p class="text-xs text-on-surface-variant mt-1">Total de falhas do modelo ÷ quantidade de máquinas do modelo no parque.</p>
+                                    </div>
                                     <div class="flex-1 relative min-h-[300px]">
                                         <canvas id="chartAcumulado"></canvas>
                                     </div>
                                 </div>
                                 <div class="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Evolução Semanal e Tendência de Falhas</h3>
+                                    <div class="mb-4">
+                                        <h3 class="font-heading font-medium text-lg text-on-surface">Evolução Semanal e Tendência de Falhas</h3>
+                                        <p class="text-xs text-on-surface-variant mt-1">A média móvel de três semanas corresponde à média das falhas da semana atual e das duas semanas anteriores disponíveis.</p>
+                                    </div>
                                     <div class="flex-1 relative min-h-[300px]">
                                         <canvas id="chartEvolucao"></canvas>
                                     </div>
@@ -363,7 +420,10 @@
                         <div class="pdf-export-chunk bg-surface">
                             <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                                 <div class="xl:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                    <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Comparativo Anual</h3>
+                                    <div class="mb-4">
+                                        <h3 class="font-heading font-medium text-lg text-on-surface">Comparativo Anual</h3>
+                                        <p class="text-xs text-on-surface-variant mt-1">Compara a quantidade mensal de falhas do ano vigente com os registros informados para o ano anterior.</p>
+                                    </div>
                                     <div class="flex-1 relative min-h-[350px]">
                                         <canvas id="chartEvolucaoMensal"></canvas>
                                     </div>
@@ -427,7 +487,10 @@
                             </div>
                             
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
+                                <div class="mb-4">
+                                    <h3 class="font-heading font-medium text-lg text-on-surface">Desempenho Mensal da Preventiva (% Meta)</h3>
+                                    <p class="text-xs text-on-surface-variant mt-1">Preventivas realizadas no mês ÷ quantidade de máquinas cadastradas no Parque VP × 100, limitado a 100%.</p>
+                                </div>
                                 <div class="flex-1 relative min-h-[350px]">
                                     <canvas id="chartPreventivaPerc"></canvas>
                                 </div>
@@ -440,7 +503,10 @@
                         <!-- NOVO GRÁFICO MULTI AXIS (Separado para paginação do PDF) -->
                         <div class="pdf-export-chunk bg-surface mt-6">
                             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical flex flex-col">
-                                <h3 class="font-heading font-medium text-lg mb-4 text-on-surface">Número de Falhas x Percentual de Preventiva</h3>
+                                <div class="mb-4">
+                                    <h3 class="font-heading font-medium text-lg text-on-surface">Número de Falhas x Percentual de Preventiva</h3>
+                                    <p class="text-xs text-on-surface-variant mt-1">O percentual considera as preventivas realizadas ÷ parque da equipe × quantidade de meses do período; as falhas são contadas pelo campo VPX.</p>
+                                </div>
                                 <div class="flex-1 relative min-h-[350px]">
                                     <canvas id="chartFalhasPreventiva"></canvas>
                                 </div>
@@ -481,19 +547,31 @@
             <div class="flex-1 overflow-y-auto p-10">
                 <div class="max-w-[800px] mx-auto space-y-8">
                     <!-- Parque Instalado -->
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                    <div id="configParqueMCE" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
                         <div class="flex justify-between items-center mb-6">
                             <div>
                                 <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
                                     <i data-lucide="sliders-horizontal" class="w-5 h-5 text-tertiary"></i>
                                     Parque Instalado de MCE
+                                    <span class="text-xs font-normal text-tertiary">· necessário para indicadores por máquina e parque instalado</span>
                                 </h3>
                                 <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por modelo para definir o parque instalado.</p>
                             </div>
-                            <button onclick="abrirModalParque()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                                Novo
-                            </button>
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <input type="file" id="csvParqueMCE" accept=".csv,text/csv" class="hidden" onchange="importarCSVParque(event, 'mce')">
+                                <button onclick="abrirModalLoteParque('mce')" class="border border-primary text-primary hover:bg-primary/5 font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="clipboard-paste" class="w-4 h-4"></i>Colar lista do Excel
+                                </button>
+                                <button onclick="document.getElementById('csvParqueMCE').click()" class="border border-tertiary text-tertiary hover:bg-tertiary/5 font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="file-up" class="w-4 h-4"></i>Importar CSV
+                                </button>
+                                <button onclick="duplicarConfiguracaoAnterior('mce')" class="border border-outline text-on-surface-variant hover:bg-surface-container font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>Duplicar anterior
+                                </button>
+                                <button onclick="abrirModalParque()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>Novo
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
                             <table class="w-full text-left text-sm text-on-surface">
@@ -508,22 +586,35 @@
                             </table>
                             <div id="listaParqueVazia" class="hidden p-8 text-center text-on-surface-variant">Nenhum modelo cadastrado. Clique em "Novo" para adicionar.</div>
                         </div>
+                        <p class="text-xs text-on-surface-variant mt-2">Os valores da tabela podem ser editados diretamente. As alterações são salvas ao sair do campo.</p>
                     </div>
 
                     <!-- Parque VP -->
-                    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
+                    <div id="configEquipesVP" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-technical">
                         <div class="flex justify-between items-center mb-6">
                             <div>
                                 <h3 class="font-heading font-medium text-lg text-on-surface flex items-center gap-2">
                                     <i data-lucide="users" class="w-5 h-5 text-tertiary"></i>
-                                    Parque de MCE por Equipe VP
+                                    Parque VP
+                                    <span class="text-xs font-normal text-tertiary">· necessário para indicadores de preventiva</span>
                                 </h3>
                                 <p class="text-sm text-on-surface-variant mt-1">Gerencie a quantidade de máquinas de chave por equipe preventiva da VP.</p>
                             </div>
-                            <button onclick="abrirModalParqueVP()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                                Novo
-                            </button>
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <input type="file" id="csvParqueVP" accept=".csv,text/csv" class="hidden" onchange="importarCSVParque(event, 'vp')">
+                                <button onclick="abrirModalLoteParque('vp')" class="border border-primary text-primary hover:bg-primary/5 font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="clipboard-paste" class="w-4 h-4"></i>Colar lista do Excel
+                                </button>
+                                <button onclick="document.getElementById('csvParqueVP').click()" class="border border-tertiary text-tertiary hover:bg-tertiary/5 font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="file-up" class="w-4 h-4"></i>Importar CSV
+                                </button>
+                                <button onclick="duplicarConfiguracaoAnterior('vp')" class="border border-outline text-on-surface-variant hover:bg-surface-container font-medium py-2 px-3 rounded-md text-sm flex items-center gap-2">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>Duplicar anterior
+                                </button>
+                                <button onclick="abrirModalParqueVP()" class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container font-medium py-2 px-4 rounded-md transition-all duration-200 flex items-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>Novo
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-hidden border border-outline-variant rounded-md bg-surface-container-lowest">
                             <table class="w-full text-left text-sm text-on-surface">
@@ -538,6 +629,7 @@
                             </table>
                             <div id="listaParqueVPVazia" class="hidden p-8 text-center text-on-surface-variant">Nenhuma equipe cadastrada. Clique em "Novo" para adicionar.</div>
                         </div>
+                        <p class="text-xs text-on-surface-variant mt-2">Os valores da tabela podem ser editados diretamente. As alterações são salvas ao sair do campo.</p>
                     </div>
                 </div>
             </div>
@@ -545,21 +637,101 @@
     </main>
 
     <!-- Modals -->
-    <div id="modalParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+    <!-- Formato esperado dos dados -->
+    <div id="modalFormatoEsperado" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="formatoEsperadoTitulo" aria-describedby="formatoEsperadoDescricao">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div class="p-6 border-b border-outline-variant flex items-start justify-between gap-4 bg-surface">
+                <div>
+                    <h3 id="formatoEsperadoTitulo" class="font-heading text-lg font-semibold text-on-surface">Formato esperado dos dados</h3>
+                    <p id="formatoEsperadoDescricao" class="text-sm text-on-surface-variant mt-1">Use o mesmo formato nos dados atuais e no histórico comparativo.</p>
+                </div>
+                <button type="button" onclick="fecharModalFormatoEsperado()" class="text-on-surface-variant hover:text-error" aria-label="Fechar formato esperado"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                <div>
+                    <h4 class="text-sm font-semibold text-on-surface mb-2">Colunas recomendadas</h4>
+                    <div class="overflow-x-auto rounded-md border border-outline-variant bg-surface-container-low">
+                        <code class="block min-w-max px-3 py-2 text-xs text-on-surface">"Data","Modelo","Descritivo da avaria","MCE","Falha","Localidade","VPX","Causa"</code>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-md border border-outline-variant p-3"><strong class="block text-on-surface">Data aceita</strong><span class="text-on-surface-variant">DD/MM/AAAA, por exemplo 31/10/2026.</span></div>
+                    <div class="rounded-md border border-outline-variant p-3"><strong class="block text-on-surface">Arquivos e colagem</strong><span class="text-on-surface-variant">Excel tabulado e CSV separado por vírgulas são aceitos.</span></div>
+                    <div class="rounded-md border border-outline-variant p-3"><strong class="block text-on-surface">Primeira linha</strong><span class="text-on-surface-variant">Deve conter os cabeçalhos das colunas.</span></div>
+                    <div class="rounded-md border border-outline-variant p-3"><strong class="block text-on-surface">Mínimo obrigatório</strong><span class="text-on-surface-variant">Modelo e Localidade.</span></div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-on-surface mb-2">Nomes de coluna reconhecidos</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Data</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Modelo</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Descritivo da avaria</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">MCE</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Falha</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Localidade</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">VPX</span>
+                        <span class="rounded-full bg-surface-container px-2.5 py-1 text-xs">Causa</span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant mt-2">Data, MCE, Causa e VPX alimentam análises específicas. Se estiverem ausentes, alguns gráficos ou validações podem ficar incompletos.</p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-on-surface mb-2">Exemplo compacto</h4>
+                    <div class="overflow-x-auto rounded-md border border-outline-variant bg-surface-container-low">
+                        <pre class="min-w-max px-3 py-2 text-xs leading-5 text-on-surface">Data	Modelo	Descritivo da avaria	MCE	Falha	Localidade	VPX	Causa
+31/10/2026	MD2000	Falha de acionamento	MCE-001	Sim	Lapa	BAS	Componente</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end">
+                <button type="button" onclick="fecharModalFormatoEsperado()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary rounded">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preenchimento em lote dos parques -->
+    <div id="modalLoteParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalLoteParqueTitulo">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
+                <div>
+                    <h3 id="modalLoteParqueTitulo" class="font-heading text-lg font-semibold text-on-surface">Colar lista do Excel</h3>
+                    <p id="modalLoteParqueDescricao" class="text-sm text-on-surface-variant mt-1"></p>
+                </div>
+                <button type="button" onclick="fecharModalLoteParque()" class="text-on-surface-variant hover:text-error" aria-label="Fechar preenchimento em lote"><i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i></button>
+            </div>
+            <div class="p-6 space-y-3">
+                <div id="resumoErrosLoteParque" class="hidden rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert" tabindex="-1"></div>
+                <input type="hidden" id="tipoLoteParque" value="mce">
+                <textarea id="textoLoteParque" rows="10" aria-describedby="erroLoteParque" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface resize-y" placeholder="Modelo	Quantidade
+MD2000	45
+MD500	18"></textarea>
+                <p class="text-xs text-on-surface-variant">A primeira linha pode conter o cabeçalho. Registros existentes com o mesmo modelo ou equipe serão atualizados.</p>
+                <div id="erroLoteParque" class="hidden rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert"></div>
+            </div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
+                <button type="button" onclick="fecharModalLoteParque()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded">Cancelar</button>
+                <button type="button" onclick="salvarLoteParque()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary rounded">Aplicar lista</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalParque" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalParqueTitle">
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueContent">
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueTitle">Novo Modelo</h3>
-                <button onclick="fecharModalParque()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="fecharModalParque()" class="text-on-surface-variant hover:text-error transition-colors" aria-label="Fechar cadastro de modelo"><i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i></button>
             </div>
             <div class="p-6 space-y-4">
+                <div id="resumoErrosParque" class="hidden rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert" tabindex="-1"></div>
                 <input type="hidden" id="parqueIndex" value="-1">
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Modelo</label>
-                    <input type="text" id="parqueModelo" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: MD2000">
+                    <input type="text" id="parqueModelo" aria-describedby="erroParqueModelo" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: MD2000">
+                    <p id="erroParqueModelo" class="hidden text-xs text-error" role="alert"></p>
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
-                    <input type="number" id="parqueQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 5">
+                    <input type="number" id="parqueQuantidade" min="1" step="1" aria-describedby="erroParqueQuantidade" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 5">
+                    <p id="erroParqueQuantidade" class="hidden text-xs text-error" role="alert"></p>
                 </div>
             </div>
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
@@ -569,21 +741,24 @@
         </div>
     </div>
 
-    <div id="modalParqueVP" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+    <div id="modalParqueVP" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalParqueVPTitle">
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalParqueVPContent">
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalParqueVPTitle">Nova Equipe</h3>
-                <button onclick="fecharModalParqueVP()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="fecharModalParqueVP()" class="text-on-surface-variant hover:text-error transition-colors" aria-label="Fechar cadastro de equipe"><i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i></button>
             </div>
             <div class="p-6 space-y-4">
+                <div id="resumoErrosParqueVP" class="hidden rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert" tabindex="-1"></div>
                 <input type="hidden" id="parqueVPIndex" value="-1">
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe</label>
-                    <input type="text" id="parqueVPEquipe" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: Equipe Alpha">
+                    <input type="text" id="parqueVPEquipe" aria-describedby="erroParqueVPEquipe" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: Equipe Alpha">
+                    <p id="erroParqueVPEquipe" class="hidden text-xs text-error" role="alert"></p>
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Quantidade</label>
-                    <input type="number" id="parqueVPQuantidade" min="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 12">
+                    <input type="number" id="parqueVPQuantidade" min="1" step="1" aria-describedby="erroParqueVPQuantidade" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface transition-colors focus:ring-2 focus:ring-primary/20" placeholder="Ex: 12">
+                    <p id="erroParqueVPQuantidade" class="hidden text-xs text-error" role="alert"></p>
                 </div>
             </div>
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
@@ -593,14 +768,16 @@
         </div>
     </div>
 
-    <div id="modalPreventiva" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4">
+    <div id="modalPreventiva" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalPreventivaTitle">
         <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200" id="modalPreventivaContent">
             <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface">
                 <h3 class="font-heading text-lg font-semibold text-on-surface" id="modalPreventivaTitle">Inserir Preventiva</h3>
-                <button onclick="fecharModalPreventiva()" class="text-on-surface-variant hover:text-error transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="fecharModalPreventiva()" class="text-on-surface-variant hover:text-error transition-colors" aria-label="Fechar preventiva"><i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i></button>
             </div>
             <input type="hidden" id="preventivaIndex" value="-1">
+            <div id="resumoErrosPreventiva" class="hidden mx-6 mt-6 rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert" tabindex="-1"></div>
             <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto" id="modalPreventivaBody"></div>
+            <div id="erroModalPreventiva" class="hidden mx-6 mb-2 rounded-md border border-error/30 bg-error/5 px-3 py-2 text-sm text-error" role="alert"></div>
             <div class="p-6 border-t border-outline-variant bg-surface flex justify-end gap-3">
                 <button onclick="fecharModalPreventiva()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded transition-colors">Cancelar</button>
                 <button onclick="salvarPreventiva()" class="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container rounded transition-colors">Salvar Registro</button>
@@ -608,6 +785,60 @@
         </div>
     </div>
 
+    <!-- Reiniciar relatório -->
+    <div id="modalReiniciarRelatorio" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reiniciarRelatorioTitulo" aria-describedby="reiniciarRelatorioDescricao">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="p-6 border-b border-outline-variant">
+                <h3 id="reiniciarRelatorioTitulo" class="font-heading text-lg font-semibold text-on-surface">Reiniciar relatório?</h3>
+                <p id="reiniciarRelatorioDescricao" class="text-sm text-on-surface-variant mt-2">Escolha o que deve ser removido. Os parques de MCE e das equipes VP serão preservados nas duas opções.</p>
+            </div>
+            <div class="p-6 space-y-3">
+                <button type="button" onclick="confirmarReinicioRelatorio('dados')" class="w-full rounded-lg border border-outline-variant p-4 text-left hover:bg-surface-container-low transition-colors">
+                    <span class="block text-sm font-semibold text-on-surface">Limpar dados colados</span>
+                    <span class="block text-xs text-on-surface-variant mt-1">Remove os dados do período atual e anterior, além dos gráficos processados. Mantém recomendações e preventivas mensais.</span>
+                </button>
+                <button type="button" onclick="confirmarReinicioRelatorio('completo')" class="w-full rounded-lg border border-error/40 p-4 text-left hover:bg-error/5 transition-colors">
+                    <span class="block text-sm font-semibold text-error">Reiniciar relatório completo</span>
+                    <span class="block text-xs text-on-surface-variant mt-1">Remove dados atuais, históricos, recomendações, preventivas mensais e gráficos. Os parques configurados permanecem salvos.</span>
+                </button>
+            </div>
+            <div class="p-6 border-t border-outline-variant bg-surface flex justify-end">
+                <button type="button" onclick="fecharModalReiniciarRelatorio()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Confirmação de ação destrutiva -->
+    <div id="modalConfirmacao" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmacaoTitulo" aria-describedby="confirmacaoDescricao">
+        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-6 border-b border-outline-variant">
+                <h3 id="confirmacaoTitulo" class="font-heading text-lg font-semibold text-on-surface"></h3>
+                <p id="confirmacaoDescricao" class="text-sm text-on-surface-variant mt-2"></p>
+            </div>
+            <div class="p-6 bg-surface flex justify-end gap-3">
+                <button type="button" id="btnCancelarConfirmacao" onclick="fecharConfirmacao()" class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-dim rounded">Cancelar</button>
+                <button type="button" id="btnExecutarConfirmacao" class="px-4 py-2 text-sm font-medium bg-error text-white hover:bg-error/90 rounded">Excluir</button>
+            </div>
+        </div>
+    </div>
+    <!-- Mensagem não bloqueante -->
+    <div id="toastImportacao" class="fixed top-5 right-5 z-[60] hidden max-w-md rounded-lg border bg-surface-container-lowest px-4 py-3 shadow-xl" role="status" aria-live="polite" aria-atomic="true">
+        <div class="flex items-start gap-3">
+            <i id="toastImportacaoIcone" data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i>
+            <p id="toastImportacaoTexto" class="text-sm font-medium"></p>
+            <button type="button" onclick="ocultarMensagemImportacao()" class="ml-2 text-on-surface-variant hover:text-on-surface" aria-label="Fechar mensagem">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+    <!-- Desfazer reinício -->
+    <div id="toastDesfazerReinicio" class="fixed bottom-5 right-5 z-[65] hidden max-w-md rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 shadow-xl" role="status" aria-live="polite" aria-atomic="true">
+        <div class="flex items-center gap-3">
+            <i data-lucide="rotate-ccw" class="w-5 h-5 shrink-0 text-primary"></i>
+            <p id="toastDesfazerTexto" class="text-sm font-medium text-on-surface"></p>
+            <button type="button" onclick="desfazerReinicioRelatorio()" class="ml-2 text-sm font-semibold text-primary hover:text-primary-container">Desfazer</button>
+            <span id="toastDesfazerContador" class="text-xs text-on-surface-variant tabular-nums">5s</span>
+        </div>
+    </div>
     <!-- Loading overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-surface-container-lowest">
         <i data-lucide="loader-2" class="w-12 h-12 animate-spin mb-4"></i>
@@ -627,13 +858,11 @@
         let lastDadosFiltrados = [];
         let lastDtInicioObj = null;
         let lastDtFimObj = null;
+        let relatorioProcessado = false;
+        let relatorioComAlteracoesPendentes = false;
+        let timerAtualizacaoAutomatica = null;
 
         const mesesDoAno = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-        const GRUPOS_PREVENTIVA = {
-            luz_sct: { rotulo: 'LUZ e SCT', equipes: ['LUZ', 'SCT'] },
-            luz_bas_cvn_gua: { rotulo: 'LUZ, BAS, CVN e GUA', equipes: ['LUZ', 'BAS', 'CVN', 'GUA'] }
-        };
-        let grupoPreventivaSelecionado = 'luz_sct';
         const chartColors = { 
             primary:'#006b5f', 
             primaryContainer:'#14b8a6', 
@@ -705,59 +934,359 @@
             renderizarListaParque();
             renderizarListaParqueVP();
             configurarAutoSave();
+            atualizarStatusSalvamentoLocal();
+            validarIntervaloDatas();
+            atualizarPreparacaoRelatorio();
         });
 
+        function formatarDataContexto(valor) {
+            if (!valor) return '';
+            const partes = valor.split('-');
+            return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : valor;
+        }
+        function atualizarContextoCabecalho() {
+            const inicio = document.getElementById('dataInicio').value;
+            const fim = document.getElementById('dataFim').value;
+            const periodo = document.getElementById('contextoPeriodo');
+            const escopo = document.getElementById('contextoEscopo');
+            if (periodo) periodo.textContent = inicio && fim ? `${formatarDataContexto(inicio)} a ${formatarDataContexto(fim)}` : 'Não definido';
+            if (escopo) escopo.textContent = dadosParqueVP.length ? `${dadosParqueVP.length} equipe${dadosParqueVP.length !== 1 ? 's' : ''} VP` : 'Todas as equipes VP';
+        }
+        function toggleMaisOpcoes(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('menuMaisOpcoes');
+            const botao = document.getElementById('btnMaisOpcoes');
+            const abrir = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !abrir);
+            botao.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+            if (abrir) setTimeout(() => menu.querySelector('[role="menuitem"]').focus(), 0);
+        }
+        function fecharMaisOpcoes() {
+            const menu = document.getElementById('menuMaisOpcoes');
+            const botao = document.getElementById('btnMaisOpcoes');
+            if (menu) menu.classList.add('hidden');
+            if (botao) botao.setAttribute('aria-expanded', 'false');
+        }
+        document.addEventListener('click', (event) => {
+            const menu = document.getElementById('menuMaisOpcoes');
+            const botao = document.getElementById('btnMaisOpcoes');
+            if (menu && botao && !menu.contains(event.target) && !botao.contains(event.target)) fecharMaisOpcoes();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') fecharMaisOpcoes();
+        });
+        const seletoresFocoModal = 'button:not([disabled]), [href], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        let modalAtivo = null;
+        let acionadorModal = null;
+        function obterElementosFocaveisModal(modal) {
+            return Array.from(modal.querySelectorAll(seletoresFocoModal)).filter(elemento => {
+                const estilo = window.getComputedStyle(elemento);
+                return estilo.visibility !== 'hidden' && estilo.display !== 'none' && !elemento.closest('[inert]');
+            });
+        }
+        function bloquearConteudoDeFundo(modal) {
+            document.querySelectorAll('body > aside, body > main').forEach(elemento => {
+                elemento.inert = true;
+                elemento.setAttribute('aria-hidden', 'true');
+            });
+            document.body.classList.add('overflow-hidden');
+            modal.removeAttribute('aria-hidden');
+        }
+        function liberarConteudoDeFundo() {
+            document.querySelectorAll('body > aside, body > main').forEach(elemento => {
+                elemento.inert = false;
+                elemento.removeAttribute('aria-hidden');
+            });
+            document.body.classList.remove('overflow-hidden');
+        }
+        function ativarModalAcessivel(modal) {
+            if (!modal || modalAtivo === modal) return;
+            acionadorModal = document.activeElement && !modal.contains(document.activeElement) ? document.activeElement : acionadorModal;
+            modalAtivo = modal;
+            bloquearConteudoDeFundo(modal);
+            setTimeout(() => {
+                const focaveis = obterElementosFocaveisModal(modal);
+                const primeiroCampo = focaveis.find(elemento => /^(INPUT|SELECT|TEXTAREA)$/.test(elemento.tagName));
+                const destino = primeiroCampo || focaveis[0] || modal;
+                if (!destino.hasAttribute('tabindex') && destino === modal) destino.setAttribute('tabindex', '-1');
+                destino.focus();
+            }, 0);
+        }
+        function desativarModalAcessivel(modal) {
+            if (!modal || modalAtivo !== modal) return;
+            modal.setAttribute('aria-hidden', 'true');
+            modalAtivo = null;
+            liberarConteudoDeFundo();
+            const retorno = acionadorModal;
+            acionadorModal = null;
+            if (retorno && retorno.isConnected && typeof retorno.focus === 'function') setTimeout(() => retorno.focus(), 0);
+        }
+        function fecharModalAtivo() {
+            if (!modalAtivo) return;
+            const fechamentos = {
+                modalFormatoEsperado: fecharModalFormatoEsperado,
+                modalLoteParque: fecharModalLoteParque,
+                modalParque: fecharModalParque,
+                modalParqueVP: fecharModalParqueVP,
+                modalPreventiva: fecharModalPreventiva,
+                modalReiniciarRelatorio: fecharModalReiniciarRelatorio,
+                modalConfirmacao: fecharConfirmacao
+            };
+            const fechar = fechamentos[modalAtivo.id];
+            if (typeof fechar === 'function') fechar();
+        }
+        document.addEventListener('keydown', event => {
+            if (!modalAtivo) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                fecharModalAtivo();
+                return;
+            }
+            if (event.key !== 'Tab') return;
+            const focaveis = obterElementosFocaveisModal(modalAtivo);
+            if (!focaveis.length) {
+                event.preventDefault();
+                modalAtivo.focus();
+                return;
+            }
+            const primeiro = focaveis[0];
+            const ultimo = focaveis[focaveis.length - 1];
+            if (event.shiftKey && document.activeElement === primeiro) {
+                event.preventDefault();
+                ultimo.focus();
+            } else if (!event.shiftKey && document.activeElement === ultimo) {
+                event.preventDefault();
+                primeiro.focus();
+            }
+        }, true);
+        const observadorModais = new MutationObserver(mudancas => {
+            mudancas.forEach(mudanca => {
+                const modal = mudanca.target;
+                if (!(modal instanceof HTMLElement) || modal.getAttribute('role') !== 'dialog') return;
+                const aberto = !modal.classList.contains('hidden');
+                if (aberto) ativarModalAcessivel(modal);
+                else desativarModalAcessivel(modal);
+            });
+        });
+        document.querySelectorAll('[role="dialog"]').forEach(modal => {
+            modal.setAttribute('aria-hidden', modal.classList.contains('hidden') ? 'true' : 'false');
+            observadorModais.observe(modal, { attributes:true, attributeFilter:['class'] });
+        });
         // ========== STORAGE E CARREGAMENTO ==========
         function carregarLocalStorage() {
-            const parqueSalvo = localStorage.getItem('mch_parque');
-            if (parqueSalvo) try { dadosParqueInstalado = JSON.parse(parqueSalvo); } catch (e) {}
-            
-            const parqueVPSalvo = localStorage.getItem('mch_parque_vp');
-            if (parqueVPSalvo) try { dadosParqueVP = JSON.parse(parqueVPSalvo); } catch (e) {}
-            
-            const grupoPreventivaSalvo = localStorage.getItem('mch_preventiva_grupo_exibicao');
-            if (grupoPreventivaSalvo && GRUPOS_PREVENTIVA[grupoPreventivaSalvo]) {
-                grupoPreventivaSelecionado = grupoPreventivaSalvo;
-            }
-            const seletorGrupoPreventiva = document.getElementById('grupoPreventiva');
-            if (seletorGrupoPreventiva) seletorGrupoPreventiva.value = grupoPreventivaSelecionado;
-            sincronizarExclusivoLinha10();
-            const prevMensalSalva = localStorage.getItem('mch_preventiva_mensal');
-            if (prevMensalSalva) try { 
-                dadosPreventivaMensal = JSON.parse(prevMensalSalva); 
-                atualizarProgressoPreventiva(); 
-            } catch(e){}
-            
-            const textMes = localStorage.getItem('mch_indMes'); 
+            const falhasRestauracaoLocal = [];
+            const restaurarJSONLocal = (chave, aplicar, descricao) => {
+                const valor = localStorage.getItem(chave);
+                if (!valor) return;
+                try {
+                    aplicar(JSON.parse(valor));
+                } catch (erro) {
+                    falhasRestauracaoLocal.push(descricao);
+                }
+            };
+            restaurarJSONLocal('mch_parque', valor => { dadosParqueInstalado = Array.isArray(valor) ? valor : []; }, 'Parque de MCE');
+            restaurarJSONLocal('mch_parque_vp', valor => { dadosParqueVP = Array.isArray(valor) ? valor : []; }, 'Parque VP');
+            restaurarJSONLocal('mch_preventiva_mensal', valor => {
+                dadosPreventivaMensal = normalizarGradePreventiva(valor);
+                atualizarProgressoPreventiva();
+            }, 'preventivas mensais');
+            const textMes = localStorage.getItem('mch_indMes');
             if (textMes) document.getElementById('indMes').value = textMes;
-            
-            const textPassado = localStorage.getItem('mch_indPassados'); 
+            const textPassado = localStorage.getItem('mch_indPassados');
             if (textPassado) document.getElementById('indPassados').value = textPassado;
-            
-            const textRec = localStorage.getItem('mch_recomendacoes'); 
+            const textRec = localStorage.getItem('mch_recomendacoes');
             if (textRec) document.getElementById('recomendacoesText').value = textRec;
-            
-            const dataI = localStorage.getItem('mch_dataInicio'); 
+            const dataI = localStorage.getItem('mch_dataInicio');
             const dataF = localStorage.getItem('mch_dataFim');
-            if (dataI && dataF) { 
-                document.getElementById('dataInicio').value = dataI; 
-                document.getElementById('dataFim').value = dataF; 
-            } else {
-                definirDatasPadrao();
+            if (dataI && dataF) {
+                document.getElementById('dataInicio').value = dataI;
+                document.getElementById('dataFim').value = dataF;
+            } else definirDatasPadrao();
+            if (falhasRestauracaoLocal.length) {
+                setTimeout(() => mostrarToast(`Não foi possível restaurar os dados salvos neste navegador (${falhasRestauracaoLocal.join(', ')}). Os demais dados foram carregados normalmente.`, 'erro'), 0);
             }
         }
-
+        function registrarSalvamentoLocal() {
+            const agora = new Date();
+            localStorage.setItem('mch_ultimo_salvamento', agora.toISOString());
+            atualizarStatusSalvamentoLocal(agora);
+        }
+        function atualizarStatusSalvamentoLocal(data = null) {
+            const status = document.getElementById('statusSalvamentoLocal');
+            if (!status) return;
+            const salvo = data || (localStorage.getItem('mch_ultimo_salvamento') ? new Date(localStorage.getItem('mch_ultimo_salvamento')) : null);
+            status.textContent = salvo && !isNaN(salvo) ? `Alterações salvas neste navegador às ${salvo.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}` : 'Alterações salvas neste navegador';
+        }
+        function definirAlteracoesPendentes(pendente) {
+            if (!relatorioProcessado && pendente) return;
+            relatorioComAlteracoesPendentes = pendente;
+            const aviso = document.getElementById('avisoAlteracoesPendentes');
+            const btnExportar = document.getElementById('btnExportar');
+            if (aviso) aviso.classList.toggle('hidden', !pendente);
+            if (btnExportar) {
+                btnExportar.classList.toggle('opacity-50', pendente);
+                btnExportar.classList.toggle('cursor-not-allowed', pendente);
+                btnExportar.classList.toggle('pointer-events-none', pendente);
+                btnExportar.setAttribute('aria-disabled', pendente ? 'true' : 'false');
+                btnExportar.title = pendente ? 'Aguarde a atualização automática do relatório antes de gerar o PDF.' : '';
+            }
+        }
+        function agendarAtualizacaoAutomatica(atraso = 400) {
+            if (!relatorioProcessado) return;
+            definirAlteracoesPendentes(true);
+            clearTimeout(timerAtualizacaoAutomatica);
+            timerAtualizacaoAutomatica = setTimeout(() => {
+                const estado = obterEstadoPreparacao();
+                const dadosAtuais = analisarDadosColados(document.getElementById('indMes').value);
+                const textoPassado = document.getElementById('indPassados').value.trim();
+                const dadosPassados = textoPassado ? analisarDadosColados(textoPassado) : null;
+                if (!estado.periodoValido || dadosAtuais.vazio || dadosAtuais.erros.length || !dadosPassados || dadosPassados.vazio || dadosPassados.erros.length) return;
+                processarDados(true);
+            }, atraso);
+        }
+        function atualizarRecomendacoesRelatorio() {
+            if (!relatorioProcessado) return;
+            const recRaw = document.getElementById('recomendacoesText').value.trim();
+            const recCont = document.getElementById('section-recomendacoes-container');
+            document.getElementById('dashboardRecomendacoes').innerText = recRaw;
+            recCont.classList.toggle('hidden', !recRaw);
+            recCont.classList.toggle('flex', Boolean(recRaw));
+        }
         function configurarAutoSave() {
             document.getElementById('indMes').addEventListener('input', (e) => {
                 localStorage.setItem('mch_indMes', e.target.value);
+                registrarSalvamentoLocal();
                 renderizarResumoFalhas(parseExcelData(e.target.value).data);
+                atualizarPreparacaoRelatorio();
+                atualizarValidacaoColagem('indMes', 'feedbackIndMes');
+                validarIntervaloDatas();
+                agendarAtualizacaoAutomatica(400);
             });
-            document.getElementById('indPassados').addEventListener('input', (e) => localStorage.setItem('mch_indPassados', e.target.value));
-            document.getElementById('recomendacoesText').addEventListener('input', (e) => localStorage.setItem('mch_recomendacoes', e.target.value));
-            document.getElementById('dataInicio').addEventListener('change', (e) => localStorage.setItem('mch_dataInicio', e.target.value));
-            document.getElementById('dataFim').addEventListener('change', (e) => localStorage.setItem('mch_dataFim', e.target.value));
+            document.getElementById('indPassados').addEventListener('input', (e) => {
+                localStorage.setItem('mch_indPassados', e.target.value);
+                registrarSalvamentoLocal();
+                atualizarValidacaoColagem('indPassados', 'feedbackIndPassados');
+                agendarAtualizacaoAutomatica(400);
+            });
+            document.getElementById('recomendacoesText').addEventListener('input', (e) => {
+                localStorage.setItem('mch_recomendacoes', e.target.value);
+                registrarSalvamentoLocal();
+                if (relatorioProcessado) definirAlteracoesPendentes(true);
+                clearTimeout(timerAtualizacaoAutomatica);
+                timerAtualizacaoAutomatica = setTimeout(() => {
+                    atualizarRecomendacoesRelatorio();
+                    if (relatorioProcessado) definirAlteracoesPendentes(false);
+                }, 400);
+            });
+            document.getElementById('dataInicio').addEventListener('change', (e) => {
+                localStorage.setItem('mch_dataInicio', e.target.value);
+                registrarSalvamentoLocal();
+                const periodoValido = validarIntervaloDatas();
+                atualizarPreparacaoRelatorio();
+                atualizarValidacoesColagem();
+                atualizarContextoCabecalho();
+                if (periodoValido) agendarAtualizacaoAutomatica(0);
+            });
+            document.getElementById('dataFim').addEventListener('change', (e) => {
+                localStorage.setItem('mch_dataFim', e.target.value);
+                registrarSalvamentoLocal();
+                const periodoValido = validarIntervaloDatas();
+                atualizarPreparacaoRelatorio();
+                atualizarValidacoesColagem();
+                atualizarContextoCabecalho();
+                if (periodoValido) agendarAtualizacaoAutomatica(0);
+            });
         }
 
+        let periodoSugeridoDados = null;
+        function criarDataLocal(valor, fimDia = false) {
+            if (!valor) return null;
+            const partes = valor.split('-').map(Number);
+            if (partes.length !== 3 || partes.some(Number.isNaN)) return null;
+            const data = new Date(partes[0], partes[1] - 1, partes[2]);
+            if (fimDia) data.setHours(23,59,59,999); else data.setHours(0,0,0,0);
+            return data;
+        }
+        function formatarDataInput(data) {
+            return `${data.getFullYear()}-${String(data.getMonth()+1).padStart(2,'0')}-${String(data.getDate()).padStart(2,'0')}`;
+        }
+        function obterPeriodoDadosAtuais() {
+            const analise = analisarDadosColados(document.getElementById('indMes').value);
+            if (!analise.datasValidas.length) return null;
+            const datas = analise.datasValidas.slice().sort((a,b) => a-b);
+            return { inicio:datas[0], fim:datas[datas.length-1] };
+        }
+        function definirErroData(campoId, erroId, mensagem = '') {
+            const campo = document.getElementById(campoId);
+            const erro = document.getElementById(erroId);
+            if (!campo || !erro) return;
+            erro.textContent = mensagem;
+            erro.classList.toggle('hidden', !mensagem);
+            campo.classList.toggle('border-error', Boolean(mensagem));
+            if (mensagem) campo.setAttribute('aria-invalid', 'true');
+            else campo.removeAttribute('aria-invalid');
+        }
+        function validarIntervaloDatas() {
+            const inicioValor = document.getElementById('dataInicio').value;
+            const fimValor = document.getElementById('dataFim').value;
+            const inicio = criarDataLocal(inicioValor);
+            const fim = criarDataLocal(fimValor, true);
+            const avisoLongo = document.getElementById('avisoPeriodoLongo');
+            const sugestao = document.getElementById('sugestaoPeriodoDados');
+            const sugestaoTexto = document.getElementById('sugestaoPeriodoTexto');
+            definirErroData('dataInicio', 'erroDataInicio');
+            definirErroData('dataFim', 'erroDataFim');
+            avisoLongo.classList.add('hidden');
+            let valido = true;
+            if (!inicioValor) {
+                definirErroData('dataInicio', 'erroDataInicio', 'Informe a data inicial.');
+                valido = false;
+            }
+            if (!fimValor) {
+                definirErroData('dataFim', 'erroDataFim', 'Informe a data final.');
+                valido = false;
+            }
+            if (inicio && fim && inicio > fim) {
+                definirErroData('dataInicio', 'erroDataInicio', 'A data inicial não pode ser posterior à data final.');
+                definirErroData('dataFim', 'erroDataFim', 'A data final deve ser igual ou posterior à data inicial.');
+                valido = false;
+            }
+            if (inicio && fim && inicio <= fim) {
+                const dias = Math.floor((fim - inicio) / 86400000) + 1;
+                if (dias > 366) {
+                    avisoLongo.textContent = `O período selecionado possui ${dias} dias. Considere usar até 12 meses para manter os comparativos legíveis.`;
+                    avisoLongo.classList.remove('hidden');
+                }
+            }
+            periodoSugeridoDados = obterPeriodoDadosAtuais();
+            if (periodoSugeridoDados) {
+                const cobreDados = inicio && fim && inicio <= periodoSugeridoDados.inicio && fim >= periodoSugeridoDados.fim;
+                if (!cobreDados || !valido) {
+                    sugestaoTexto.textContent = `Os dados colados vão de ${formatarDataBR(periodoSugeridoDados.inicio)} a ${formatarDataBR(periodoSugeridoDados.fim)}.`;
+                    sugestao.classList.remove('hidden');
+                } else sugestao.classList.add('hidden');
+            } else {
+                periodoSugeridoDados = null;
+                sugestao.classList.add('hidden');
+            }
+            return valido;
+        }
+        function usarPeriodoSugerido() {
+            if (!periodoSugeridoDados) return;
+            const inicio = formatarDataInput(periodoSugeridoDados.inicio);
+            const fim = formatarDataInput(periodoSugeridoDados.fim);
+            document.getElementById('dataInicio').value = inicio;
+            document.getElementById('dataFim').value = fim;
+            localStorage.setItem('mch_dataInicio', inicio);
+            localStorage.setItem('mch_dataFim', fim);
+            registrarSalvamentoLocal();
+            validarIntervaloDatas();
+            atualizarPreparacaoRelatorio();
+            atualizarValidacoesColagem();
+            atualizarContextoCabecalho();
+            if (relatorioProcessado) agendarAtualizacaoAutomatica(0);
+        }
         function definirDatasPadrao() {
             const hoje = new Date();
             const dataMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
@@ -768,48 +1297,263 @@
             document.getElementById('dataFim').value = formatarData(ultimoDia);
         }
 
-        function limparCampos() {
+        let estadoAntesReinicio = null;
+        let timerDesfazerReinicio = null;
+        let intervaloDesfazerReinicio = null;
+        let focoAntesReinicio = null;
+        function abrirModalReiniciarRelatorio() {
+            focoAntesReinicio = document.activeElement;
+            const modal = document.getElementById('modalReiniciarRelatorio');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.querySelector('button').focus(), 0);
+        }
+        function fecharModalReiniciarRelatorio() {
+            const modal = document.getElementById('modalReiniciarRelatorio');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (focoAntesReinicio && focoAntesReinicio.focus) focoAntesReinicio.focus();
+        }
+        function capturarEstadoRelatorio() {
+            return {
+                indMes: document.getElementById('indMes').value,
+                indPassados: document.getElementById('indPassados').value,
+                recomendacoes: document.getElementById('recomendacoesText').value,
+                preventivaMensal: JSON.parse(JSON.stringify(dadosPreventivaMensal)),
+                possuiaRelatorioProcessado: !document.getElementById('chartsContainer').classList.contains('hidden')
+            };
+        }
+        function confirmarReinicioRelatorio(escopo) {
+            estadoAntesReinicio = capturarEstadoRelatorio();
+            fecharModalReiniciarRelatorio();
+            limparCampos(escopo);
+            mostrarDesfazerReinicio(escopo === 'completo' ? 'Relatório reiniciado.' : 'Dados colados removidos.');
+        }
+        function limparCampos(escopo = 'completo') {
             document.getElementById('indMes').value = '';
             document.getElementById('indPassados').value = '';
-            document.getElementById('recomendacoesText').value = '';
-            document.getElementById('errorMessage').classList.add('hidden');
-            localStorage.removeItem('mch_indMes'); 
-            localStorage.removeItem('mch_indPassados'); 
-            localStorage.removeItem('mch_recomendacoes');
-            dadosPreventivaMensal = []; 
-            localStorage.removeItem('mch_preventiva_mensal'); 
-            atualizarProgressoPreventiva();
-            
+            registrarSalvamentoLocal();
+                    document.getElementById('errorMessage').classList.add('hidden');
+            localStorage.removeItem('mch_indMes');
+            localStorage.removeItem('mch_indPassados');
+            if (escopo === 'completo') {
+                document.getElementById('recomendacoesText').value = '';
+                localStorage.removeItem('mch_recomendacoes');
+                dadosPreventivaMensal = [];
+                localStorage.removeItem('mch_preventiva_mensal');
+                atualizarProgressoPreventiva();
+            }
             lastDadosPassadosFiltrados = [];
             lastDadosMesCru = [];
             lastDadosFiltrados = [];
             lastDtInicioObj = null;
             lastDtFimObj = null;
-
-            const resumo = document.getElementById('resumoModelos'); 
+            relatorioProcessado = false;
+            relatorioComAlteracoesPendentes = false;
+            definirAlteracoesPendentes(false);
+            clearTimeout(timerAtualizacaoAutomatica);
+            document.getElementById('btnProcessar').classList.remove('hidden');
+            const resumo = document.getElementById('resumoModelos');
             if (resumo) resumo.innerHTML = '<span class="text-xs text-on-surface-variant italic">Nenhum modelo</span>';
             document.getElementById('kpiFalhas').innerText = '--';
-            
-            // Destruir gráficos
-            Object.keys(chartInstances).forEach(k => { 
-                try { 
-                    if (Array.isArray(chartInstances[k])) {
-                        chartInstances[k].forEach(c => c && c.destroy());
-                    } else if (chartInstances[k]) {
-                        chartInstances[k].destroy(); 
-                    }
+            Object.keys(chartInstances).forEach(k => {
+                try {
+                    if (Array.isArray(chartInstances[k])) chartInstances[k].forEach(c => c && c.destroy());
+                    else if (chartInstances[k]) chartInstances[k].destroy();
                 } catch(e){}
-                chartInstances[k] = null; 
+                chartInstances[k] = null;
             });
-            
             document.getElementById('chartsContainer').classList.add('hidden');
+            document.getElementById('noDataState').classList.add('hidden');
             document.getElementById('emptyState').classList.remove('hidden');
-            document.getElementById('dashboardSubtitle').innerText = "Campos limpos.";
-            
+            document.getElementById('dashboardSubtitle').innerText = escopo === 'completo' ? 'Relatório reiniciado.' : 'Dados colados removidos.';
+            document.getElementById('btnExportar').classList.add('opacity-50','cursor-not-allowed','pointer-events-none');
+            atualizarValidacoesColagem();
+            atualizarPreparacaoRelatorio();
             if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
             if(typeof renderizarChartFalhasPreventiva === 'function') renderizarChartFalhasPreventiva([], null, null);
         }
-
+        function mostrarDesfazerReinicio(mensagem) {
+            const toast = document.getElementById('toastDesfazerReinicio');
+            const contador = document.getElementById('toastDesfazerContador');
+            document.getElementById('toastDesfazerTexto').textContent = `${mensagem} Os parques foram preservados.`;
+            clearTimeout(timerDesfazerReinicio);
+            clearInterval(intervaloDesfazerReinicio);
+            let segundos = 5;
+            contador.textContent = `${segundos}s`;
+            toast.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+            intervaloDesfazerReinicio = setInterval(() => {
+                segundos--;
+                contador.textContent = `${Math.max(segundos, 0)}s`;
+            }, 1000);
+            timerDesfazerReinicio = setTimeout(() => {
+                toast.classList.add('hidden');
+                clearInterval(intervaloDesfazerReinicio);
+                estadoAntesReinicio = null;
+            }, 5000);
+        }
+        function desfazerReinicioRelatorio() {
+            if (!estadoAntesReinicio) return;
+            clearTimeout(timerDesfazerReinicio);
+            clearInterval(intervaloDesfazerReinicio);
+            document.getElementById('toastDesfazerReinicio').classList.add('hidden');
+            document.getElementById('indMes').value = estadoAntesReinicio.indMes;
+            document.getElementById('indPassados').value = estadoAntesReinicio.indPassados;
+            document.getElementById('recomendacoesText').value = estadoAntesReinicio.recomendacoes;
+            dadosPreventivaMensal = normalizarGradePreventiva(estadoAntesReinicio.preventivaMensal);
+            localStorage.setItem('mch_indMes', estadoAntesReinicio.indMes);
+            localStorage.setItem('mch_indPassados', estadoAntesReinicio.indPassados);
+            localStorage.setItem('mch_recomendacoes', estadoAntesReinicio.recomendacoes);
+            localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+            registrarSalvamentoLocal();
+            atualizarProgressoPreventiva();
+            atualizarValidacoesColagem();
+            atualizarPreparacaoRelatorio();
+            renderizarResumoFalhas(parseExcelData(estadoAntesReinicio.indMes).data);
+            const deveProcessar = estadoAntesReinicio.possuiaRelatorioProcessado && estadoAntesReinicio.indMes.trim();
+            estadoAntesReinicio = null;
+            if (deveProcessar) processarDados();
+            else document.getElementById('dashboardSubtitle').innerText = 'Reinício desfeito.';
+            mostrarToast('Reinício desfeito com sucesso.');
+        }
+        function salvarConfiguracaoAnterior(chave, dadosAtuais) {
+            const salvo = localStorage.getItem(chave);
+            if (salvo) localStorage.setItem(`${chave}_anterior`, salvo);
+            else if (Array.isArray(dadosAtuais) && dadosAtuais.length) localStorage.setItem(`${chave}_anterior`, JSON.stringify(dadosAtuais));
+        }
+        function persistirParque(tipo, mensagem) {
+            const isMCE = tipo === 'mce';
+            const chave = isMCE ? 'mch_parque' : 'mch_parque_vp';
+            const dados = isMCE ? dadosParqueInstalado : dadosParqueVP;
+            salvarConfiguracaoAnterior(chave, dados);
+            localStorage.setItem(chave, JSON.stringify(dados));
+            registrarSalvamentoLocal();
+            if (isMCE) renderizarListaParque(); else renderizarListaParqueVP();
+            atualizarContextoCabecalho();
+            atualizarPreparacaoRelatorio();
+            if (relatorioProcessado) agendarAtualizacaoAutomatica(0);
+            if (!isMCE) {
+                if (typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
+                if (typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+            }
+            if (mensagem) mostrarToast(mensagem);
+        }
+        function abrirModalLoteParque(tipo) {
+            document.getElementById('tipoLoteParque').value = tipo;
+            document.getElementById('textoLoteParque').value = '';
+            document.getElementById('erroLoteParque').classList.add('hidden');
+            atualizarResumoErros('resumoErrosLoteParque', []);
+            document.getElementById('modalLoteParqueTitulo').textContent = tipo === 'mce' ? 'Colar lista do Excel - Parque de MCE' : 'Colar lista do Excel - Parque VP';
+            document.getElementById('modalLoteParqueDescricao').textContent = tipo === 'mce' ? 'Use duas colunas: Modelo e Quantidade.' : 'Use duas colunas: Equipe e Quantidade.';
+            const campo = document.getElementById('textoLoteParque');
+            campo.placeholder = tipo === 'mce' ? 'Modelo\tQuantidade\nMD2000\t45\nMD500\t18' : 'Equipe\tQuantidade\nBAS\t45\nLUZ\t18';
+            const modal = document.getElementById('modalLoteParque');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => campo.focus(), 0);
+        }
+        function fecharModalLoteParque() {
+            const modal = document.getElementById('modalLoteParque');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+        function analisarListaParque(texto, tipo) {
+            const linhas = String(texto || '').trim().split(/\r?\n/).filter(l => l.trim());
+            const dados = [], erros = [];
+            linhas.forEach((linha, indice) => {
+                const colunas = linha.includes('\t') ? linha.split('\t') : linha.split(/[,;]/);
+                const nome = String(colunas[0] || '').trim().replace(/^"|"$/g, '');
+                const quantidadeTexto = String(colunas[1] || '').trim().replace(/^"|"$/g, '');
+                if (indice === 0 && /^(modelo|equipe)$/i.test(nome) && /^quantidade$/i.test(quantidadeTexto)) return;
+                const quantidade = Number(quantidadeTexto.replace(/\./g, '').replace(',', '.'));
+                if (!nome || !Number.isInteger(quantidade) || quantidade <= 0) {
+                    erros.push(`Linha ${indice + 1}: informe ${tipo === 'mce' ? 'modelo' : 'equipe'} e uma quantidade inteira maior que zero.`);
+                    return;
+                }
+                dados.push({ nome, quantidade });
+            });
+            if (!linhas.length) erros.push('Cole ou importe ao menos um registro.');
+            return { dados, erros };
+        }
+        function aplicarListaParque(tipo, registros) {
+            const lista = tipo === 'mce' ? dadosParqueInstalado : dadosParqueVP;
+            const propriedade = tipo === 'mce' ? 'modelo' : 'equipe';
+            registros.forEach(registro => {
+                const existente = lista.find(item => normalizarTexto(item[propriedade]) === normalizarTexto(registro.nome));
+                if (existente) existente.quantidade = registro.quantidade;
+                else lista.push({ [propriedade]: registro.nome, quantidade: registro.quantidade });
+            });
+            persistirParque(tipo, `${registros.length} registro${registros.length !== 1 ? 's' : ''} aplicado${registros.length !== 1 ? 's' : ''} com sucesso.`);
+        }
+        function salvarLoteParque() {
+            const tipo = document.getElementById('tipoLoteParque').value;
+            const analise = analisarListaParque(document.getElementById('textoLoteParque').value, tipo);
+            const erro = document.getElementById('erroLoteParque');
+            if (analise.erros.length) {
+                erro.innerHTML = analise.erros.slice(0, 8).map(item => `<p>${escaparHTML(item)}</p>`).join('');
+                erro.classList.remove('hidden');
+                mostrarErroLocal('textoLoteParque', 'erroLoteParque', analise.erros[0], false);
+                atualizarResumoErros('resumoErrosLoteParque', analise.erros);
+                return;
+            }
+            limparErroLocal('textoLoteParque', 'erroLoteParque');
+            atualizarResumoErros('resumoErrosLoteParque', []);
+            aplicarListaParque(tipo, analise.dados);
+            fecharModalLoteParque();
+        }
+        function importarCSVParque(event, tipo) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+            const leitor = new FileReader();
+            leitor.onload = e => {
+                const analise = analisarListaParque(e.target.result, tipo);
+                if (analise.erros.length) mostrarToast(`CSV inválido: ${analise.erros[0]}`, 'erro');
+                else aplicarListaParque(tipo, analise.dados);
+                event.target.value = '';
+            };
+            leitor.readAsText(arquivo, 'UTF-8');
+        }
+        function editarParqueDireto(tipo, index, campo, valor) {
+            const lista = tipo === 'mce' ? dadosParqueInstalado : dadosParqueVP;
+            const item = lista[index];
+            if (!item) return;
+            if (campo === 'quantidade') {
+                const quantidade = Number(valor);
+                if (!Number.isInteger(quantidade) || quantidade <= 0) {
+                    mostrarToast('Quantidade inválida. Informe um número inteiro maior que zero.', 'erro');
+                    if (tipo === 'mce') renderizarListaParque(); else renderizarListaParqueVP();
+                    return;
+                }
+                item.quantidade = quantidade;
+            } else {
+                const nome = String(valor || '').trim();
+                if (!nome) {
+                    mostrarToast(`${tipo === 'mce' ? 'Modelo' : 'Equipe'} não pode ficar vazio.`, 'erro');
+                    if (tipo === 'mce') renderizarListaParque(); else renderizarListaParqueVP();
+                    return;
+                }
+                item[tipo === 'mce' ? 'modelo' : 'equipe'] = nome;
+            }
+            persistirParque(tipo, 'Configuração atualizada com sucesso.');
+        }
+        function duplicarConfiguracaoAnterior(tipo) {
+            const chave = tipo === 'mce' ? 'mch_parque_anterior' : 'mch_parque_vp_anterior';
+            const anterior = localStorage.getItem(chave);
+            if (!anterior) {
+                mostrarToast('Nenhuma configuração anterior está disponível para duplicação.', 'erro');
+                return;
+            }
+            try {
+                const dados = JSON.parse(anterior);
+                if (!Array.isArray(dados) || !dados.length) throw new Error();
+                abrirConfirmacao(`Duplicar configuração anterior do ${tipo === 'mce' ? 'Parque de MCE' : 'Parque VP'}?`, 'A configuração atual será substituída pela última versão salva anteriormente.', () => {
+                    if (tipo === 'mce') dadosParqueInstalado = JSON.parse(JSON.stringify(dados));
+                    else dadosParqueVP = JSON.parse(JSON.stringify(dados));
+                    persistirParque(tipo, 'Configuração anterior duplicada com sucesso.');
+                });
+            } catch(e) {
+                mostrarToast('A configuração anterior não pôde ser recuperada.', 'erro');
+            }
+        }
         // ========== GERENCIAMENTO DE PARQUE ==========
         function renderizarListaParque() {
             const tbody = document.getElementById('listaParque');
@@ -830,12 +1574,12 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-tertiary/5 transition-colors group';
                 tr.innerHTML = `
-                    <td class="px-4 py-3 text-on-surface font-medium">${item.modelo}</td>
-                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-2"><input type="text" value="${escaparHTML(item.modelo)}" onchange="editarParqueDireto('mce', ${index}, 'nome', this.value)" class="w-full bg-transparent border border-transparent hover:border-outline-variant focus:border-primary rounded px-2 py-1 text-sm font-medium text-on-surface"></td>
+                    <td class="px-4 py-2"><input type="number" min="1" step="1" value="${item.quantidade}" onchange="editarParqueDireto('mce', ${index}, 'quantidade', this.value)" class="w-full bg-transparent border border-transparent hover:border-outline-variant focus:border-primary rounded px-2 py-1 text-sm text-center text-on-surface-variant"></td>
                     <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="abrirModalParque(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="excluirParque(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                                <div class="flex items-center justify-center gap-1">  
+                            <button type="button" onclick="abrirModalParque(${index})" aria-label="Editar modelo ${escaparHTML(item.modelo)}" data-tooltip="Editar modelo ${escaparHTML(item.modelo)}" class="acao-icone text-tertiary"><i data-lucide="edit-2" class="w-4 h-4" aria-hidden="true"></i></button>  
+                            <button type="button" onclick="excluirParque(${index})" aria-label="Excluir modelo ${escaparHTML(item.modelo)}" data-tooltip="Excluir modelo ${escaparHTML(item.modelo)}" class="acao-icone text-error"><i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i></button>  
                         </div>
                     </td>`;
                 tbody.appendChild(tr);
@@ -847,6 +1591,7 @@
             const modal = document.getElementById('modalParque');
             const content = document.getElementById('modalParqueContent');
             document.getElementById('parqueIndex').value = index;
+            atualizarResumoErros('resumoErrosParque', []);
             
             if (index >= 0) {
                 document.getElementById('modalParqueTitle').innerText = 'Editar Modelo';
@@ -882,31 +1627,41 @@
             const idx = parseInt(document.getElementById('parqueIndex').value);
             const modelo = document.getElementById('parqueModelo').value.trim();
             const quantidade = parseInt(document.getElementById('parqueQuantidade').value);
-            
-            if (!modelo || isNaN(quantidade) || quantidade <= 0) {
-                alert('Preencha todos os campos corretamente.');
-                return;
+            const erros = [];
+            limparErroLocal('parqueModelo', 'erroParqueModelo');
+            limparErroLocal('parqueQuantidade', 'erroParqueQuantidade');
+            if (!modelo) {
+                const mensagem = 'Modelo obrigatório. Informe o modelo da MCE.';
+                erros.push(mensagem);
+                mostrarErroLocal('parqueModelo', 'erroParqueModelo', mensagem, false);
             }
-            
-            if (idx >= 0) {
-                dadosParqueInstalado[idx] = { modelo, quantidade };
-            } else {
-                dadosParqueInstalado.push({ modelo, quantidade });
+            if (!Number.isInteger(quantidade) || quantidade <= 0) {
+                const mensagem = 'Quantidade inválida. Informe um número inteiro maior que zero.';
+                erros.push(mensagem);
+                mostrarErroLocal('parqueQuantidade', 'erroParqueQuantidade', mensagem, false);
             }
-            
+            atualizarResumoErros('resumoErrosParque', erros);
+            if (erros.length) return;
+            if (idx >= 0) dadosParqueInstalado[idx] = { modelo, quantidade };
+            else dadosParqueInstalado.push({ modelo, quantidade });
+            salvarConfiguracaoAnterior('mch_parque', dadosParqueInstalado);
             localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
-            fecharModalParque(); 
+            registrarSalvamentoLocal();
+            fecharModalParque();
             renderizarListaParque();
+            atualizarPreparacaoRelatorio();
+            mostrarToast(idx >= 0 ? 'Modelo atualizado com sucesso.' : 'Modelo salvo com sucesso.');
         }
-
         function excluirParque(index) {
-            if (confirm(`Excluir o modelo "${dadosParqueInstalado[index].modelo}"?`)) {
+            const item = dadosParqueInstalado[index];
+            abrirConfirmacao(`Excluir o modelo “${item.modelo}”?`, 'Esta ação remove o modelo do parque instalado e pode alterar os cálculos do relatório.', () => {
                 dadosParqueInstalado.splice(index, 1);
                 localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
                 renderizarListaParque();
-            }
+                atualizarPreparacaoRelatorio();
+                mostrarToast('Modelo excluído com sucesso.');
+            });
         }
-
         // ========== GERENCIAMENTO DE PARQUE VP ==========
         function renderizarListaParqueVP() {
             const tbody = document.getElementById('listaParqueVP');
@@ -928,12 +1683,12 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-tertiary/5 transition-colors group';
                 tr.innerHTML = `
-                    <td class="px-4 py-3 text-on-surface font-medium">${item.equipe}</td>
-                    <td class="px-4 py-3 text-center text-on-surface-variant">${item.quantidade}</td>
+                    <td class="px-4 py-2"><input type="text" value="${escaparHTML(item.equipe)}" onchange="editarParqueDireto('vp', ${index}, 'nome', this.value)" class="w-full bg-transparent border border-transparent hover:border-outline-variant focus:border-primary rounded px-2 py-1 text-sm font-medium text-on-surface"></td>
+                    <td class="px-4 py-2"><input type="number" min="1" step="1" value="${item.quantidade}" onchange="editarParqueDireto('vp', ${index}, 'quantidade', this.value)" class="w-full bg-transparent border border-transparent hover:border-outline-variant focus:border-primary rounded px-2 py-1 text-sm text-center text-on-surface-variant"></td>
                     <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="abrirModalParqueVP(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="excluirParqueVP(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                                <div class="flex items-center justify-center gap-1">  
+                            <button type="button" onclick="abrirModalParqueVP(${index})" aria-label="Editar equipe ${escaparHTML(item.equipe)}" data-tooltip="Editar equipe ${escaparHTML(item.equipe)}" class="acao-icone text-tertiary"><i data-lucide="edit-2" class="w-4 h-4" aria-hidden="true"></i></button>  
+                            <button type="button" onclick="excluirParqueVP(${index})" aria-label="Excluir equipe ${escaparHTML(item.equipe)}" data-tooltip="Excluir equipe ${escaparHTML(item.equipe)}" class="acao-icone text-error"><i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i></button>  
                         </div>
                     </td>`;
                 tbody.appendChild(tr);
@@ -945,6 +1700,7 @@
             const modal = document.getElementById('modalParqueVP'); 
             const content = document.getElementById('modalParqueVPContent');
             document.getElementById('parqueVPIndex').value = index;
+            atualizarResumoErros('resumoErrosParqueVP', []);
             
             if (index >= 0) {
                 document.getElementById('modalParqueVPTitle').innerText = 'Editar Equipe';
@@ -980,217 +1736,207 @@
             const idx = parseInt(document.getElementById('parqueVPIndex').value);
             const equipe = document.getElementById('parqueVPEquipe').value.trim();
             const quantidade = parseInt(document.getElementById('parqueVPQuantidade').value);
-            
-            if (!equipe || isNaN(quantidade) || quantidade <= 0) {
-                alert('Preencha todos os campos corretamente.');
-                return;
+            const erros = [];
+            limparErroLocal('parqueVPEquipe', 'erroParqueVPEquipe');
+            limparErroLocal('parqueVPQuantidade', 'erroParqueVPQuantidade');
+            if (!equipe) {
+                const mensagem = 'Equipe obrigatória. Informe o nome da equipe VP.';
+                erros.push(mensagem);
+                mostrarErroLocal('parqueVPEquipe', 'erroParqueVPEquipe', mensagem, false);
             }
-            
-            if (idx >= 0) {
-                dadosParqueVP[idx] = { equipe, quantidade };
-            } else {
-                dadosParqueVP.push({ equipe, quantidade });
+            if (!Number.isInteger(quantidade) || quantidade <= 0) {
+                const mensagem = 'Quantidade inválida. Informe um número inteiro maior que zero.';
+                erros.push(mensagem);
+                mostrarErroLocal('parqueVPQuantidade', 'erroParqueVPQuantidade', mensagem, false);
             }
-            
+            atualizarResumoErros('resumoErrosParqueVP', erros);
+            if (erros.length) return;
+            if (idx >= 0) dadosParqueVP[idx] = { equipe, quantidade };
+            else dadosParqueVP.push({ equipe, quantidade });
+            salvarConfiguracaoAnterior('mch_parque_vp', dadosParqueVP);
             localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
-            fecharModalParqueVP(); 
+            registrarSalvamentoLocal();
+            fecharModalParqueVP();
             renderizarListaParqueVP();
-            
+            atualizarPreparacaoRelatorio();
+            mostrarToast(idx >= 0 ? 'Equipe atualizada com sucesso.' : 'Equipe salva com sucesso.');
             if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
-            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
-                renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
-            }
+            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
         }
-
         function excluirParqueVP(index) {
-            if (confirm(`Excluir a equipe "${dadosParqueVP[index].equipe}"?`)) {
+            const item = dadosParqueVP[index];
+            abrirConfirmacao(`Excluir a equipe “${item.equipe}”?`, 'Esta ação remove o referencial da equipe e pode impedir os cálculos de preventiva.', () => {
                 dadosParqueVP.splice(index, 1);
                 localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
                 renderizarListaParqueVP();
-                
+                atualizarPreparacaoRelatorio();
                 if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
-                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
-                    renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
-                }
-            }
+                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+                mostrarToast('Equipe excluída com sucesso.');
+            });
         }
-
         function obterGrupoPreventivaSelecionado() {
-            return GRUPOS_PREVENTIVA[grupoPreventivaSelecionado] || GRUPOS_PREVENTIVA.luz_sct;
+            return { rotulo: 'Equipes VP', equipes: dadosParqueVP.map(item => item.equipe) };
         }
         function equipePertenceAoGrupoPreventiva(equipe) {
-            const nomes = obterGrupoPreventivaSelecionado().equipes.map(normalizarTexto);
-            return nomes.includes(normalizarTexto(equipe));
+            return dadosParqueVP.some(item => normalizarTexto(item.equipe) === normalizarTexto(equipe));
         }
         function atualizarAvisoGrupoPreventiva() {
             const aviso = document.getElementById('avisoGrupoPreventiva');
             if (!aviso) return;
-            const cadastradas = new Set(dadosParqueVP.map(item => normalizarTexto(item.equipe)));
-            const ausentes = obterGrupoPreventivaSelecionado().equipes.filter(equipe => !cadastradas.has(normalizarTexto(equipe)));
-            if (ausentes.length) {
-                aviso.textContent = `Equipe${ausentes.length > 1 ? 's' : ''} não cadastrada${ausentes.length > 1 ? 's' : ''} no Parque VP: ${ausentes.join(', ')}.`;
+            if (dadosParqueVP.length === 0) {
+                aviso.textContent = 'Nenhuma equipe cadastrada no Parque VP.';
                 aviso.classList.remove('hidden');
             } else {
                 aviso.textContent = '';
                 aviso.classList.add('hidden');
             }
         }
-        function sincronizarExclusivoLinha10() {
-            const checkExclusivoL10 = document.getElementById('checkExclusivoL10');
-            if (checkExclusivoL10) {
-                checkExclusivoL10.checked = grupoPreventivaSelecionado === 'luz_sct';
-            }
-        }
-        function alterarGrupoPreventiva(valor) {
-            if (!GRUPOS_PREVENTIVA[valor]) return;
-            grupoPreventivaSelecionado = valor;
-            localStorage.setItem('mch_preventiva_grupo_exibicao', valor);
-            sincronizarExclusivoLinha10();
-            atualizarAvisoGrupoPreventiva();
-            renderizarGraficoPreventiva();
-            renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
-        }
-
         // ========== GERENCIAMENTO DE PREVENTIVA ==========
+        function normalizarGradePreventiva(dados) {
+            const porMes = new Map();
+            (Array.isArray(dados) ? dados : []).forEach((item, indice) => {
+                let referencia = Number(item && item.mesReferencia);
+                if (!Number.isInteger(referencia) || referencia < 1 || referencia > 12) referencia = indice + 1;
+                if (referencia >= 1 && referencia <= 12 && !porMes.has(referencia)) {
+                    porMes.set(referencia, {
+                        mesReferencia: referencia,
+                        mesNome: mesesDoAno[referencia - 1],
+                        dados: Array.isArray(item.dados) ? item.dados : []
+                    });
+                }
+            });
+            return Array.from(porMes.values()).sort((a,b) => a.mesReferencia - b.mesReferencia);
+        }
+        function obterPreventivaDoMes(mesReferencia) {
+            return dadosPreventivaMensal.find(item => Number(item.mesReferencia) === Number(mesReferencia));
+        }
         function atualizarProgressoPreventiva() {
+            dadosPreventivaMensal = normalizarGradePreventiva(dadosPreventivaMensal);
             document.getElementById('preventivaProgress').innerText = `${dadosPreventivaMensal.length}/12`;
             renderizarListaPreventivaSidebar();
         }
-
         function renderizarListaPreventivaSidebar() {
             const container = document.getElementById('listaPreventivaSidebar');
             container.innerHTML = '';
-            
-            dadosPreventivaMensal.forEach((mesObj, index) => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-surface-container-low border border-outline-variant/50 px-2.5 py-2 rounded text-xs group transition-colors hover:bg-surface-container';
-                div.innerHTML = `
-                    <span class="font-medium text-on-surface-variant">${mesObj.mesNome} <span class="opacity-60 font-normal">(Mês ${mesObj.mesReferencia})</span></span>
-                    <div class="flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="abrirModalPreventiva(${index})" class="text-tertiary hover:text-tertiary-container transition-colors"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                        <button onclick="excluirPreventiva(${index})" class="text-error hover:text-error/80 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            mesesDoAno.forEach((mesNome, indice) => {
+                const mesReferencia = indice + 1;
+                const registro = obterPreventivaDoMes(mesReferencia);
+                const preenchido = Boolean(registro);
+                const linha = document.createElement('div');
+                linha.className = 'grid grid-cols-[1fr_auto_auto] gap-2 items-center px-3 py-2.5 text-xs hover:bg-surface-container-low transition-colors';
+                linha.innerHTML = `
+                    <span class="font-medium text-on-surface">${mesNome}</span>
+                    <span class="rounded-full px-2 py-1 text-[10px] font-semibold ${preenchido ? 'bg-secondary/10 text-secondary' : 'bg-surface-container text-on-surface-variant'}">${preenchido ? 'Preenchido' : 'Pendente'}</span>
+                    <div class="flex items-center justify-end gap-1">
+                        <button type="button" onclick="abrirModalPreventiva(${mesReferencia})" aria-label="${preenchido ? 'Editar' : 'Preencher'} preventiva de ${mesNome}" data-tooltip="${preenchido ? 'Editar' : 'Preencher'} preventiva de ${mesNome}" class="acao-icone ${preenchido ? 'text-tertiary' : 'text-primary'}"><i data-lucide="${preenchido ? 'edit-2' : 'plus'}" class="w-4 h-4" aria-hidden="true"></i></button>
+                        ${preenchido ? `<button type="button" onclick="excluirPreventiva(${mesReferencia})" aria-label="Excluir preventiva de ${mesNome}" data-tooltip="Excluir preventiva de ${mesNome}" class="acao-icone text-error"><i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i></button>` : ''}
                     </div>`;
-                container.appendChild(div);
+                container.appendChild(linha);
             });
-            lucide.createIcons();
         }
-
-        function excluirPreventiva(index) {
-            if (confirm(`Excluir ${dadosPreventivaMensal[index].mesNome}?`)) {
-                dadosPreventivaMensal.splice(index, 1);
-                dadosPreventivaMensal.forEach((item, i) => { 
-                    item.mesReferencia = i + 1; 
-                    item.mesNome = mesesDoAno[i]; 
-                });
+        function excluirPreventiva(mesReferencia) {
+            const item = obterPreventivaDoMes(mesReferencia);
+            if (!item) return;
+            const mes = mesesDoAno[mesReferencia - 1].toLowerCase();
+            abrirConfirmacao(`Excluir preventiva de ${mes}?`, 'O mês voltará ao estado pendente. Os demais meses permanecerão vinculados às suas referências originais.', () => {
+                dadosPreventivaMensal = dadosPreventivaMensal.filter(registro => Number(registro.mesReferencia) !== Number(mesReferencia));
                 localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
                 atualizarProgressoPreventiva();
-                
                 if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
-                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
-                    renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
-                }
-            }
+                if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
+                mostrarToast('Preventiva excluída com sucesso.');
+            });
         }
-
-        function abrirModalPreventiva(index = -1) {
-            if (dadosParqueVP.length === 0) { 
-                alert("Cadastre as equipes VP em Configurações antes de inserir preventiva."); 
-                return; 
+        function abrirModalPreventiva(mesReferencia) {
+            const avisoGrupo = document.getElementById('avisoGrupoPreventiva');
+            if (dadosParqueVP.length === 0) {
+                avisoGrupo.textContent = 'Nenhuma equipe VP cadastrada. Cadastre as equipes em Configurações antes de preencher a preventiva.';
+                avisoGrupo.classList.remove('hidden');
+                avisoGrupo.scrollIntoView({ behavior:'smooth', block:'nearest' });
+                return;
             }
-            
-            if (index === -1 && dadosPreventivaMensal.length >= 12) { 
-                alert("O ano já está completo."); 
-                return; 
-            }
-            
-            const isEdicao = index >= 0;
-            const targetIndex = isEdicao ? index : dadosPreventivaMensal.length;
-            document.getElementById('modalPreventivaTitle').innerText = isEdicao ? 
-                `Editar Preventiva - ${mesesDoAno[targetIndex]}` : 
-                `Inserir Preventiva - Mês ${targetIndex + 1} (${mesesDoAno[targetIndex]})`;
-            document.getElementById('preventivaIndex').value = index;
-            
-            const body = document.getElementById('modalPreventivaBody'); 
+            const referencia = Number(mesReferencia);
+            if (!Number.isInteger(referencia) || referencia < 1 || referencia > 12) return;
+            const registro = obterPreventivaDoMes(referencia);
+            document.getElementById('modalPreventivaTitle').innerText = `${registro ? 'Editar' : 'Preencher'} Preventiva - ${mesesDoAno[referencia - 1]}`;
+            document.getElementById('preventivaIndex').value = referencia;
+            atualizarResumoErros('resumoErrosPreventiva', []);
+            const body = document.getElementById('modalPreventivaBody');
             body.innerHTML = '';
-            
-            let valoresEdicao = {};
-            if (isEdicao) {
-                dadosPreventivaMensal[index].dados.forEach(d => valoresEdicao[d.equipe] = d.valor);
-            }
-            
+            const valoresEdicao = {};
+            if (registro) registro.dados.forEach(d => valoresEdicao[normalizarTexto(d.equipe)] = d.valor);
             dadosParqueVP.forEach((item, i) => {
-                const val = isEdicao && valoresEdicao[item.equipe] !== undefined ? valoresEdicao[item.equipe] : '';
+                const chave = normalizarTexto(item.equipe);
+                const val = registro && valoresEdicao[chave] !== undefined ? valoresEdicao[chave] : '';
                 const div = document.createElement('div');
                 div.className = 'flex flex-col gap-1.5';
                 div.innerHTML = `
                     <label class="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">Equipe: ${item.equipe}</label>
-                    <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">`;
+                    <input type="number" id="prev_equipe_${i}" value="${val}" min="0" step="1" aria-describedby="erro_prev_equipe_${i}" class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/20">
+                    <p id="erro_prev_equipe_${i}" class="hidden text-xs text-error" role="alert"></p>`;
                 body.appendChild(div);
             });
-            
-            const modal = document.getElementById('modalPreventiva'); 
+            const modal = document.getElementById('modalPreventiva');
             const content = document.getElementById('modalPreventivaContent');
-            modal.classList.remove('hidden'); 
+            modal.classList.remove('hidden');
             modal.classList.add('flex');
-            setTimeout(() => { 
-                content.classList.remove('scale-95','opacity-0'); 
-                content.classList.add('scale-100','opacity-100'); 
-            }, 10);
-            setTimeout(() => { 
-                const f = document.getElementById('prev_equipe_0'); 
-                if(f) f.focus(); 
-            }, 200);
+            setTimeout(() => { content.classList.remove('scale-95','opacity-0'); content.classList.add('scale-100','opacity-100'); }, 10);
+            setTimeout(() => { const f = document.getElementById('prev_equipe_0'); if(f) f.focus(); }, 200);
         }
-
         function fecharModalPreventiva() {
-            const modal = document.getElementById('modalPreventiva'); 
+            const modal = document.getElementById('modalPreventiva');
             const content = document.getElementById('modalPreventivaContent');
-            content.classList.remove('scale-100','opacity-100'); 
+            content.classList.remove('scale-100','opacity-100');
             content.classList.add('scale-95','opacity-0');
-            setTimeout(() => { 
-                modal.classList.add('hidden'); 
-                modal.classList.remove('flex'); 
-            }, 200);
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
         }
-
         function salvarPreventiva() {
-            const entradas = []; 
-            let possuiErro = false;
-            
+            const entradas = [];
+            const erros = [];
+            let primeiroCampoInvalido = null;
             dadosParqueVP.forEach((item, index) => {
                 const input = document.getElementById(`prev_equipe_${index}`);
-                const valor = parseInt(input.value, 10);
-                if (isNaN(valor) || valor < 0) { 
-                    input.focus(); 
-                    possuiErro = true; 
-                } else {
-                    entradas.push({ equipe: item.equipe, valor: valor });
-                }
+                const valor = Number(input.value);
+                limparErroLocal(input.id, `erro_${input.id}`);
+                if (!Number.isInteger(valor) || valor < 0 || input.value.trim() === '') {
+                    const mensagem = `${item.equipe}: informe um número inteiro igual ou maior que zero.`;
+                    erros.push(mensagem);
+                    mostrarErroLocal(input.id, `erro_${input.id}`, 'Quantidade inválida. Informe um número inteiro igual ou maior que zero.', false);
+                    if (!primeiroCampoInvalido) primeiroCampoInvalido = input;
+                } else entradas.push({ equipe: item.equipe, valor });
             });
-            
-            if (possuiErro) return;
-            
-            const idx = parseInt(document.getElementById('preventivaIndex').value, 10);
-            if (idx >= 0) {
-                dadosPreventivaMensal[idx].dados = entradas;
-            } else {
-                dadosPreventivaMensal.push({ 
-                    mesReferencia: dadosPreventivaMensal.length + 1, 
-                    mesNome: mesesDoAno[dadosPreventivaMensal.length], 
-                    dados: entradas 
-                });
+            atualizarResumoErros('resumoErrosPreventiva', erros);
+            if (erros.length) {
+                if (primeiroCampoInvalido) primeiroCampoInvalido.focus();
+                return;
             }
-            
+            const mesReferencia = Number(document.getElementById('preventivaIndex').value);
+            const existente = obterPreventivaDoMes(mesReferencia);
+            if (existente) existente.dados = entradas;
+            else dadosPreventivaMensal.push({ mesReferencia, mesNome: mesesDoAno[mesReferencia - 1], dados: entradas });
+            dadosPreventivaMensal = normalizarGradePreventiva(dadosPreventivaMensal);
             localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
-            atualizarProgressoPreventiva(); 
+            atualizarProgressoPreventiva();
             fecharModalPreventiva();
-            
+            mostrarToast(existente ? 'Preventiva atualizada com sucesso.' : 'Preventiva salva com sucesso.');
             if(typeof renderizarGraficoPreventiva === 'function') renderizarGraficoPreventiva();
-            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) {
-                renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
-            }
+            if(typeof renderizarChartFalhasPreventiva === 'function' && lastDadosFiltrados.length > 0) renderizarChartFalhasPreventiva(lastDadosFiltrados, lastDtInicioObj, lastDtFimObj);
         }
-
+        let focoAntesFormatoEsperado = null;
+        function abrirModalFormatoEsperado(campoId) {
+            focoAntesFormatoEsperado = document.getElementById(campoId) || document.activeElement;
+            const modal = document.getElementById('modalFormatoEsperado');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.querySelector('button').focus(), 0);
+        }
+        function fecharModalFormatoEsperado() {
+            const modal = document.getElementById('modalFormatoEsperado');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (focoAntesFormatoEsperado && focoAntesFormatoEsperado.focus) focoAntesFormatoEsperado.focus();
+        }
         // ========== PARSERS E UTILITÁRIOS ==========
         function parseExcelData(text) {
             if (!text) return { data: [], error: null };
@@ -1245,6 +1991,121 @@
             return { data, error: null };
         }
 
+        function escaparHTML(valor) {
+            return String(valor == null ? '' : valor)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function nomeColunaLegivel(nome) {
+            const nomes = { data:'Data', modelo:'Modelo', localidade:'Localidade', mce:'MCE', causa:'Causa', vpx:'VPX' };
+            return nomes[nome] || nome.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        function analisarDadosColados(texto) {
+            const resultado = { vazio:true, headers:[], registros:[], erros:[], avisos:[], datasValidas:[], foraPeriodo:0, preview:[] };
+            if (!texto || !texto.trim()) return resultado;
+            resultado.vazio = false;
+            const linhas = texto.trim().split(/\r?\n/);
+            if (linhas.length < 2) {
+                resultado.erros.push('Linha 1: somente o cabeçalho foi identificado. Cole também os registros.');
+                return resultado;
+            }
+            const delimitador = linhas[0].includes('\t') ? '\t' : ',';
+            const separar = (linha) => {
+                if (delimitador === '\t') return linha.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
+                const valores = []; let atual = ''; let aspas = false;
+                for (let i = 0; i < linha.length; i++) {
+                    const char = linha[i];
+                    if (char === '"') {
+                        if (aspas && linha[i + 1] === '"') { atual += '"'; i++; }
+                        else aspas = !aspas;
+                    } else if (char === ',' && !aspas) { valores.push(atual.trim()); atual = ''; }
+                    else atual += char;
+                }
+                valores.push(atual.trim());
+                return valores.map(c => c.replace(/^"|"$/g, ''));
+            };
+            const originais = separar(linhas[0]);
+            resultado.headers = originais.map(h => h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_'));
+            const obrigatorias = ['modelo', 'localidade'];
+            const ausentesCabecalho = obrigatorias.filter(c => !resultado.headers.includes(c));
+            if (ausentesCabecalho.length) resultado.erros.push(`Linha 1: coluna${ausentesCabecalho.length > 1 ? 's' : ''} obrigatória${ausentesCabecalho.length > 1 ? 's' : ''} ausente${ausentesCabecalho.length > 1 ? 's' : ''}: ${ausentesCabecalho.map(nomeColunaLegivel).join(', ')}.`);
+            const idxData = resultado.headers.indexOf('data');
+            if (idxData < 0) resultado.avisos.push('A coluna Data não foi identificada; o período e as datas não podem ser validados.');
+            const inicioValor = document.getElementById('dataInicio').value;
+            const fimValor = document.getElementById('dataFim').value;
+            const criarDataInput = (valor, fimDia) => {
+                if (!valor) return null;
+                const [a,m,d] = valor.split('-').map(Number);
+                const dt = new Date(a,m-1,d);
+                if (fimDia) dt.setHours(23,59,59,999); else dt.setHours(0,0,0,0);
+                return dt;
+            };
+            const inicio = criarDataInput(inicioValor, false), fim = criarDataInput(fimValor, true);
+            linhas.slice(1).forEach((linha, indice) => {
+                const numeroLinha = indice + 2;
+                if (!linha.trim()) return;
+                const valores = separar(linha);
+                if (valores.length !== resultado.headers.length) {
+                    resultado.erros.push(`Linha ${numeroLinha}: ${valores.length} coluna${valores.length !== 1 ? 's' : ''} encontrada${valores.length !== 1 ? 's' : ''}; o cabeçalho possui ${resultado.headers.length}.`);
+                    return;
+                }
+                const obj = {};
+                resultado.headers.forEach((h, i) => obj[h] = valores[i] || '');
+                obj.__linha = numeroLinha;
+                resultado.registros.push(obj);
+                if (idxData >= 0) {
+                    const dataTexto = valores[idxData].trim();
+                    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dataTexto);
+                    let dataObj = null;
+                    if (match) {
+                        const dia=Number(match[1]), mes=Number(match[2]), ano=Number(match[3]);
+                        const teste = new Date(ano, mes-1, dia);
+                        if (teste.getFullYear() === ano && teste.getMonth() === mes-1 && teste.getDate() === dia) dataObj = teste;
+                    }
+                    if (!dataObj) resultado.erros.push(`Linha ${numeroLinha}: data “${dataTexto || '(vazia)'}” não reconhecida. Use DD/MM/AAAA.`);
+                    else {
+                        resultado.datasValidas.push(dataObj);
+                        if (inicio && fim && (dataObj < inicio || dataObj > fim)) resultado.foraPeriodo++;
+                    }
+                }
+                ['modelo','localidade','mce','causa','vpx'].forEach(campo => {
+                    if (resultado.headers.includes(campo) && !String(obj[campo] || '').trim()) resultado.avisos.push(`Linha ${numeroLinha}: campo ${nomeColunaLegivel(campo)} está vazio.`);
+                });
+            });
+            resultado.preview = resultado.registros.slice(0, 3);
+            return resultado;
+        }
+        function formatarDataBR(data) {
+            return `${String(data.getDate()).padStart(2,'0')}/${String(data.getMonth()+1).padStart(2,'0')}/${data.getFullYear()}`;
+        }
+        function atualizarValidacaoColagem(campoId, feedbackId) {
+            const painel = document.getElementById(feedbackId);
+            if (!painel) return;
+            const analise = analisarDadosColados(document.getElementById(campoId).value);
+            if (analise.vazio) { painel.classList.add('hidden'); painel.innerHTML = ''; return; }
+            const temErro = analise.erros.length > 0;
+            painel.className = `${temErro ? 'border-error/30 bg-error/5' : 'border-secondary/30 bg-secondary/5'} rounded-md border px-3 py-3 text-xs space-y-2`;
+            const datas = analise.datasValidas.slice().sort((a,b) => a-b);
+            const periodo = datas.length ? `${formatarDataBR(datas[0])} a ${formatarDataBR(datas[datas.length-1])}` : 'não identificado';
+            const colunas = analise.headers.map(nomeColunaLegivel);
+            const avisosUnicos = [...new Set(analise.avisos)];
+            const headersPreview = analise.headers.slice(0, 6);
+            let html = `<div class="font-semibold ${temErro ? 'text-error' : 'text-secondary'}">${analise.registros.length} registro${analise.registros.length !== 1 ? 's' : ''} reconhecido${analise.registros.length !== 1 ? 's' : ''}</div>`;
+            html += `<div class="space-y-1 text-on-surface-variant"><p><strong>Período encontrado:</strong> ${periodo}</p><p><strong>Colunas reconhecidas:</strong> ${escaparHTML(colunas.join(', ') || 'nenhuma')}</p>`;
+            if (analise.foraPeriodo) html += `<p class="text-error"><strong>${analise.foraPeriodo}</strong> registro${analise.foraPeriodo !== 1 ? 's estão' : ' está'} fora do período selecionado.</p>`;
+            html += `</div>`;
+            if (analise.erros.length) html += `<div class="border-t border-error/20 pt-2 space-y-1 text-error">${analise.erros.slice(0, 8).map(e => `<p>${escaparHTML(e)}</p>`).join('')}${analise.erros.length > 8 ? `<p>Mais ${analise.erros.length - 8} erro(s).</p>` : ''}</div>`;
+            if (avisosUnicos.length) html += `<div class="border-t border-outline-variant/50 pt-2 space-y-1 text-on-surface-variant">${avisosUnicos.slice(0, 5).map(a => `<p>⚠ ${escaparHTML(a)}</p>`).join('')}${avisosUnicos.length > 5 ? `<p>Mais ${avisosUnicos.length - 5} aviso(s).</p>` : ''}</div>`;
+            if (analise.preview.length) {
+                html += `<div class="border-t border-outline-variant/50 pt-2"><p class="font-semibold text-on-surface mb-2">Preview das primeiras ${analise.preview.length} linhas</p><div class="overflow-x-auto"><table class="min-w-full text-[10px] border-collapse"><thead><tr>${headersPreview.map(h => `<th class="border border-outline-variant bg-surface-container px-2 py-1 text-left whitespace-nowrap">${escaparHTML(nomeColunaLegivel(h))}</th>`).join('')}</tr></thead><tbody>${analise.preview.map(r => `<tr>${headersPreview.map(h => `<td class="border border-outline-variant bg-surface-container-lowest px-2 py-1 max-w-[120px] truncate" title="${escaparHTML(r[h])}">${escaparHTML(r[h]) || '—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+            }
+            painel.innerHTML = html;
+            painel.classList.remove('hidden');
+        }
+        function atualizarValidacoesColagem() {
+            atualizarValidacaoColagem('indMes', 'feedbackIndMes');
+            atualizarValidacaoColagem('indPassados', 'feedbackIndPassados');
+        }
         function parseExcelDate(str) {
             if (!str) return null;
             const parts = str.trim().split('/');
@@ -1259,6 +2120,85 @@
             return str.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         }
 
+        function obterEstadoPreparacao() {
+            const parqueMCEValido = dadosParqueInstalado.some(item => item && item.modelo && Number(item.quantidade) > 0);
+            const equipesNecessarias = obterGrupoPreventivaSelecionado().equipes;
+            const equipesCadastradas = new Map(dadosParqueVP.map(item => [normalizarTexto(item.equipe), Number(item.quantidade) || 0]));
+            const equipesAusentes = equipesNecessarias.filter(equipe => (equipesCadastradas.get(normalizarTexto(equipe)) || 0) <= 0);
+            const equipesVPValidas = equipesAusentes.length === 0;
+            const resultadoFalhas = parseExcelData(document.getElementById('indMes').value.trim());
+            const resultadoHistorico = parseExcelData(document.getElementById('indPassados').value.trim());
+            const falhasReconhecidas = !resultadoFalhas.error && resultadoFalhas.data.length > 0;
+            const historicoReconhecido = !resultadoHistorico.error && resultadoHistorico.data.length > 0;
+            const inicio = document.getElementById('dataInicio').value;
+            const fim = document.getElementById('dataFim').value;
+            const periodoValido = Boolean(inicio && fim && inicio <= fim);
+            return { parqueMCEValido, equipesVPValidas, equipesAusentes, falhasReconhecidas, historicoReconhecido, periodoValido };
+        }
+        function atualizarPreparacaoRelatorio() {
+            const estado = obterEstadoPreparacao();
+            const etapas = [
+                { id:'prepParqueMCE', ok:estado.parqueMCEValido, texto:'Parque de MCE configurado' },
+                { id:'prepEquipesVP', ok:estado.equipesVPValidas, texto:'Equipes VP configuradas' },
+                { id:'prepFalhas', ok:estado.falhasReconhecidas && estado.historicoReconhecido, texto:'Dados atuais e histórico reconhecidos' },
+                { id:'prepPeriodo', ok:estado.periodoValido, texto:'Período válido' }
+            ];
+            const concluidas = etapas.filter(etapa => etapa.ok).length;
+            etapas.forEach(etapa => {
+                const el = document.getElementById(etapa.id);
+                if (!el) return;
+                el.innerHTML = `<span class="shrink-0 font-bold ${etapa.ok ? 'text-secondary' : 'text-error'}">${etapa.ok ? '✓' : '!'}</span><span class="${etapa.ok ? 'text-on-surface' : 'text-on-surface-variant'}">${etapa.texto}</span><i data-lucide="chevron-right" class="w-3.5 h-3.5 ml-auto text-outline"></i>`;
+                el.setAttribute('aria-label', `${etapa.texto}: ${etapa.ok ? 'concluído' : 'pendente'}`);
+            });
+            document.getElementById('preparacaoContador').textContent = `${concluidas}/4`;
+            document.getElementById('preparacaoResumo').textContent = `${concluidas} de 4 etapas concluídas`;
+            document.getElementById('preparacaoBarra').style.width = `${concluidas * 25}%`;
+            const alerta = document.getElementById('preparacaoAlerta');
+            const corrigir = document.getElementById('preparacaoCorrigir');
+            let mensagem = '';
+            if (!estado.parqueMCEValido) mensagem = '⚠ O parque de MCE ainda não foi cadastrado.';
+            else if (!estado.equipesVPValidas) mensagem = `⚠ Equipe${estado.equipesAusentes.length > 1 ? 's' : ''} ${estado.equipesAusentes.join(', ')} ainda não ${estado.equipesAusentes.length > 1 ? 'possuem' : 'possui'} parque cadastrado.`;
+            else if (!estado.falhasReconhecidas) mensagem = '⚠ Os dados do período atual estão ausentes ou não foram reconhecidos.';
+            else if (!estado.historicoReconhecido) mensagem = '⚠ O histórico comparativo obrigatório está ausente ou não foi reconhecido.';
+            else if (!estado.periodoValido) mensagem = '⚠ Informe um período válido, com data inicial anterior ou igual à final.';
+            alerta.textContent = mensagem;
+            alerta.classList.toggle('hidden', !mensagem);
+            corrigir.classList.toggle('hidden', !mensagem);
+            if (window.lucide) lucide.createIcons();
+        }
+        function mostrarDashboard() {
+            document.getElementById('settingsView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+        }
+        function mostrarConfiguracoes() {
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('settingsView').classList.remove('hidden');
+        }
+        function navegarPreparacao(destino) {
+            let alvo = null;
+            if (destino === 'parqueMCE' || destino === 'equipesVP') {
+                mostrarConfiguracoes();
+                alvo = document.getElementById(destino === 'parqueMCE' ? 'configParqueMCE' : 'configEquipesVP');
+            } else {
+                mostrarDashboard();
+                alvo = document.getElementById(destino === 'falhas' ? 'secaoDadosFalhas' : 'secaoPeriodo');
+            }
+            setTimeout(() => {
+                if (!alvo) return;
+                alvo.scrollIntoView({ behavior:'smooth', block:'start' });
+                alvo.classList.add('ring-2','ring-primary/30');
+                setTimeout(() => alvo.classList.remove('ring-2','ring-primary/30'), 1400);
+                const foco = destino === 'falhas' ? document.getElementById('indMes') : destino === 'periodo' ? document.getElementById('dataInicio') : alvo.querySelector('button');
+                if (foco) foco.focus({ preventScroll:true });
+            }, 50);
+        }
+        function corrigirPrimeiraPendencia() {
+            const estado = obterEstadoPreparacao();
+            if (!estado.parqueMCEValido) return navegarPreparacao('parqueMCE');
+            if (!estado.equipesVPValidas) return navegarPreparacao('equipesVP');
+            if (!estado.falhasReconhecidas) return navegarPreparacao('falhas');
+            if (!estado.periodoValido) return navegarPreparacao('periodo');
+        }
         function toggleConfiguracoes() {
             const dash = document.getElementById('dashboardView'); 
             const sett = document.getElementById('settingsView');
@@ -1273,15 +2213,19 @@
         }
 
         // ========== PROCESSAMENTO DE DADOS E RENDERIZAÇÃO ==========
-        function processarDados() {
+        function processarDados(atualizacaoAutomatica = false) {
             const indMesRaw = document.getElementById('indMes').value.trim();
             const indPassadosRaw = document.getElementById('indPassados').value.trim();
             const errorMsg = document.getElementById('errorMessage'); 
             const errorText = document.getElementById('errorText'); 
             const btnProcessar = document.getElementById('btnProcessar');
-            
+            if (!validarIntervaloDatas()) {
+                errorText.innerText = "Corrija o período de análise antes de atualizar o relatório.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
             if (!indMesRaw) { 
-                errorText.innerText = "Preencha os Dados de Falhas."; 
+                errorText.innerText = "Preencha os Dados do período atual."; 
                 errorMsg.classList.remove('hidden'); 
                 return; 
             }
@@ -1289,19 +2233,23 @@
             errorMsg.classList.add('hidden');
             
             const textoOriginalBtn = btnProcessar.innerHTML;
-            btnProcessar.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analisando...</span>`;
-            lucide.createIcons(); 
-            btnProcessar.disabled = true; 
-            btnProcessar.classList.add('opacity-80','cursor-not-allowed');
+            if (!atualizacaoAutomatica) {
+                btnProcessar.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Analisando...</span>`;
+                lucide.createIcons();
+                btnProcessar.disabled = true;
+                btnProcessar.classList.add('opacity-80','cursor-not-allowed');
+            }
 
             const resultadoParse = parseExcelData(indMesRaw);
             if (resultadoParse.error) {
                 errorText.innerText = resultadoParse.error; 
                 errorMsg.classList.remove('hidden');
-                btnProcessar.innerHTML = textoOriginalBtn; 
-                lucide.createIcons(); 
-                btnProcessar.disabled = false; 
-                btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
+                if (!atualizacaoAutomatica) {
+                    btnProcessar.innerHTML = textoOriginalBtn;
+                    lucide.createIcons();
+                    btnProcessar.disabled = false;
+                    btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
+                }
                 return;
             }
 
@@ -1311,10 +2259,22 @@
 
             if (indPassadosRaw) {
                 const resPassados = parseExcelData(indPassadosRaw);
-                if (!resPassados.error) { 
-                    dadosPassadosCru = resPassados.data; 
-                    dadosParseados = dadosParseados.concat(dadosPassadosCru); 
+                if (resPassados.error) {
+                    errorText.innerText = `Erro nos Dados do período anterior para comparação: ${resPassados.error}`;
+                    errorMsg.classList.remove('hidden');
+                    atualizarValidacaoColagem('indPassados', 'feedbackIndPassados');
+                    document.getElementById('indPassados').focus();
+                    document.getElementById('feedbackIndPassados').scrollIntoView({ behavior:'smooth', block:'nearest' });
+                    if (!atualizacaoAutomatica) {
+                        btnProcessar.innerHTML = textoOriginalBtn;
+                        lucide.createIcons();
+                        btnProcessar.disabled = false;
+                        btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
+                    }
+                    return;
                 }
+                dadosPassadosCru = resPassados.data;
+                dadosParseados = dadosParseados.concat(dadosPassadosCru);
             }
 
             const strInicio = document.getElementById('dataInicio').value;
@@ -1422,14 +2382,40 @@
                     }
                 }
 
-                btnProcessar.innerHTML = textoOriginalBtn; 
-                lucide.createIcons(); 
-                btnProcessar.disabled = false; 
+                relatorioProcessado = true;
+                definirAlteracoesPendentes(false);
+                btnProcessar.innerHTML = textoOriginalBtn;
+                btnProcessar.disabled = false;
                 btnProcessar.classList.remove('opacity-80','cursor-not-allowed');
-                document.querySelector('main > div').scrollTo({top:0, behavior:'smooth'});
+                btnProcessar.classList.remove('hidden');
+                lucide.createIcons();
+                if (!atualizacaoAutomatica) document.querySelector('main > div').scrollTo({top:0, behavior:'smooth'});
             }, 600);
         }
 
+        function atualizarEstadoVazioGrafico(canvas, vazio, titulo, descricao) {
+            if (!canvas) return vazio;
+            const wrapper = canvas.parentElement;
+            let estado = wrapper.querySelector('.estado-vazio-grafico');
+            if (!estado) {
+                estado = document.createElement('div');
+                estado.className = 'estado-vazio-grafico hidden absolute inset-0 flex-col items-center justify-center text-center px-6 rounded-md bg-surface-container-low';
+                estado.setAttribute('role', 'status');
+                wrapper.appendChild(estado);
+            }
+            if (vazio) {
+                canvas.classList.add('hidden');
+                estado.innerHTML = `<i data-lucide="bar-chart-3" class="w-8 h-8 text-outline mb-3"></i><p class="font-semibold text-on-surface">${escaparHTML(titulo)}</p><p class="text-sm text-on-surface-variant mt-1 max-w-sm">${escaparHTML(descricao)}</p>`;
+                estado.classList.remove('hidden');
+                estado.classList.add('flex');
+                if (window.lucide) lucide.createIcons();
+            } else {
+                canvas.classList.remove('hidden');
+                estado.classList.add('hidden');
+                estado.classList.remove('flex');
+            }
+            return vazio;
+        }
         // ========== RENDERIZAÇÃO DOS GRÁFICOS ==========
         function renderizarGraficos(dadosMes, dadosParseados, dadosMesCru, dadosPassadosCru, dadosPassadosFiltrados, dtUserInicio, dtFimObj) {
             // Destruir gráficos antigos
@@ -1456,6 +2442,7 @@
             
             const canvasLocais = document.getElementById('chartLocais');
             if (canvasLocais) {
+                if (atualizarEstadoVazioGrafico(canvasLocais, !pLoc.length, 'Nenhuma localidade disponível', 'Os registros do período não possuem Localidade preenchida.')) return;
                 chartInstances.locais = new Chart(canvasLocais.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1502,6 +2489,7 @@
 
             const canvasMce = document.getElementById('chartMce');
             if (canvasMce) {
+                if (atualizarEstadoVazioGrafico(canvasMce, !pMce.length, 'Nenhuma máquina reincidente identificada', 'Os registros do período não possuem MCE preenchida.')) return;
                 chartInstances.mce = new Chart(canvasMce.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1538,6 +2526,7 @@
             
             const canvasCausa = document.getElementById('chartCausa');
             if (canvasCausa) {
+                if (atualizarEstadoVazioGrafico(canvasCausa, !pCausa.length, 'Nenhuma causa disponível', 'Os registros do período não possuem Causa preenchida.')) return;
                 chartInstances.causa = new Chart(canvasCausa.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1589,10 +2578,10 @@
                 return valB !== valA ? valB - valA : a.modelo.localeCompare(b.modelo);
             });
             
-            const pAcum = calculoAcumulado.slice(0,5);
-            
+            const pAcum = calculoAcumulado.filter(item => item.taxa !== null).slice(0,5);
             const canvasAcum = document.getElementById('chartAcumulado');
             if (canvasAcum) {
+                if (atualizarEstadoVazioGrafico(canvasAcum, !pAcum.length, 'Não foi possível calcular a média por máquina', 'Cadastre o parque instalado dos modelos encontrados.')) return;
                 chartInstances.acumulado = new Chart(canvasAcum.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1695,6 +2684,7 @@
             
             const canvasEvolucao = document.getElementById('chartEvolucao');
             if (canvasEvolucao) {
+                if (atualizarEstadoVazioGrafico(canvasEvolucao, !semFiltrado.length, 'Evolução semanal indisponível', 'Nenhuma data válida foi encontrada no período selecionado.')) return;
                 chartInstances.evolucao = new Chart(canvasEvolucao.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1796,6 +2786,7 @@
             
             const canvasParque = document.getElementById('chartParqueFalhas');
             if (canvasParque) {
+                if (atualizarEstadoVazioGrafico(canvasParque, !mix.length, 'Comparação com o parque indisponível', 'Cadastre o parque instalado dos modelos encontrados no período.')) return;
                 chartInstances.parqueFalhas = new Chart(canvasParque.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1912,6 +2903,8 @@
             
             const canvasEvolMensal = document.getElementById('chartEvolucaoMensal');
             if (canvasEvolMensal) {
+                const possuiAnoAnterior = cMP.some(valor => valor !== null && valor > 0);
+                if (atualizarEstadoVazioGrafico(canvasEvolMensal, !possuiAnoAnterior, 'Comparativo anual indisponível', 'Nenhum dado do ano anterior foi informado.')) return;
                 chartInstances.evolucaoMensal = new Chart(canvasEvolMensal.getContext('2d'), {
                     type:'bar',
                     data:{ 
@@ -1970,7 +2963,7 @@
             if (!hasAnoVigente) {
                 try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
                 chartInstances[id] = null;
-                atualizarVisibilidade(false);
+                atualizarVisibilidade(false, 'Indicador histórico indisponível', 'Nenhum dado do período atual foi encontrado para esta comparação.');
                 return;
             }
 
@@ -2006,7 +2999,7 @@
             if (!keys.length) {
                 try { if (chartInstances[id]) chartInstances[id].destroy(); } catch(e){}
                 chartInstances[id] = null;
-                atualizarVisibilidade(false);
+                atualizarVisibilidade(false, 'Comparação histórica indisponível', 'Não há valores correspondentes entre o período atual e o ano anterior.');
                 return;
             }
 
@@ -2078,9 +3071,22 @@
                 label.style.color='#1c1b1b'; 
                 label.style.fontWeight='600'; 
                 label.textContent = mOrig;
-                
-                item.appendChild(dot); 
-                item.appendChild(label); 
+                const status = document.createElement('span');
+                status.className = 'modelo-status';
+                status.style.color = hasFalha ? '#8f0000' : '#006e14';
+                const statusIcon = document.createElement('span');
+                statusIcon.className = 'modelo-status-icon';
+                statusIcon.setAttribute('aria-hidden', 'true');
+                statusIcon.textContent = hasFalha ? '●' : '✓';
+                const statusTexto = document.createElement('span');
+                statusTexto.textContent = hasFalha ? 'Com falha' : 'Sem falha';
+                status.appendChild(statusIcon);
+                status.appendChild(statusTexto);
+                item.setAttribute('aria-label', `${mOrig}: ${hasFalha ? 'Com falha' : 'Sem falha'}`);
+                dot.setAttribute('aria-hidden', 'true');
+                item.appendChild(dot);
+                item.appendChild(label);
+                item.appendChild(status);
                 wrap.appendChild(item);
             });
         }
@@ -2103,6 +3109,12 @@
                 return Math.min(100, Math.round((realizado / parqueGrupo) * 100));
             });
 
+            const possuiDadosPreventiva = parqueGrupo > 0 && dadosPreventivaMensal.some(m => Array.isArray(m.dados) && m.dados.some(d => nomesGrupo.has(normalizarTexto(d.equipe))));
+            if (atualizarEstadoVazioGrafico(cP, !possuiDadosPreventiva, parqueGrupo > 0 ? 'Preventiva ainda não informada' : 'Indicador de preventiva indisponível', parqueGrupo > 0 ? 'Preencha ao menos um mês da grade anual de preventiva.' : 'Cadastre o Parque VP para calcular os percentuais.')) {
+                const containerEquipes = document.getElementById('containerEquipesPreventiva');
+                if (containerEquipes) containerEquipes.innerHTML = '';
+                return;
+            }
             const customDataLabelsPercPlugin = {
                 id: 'customDataLabelsPerc',
                 afterDatasetsDraw(chart) {
@@ -2163,11 +3175,15 @@
                 const title = document.createElement('h3');
                 title.className = 'font-heading font-medium text-lg mb-4 text-on-surface';
                 title.textContent = eq.equipe;
+                const descricao = document.createElement('p');
+                descricao.className = 'text-xs text-on-surface-variant -mt-3 mb-4';
+                descricao.textContent = 'Preventivas realizadas pela equipe no mês ÷ quantidade de máquinas cadastradas para a equipe × 100.';
                 const chartWrapper = document.createElement('div');
                 chartWrapper.className = 'flex-1 relative min-h-[250px]';
                 const canvas = document.createElement('canvas');
                 chartWrapper.appendChild(canvas);
                 colDiv.appendChild(title);
+                colDiv.appendChild(descricao);
                 colDiv.appendChild(chartWrapper);
                 containerEquipes.appendChild(colDiv);
 
@@ -2268,6 +3284,7 @@
                 a.equipe.localeCompare(b.equipe)
             );
 
+            if (atualizarEstadoVazioGrafico(canvas, !dadosEquipes.length, 'Nenhuma equipe possui falhas no período', 'Nenhuma equipe do grupo selecionado possui falhas no período.')) return;
             const labels = dadosEquipes.map(item => item.equipe);
             const dataY1 = dadosEquipes.map(item => item.percentualPreventiva);
             const dataY2 = dadosEquipes.map(item => item.quantidadeFalhas);
@@ -2358,6 +3375,10 @@
         }
         // ========== EXPORTAÇÃO E IMPORTAÇÃO ==========
         async function exportarPDF() {
+            if (relatorioComAlteracoesPendentes) {
+                mostrarToast('Aguarde a atualização automática do relatório antes de baixar o PDF.', 'erro');
+                return;
+            }
             const ol = document.getElementById('loadingOverlay'); 
             ol.classList.replace('hidden','flex');
             
@@ -2395,10 +3416,7 @@
                 
                 if (cur.length) pages.push(cur);
                 
-                const isExclusivoL10 = document.getElementById('checkExclusivoL10').checked;
-                const pdfTitle = isExclusivoL10 ? 
-                    "Exclusivo Linha 10 - MCE Analytics - Relatório Consolidado GOT" : 
-                    "Exclusivo Linhas 11, 12 e 13 - MCE Analytics - Relatório Consolidado GOT";
+                const pdfTitle = "MCE Analytics - Relatório Consolidado GOT";
                 
                 for (let i=0;i<pages.length;i++){
                     if (i>0) pdf.addPage();
@@ -2412,8 +3430,8 @@
                 
                 const d = new Date(); 
                 pdf.save(`relatorio_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.pdf`);
-            } catch(e) { 
-                alert("Erro ao gerar PDF: " + e.message); 
+            } catch(e) {
+                mostrarToast("Não foi possível gerar o PDF: " + e.message, 'erro');
             } finally { 
                 ol.classList.replace('flex','hidden'); 
             }
@@ -2422,6 +3440,7 @@
         function salvarDadosJSON() {
             const blob = new Blob([JSON.stringify({ 
                 versao:"1.0", 
+                exportadoEm: new Date().toISOString(),
                 dados: { 
                     mch_indMes: document.getElementById('indMes').value, 
                     mch_indPassados: document.getElementById('indPassados').value, 
@@ -2430,8 +3449,7 @@
                     mch_dataFim: document.getElementById('dataFim').value, 
                     mch_parque: dadosParqueInstalado, 
                     mch_parque_vp: dadosParqueVP,
-                    mch_preventiva_mensal: dadosPreventivaMensal,
-                    mch_preventiva_grupo_exibicao: grupoPreventivaSelecionado 
+                    mch_preventiva_mensal: dadosPreventivaMensal 
                 } 
             }, null, 2)], { type:'application/json' });
             
@@ -2440,82 +3458,202 @@
             const d = new Date(); 
             a.download = `backup_mch_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}.json`; 
             document.body.appendChild(a); 
-            a.click(); 
+            a.click();
             a.remove();
+            URL.revokeObjectURL(a.href);
+            mostrarToast('Backup exportado com sucesso.');
         }
 
-        function triggerImportarDados() { 
-            document.getElementById('fileImport').click(); 
+        let acaoConfirmada = null;
+        let focoAntesConfirmacao = null;
+        function mostrarErroLocal(campoId, erroId, mensagem, moverFoco = true) {
+            const campo = document.getElementById(campoId);
+            const erro = document.getElementById(erroId);
+            if (!campo || !erro) return;
+            erro.textContent = mensagem;
+            erro.classList.remove('hidden');
+            campo.classList.add('border-error');
+            campo.setAttribute('aria-invalid', 'true');
+            const descricoes = new Set((campo.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+            descricoes.add(erroId);
+            campo.setAttribute('aria-describedby', Array.from(descricoes).join(' '));
+            if (moverFoco) campo.focus();
         }
-
-        function processarImportacao(event) {
-            const f = event.target.files[0]; 
-            if (!f) return;
-            
-            const r = new FileReader();
-            r.onload = function(e) {
-                try {
-                    const est = JSON.parse(e.target.result).dados; 
-                    if (!est) throw new Error();
-                    
-                    if(est.mch_indMes) { 
-                        document.getElementById('indMes').value = est.mch_indMes; 
-                        localStorage.setItem('mch_indMes', est.mch_indMes); 
-                    }
-                    if(est.mch_indPassados) { 
-                        document.getElementById('indPassados').value = est.mch_indPassados; 
-                        localStorage.setItem('mch_indPassados', est.mch_indPassados); 
-                    }
-                    if(est.mch_recomendacoes) { 
-                        document.getElementById('recomendacoesText').value = est.mch_recomendacoes; 
-                        localStorage.setItem('mch_recomendacoes', est.mch_recomendacoes); 
-                    }
-                    if(est.mch_dataInicio) { 
-                        document.getElementById('dataInicio').value = est.mch_dataInicio; 
-                        localStorage.setItem('mch_dataInicio', est.mch_dataInicio); 
-                    }
-                    if(est.mch_dataFim) { 
-                        document.getElementById('dataFim').value = est.mch_dataFim; 
-                        localStorage.setItem('mch_dataFim', est.mch_dataFim); 
-                    }
-                    if(est.mch_parque) { 
-                        dadosParqueInstalado = est.mch_parque; 
-                        localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado)); 
-                        renderizarListaParque(); 
-                    }
-                    if(est.mch_parque_vp) { 
-                        dadosParqueVP = est.mch_parque_vp; 
-                        localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP)); 
-                        renderizarListaParqueVP(); 
-                    }
-                    if(est.mch_preventiva_mensal) {
-                        dadosPreventivaMensal = est.mch_preventiva_mensal;
-                        localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
-                        atualizarProgressoPreventiva();
-                    }
-                    if(est.mch_preventiva_grupo_exibicao && GRUPOS_PREVENTIVA[est.mch_preventiva_grupo_exibicao]) {
-                        grupoPreventivaSelecionado = est.mch_preventiva_grupo_exibicao;
-                        localStorage.setItem('mch_preventiva_grupo_exibicao', grupoPreventivaSelecionado);
-                        document.getElementById('grupoPreventiva').value = grupoPreventivaSelecionado;
-                        sincronizarExclusivoLinha10();
-                        atualizarAvisoGrupoPreventiva();
-                    }
-                    
-                    document.getElementById('errorMessage').classList.add('hidden');
-                    document.getElementById('chartsContainer').classList.add('hidden');
-                    document.getElementById('noDataState').classList.add('hidden');
-                    document.getElementById('emptyState').classList.remove('hidden');
-                    document.getElementById('dashboardSubtitle').innerText = "Dados restaurados.";
-                    document.getElementById('btnExportar').classList.add('opacity-50','cursor-not-allowed','pointer-events-none');
-                    alert("Backup restaurado. Clique em Processar Dados.");
-                } catch(err) { 
-                    alert("Arquivo inválido."); 
-                }
-                event.target.value = "";
+        function limparErroLocal(campoId, erroId) {
+            const campo = document.getElementById(campoId);
+            const erro = document.getElementById(erroId);
+            if (erro) { erro.textContent = ''; erro.classList.add('hidden'); }
+            if (campo) {
+                campo.classList.remove('border-error');
+                campo.removeAttribute('aria-invalid');
+            }
+        }
+        function atualizarResumoErros(resumoId, erros) {
+            const resumo = document.getElementById(resumoId);
+            if (!resumo) return;
+            if (!erros.length) {
+                resumo.innerHTML = '';
+                resumo.classList.add('hidden');
+                return;
+            }
+            resumo.innerHTML = `<p class="font-semibold mb-1">Corrija ${erros.length} ${erros.length === 1 ? 'problema' : 'problemas'} antes de continuar:</p><ul class="list-disc pl-5 space-y-1">${erros.map(erro => `<li>${escaparHTML(erro)}</li>`).join('')}</ul>`;
+            resumo.classList.remove('hidden');
+            resumo.focus();
+        }
+        function abrirConfirmacao(titulo, descricao, acao, textoAcao = 'Excluir') {
+            focoAntesConfirmacao = document.activeElement;
+            acaoConfirmada = acao;
+            document.getElementById('confirmacaoTitulo').textContent = titulo;
+            document.getElementById('confirmacaoDescricao').textContent = descricao;
+            const modal = document.getElementById('modalConfirmacao');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const executar = document.getElementById('btnExecutarConfirmacao');
+            executar.onclick = confirmarAcaoDestrutiva;
+            setTimeout(() => document.getElementById('btnCancelarConfirmacao').focus(), 0);
+        }
+        function fecharConfirmacao() {
+            const modal = document.getElementById('modalConfirmacao');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            acaoConfirmada = null;
+            if (focoAntesConfirmacao && focoAntesConfirmacao.focus) focoAntesConfirmacao.focus();
+        }
+        function confirmarAcaoDestrutiva() {
+            const acao = acaoConfirmada;
+            fecharConfirmacao();
+            if (typeof acao === 'function') acao();
+        }
+        let timerMensagemImportacao = null;
+        function mostrarToast(mensagem, tipo = 'sucesso') {
+            const toast = document.getElementById('toastImportacao');
+            const texto = document.getElementById('toastImportacaoTexto');
+            const icone = document.getElementById('toastImportacaoIcone');
+            if (!toast || !texto || !icone) return;
+            clearTimeout(timerMensagemImportacao);
+            texto.textContent = mensagem;
+            toast.className = `fixed top-5 right-5 z-[60] max-w-md rounded-lg border bg-surface-container-lowest px-4 py-3 shadow-xl ${tipo === 'sucesso' ? 'border-secondary/40 text-secondary' : 'border-error/40 text-error'}`;
+            icone.setAttribute('data-lucide', tipo === 'sucesso' ? 'check-circle-2' : 'circle-alert');
+            toast.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+            timerMensagemImportacao = setTimeout(ocultarMensagemImportacao, 7000);
+        }
+        function ocultarMensagemImportacao() {
+            const toast = document.getElementById('toastImportacao');
+            if (toast) toast.classList.add('hidden');
+            clearTimeout(timerMensagemImportacao);
+        }
+        function validarRequisitosImportados() {
+            const estado = obterEstadoPreparacao();
+            const analiseAtual = analisarDadosColados(document.getElementById('indMes').value);
+            const textoAnterior = document.getElementById('indPassados').value.trim();
+            const analiseAnterior = textoAnterior ? analisarDadosColados(textoAnterior) : null;
+            if (!estado.parqueMCEValido) return 'o parque de MCE está vazio.';
+            if (!estado.equipesVPValidas) return `o parque VP está vazio ou não possui cadastro válido para ${estado.equipesAusentes.join(', ')}.`;
+            if (!estado.periodoValido) return 'o período selecionado é inválido.';
+            if (analiseAtual.vazio) return 'os dados do período atual estão vazios.';
+            if (analiseAtual.erros.length) return `os dados do período atual possuem erro: ${analiseAtual.erros[0]}`;
+            if (!analiseAnterior || analiseAnterior.vazio) return 'o histórico comparativo obrigatório está vazio.';
+            if (analiseAnterior.erros.length) return `o histórico comparativo possui erro: ${analiseAnterior.erros[0]}`;
+            return null;
+        }
+        let backupPendenteRestauracao = null;
+        function triggerImportarDados() {
+            document.getElementById('fileImport').click();
+        }
+        function contarFalhasBackup(texto) {
+            const resultado = parseExcelData(texto || '');
+            return resultado.error ? 0 : resultado.data.length;
+        }
+        function formatarDataBackup(data) {
+            return new Intl.DateTimeFormat('pt-BR').format(data);
+        }
+        function obterResumoBackup(conteudo, arquivo) {
+            const est = conteudo.dados || {};
+            const dataInformada = conteudo.exportadoEm ? new Date(conteudo.exportadoEm) : new Date(arquivo.lastModified || Date.now());
+            const dataBackup = isNaN(dataInformada) ? new Date() : dataInformada;
+            return {
+                data: formatarDataBackup(dataBackup),
+                falhas: contarFalhasBackup(est.mch_indMes),
+                meses: Array.isArray(est.mch_preventiva_mensal) ? est.mch_preventiva_mensal.length : 0,
+                equipes: Array.isArray(est.mch_parque_vp) ? est.mch_parque_vp.length : 0,
+                modelos: Array.isArray(est.mch_parque) ? est.mch_parque.length : 0
             };
-            r.readAsText(f);
         }
-
+        function aplicarBackupRestaurado(conteudo, arquivo) {
+            const est = conteudo.dados;
+            const resumo = obterResumoBackup(conteudo, arquivo);
+            document.getElementById('indMes').value = est.mch_indMes || '';
+            localStorage.setItem('mch_indMes', est.mch_indMes || '');
+            document.getElementById('indPassados').value = est.mch_indPassados || '';
+            localStorage.setItem('mch_indPassados', est.mch_indPassados || '');
+            document.getElementById('recomendacoesText').value = est.mch_recomendacoes || '';
+            localStorage.setItem('mch_recomendacoes', est.mch_recomendacoes || '');
+            if (est.mch_dataInicio) {
+                document.getElementById('dataInicio').value = est.mch_dataInicio;
+                localStorage.setItem('mch_dataInicio', est.mch_dataInicio);
+            }
+            if (est.mch_dataFim) {
+                document.getElementById('dataFim').value = est.mch_dataFim;
+                localStorage.setItem('mch_dataFim', est.mch_dataFim);
+            }
+            dadosParqueInstalado = Array.isArray(est.mch_parque) ? est.mch_parque : [];
+            localStorage.setItem('mch_parque', JSON.stringify(dadosParqueInstalado));
+            renderizarListaParque();
+            dadosParqueVP = Array.isArray(est.mch_parque_vp) ? est.mch_parque_vp : [];
+            localStorage.setItem('mch_parque_vp', JSON.stringify(dadosParqueVP));
+            renderizarListaParqueVP();
+            dadosPreventivaMensal = normalizarGradePreventiva(est.mch_preventiva_mensal || []);
+            localStorage.setItem('mch_preventiva_mensal', JSON.stringify(dadosPreventivaMensal));
+            atualizarProgressoPreventiva();
+            registrarSalvamentoLocal();
+            document.getElementById('errorMessage').classList.add('hidden');
+            validarIntervaloDatas();
+            atualizarPreparacaoRelatorio();
+            atualizarValidacoesColagem();
+            atualizarContextoCabecalho();
+            renderizarResumoFalhas(parseExcelData(document.getElementById('indMes').value).data);
+            const impedimento = validarRequisitosImportados();
+            const mensagemResumo = `Backup de ${resumo.data}: ${resumo.falhas} falhas, ${resumo.meses} meses de preventiva, ${resumo.equipes} equipes e ${resumo.modelos} modelos.`;
+            if (impedimento) {
+                document.getElementById('chartsContainer').classList.add('hidden');
+                document.getElementById('noDataState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('dashboardSubtitle').innerText = 'Backup restaurado com pendências.';
+                document.getElementById('btnExportar').classList.add('opacity-50','cursor-not-allowed','pointer-events-none');
+                mostrarToast(`${mensagemResumo} Não foi possível gerar o relatório porque ${impedimento}`, 'erro');
+            } else {
+                mostrarDashboard();
+                processarDados();
+                mostrarToast(mensagemResumo, 'sucesso');
+            }
+        }
+        function processarImportacao(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+            const leitor = new FileReader();
+            leitor.onload = function(e) {
+                try {
+                    const conteudo = JSON.parse(e.target.result);
+                    if (!conteudo || !conteudo.dados || typeof conteudo.dados !== 'object') throw new Error();
+                    backupPendenteRestauracao = { conteudo, arquivo };
+                    abrirConfirmacao(
+                        'Restaurar este backup?',
+                        'Os dados atualmente salvos neste navegador serão substituídos.',
+                        () => {
+                            const pendente = backupPendenteRestauracao;
+                            backupPendenteRestauracao = null;
+                            if (pendente) aplicarBackupRestaurado(pendente.conteudo, pendente.arquivo);
+                        },
+                        'Prosseguir'
+                    );
+                } catch(err) {
+                    mostrarToast('Arquivo inválido. Selecione um backup JSON gerado por esta aplicação.', 'erro');
+                }
+                event.target.value = '';
+            };
+            leitor.readAsText(arquivo);
+        }
     </script>
 </body>
 </html>

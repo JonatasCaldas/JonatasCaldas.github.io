@@ -1,0 +1,3051 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Eixos Estratégicos</title>
+
+  <!-- Tipografia Inter (padrão shadcn/ui) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            border: '#e4e4e7',
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons via CDN unpkg -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Ajustes finos para scrollbars e animações suaves estilo shadcn/ui */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #fafafa; /* zinc-50 */
+      color: #09090b; /* zinc-950 */
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+    @keyframes toastSlideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-toast {
+      animation: toastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-zinc-50 text-zinc-950 selection:bg-zinc-900 selection:text-zinc-50">
+
+  <!-- ===================================================================== -->
+  <!-- CABEÇALHO SUPERIOR FIXO (SHADCN/UI NAVBAR + PERSISTÊNCIA .TXT)        -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-30 w-full border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3.5 gap-3">
+        <!-- Identidade da Aplicação -->
+        <div class="flex items-center gap-3">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50 shadow-sm">
+            <i data-lucide="compass" class="h-5 w-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-semibold tracking-tight text-zinc-950 leading-none">
+                Planejamento Estratégico
+              </h1>
+            </div>
+            <p class="text-xs text-zinc-500 mt-1">
+              Acompanhamento de Eixos, Objetivos, Entregáveis e Planos de Ação
+            </p>
+          </div>
+        </div>
+
+        <!-- Ações de Persistência LocalStorage & Backup .TXT -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Input oculto para leitura do arquivo .txt -->
+          <input type="file" id="import-file-input" accept=".txt,text/plain" class="hidden" />
+
+          <button
+            type="button"
+            onclick="handleExportTxt()"
+            title="Baixar arquivo .txt com todos os dados atuais"
+            class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-900 shadow-xs transition-colors hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-1"
+          >
+            <i data-lucide="download" class="h-3.5 w-3.5 text-zinc-600"></i>
+            <span>Exportar</span>
+          </button>
+
+          <button
+            type="button"
+            onclick="triggerImportTxt()"
+            title="Importar backup .txt e substituir dados atuais"
+            class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-900 shadow-xs transition-colors hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-1"
+          >
+            <i data-lucide="upload" class="h-3.5 w-3.5 text-zinc-600"></i>
+            <span>Importar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- NAVEGAÇÃO PRINCIPAL SPA (TABS SEGMENTED CONTROL SHADCN/UI)          -->
+      <!-- =================================================================== -->
+      <nav aria-label="Navegação Principal" class="pb-3 overflow-x-auto">
+        <div role="tablist" class="inline-flex w-full sm:w-auto items-center rounded-lg bg-zinc-100 p-1 border border-zinc-200/80">
+          <button
+            type="button"
+            role="tab"
+            id="tab-btn-dashboard"
+            aria-selected="true"
+            onclick="switchTab('dashboard')"
+            class="tab-trigger flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all bg-white text-zinc-950 shadow-sm"
+          >
+            <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+            <span>Visão Geral</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            id="tab-btn-roadmap"
+            aria-selected="false"
+            onclick="switchTab('roadmap')"
+            class="tab-trigger flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all text-zinc-600 hover:text-zinc-950"
+          >
+            <i data-lucide="milestone" class="h-4 w-4"></i>
+            <span>Eixos e Objetivos</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            id="tab-btn-gestao"
+            aria-selected="false"
+            onclick="switchTab('gestao')"
+            class="tab-trigger flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all text-zinc-600 hover:text-zinc-950"
+          >
+            <i data-lucide="layers" class="h-4 w-4"></i>
+            <span>Ações</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- CONTEÚDO PRINCIPAL (VIEWS DINÂMICAS DA SPA)                           -->
+  <!-- ===================================================================== -->
+  <main id="app-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <!-- Renderizado dinamicamente via JavaScript -->
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- RODAPÉ DISCRETO                                                       -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-zinc-200 bg-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-500">
+      <div class="flex items-center gap-2">
+        <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+        <span>Sincronizado automaticamente no navegador (<code class="font-mono text-[11px] bg-zinc-100 px-1 py-0.5 rounded">localStorage</code>)</span>
+      </div>
+      <div id="footer-stats" class="tabular-nums"></div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: CRIAR / EDITAR EIXO ESTRATÉGICO                              -->
+  <!-- ===================================================================== -->
+  <div id="modal-eixo" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="modal-eixo-title">
+    <div class="w-full max-w-lg rounded-xl border border-zinc-200 bg-white shadow-xl animate-fade-in overflow-hidden">
+      <div class="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+        <div>
+          <h2 id="modal-eixo-title" class="text-base font-semibold text-zinc-950">Novo Eixo Estratégico</h2>
+          <p class="text-xs text-zinc-500 mt-0.5">Defina um pilar macro do planejamento estratégico.</p>
+        </div>
+        <button type="button" onclick="closeModal('modal-eixo')" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors" aria-label="Fechar">
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <form id="form-eixo" onsubmit="submitEixoForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="eixo-id" />
+        <div>
+          <label for="eixo-titulo" class="block text-xs font-medium text-zinc-900 mb-1.5">
+            Título do Eixo Estratégico <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="eixo-titulo"
+            required
+            placeholder="Ex: Excelência Operacional e Eficiência de Custos"
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+          />
+        </div>
+
+        <div>
+          <label for="eixo-descricao" class="block text-xs font-medium text-zinc-900 mb-1.5">
+            Diretriz / Descrição do Eixo <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="eixo-descricao"
+            rows="3"
+            required
+            placeholder="Descreva o foco estratégico e o impacto esperado deste eixo..."
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+          ></textarea>
+        </div>
+
+        <p id="eixo-form-error" class="hidden text-xs font-medium text-red-600"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+          <button type="button" onclick="closeModal('modal-eixo')" class="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 transition-colors shadow-xs">
+            Salvar Eixo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: CRIAR / EDITAR OBJETIVO (ENTREGÁVEL CONCRETO)                -->
+  <!-- ===================================================================== -->
+  <div id="modal-objetivo" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="modal-objetivo-title">
+    <div class="w-full max-w-xl rounded-xl border border-zinc-200 bg-white shadow-xl animate-fade-in overflow-hidden">
+      <div class="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+        <div>
+          <h2 id="modal-objetivo-title" class="text-base font-semibold text-zinc-950">Novo Objetivo (Entregável)</h2>
+          <p class="text-xs text-zinc-500 mt-0.5">Cadastre um entregável concreto vinculado a um Eixo Estratégico.</p>
+        </div>
+        <button type="button" onclick="closeModal('modal-objetivo')" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors" aria-label="Fechar">
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <form id="form-objetivo" onsubmit="submitObjetivoForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="objetivo-id" />
+
+        <div>
+          <label for="objetivo-eixo-id" class="block text-xs font-medium text-zinc-900 mb-1.5">
+            Eixo Estratégico Vinculado <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="objetivo-eixo-id"
+            required
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+          ></select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label for="objetivo-titulo" class="block text-xs font-medium text-zinc-900 mb-1.5">
+              Objetivo (Entregável Concreto) <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="objetivo-titulo"
+              required
+              placeholder="Ex: Implantação do Portal de Autoatendimento"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+            />
+          </div>
+
+          <div>
+            <label for="objetivo-equipe" class="block text-xs font-medium text-zinc-900 mb-1.5">
+              Equipe Responsável <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="objetivo-equipe"
+              list="equipes-datalist"
+              required
+              placeholder="Ex: Engenharia"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+            />
+            <datalist id="equipes-datalist"></datalist>
+          </div>
+        </div>
+
+        <div>
+          <label for="objetivo-descritivo" class="block text-xs font-medium text-zinc-900 mb-1.5">
+            Descritivo (O que a gestão deseja alcançar) <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="objetivo-descritivo"
+            rows="3"
+            required
+            placeholder="Explique detalhadamente o resultado esperado pela alta gestão ao concluir este entregável..."
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+          ></textarea>
+        </div>
+
+        <p id="objetivo-form-error" class="hidden text-xs font-medium text-red-600"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+          <button type="button" onclick="closeModal('modal-objetivo')" class="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 transition-colors shadow-xs">
+            Salvar Objetivo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: CRIAR / EDITAR AÇÃO                                          -->
+  <!-- ===================================================================== -->
+  <div id="modal-acao" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="modal-acao-title">
+    <div class="w-full max-w-lg rounded-xl border border-zinc-200 bg-white shadow-xl animate-fade-in overflow-hidden">
+      <div class="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+        <div>
+          <h2 id="modal-acao-title" class="text-base font-semibold text-zinc-950">Nova Ação Executiva</h2>
+          <p id="modal-acao-subtitle" class="text-xs text-zinc-500 mt-0.5">Defina o que precisa ser feito, responsável e prazo.</p>
+        </div>
+        <button type="button" onclick="closeModal('modal-acao')" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors" aria-label="Fechar">
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <form id="form-acao" onsubmit="submitAcaoForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="acao-id" />
+        <input type="hidden" id="acao-objetivo-id" />
+
+        <div>
+          <label for="acao-descricao" class="block text-xs font-medium text-zinc-900 mb-1.5">
+            Descrição da Ação (O que o responsável deve fazer) <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="acao-descricao"
+            rows="2"
+            required
+            placeholder="Ex: Mapear requisitos técnicos e validar cronograma com fornecedores"
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+          ></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="acao-responsavel" class="block text-xs font-medium text-zinc-900 mb-1.5">
+              Responsável <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="acao-responsavel"
+              list="responsaveis-datalist"
+              required
+              placeholder="Nome do responsável"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+            />
+            <datalist id="responsaveis-datalist"></datalist>
+          </div>
+
+          <div>
+            <label for="acao-prazo" class="block text-xs font-medium text-zinc-900 mb-1.5">
+              Prazo Limite <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              id="acao-prazo"
+              required
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 pt-1">
+          <input
+            type="checkbox"
+            id="acao-concluida"
+            class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-950 accent-zinc-900 cursor-pointer"
+          />
+          <label for="acao-concluida" class="text-xs font-medium text-zinc-700 cursor-pointer select-none">
+            Marcar esta ação como já concluída
+          </label>
+        </div>
+
+        <p id="acao-form-error" class="hidden text-xs font-medium text-red-600"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+          <button type="button" onclick="closeModal('modal-acao')" class="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" class="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 transition-colors shadow-xs">
+            Salvar Ação
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 4: DIALOG DE CONFIRMAÇÃO UNIVERSAL (SHADCN/UI ALERT DIALOG)     -->
+  <!-- ===================================================================== -->
+  <div id="modal-confirm" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl animate-fade-in">
+      <div class="flex items-start gap-3.5">
+        <div id="confirm-icon-wrap" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-100">
+          <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+        </div>
+        <div class="flex-1">
+          <h3 id="confirm-title" class="text-base font-semibold text-zinc-950">Confirmar Ação</h3>
+          <p id="confirm-message" class="text-xs text-zinc-600 mt-1.5 leading-relaxed"></p>
+          <div id="confirm-extra" class="hidden mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 mt-6">
+        <button type="button" onclick="closeModal('modal-confirm')" class="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors">
+          Cancelar
+        </button>
+        <button type="button" id="confirm-action-btn" class="rounded-lg bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 transition-colors shadow-xs">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 5: DETALHE DE MILESTONE (OBJETIVO NO ROADMAP)                   -->
+  <!-- ===================================================================== -->
+  <div id="modal-milestone-detail" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs" role="dialog" aria-modal="true">
+    <div class="w-full max-w-2xl rounded-xl border border-zinc-200 bg-white shadow-xl animate-fade-in overflow-hidden max-h-[90vh] flex flex-col">
+      <div id="milestone-detail-content" class="overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CONTAINER DE NOTIFICAÇÕES TOAST (CANTO INFERIOR DIREITO)              -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DA APLICAÇÃO (ESTADO, REGRAS DE NEGÓCIO, PERSISTÊNCIA E UI)    -->
+  <!-- ===================================================================== -->
+  <script>
+    'use strict';
+
+    // Chave obrigatória de persistência no localStorage
+    const STORAGE_KEY = 'strategic_goals_app_v1';
+
+    // Estado central da aplicação
+    let appState = {
+      eixos: [],
+      objetivos: [],
+      acoes: []
+    };
+
+    // Estado de UI (aba ativa, filtros da aba de gestão, eixos expandidos, milestone selecionado)
+    let uiState = {
+      activeTab: 'dashboard', // 'dashboard' | 'roadmap' | 'gestao'
+      searchQuery: '',
+      filterEixo: 'ALL',
+      filterEquipe: 'ALL',
+      filterStatus: 'ALL',
+      expandedEixos: {}, // { [eixoId]: boolean }
+      activeMilestoneModalId: null
+    };
+
+    // Callback armazenado dinamicamente para o modal de confirmação
+    let pendingConfirmCallback = null;
+
+    // =========================================================================
+    // UTILITÁRIOS DE DATA, ID E SEGURANÇA HTML
+    // =========================================================================
+
+    function generateId(prefix = 'id') {
+      return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 7)}`;
+    }
+
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return '';
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Retorna a data atual no formato YYYY-MM-DD respeitando o fuso horário local.
+     */
+    function getTodayISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    /**
+     * Retorna uma data YYYY-MM-DD deslocada em N dias a partir de hoje.
+     */
+    function getOffsetDateISO(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    /**
+     * Formata YYYY-MM-DD para DD/MM/YYYY sem deslocamento de timezone.
+     */
+    function formatDateBR(isoDate) {
+      if (!isoDate || typeof isoDate !== 'string') return 'Sem prazo';
+      const parts = isoDate.split('-');
+      if (parts.length !== 3) return isoDate;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    /**
+     * Ordena ações pelo prazo, da data mais antiga para a mais nova.
+     * Ações sem prazo válido são posicionadas ao final.
+     */
+    function compareAcoesByPrazo(a, b) {
+      const prazoA = typeof a?.prazo === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(a.prazo)
+        ? a.prazo
+        : '9999-12-31';
+      const prazoB = typeof b?.prazo === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.prazo)
+        ? b.prazo
+        : '9999-12-31';
+
+      return prazoA.localeCompare(prazoB)
+        || String(a?.descricao || '').localeCompare(String(b?.descricao || ''), 'pt-BR');
+    }
+
+    /**
+     * Classifica o status temporal de uma ação (Concluída, Atrasada, Próxima do Prazo, Em Dia).
+     */
+    function getAcaoDeadlineStatus(acao) {
+      if (acao.concluida) {
+        return {
+          code: 'CONCLUIDA',
+          label: 'Concluída',
+          badgeClass: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+          icon: 'check-circle-2'
+        };
+      }
+      const today = getTodayISO();
+      const soonLimit = getOffsetDateISO(7);
+
+      if (acao.prazo && acao.prazo < today) {
+        return {
+          code: 'ATRASADA',
+          label: 'Atrasada',
+          badgeClass: 'border-red-200 bg-red-50 text-red-700',
+          icon: 'alert-circle'
+        };
+      }
+      if (acao.prazo && acao.prazo <= soonLimit) {
+        return {
+          code: 'PROXIMA',
+          label: 'Próxima do prazo',
+          badgeClass: 'border-amber-200 bg-amber-50 text-amber-700',
+          icon: 'clock'
+        };
+      }
+      return {
+        code: 'EM_DIA',
+        label: 'Em dia',
+        badgeClass: 'border-zinc-200 bg-zinc-100 text-zinc-700',
+        icon: 'calendar'
+      };
+    }
+
+    // =========================================================================
+    // DADOS INICIAIS DE DEMONSTRAÇÃO (PRIMEIRA CARGA)
+    // =========================================================================
+
+    function getSeedData() {
+      const e1 = 'eixo_excelencia_op';
+      const e2 = 'eixo_transf_digital';
+      const e3 = 'eixo_esg_governanca';
+
+      const o1 = 'obj_pop_campo';
+      const o2 = 'obj_suprimentos_sla';
+      const o3 = 'obj_data_lake';
+      const o4 = 'obj_telemetria_iot';
+      const o5 = 'obj_eficiencia_energetica';
+      const o6 = 'obj_capacitacao_liderancas';
+
+      return {
+        eixos: [
+          {
+            id: e1,
+            titulo: 'Excelência Operacional e Eficiência de Custos',
+            descricao: 'Elevar a produtividade das operações em campo e otimizar contratos estratégicos para maximizar margem operacional e confiabilidade de entrega.'
+          },
+          {
+            id: e2,
+            titulo: 'Transformação Digital e Inteligência de Dados',
+            descricao: 'Consolidar infraestrutura analítica em tempo real e automação preditiva para acelerar a tomada de decisão executiva.'
+          },
+          {
+            id: e3,
+            titulo: 'Expansão Sustentável e Governança Corporativa',
+            descricao: 'Estruturar compromissos mensuráveis de eficiência energética e fortalecer a cultura de gestão orientada a metas nas lideranças.'
+          }
+        ],
+        objetivos: [
+          {
+            id: o1,
+            eixoId: e1,
+            titulo: 'Padronização dos Processos Críticos de Campo (POP 2.0)',
+            descritivo: 'Alcançar redução de 20% no tempo médio de atendimento operacional e eliminar retrabalhos por meio da digitalização integral dos procedimentos padrão.',
+            equipe: 'Operações'
+          },
+          {
+            id: o2,
+            eixoId: e1,
+            titulo: 'Otimização da Cadeia de Suprimentos e Contratos Críticos',
+            descritivo: 'Reduzir em 12% o custo de aquisição de insumos estratégicos e assegurar SLA de entrega superior a 95% junto aos fornecedores homologados.',
+            equipe: 'Suprimentos'
+          },
+          {
+            id: o3,
+            eixoId: e2,
+            titulo: 'Data Lake Corporativo e Painéis Executivos em Tempo Real',
+            descritivo: 'Unificar bases operacionais, financeiras e de suprimentos para garantir visibilidade diária de KPIs sem consolidação manual em planilhas.',
+            equipe: 'TI & Inovação'
+          },
+          {
+            id: o4,
+            eixoId: e2,
+            titulo: 'Automação de Telemetria e Manutenção Preditiva',
+            descritivo: 'Implantar sensores de monitoramento contínuo nos ativos críticos para antecipar falhas e reduzir paradas não programadas em 35%.',
+            equipe: 'Engenharia'
+          },
+          {
+            id: o5,
+            eixoId: e3,
+            titulo: 'Plano Diretor de Eficiência Energética e Descarbonização',
+            descritivo: 'Estabelecer diagnóstico energético nas unidades operacionais e implantar metas trimestrais de redução de consumo alinhadas às diretrizes ESG.',
+            equipe: 'Engenharia'
+          },
+          {
+            id: o6,
+            eixoId: e3,
+            titulo: 'Programa de Capacitação de Lideranças e Cultura de Metas',
+            descritivo: 'Capacitar 100% dos coordenadores e gerentes em rituais de acompanhamento de indicadores, desdobramento de metas e gestão de performance.',
+            equipe: 'Gestão'
+          }
+        ],
+        acoes: [
+          // Objetivo 1 (100% Concluído)
+          {
+            id: 'ac_01',
+            objetivoId: o1,
+            descricao: 'Mapear os 15 fluxos operacionais com maior índice de retrabalho em campo',
+            responsavel: 'Mariana Costa',
+            prazo: getOffsetDateISO(-25),
+            concluida: true
+          },
+          {
+            id: 'ac_02',
+            objetivoId: o1,
+            descricao: 'Publicar manuais digitais interativos e checklists móveis para equipes técnicas',
+            responsavel: 'Lucas Ferreira',
+            prazo: getOffsetDateISO(-14),
+            concluida: true
+          },
+          {
+            id: 'ac_03',
+            objetivoId: o1,
+            descricao: 'Concluir treinamento prático e certificação de 100% dos supervisores regionais',
+            responsavel: 'Mariana Costa',
+            prazo: getOffsetDateISO(-5),
+            concluida: true
+          },
+
+          // Objetivo 2 (Em andamento: 2 de 3 concluídas)
+          {
+            id: 'ac_04',
+            objetivoId: o2,
+            descricao: 'Auditar contratos vigentes da curva A e identificar oportunidades de renegociação',
+            responsavel: 'Roberto Almeida',
+            prazo: getOffsetDateISO(-18),
+            concluida: true
+          },
+          {
+            id: 'ac_05',
+            objetivoId: o2,
+            descricao: 'Homologar 6 novos fornecedores regionais com cláusulas rígidas de SLA',
+            responsavel: 'Camila Nogueira',
+            prazo: getOffsetDateISO(-4),
+            concluida: true
+          },
+          {
+            id: 'ac_06',
+            objetivoId: o2,
+            descricao: 'Implantar painel mensal de avaliação de performance logística de fornecedores',
+            responsavel: 'Roberto Almeida',
+            prazo: getOffsetDateISO(4), // Próxima do prazo
+            concluida: false
+          },
+
+          // Objetivo 3 (100% Concluído)
+          {
+            id: 'ac_07',
+            objetivoId: o3,
+            descricao: 'Estruturar arquitetura cloud e pipelines automatizados de ingestão ERP/CRM',
+            responsavel: 'Thiago Mendes',
+            prazo: getOffsetDateISO(-30),
+            concluida: true
+          },
+          {
+            id: 'ac_08',
+            objetivoId: o3,
+            descricao: 'Validar dicionário único de dados e regras de cálculo com as diretorias',
+            responsavel: 'Fernanda Lima',
+            prazo: getOffsetDateISO(-16),
+            concluida: true
+          },
+          {
+            id: 'ac_09',
+            objetivoId: o3,
+            descricao: 'Entregar dashboards executivos em produção com atualização automática diária',
+            responsavel: 'Thiago Mendes',
+            prazo: getOffsetDateISO(-7),
+            concluida: true
+          },
+
+          // Objetivo 4 (100% Concluído -> Completa o Eixo 2!)
+          {
+            id: 'ac_10',
+            objetivoId: o4,
+            descricao: 'Instalar gateways de telemetria e sensores de vibração/temperatura nas linhas principais',
+            responsavel: 'Carlos Eduardo',
+            prazo: getOffsetDateISO(-20),
+            concluida: true
+          },
+          {
+            id: 'ac_11',
+            objetivoId: o4,
+            descricao: 'Configurar regras de alertas preditivos integradas à abertura automática de OS',
+            responsavel: 'Carlos Eduardo',
+            prazo: getOffsetDateISO(-9),
+            concluida: true
+          },
+
+          // Objetivo 5 (Em andamento: 1 concluída, 1 atrasada, 1 próxima)
+          {
+            id: 'ac_12',
+            objetivoId: o5,
+            descricao: 'Realizar inventário de consumo elétrico e emissões escopo 1 e 2 das unidades',
+            responsavel: 'Rafael Souza',
+            prazo: getOffsetDateISO(-15),
+            concluida: true
+          },
+          {
+            id: 'ac_13',
+            objetivoId: o5,
+            descricao: 'Aprovar estudo de viabilidade para migração ao Mercado Livre de Energia',
+            responsavel: 'Carlos Eduardo',
+            prazo: getOffsetDateISO(-3), // Atrasada
+            concluida: false
+          },
+          {
+            id: 'ac_14',
+            objetivoId: o5,
+            descricao: 'Elaborar caderno de metas trimestrais de redução de kWh por unidade produtiva',
+            responsavel: 'Rafael Souza',
+            prazo: getOffsetDateISO(6), // Próxima do prazo
+            concluida: false
+          },
+
+          // Objetivo 6 (Não iniciado: 2 ações futuras)
+          {
+            id: 'ac_15',
+            objetivoId: o6,
+            descricao: 'Contratar trilha executiva de OKRs e gestão baseada em evidências',
+            responsavel: 'Juliana Ribeiro',
+            prazo: getOffsetDateISO(18),
+            concluida: false
+          },
+          {
+            id: 'ac_16',
+            objetivoId: o6,
+            descricao: 'Realizar workshop de alinhamento com todos os coordenadores de área',
+            responsavel: 'Juliana Ribeiro',
+            prazo: getOffsetDateISO(32),
+            concluida: false
+          }
+        ]
+      };
+    }
+
+    // =========================================================================
+    // PERSISTÊNCIA LOCALSTORAGE & VALIDAÇÃO
+    // =========================================================================
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (err) {
+        console.error('Erro ao salvar no localStorage:', err);
+        showToast('Erro de Armazenamento', 'Não foi possível salvar os dados localmente.', 'error');
+      }
+    }
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          appState = getSeedData();
+          saveToStorage();
+        } else {
+          const parsed = JSON.parse(raw);
+          if (validateDataStructure(parsed)) {
+            appState = {
+              eixos: parsed.eixos,
+              objetivos: parsed.objetivos,
+              acoes: parsed.acoes
+            };
+          } else {
+            appState = getSeedData();
+            saveToStorage();
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar do localStorage:', err);
+        appState = getSeedData();
+        saveToStorage();
+      }
+
+      // Garante que todos os eixos comecem expandidos na visão de gestão
+      appState.eixos.forEach(e => {
+        if (uiState.expandedEixos[e.id] === undefined) {
+          uiState.expandedEixos[e.id] = true;
+        }
+      });
+    }
+
+    function validateDataStructure(data) {
+      if (!data || typeof data !== 'object') return false;
+      if (!Array.isArray(data.eixos) || !Array.isArray(data.objetivos) || !Array.isArray(data.acoes)) return false;
+
+      const validEixos = data.eixos.every(e => e && typeof e.id === 'string' && typeof e.titulo === 'string');
+      const validObjs = data.objetivos.every(o => o && typeof o.id === 'string' && typeof o.eixoId === 'string' && typeof o.titulo === 'string');
+      const validAcoes = data.acoes.every(a => a && typeof a.id === 'string' && typeof a.objetivoId === 'string' && typeof a.descricao === 'string' && typeof a.concluida === 'boolean');
+
+      return validEixos && validObjs && validAcoes;
+    }
+
+    // =========================================================================
+    // CÁLCULOS E REGRAS DE NEGÓCIO (HIERARQUIA ESTRITA)
+    // =========================================================================
+
+    /**
+     * Calcula métricas e status automático de um Objetivo:
+     * Concluído SOMENTE quando possui >= 1 ação E 100% das ações estão concluídas.
+     */
+    function getObjetivoMetrics(objetivoId) {
+      const acoes = appState.acoes
+        .filter(a => a.objetivoId === objetivoId)
+        .sort(compareAcoesByPrazo);
+      const totalAcoes = acoes.length;
+      const acoesConcluidas = acoes.filter(a => a.concluida).length;
+      const acoesAtrasadas = acoes.filter(a => !a.concluida && getAcaoDeadlineStatus(a).code === 'ATRASADA').length;
+
+      const isConcluido = totalAcoes > 0 && acoesConcluidas === totalAcoes;
+      const isEmAndamento = !isConcluido && acoesConcluidas > 0;
+      const status = isConcluido ? 'CONCLUIDO' : (isEmAndamento ? 'EM_ANDAMENTO' : 'NAO_INICIADO');
+      const percentualAcoes = totalAcoes > 0 ? Math.round((acoesConcluidas / totalAcoes) * 100) : 0;
+
+      return {
+        acoes,
+        totalAcoes,
+        acoesConcluidas,
+        acoesAtrasadas,
+        isConcluido,
+        isEmAndamento,
+        status,
+        percentualAcoes
+      };
+    }
+
+    /**
+     * Calcula métricas e status automático de um Eixo Estratégico:
+     * Concluído SOMENTE quando possui >= 1 objetivo E 100% dos objetivos estão concluídos.
+     */
+    function getEixoMetrics(eixoId) {
+      const objetivos = appState.objetivos.filter(o => o.eixoId === eixoId);
+      const totalObjetivos = objetivos.length;
+
+      let objetivosConcluidos = 0;
+      let objetivosEmAndamento = 0;
+      let totalAcoes = 0;
+      let acoesConcluidas = 0;
+
+      objetivos.forEach(obj => {
+        const m = getObjetivoMetrics(obj.id);
+        if (m.isConcluido) objetivosConcluidos++;
+        else if (m.isEmAndamento) objetivosEmAndamento++;
+        totalAcoes += m.totalAcoes;
+        acoesConcluidas += m.acoesConcluidas;
+      });
+
+      const isConcluido = totalObjetivos > 0 && objetivosConcluidos === totalObjetivos;
+      const isEmAndamento = !isConcluido && (objetivosConcluidos > 0 || objetivosEmAndamento > 0 || acoesConcluidas > 0);
+      const status = isConcluido ? 'CONCLUIDO' : (isEmAndamento ? 'EM_ANDAMENTO' : 'NAO_INICIADO');
+
+      // Percentual do Eixo baseado na soma dos objetivos concluídos / total de objetivos do eixo
+      const percentualObjetivos = totalObjetivos > 0 ? Math.round((objetivosConcluidos / totalObjetivos) * 100) : 0;
+
+      return {
+        objetivos,
+        totalObjetivos,
+        objetivosConcluidos,
+        objetivosEmAndamento,
+        totalAcoes,
+        acoesConcluidas,
+        isConcluido,
+        isEmAndamento,
+        status,
+        percentualObjetivos
+      };
+    }
+
+    /**
+     * Calcula todos os indicadores globais do planejamento estratégico.
+     * Percentual Total do Planejamento = Math.round((objetivosConcluidos / totalObjetivos) * 100)
+     */
+    function getGlobalMetrics() {
+      const totalEixos = appState.eixos.length;
+      let eixosConcluidos = 0;
+      let eixosEmAndamento = 0;
+      let eixosNaoIniciados = 0;
+
+      appState.eixos.forEach(eixo => {
+        const em = getEixoMetrics(eixo.id);
+        if (em.status === 'CONCLUIDO') eixosConcluidos++;
+        else if (em.status === 'EM_ANDAMENTO') eixosEmAndamento++;
+        else eixosNaoIniciados++;
+      });
+
+      const totalObjetivos = appState.objetivos.length;
+      let objetivosConcluidos = 0;
+      let objetivosEmAndamento = 0;
+      let objetivosNaoIniciados = 0;
+
+      appState.objetivos.forEach(obj => {
+        const om = getObjetivoMetrics(obj.id);
+        if (om.status === 'CONCLUIDO') objetivosConcluidos++;
+        else if (om.status === 'EM_ANDAMENTO') objetivosEmAndamento++;
+        else objetivosNaoIniciados++;
+      });
+
+      // Cálculo estrito solicitado na especificação:
+      const percentualGlobal = totalObjetivos > 0
+        ? Math.round((objetivosConcluidos / totalObjetivos) * 100)
+        : 0;
+
+      const totalAcoes = appState.acoes.length;
+      let acoesConcluidas = 0;
+      let acoesAtrasadas = 0;
+      let acoesProximas = 0;
+      let acoesEmDia = 0;
+
+      appState.acoes.forEach(acao => {
+        const st = getAcaoDeadlineStatus(acao).code;
+        if (st === 'CONCLUIDA') acoesConcluidas++;
+        else if (st === 'ATRASADA') acoesAtrasadas++;
+        else if (st === 'PROXIMA') acoesProximas++;
+        else acoesEmDia++;
+      });
+
+      const percentualAcoes = totalAcoes > 0 ? Math.round((acoesConcluidas / totalAcoes) * 100) : 0;
+
+      // Agrupamento por Equipe
+      const equipesMap = {};
+      appState.objetivos.forEach(obj => {
+        const eq = (obj.equipe || 'Sem Equipe').trim();
+        if (!equipesMap[eq]) {
+          equipesMap[eq] = { equipe: eq, totalObjetivos: 0, concluidos: 0, emAndamento: 0, totalAcoes: 0, acoesConcluidas: 0 };
+        }
+        const om = getObjetivoMetrics(obj.id);
+        equipesMap[eq].totalObjetivos++;
+        if (om.isConcluido) equipesMap[eq].concluidos++;
+        else if (om.isEmAndamento) equipesMap[eq].emAndamento++;
+        equipesMap[eq].totalAcoes += om.totalAcoes;
+        equipesMap[eq].acoesConcluidas += om.acoesConcluidas;
+      });
+
+      const equipesStats = Object.values(equipesMap)
+        .map(item => ({
+          ...item,
+          percentual: item.totalObjetivos > 0 ? Math.round((item.concluidos / item.totalObjetivos) * 100) : 0
+        }))
+        .sort((a, b) => b.percentual - a.percentual || b.totalObjetivos - a.totalObjetivos);
+
+      // Agrupamento por Responsável
+      const respMap = {};
+      appState.acoes.forEach(acao => {
+        const resp = (acao.responsavel || 'Não atribuído').trim();
+        if (!respMap[resp]) {
+          respMap[resp] = { responsavel: resp, total: 0, concluidas: 0, pendentes: 0, atrasadas: 0 };
+        }
+        const st = getAcaoDeadlineStatus(acao).code;
+        respMap[resp].total++;
+        if (acao.concluida) {
+          respMap[resp].concluidas++;
+        } else {
+          respMap[resp].pendentes++;
+          if (st === 'ATRASADA') respMap[resp].atrasadas++;
+        }
+      });
+
+      const responsaveisStats = Object.values(respMap)
+        .map(r => ({
+          ...r,
+          percentual: r.total > 0 ? Math.round((r.concluidas / r.total) * 100) : 0
+        }))
+        .sort((a, b) => b.pendentes - a.pendentes || b.total - a.total);
+
+      return {
+        percentualGlobal,
+        totalEixos,
+        eixosConcluidos,
+        eixosEmAndamento,
+        eixosNaoIniciados,
+        totalObjetivos,
+        objetivosConcluidos,
+        objetivosEmAndamento,
+        objetivosNaoIniciados,
+        totalAcoes,
+        acoesConcluidas,
+        acoesAtrasadas,
+        acoesProximas,
+        acoesEmDia,
+        percentualAcoes,
+        equipesStats,
+        responsaveisStats
+      };
+    }
+
+    function getStatusBadgeHtml(status, customLabel = null) {
+      if (status === 'CONCLUIDO') {
+        return `<span class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+          <i data-lucide="check-circle-2" class="h-3 w-3"></i>
+          <span>${escapeHtml(customLabel || 'Concluído')}</span>
+        </span>`;
+      }
+      if (status === 'EM_ANDAMENTO') {
+        return `<span class="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+          <i data-lucide="loader-2" class="h-3 w-3"></i>
+          <span>${escapeHtml(customLabel || 'Em Andamento')}</span>
+        </span>`;
+      }
+      return `<span class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+        <i data-lucide="circle" class="h-3 w-3"></i>
+        <span>${escapeHtml(customLabel || 'Não Iniciado')}</span>
+      </span>`;
+    }
+
+    // =========================================================================
+    // NAVEGAÇÃO ENTRE ABAS (SPA TABS)
+    // =========================================================================
+
+    function switchTab(tabName) {
+      uiState.activeTab = tabName;
+
+      // Atualiza estilos dos botões de tab (estilo shadcn/ui segmented control)
+      const tabs = ['dashboard', 'roadmap', 'gestao'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (!btn) return;
+        if (t === tabName) {
+          btn.setAttribute('aria-selected', 'true');
+          btn.className = 'tab-trigger flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all bg-white text-zinc-950 shadow-sm';
+        } else {
+          btn.setAttribute('aria-selected', 'false');
+          btn.className = 'tab-trigger flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all text-zinc-600 hover:text-zinc-950';
+        }
+      });
+
+      renderApp();
+    }
+
+    function navigateToTeamFilter(equipe) {
+      uiState.filterEquipe = equipe;
+      uiState.filterEixo = 'ALL';
+      uiState.filterStatus = 'ALL';
+      uiState.searchQuery = '';
+      switchTab('gestao');
+    }
+
+    // =========================================================================
+    // RENDERIZAÇÃO PRINCIPAL
+    // =========================================================================
+
+    function renderApp() {
+      const container = document.getElementById('app-content');
+      if (!container) return;
+
+      if (uiState.activeTab === 'dashboard') {
+        container.innerHTML = renderDashboardView();
+      } else if (uiState.activeTab === 'roadmap') {
+        container.innerHTML = renderRoadmapView();
+      } else {
+        container.innerHTML = renderGestaoView();
+      }
+
+      // Atualiza resumo discreto no rodapé
+      const gm = getGlobalMetrics();
+      const footerStats = document.getElementById('footer-stats');
+      if (footerStats) {
+        footerStats.textContent = `${gm.totalEixos} Eixos • ${gm.objetivosConcluidos}/${gm.totalObjetivos} Objetivos Concluídos (${gm.percentualGlobal}%) • ${gm.acoesConcluidas}/${gm.totalAcoes} Ações`;
+      }
+
+      // Se o modal de detalhe de milestone estiver aberto, re-renderiza seu conteúdo em tempo real
+      if (uiState.activeMilestoneModalId) {
+        renderMilestoneDetailModal(uiState.activeMilestoneModalId);
+      }
+
+      // Inicializa os ícones Lucide recém-inseridos no DOM
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }
+
+    // =========================================================================
+    // ABA 1: DASHBOARD EXECUTIVO (TELA INICIAL)
+    // =========================================================================
+
+    function renderDashboardView() {
+      const gm = getGlobalMetrics();
+
+      // Ações não concluídas ordenadas por prazo mais próximo / atrasado
+      const acoesPrioritarias = appState.acoes
+        .filter(a => !a.concluida)
+        .sort(compareAcoesByPrazo)
+        .slice(0, 7);
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <!-- Banner / Card Principal de Progresso Geral do Planejamento -->
+          <section class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700">
+                  <i data-lucide="target" class="h-3.5 w-3.5 text-zinc-900"></i>
+                  <span>Progresso Consolidado do Planejamento Estratégico</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950">
+                  ${gm.percentualGlobal}% dos objetivos estratégicos concluídos
+                </h2>
+                <p class="text-sm text-zinc-500 leading-relaxed">
+                  <strong class="font-semibold text-zinc-900">${gm.objetivosConcluidos} de ${gm.totalObjetivos} objetivos</strong> concluídos e
+                  <strong class="font-semibold text-zinc-900">${gm.eixosConcluidos} de ${gm.totalEixos} eixos</strong> 100% entregues.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onclick="switchTab('roadmap')"
+                  class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs font-medium text-zinc-900 shadow-xs hover:bg-zinc-100 transition-colors"
+                >
+                  <i data-lucide="milestone" class="h-4 w-4 text-zinc-600"></i>
+                  <span>Ver Objetivos</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="openEixoModal()"
+                  class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-50 shadow-xs hover:bg-zinc-800 transition-colors"
+                >
+                  <i data-lucide="plus" class="h-4 w-4"></i>
+                  <span>Novo Eixo Estratégico</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Barra de Progresso Principal -->
+            <div class="mt-6 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-medium text-zinc-700">Evolução Geral (Soma dos Objetivos Concluídos)</span>
+                <span class="font-semibold text-zinc-950 tabular-nums">${gm.objetivosConcluidos} / ${gm.totalObjetivos} Objetivos (${gm.percentualGlobal}%)</span>
+              </div>
+              <div class="h-3 w-full rounded-full bg-zinc-100 overflow-hidden border border-zinc-200/60">
+                <div
+                  class="h-full rounded-full transition-all duration-500 ${gm.percentualGlobal === 100 ? 'bg-emerald-600' : 'bg-zinc-900'}"
+                  style="width: ${gm.percentualGlobal}%"
+                ></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4 Cards KPI -->
+          <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- KPI 1: Progresso Global -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-zinc-500">Progresso Global</span>
+                <div class="h-8 w-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+                  <i data-lucide="trending-up" class="h-4 w-4"></i>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">${gm.percentualGlobal}%</div>
+                <p class="text-xs text-zinc-500 mt-1 tabular-nums">
+                  ${gm.objetivosConcluidos} de ${gm.totalObjetivos} objetivos concluídos
+                </p>
+              </div>
+            </div>
+
+            <!-- KPI 2: Eixos Estratégicos -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-zinc-500">Eixos Estratégicos</span>
+                <div class="h-8 w-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
+                  <i data-lucide="compass" class="h-4 w-4"></i>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
+                  ${gm.eixosConcluidos} <span class="text-base font-normal text-zinc-400">/ ${gm.totalEixos}</span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-1">
+                  ${gm.eixosEmAndamento} em andamento, ${gm.eixosNaoIniciados} não iniciados
+                </p>
+              </div>
+            </div>
+
+            <!-- KPI 3: Ações Executivas -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-zinc-500">Ações</span>
+                <div class="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700">
+                  <i data-lucide="check-square" class="h-4 w-4"></i>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
+                  ${gm.acoesConcluidas} <span class="text-base font-normal text-zinc-400">/ ${gm.totalAcoes}</span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-1 tabular-nums">
+                  ${gm.percentualAcoes}% de execução operacional
+                </p>
+              </div>
+            </div>
+
+            <!-- KPI 4: Atenção de Prazos -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-zinc-500">Atenção de Prazos</span>
+                <div class="h-8 w-8 rounded-lg ${gm.acoesAtrasadas > 0 ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-amber-50 border border-amber-100 text-amber-600'} flex items-center justify-center">
+                  <i data-lucide="clock-alert" class="h-4 w-4"></i>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold tracking-tight ${gm.acoesAtrasadas > 0 ? 'text-red-600' : 'text-zinc-950'} tabular-nums">
+                    ${gm.acoesAtrasadas}
+                  </span>
+                  <span class="text-xs font-medium ${gm.acoesAtrasadas > 0 ? 'text-red-600' : 'text-zinc-500'}">
+                    ${gm.acoesAtrasadas === 1 ? 'atrasada' : 'atrasadas'}
+                  </span>
+                </div>
+                <p class="text-xs text-amber-700 font-medium mt-1 tabular-nums">
+                  ${gm.acoesProximas} ${gm.acoesProximas === 1 ? 'ação próxima' : 'ações próximas'} do prazo (7 dias)
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Linha Analítica 1 (2 Colunas): Progresso por Equipe + Status das Metas & Ações -->
+          <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Card: Progresso por Equipe -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-semibold text-zinc-950">Progresso por Equipe</h3>
+                  <p class="text-xs text-zinc-500 mt-0.5">Entregáveis concluídos por área</p>
+                </div>
+                <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                  ${gm.equipesStats.length} equipes
+                </span>
+              </div>
+
+              ${gm.equipesStats.length === 0 ? `
+                <div class="flex-1 flex flex-col items-center justify-center py-8 text-center text-xs text-zinc-500">
+                  Nenhum objetivo vinculado a equipes ainda.
+                </div>
+              ` : `
+                <div class="space-y-4 flex-1">
+                  ${gm.equipesStats.map(eq => `
+                    <div class="group rounded-lg border border-zinc-100 bg-zinc-50/50 p-3.5 hover:border-zinc-200 hover:bg-zinc-50 transition-colors">
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white border border-zinc-200 text-xs font-semibold text-zinc-800">
+                            ${escapeHtml(eq.equipe.substring(0, 2).toUpperCase())}
+                          </span>
+                          <div class="truncate">
+                            <button
+                              type="button"
+                              onclick="navigateToTeamFilter('${escapeHtml(eq.equipe)}')"
+                              class="text-sm font-medium text-zinc-950 hover:underline text-left truncate"
+                              title="Filtrar metas desta equipe"
+                            >
+                              ${escapeHtml(eq.equipe)}
+                            </button>
+                            <p class="text-[11px] text-zinc-500 tabular-nums">
+                              ${eq.concluidos} de ${eq.totalObjetivos} ${eq.totalObjetivos === 1 ? 'objetivo concluído' : 'objetivos concluídos'} • ${eq.acoesConcluidas}/${eq.totalAcoes} ações
+                            </p>
+                          </div>
+                        </div>
+                        <span class="text-sm font-semibold text-zinc-950 tabular-nums shrink-0">${eq.percentual}%</span>
+                      </div>
+                      <div class="h-2 w-full rounded-full bg-zinc-200/80 overflow-hidden">
+                        <div
+                          class="h-full rounded-full transition-all duration-500 ${eq.percentual === 100 ? 'bg-emerald-600' : 'bg-zinc-900'}"
+                          style="width: ${eq.percentual}%"
+                        ></div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+
+            <!-- Card: Status das Metas & Ações -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs flex flex-col justify-between space-y-6">
+              <div>
+                <h3 class="text-base font-semibold text-zinc-950">Status das Ações</h3>
+                <p class="text-xs text-zinc-500 mt-0.5">Distribuição por progresso</p>
+              </div>
+
+              <!-- Bloco Segmentado: Objetivos -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-zinc-900">Objetivos (Entregáveis Concretos)</span>
+                  <span class="text-zinc-500 tabular-nums">${gm.totalObjetivos} total</span>
+                </div>
+
+                <!-- Barra Segmentada Visual -->
+                <div class="h-3 w-full rounded-full bg-zinc-100 overflow-hidden flex gap-0.5 p-0.5 border border-zinc-200/60">
+                  ${gm.totalObjetivos > 0 ? `
+                    <div style="width: ${(gm.objetivosConcluidos / gm.totalObjetivos) * 100}%" class="bg-emerald-500 rounded-l-full transition-all duration-500" title="Concluídos: ${gm.objetivosConcluidos}"></div>
+                    <div style="width: ${(gm.objetivosEmAndamento / gm.totalObjetivos) * 100}%" class="bg-blue-500 transition-all duration-500" title="Em Andamento: ${gm.objetivosEmAndamento}"></div>
+                    <div style="width: ${(gm.objetivosNaoIniciados / gm.totalObjetivos) * 100}%" class="bg-zinc-300 rounded-r-full transition-all duration-500" title="Não Iniciados: ${gm.objetivosNaoIniciados}"></div>
+                  ` : ''}
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                  <div class="rounded-lg border border-emerald-200/80 bg-emerald-50/50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+                      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span>Concluídos</span>
+                    </div>
+                    <div class="text-lg font-bold text-zinc-950 mt-1 tabular-nums">${gm.objetivosConcluidos}</div>
+                  </div>
+                  <div class="rounded-lg border border-blue-200/80 bg-blue-50/50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-blue-700">
+                      <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                      <span>Andamento</span>
+                    </div>
+                    <div class="text-lg font-bold text-zinc-950 mt-1 tabular-nums">${gm.objetivosEmAndamento}</div>
+                  </div>
+                  <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-zinc-600">
+                      <span class="h-2 w-2 rounded-full bg-zinc-400"></span>
+                      <span>Não Iniciados</span>
+                    </div>
+                    <div class="text-lg font-bold text-zinc-950 mt-1 tabular-nums">${gm.objetivosNaoIniciados}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border-t border-zinc-100"></div>
+
+              <!-- Bloco Segmentado: Ações -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-zinc-900">Ações (Planos de Ação)</span>
+                  <span class="text-zinc-500 tabular-nums">${gm.totalAcoes} total</span>
+                </div>
+
+                <div class="h-3 w-full rounded-full bg-zinc-100 overflow-hidden flex gap-0.5 p-0.5 border border-zinc-200/60">
+                  ${gm.totalAcoes > 0 ? `
+                    <div style="width: ${(gm.acoesConcluidas / gm.totalAcoes) * 100}%" class="bg-emerald-500 rounded-l-full transition-all duration-500" title="Concluídas: ${gm.acoesConcluidas}"></div>
+                    <div style="width: ${((gm.acoesEmDia + gm.acoesProximas) / gm.totalAcoes) * 100}%" class="bg-amber-400 transition-all duration-500" title="Em Dia / Próximas: ${gm.acoesEmDia + gm.acoesProximas}"></div>
+                    <div style="width: ${(gm.acoesAtrasadas / gm.totalAcoes) * 100}%" class="bg-red-500 rounded-r-full transition-all duration-500" title="Atrasadas: ${gm.acoesAtrasadas}"></div>
+                  ` : ''}
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                  <div class="rounded-lg border border-emerald-200/80 bg-emerald-50/50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+                      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span>Concluídas</span>
+                    </div>
+                    <div class="text-lg font-bold text-zinc-950 mt-1 tabular-nums">${gm.acoesConcluidas}</div>
+                  </div>
+                  <div class="rounded-lg border border-amber-200/80 bg-amber-50/50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-amber-700">
+                      <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                      <span>No Prazo</span>
+                    </div>
+                    <div class="text-lg font-bold text-zinc-950 mt-1 tabular-nums">${gm.acoesEmDia + gm.acoesProximas}</div>
+                  </div>
+                  <div class="rounded-lg border border-red-200/80 bg-red-50/50 p-2.5">
+                    <div class="flex items-center gap-1.5 text-[11px] font-medium text-red-700">
+                      <span class="h-2 w-2 rounded-full bg-red-500"></span>
+                      <span>Atrasadas</span>
+                    </div>
+                    <div class="text-lg font-bold text-red-600 mt-1 tabular-nums">${gm.acoesAtrasadas}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Linha Analítica 2 (2 Colunas): Carga por Responsável + Ações Prioritárias -->
+          <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Card: Carga por Responsável -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-semibold text-zinc-950">Carga por Responsável</h3>
+                  <p class="text-xs text-zinc-500 mt-0.5">Distribuição de ações executivas e pendências por pessoa</p>
+                </div>
+                <i data-lucide="users" class="h-4 w-4 text-zinc-400"></i>
+              </div>
+
+              ${gm.responsaveisStats.length === 0 ? `
+                <div class="py-8 text-center text-xs text-zinc-500">Nenhuma ação cadastrada.</div>
+              ` : `
+                <div class="overflow-x-auto -mx-2">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="border-b border-zinc-200 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                        <th class="py-2.5 px-2">Responsável</th>
+                        <th class="py-2.5 px-2 text-center">Total</th>
+                        <th class="py-2.5 px-2 text-center">Concl.</th>
+                        <th class="py-2.5 px-2 text-center">Pendentes</th>
+                        <th class="py-2.5 px-2 text-right">Taxa</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 text-xs">
+                      ${gm.responsaveisStats.map(r => `
+                        <tr class="hover:bg-zinc-50/80 transition-colors">
+                          <td class="py-2.5 px-2 font-medium text-zinc-900">
+                            <div class="flex items-center gap-2">
+                              <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px] font-semibold text-zinc-700">
+                                ${escapeHtml(r.responsavel.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase())}
+                              </span>
+                              <span class="truncate max-w-[150px]">${escapeHtml(r.responsavel)}</span>
+                            </div>
+                          </td>
+                          <td class="py-2.5 px-2 text-center tabular-nums text-zinc-600">${r.total}</td>
+                          <td class="py-2.5 px-2 text-center tabular-nums text-emerald-700 font-medium">${r.concluidas}</td>
+                          <td class="py-2.5 px-2 text-center tabular-nums">
+                            ${r.pendentes > 0 ? `
+                              <span class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${r.atrasadas > 0 ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-zinc-100 text-zinc-700'}">
+                                ${r.pendentes}${r.atrasadas > 0 ? ` (${r.atrasadas} atr.)` : ''}
+                              </span>
+                            ` : `<span class="text-zinc-400">0</span>`}
+                          </td>
+                          <td class="py-2.5 px-2 text-right tabular-nums font-semibold text-zinc-900">${r.percentual}%</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `}
+            </div>
+
+            <!-- Card: Ações Prioritárias / Próximos Prazos -->
+            <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-semibold text-zinc-950">Ações Prioritárias &amp; Prazos</h3>
+                  <p class="text-xs text-zinc-500 mt-0.5">Marque como concluída diretamente para atualizar metas</p>
+                </div>
+                <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-medium text-zinc-600 tabular-nums">
+                  ${acoesPrioritarias.length} pendentes
+                </span>
+              </div>
+
+              ${acoesPrioritarias.length === 0 ? `
+                <div class="flex-1 flex flex-col items-center justify-center py-8 text-center">
+                  <div class="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+                    <i data-lucide="check-circle-2" class="h-5 w-5"></i>
+                  </div>
+                  <p class="text-sm font-medium text-zinc-900">Todas as ações estão concluídas!</p>
+                  <p class="text-xs text-zinc-500 mt-0.5">Nenhuma pendência operacional no momento.</p>
+                </div>
+              ` : `
+                <div class="space-y-2.5 flex-1">
+                  ${acoesPrioritarias.map(acao => {
+                    const obj = appState.objetivos.find(o => o.id === acao.objetivoId);
+                    const deadlineInfo = getAcaoDeadlineStatus(acao);
+                    return `
+                      <div class="flex items-start gap-3 rounded-lg border border-zinc-200/80 bg-white p-3 hover:border-zinc-300 transition-colors">
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked="false"
+                          onclick="toggleAcaoConcluida('${acao.id}')"
+                          title="Concluir ação"
+                          class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border border-zinc-300 bg-white hover:border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 transition-colors"
+                        ></button>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs font-medium text-zinc-900 leading-snug">${escapeHtml(acao.descricao)}</p>
+                          <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span class="inline-flex items-center gap-1 text-[11px] text-zinc-500">
+                              <i data-lucide="user" class="h-3 w-3"></i>
+                              ${escapeHtml(acao.responsavel)}
+                            </span>
+                            <span class="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium ${deadlineInfo.badgeClass} tabular-nums">
+                              <i data-lucide="${deadlineInfo.icon}" class="h-2.5 w-2.5"></i>
+                              ${formatDateBR(acao.prazo)} • ${deadlineInfo.label}
+                            </span>
+                            ${obj ? `<span class="text-[11px] text-zinc-400 truncate max-w-[180px]" title="${escapeHtml(obj.titulo)}">• ${escapeHtml(obj.titulo)}</span>` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              `}
+            </div>
+          </section>
+
+          <!-- Seção Resumida: Visão Geral de Milestones por Eixo -->
+          <section class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+              <div>
+                <h3 class="text-base font-semibold text-zinc-950">Visão Geral dos Objetivos por Eixo</h3>
+                <p class="text-xs text-zinc-500 mt-0.5">Acompanhamento rápido dos objetivos de cada eixo estratégico</p>
+              </div>
+              <button
+                type="button"
+                onclick="switchTab('roadmap')"
+                class="inline-flex items-center gap-1 text-xs font-medium text-zinc-900 hover:text-zinc-600 transition-colors self-start sm:self-auto"
+              >
+                <span>Expandir Roadmap Completo</span>
+                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+              </button>
+            </div>
+
+            ${appState.eixos.length === 0 ? `
+              <div class="py-8 text-center text-xs text-zinc-500">Nenhum eixo estratégico cadastrado.</div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${appState.eixos.map(eixo => {
+                  const em = getEixoMetrics(eixo.id);
+                  return `
+                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/40 p-4 flex flex-col justify-between space-y-4">
+                      <div>
+                        <div class="flex items-start justify-between gap-2">
+                          <h4 class="text-sm font-semibold text-zinc-950 line-clamp-2">${escapeHtml(eixo.titulo)}</h4>
+                          <span class="text-xs font-bold text-zinc-900 tabular-nums shrink-0">${em.percentualObjetivos}%</span>
+                        </div>
+                        <div class="mt-2">
+                          ${getStatusBadgeHtml(em.status)}
+                        </div>
+                      </div>
+
+                      <!-- Mini Trilha de Milestones -->
+                      <div class="space-y-2">
+                        <div class="text-[11px] font-medium text-zinc-500 flex items-center justify-between">
+                          <span>Milestones (Objetivos)</span>
+                          <span class="tabular-nums">${em.objetivosConcluidos}/${em.totalObjetivos}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          ${em.objetivos.length === 0 ? `
+                            <span class="text-[11px] text-zinc-400 italic">Sem objetivos</span>
+                          ` : em.objetivos.map((obj, idx) => {
+                            const om = getObjetivoMetrics(obj.id);
+                            const dotColor = om.status === 'CONCLUIDO'
+                              ? 'bg-emerald-500 border-emerald-600 text-white'
+                              : (om.status === 'EM_ANDAMENTO' ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-zinc-300 text-zinc-400');
+                            return `
+                              ${idx > 0 ? `<div class="h-0.5 flex-1 ${om.status === 'CONCLUIDO' ? 'bg-emerald-400' : 'bg-zinc-200'}"></div>` : ''}
+                              <button
+                                type="button"
+                                onclick="openMilestoneDetailModal('${obj.id}')"
+                                title="${escapeHtml(obj.titulo)} (${om.acoesConcluidas}/${om.totalAcoes} ações)"
+                                class="h-6 w-6 shrink-0 rounded-full border ${dotColor} flex items-center justify-center text-[10px] font-bold shadow-2xs hover:scale-110 transition-transform"
+                              >
+                                ${om.status === 'CONCLUIDO' ? '✓' : (idx + 1)}
+                              </button>
+                            `;
+                          }).join('')}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </section>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // ABA 2: ROADMAP & MILESTONES
+    // =========================================================================
+
+    function renderRoadmapView() {
+      const gm = getGlobalMetrics();
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <!-- Indicador Consolidado do Planejamento (Régua Macro) -->
+          <section class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
+                    Roadmap Estratégico
+                  </span>
+                  <span class="text-xs text-zinc-500 tabular-nums">
+                    ${gm.eixosConcluidos}/${gm.totalEixos} Eixos Concluídos • ${gm.objetivosConcluidos}/${gm.totalObjetivos} Objetivos Concluídos
+                  </span>
+                </div>
+                <h2 class="text-xl font-bold tracking-tight text-zinc-950 mt-2">
+                  Progresso dos Objetivos por Eixo
+                </h2>
+                <p class="text-xs sm:text-sm text-zinc-500 mt-1">
+                  Clique em qualquer objetivo para atualizar as ações
+                </p>
+              </div>
+
+              <div class="flex items-center gap-4 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 shrink-0">
+                <div>
+                  <div class="text-[11px] font-medium uppercase tracking-wider text-zinc-500">Percentual Total</div>
+                  <div class="text-2xl font-bold text-zinc-950 tabular-nums">${gm.percentualGlobal}%</div>
+                </div>
+                <div class="h-8 w-px bg-zinc-200"></div>
+                <div class="text-xs text-zinc-600 space-y-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                    <span>Concluído</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+                    <span>Em Andamento</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="h-2.5 w-2.5 rounded-full bg-zinc-300"></span>
+                    <span>Não Iniciado</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Régua Visual de Progresso Macro -->
+            <div class="mt-6 space-y-2">
+              <div class="flex justify-between text-xs font-medium text-zinc-600 tabular-nums">
+                <span>Início do Ciclo</span>
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>100% (Meta Global)</span>
+              </div>
+              <div class="relative h-3.5 w-full rounded-full bg-zinc-100 border border-zinc-200 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-500 ${gm.percentualGlobal === 100 ? 'bg-emerald-600' : 'bg-zinc-900'}"
+                  style="width: ${gm.percentualGlobal}%"
+                ></div>
+                <!-- Marcadores de quartis -->
+                <div class="absolute inset-y-0 left-1/4 w-px bg-zinc-300/70"></div>
+                <div class="absolute inset-y-0 left-2/4 w-px bg-zinc-300/70"></div>
+                <div class="absolute inset-y-0 left-3/4 w-px bg-zinc-300/70"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Trilhas Horizontais para cada Eixo Estratégico -->
+          ${appState.eixos.length === 0 ? `
+            <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-12 text-center">
+              <i data-lucide="milestone" class="h-8 w-8 text-zinc-400 mx-auto mb-3"></i>
+              <h3 class="text-sm font-semibold text-zinc-900">Nenhum Eixo Estratégico no Roadmap</h3>
+              <p class="text-xs text-zinc-500 mt-1 mb-4">Cadastre seu primeiro eixo e vincule objetivos para visualizar as trilhas de milestones.</p>
+              <button type="button" onclick="openEixoModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800">
+                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                <span>Criar Eixo Estratégico</span>
+              </button>
+            </div>
+          ` : `
+            <div class="space-y-6">
+              ${appState.eixos.map((eixo, eixoIdx) => {
+                const em = getEixoMetrics(eixo.id);
+                return `
+                  <article class="rounded-xl border ${em.isConcluido ? 'border-emerald-200 bg-white' : 'border-zinc-200 bg-white'} shadow-xs overflow-hidden">
+                    <!-- Cabeçalho do Card de Trilha do Eixo -->
+                    <div class="border-b border-zinc-100 bg-zinc-50/60 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="inline-flex items-center rounded-md bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold text-zinc-50">
+                            Eixo ${eixoIdx + 1}
+                          </span>
+                          <h3 class="text-base font-semibold text-zinc-950">${escapeHtml(eixo.titulo)}</h3>
+                          ${getStatusBadgeHtml(em.status, em.isConcluido ? 'Eixo Concluído' : null)}
+                        </div>
+                        <p class="text-xs text-zinc-500 max-w-3xl">${escapeHtml(eixo.descricao)}</p>
+                      </div>
+
+                      <div class="flex items-center gap-3 shrink-0">
+                        <div class="text-right">
+                          <div class="text-xs font-semibold text-zinc-950 tabular-nums">${em.objetivosConcluidos}/${em.totalObjetivos} Objetivos</div>
+                          <div class="text-[11px] text-zinc-500 tabular-nums">${em.percentualObjetivos}% concluído</div>
+                        </div>
+                        <button
+                          type="button"
+                          onclick="openObjetivoModal(null, '${eixo.id}')"
+                          title="Adicionar Objetivo neste Eixo"
+                          class="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+                        >
+                          <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                          <span>Objetivo</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Trilha Horizontal de Milestones (Objetivos do Eixo) -->
+                    <div class="p-6">
+                      ${em.objetivos.length === 0 ? `
+                        <div class="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-500">
+                          Este eixo ainda não possui objetivos (milestones) associados.
+                        </div>
+                      ` : `
+                        <div class="relative">
+                          <!-- Grid responsivo de Milestones conectados horizontalmente -->
+                          <div class="grid grid-cols-1 md:grid-cols-${Math.min(em.objetivos.length, 4)} gap-4 relative">
+                            ${em.objetivos.map((obj, idx) => {
+                              const om = getObjetivoMetrics(obj.id);
+                              const isDone = om.status === 'CONCLUIDO';
+                              const isProg = om.status === 'EM_ANDAMENTO';
+
+                              const nodeCircleClass = isDone
+                                ? 'bg-emerald-600 text-white border-emerald-600 ring-4 ring-emerald-50'
+                                : (isProg
+                                  ? 'bg-blue-600 text-white border-blue-600 ring-4 ring-blue-50'
+                                  : 'bg-white text-zinc-500 border-zinc-300 ring-4 ring-zinc-50');
+
+                              const cardBorderClass = isDone
+                                ? 'border-emerald-200 bg-emerald-50/20 hover:border-emerald-300'
+                                : (isProg
+                                  ? 'border-blue-200/80 bg-white hover:border-blue-300'
+                                  : 'border-zinc-200 bg-white hover:border-zinc-300');
+
+                              return `
+                                <div class="relative flex flex-col">
+                                  <!-- Linha conectora horizontal no topo (visível em desktop entre nós) -->
+                                  <div class="flex items-center mb-3">
+                                    <div class="h-0.5 flex-1 ${idx === 0 ? 'bg-transparent' : (isDone ? 'bg-emerald-400' : 'bg-zinc-200')} hidden md:block"></div>
+                                    <button
+                                      type="button"
+                                      onclick="openMilestoneDetailModal('${obj.id}')"
+                                      class="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 ${nodeCircleClass} transition-transform hover:scale-105 focus:outline-none"
+                                      title="Ver detalhes do milestone"
+                                    >
+                                      ${isDone
+                                        ? '<i data-lucide="check" class="h-4 w-4"></i>'
+                                        : (isProg
+                                          ? '<i data-lucide="clock" class="h-4 w-4"></i>'
+                                          : `<span class="text-xs font-bold tabular-nums">${idx + 1}</span>`)}
+                                    </button>
+                                    <div class="h-0.5 flex-1 ${idx === em.objetivos.length - 1 ? 'bg-transparent' : (isDone ? 'bg-emerald-400' : 'bg-zinc-200')} hidden md:block"></div>
+                                  </div>
+
+                                  <!-- Card do Milestone -->
+                                  <div
+                                    onclick="openMilestoneDetailModal('${obj.id}')"
+                                    role="button"
+                                    tabindex="0"
+                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMilestoneDetailModal('${obj.id}');}"
+                                    class="flex-1 rounded-xl border ${cardBorderClass} p-4 shadow-2xs transition-all cursor-pointer flex flex-col justify-between space-y-3"
+                                  >
+                                    <div class="space-y-2">
+                                      <div class="flex items-center justify-between gap-2">
+                                        <span class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700">
+                                          <i data-lucide="users" class="h-3 w-3 text-zinc-500"></i>
+                                          ${escapeHtml(obj.equipe)}
+                                        </span>
+                                        ${om.acoesAtrasadas > 0 && !isDone ? `
+                                          <span class="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                                            ${om.acoesAtrasadas} atr.
+                                          </span>
+                                        ` : ''}
+                                      </div>
+
+                                      <h4 class="text-sm font-semibold text-zinc-950 leading-snug">
+                                        ${escapeHtml(obj.titulo)}
+                                      </h4>
+
+                                      <p class="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                                        ${escapeHtml(obj.descritivo)}
+                                      </p>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-zinc-100 space-y-1.5">
+                                      <div class="flex items-center justify-between text-[11px]">
+                                        <span class="font-medium ${isDone ? 'text-emerald-700' : 'text-zinc-600'}">
+                                          ${isDone ? 'Entregável Concluído' : `${om.acoesConcluidas}/${om.totalAcoes} ações`}
+                                        </span>
+                                        <span class="font-semibold text-zinc-900 tabular-nums">${om.percentualAcoes}%</span>
+                                      </div>
+                                      <div class="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
+                                        <div
+                                          class="h-full rounded-full transition-all duration-500 ${isDone ? 'bg-emerald-500' : (isProg ? 'bg-blue-500' : 'bg-zinc-300')}"
+                                          style="width: ${om.percentualAcoes}%"
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              `;
+                            }).join('')}
+                          </div>
+                        </div>
+                      `}
+                    </div>
+                  </article>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // ABA 3: GESTÃO DE EIXOS & METAS (HIERARQUIA COMPLETA E FILTROS)
+    // =========================================================================
+
+    function renderGestaoView() {
+      // Lista dinâmica de equipes cadastradas para o select de filtro
+      const equipesUnicas = [...new Set(appState.objetivos.map(o => (o.equipe || '').trim()).filter(Boolean))].sort();
+      const query = uiState.searchQuery.trim().toLowerCase();
+
+      // Filtragem hierárquica inteligente
+      const filteredEixos = appState.eixos
+        .filter(eixo => uiState.filterEixo === 'ALL' || eixo.id === uiState.filterEixo)
+        .map(eixo => {
+          const em = getEixoMetrics(eixo.id);
+          const eixoMatchesText = !query ||
+            eixo.titulo.toLowerCase().includes(query) ||
+            eixo.descricao.toLowerCase().includes(query);
+
+          // Filtra objetivos dentro do eixo
+          const matchedObjetivos = em.objetivos.filter(obj => {
+            if (uiState.filterEquipe !== 'ALL' && (obj.equipe || '').trim() !== uiState.filterEquipe) {
+              return false;
+            }
+            const om = getObjetivoMetrics(obj.id);
+
+            if (uiState.filterStatus === 'CONCLUIDOS' && !om.isConcluido) return false;
+            if (uiState.filterStatus === 'EM_ANDAMENTO' && !om.isEmAndamento) return false;
+            if (uiState.filterStatus === 'NAO_INICIADOS' && om.status !== 'NAO_INICIADO') return false;
+            if (uiState.filterStatus === 'ATRASADOS' && om.acoesAtrasadas === 0) return false;
+
+            if (!query || eixoMatchesText) return true;
+
+            const objMatchesText =
+              obj.titulo.toLowerCase().includes(query) ||
+              obj.descritivo.toLowerCase().includes(query) ||
+              (obj.equipe || '').toLowerCase().includes(query);
+
+            const acaoMatchesText = om.acoes.some(a =>
+              a.descricao.toLowerCase().includes(query) ||
+              a.responsavel.toLowerCase().includes(query)
+            );
+
+            return objMatchesText || acaoMatchesText;
+          });
+
+          const hasActiveSubFilter = uiState.filterEquipe !== 'ALL' || uiState.filterStatus !== 'ALL' || Boolean(query);
+
+          // Se há filtro ativo de equipe/status/busca, mantém o eixo apenas se houver objetivos correspondentes ou se a busca bateu no próprio eixo (sem filtro restritivo de equipe/status)
+          if (hasActiveSubFilter) {
+            if (matchedObjetivos.length === 0) {
+              if (uiState.filterEquipe === 'ALL' && uiState.filterStatus === 'ALL' && eixoMatchesText) {
+                return { eixo, metrics: em, objetivos: [] };
+              }
+              return null;
+            }
+          }
+
+          return {
+            eixo,
+            metrics: em,
+            objetivos: hasActiveSubFilter ? matchedObjetivos : em.objetivos
+          };
+        })
+        .filter(Boolean);
+
+      const hasAnyFilter = uiState.searchQuery || uiState.filterEixo !== 'ALL' || uiState.filterEquipe !== 'ALL' || uiState.filterStatus !== 'ALL';
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <!-- Barra de Ferramentas (Busca, Filtros e Novo Eixo) -->
+          <section class="rounded-xl border border-zinc-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-bold tracking-tight text-zinc-950">Gestão de Eixos, Objetivos e Ações</h2>
+                <p class="text-xs text-zinc-500">Cadastre e acompanhe a hierarquia completa das metas estratégicas</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  onclick="toggleAllEixos()"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+                >
+                  <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5"></i>
+                  <span>Expandir / Recolher</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="openEixoModal()"
+                  class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-medium text-zinc-50 shadow-xs hover:bg-zinc-800 transition-colors"
+                >
+                  <i data-lucide="plus" class="h-4 w-4"></i>
+                  <span>Novo Eixo Estratégico</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid de Filtros -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2 border-t border-zinc-100">
+              <!-- Busca textual -->
+              <div class="lg:col-span-4 relative">
+                <i data-lucide="search" class="h-4 w-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input
+                  type="text"
+                  value="${escapeHtml(uiState.searchQuery)}"
+                  oninput="updateFilter('searchQuery', this.value)"
+                  placeholder="Buscar eixo, objetivo, ação ou responsável..."
+                  class="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-8 py-2 text-xs text-zinc-950 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+                />
+                ${uiState.searchQuery ? `
+                  <button
+                    type="button"
+                    onclick="updateFilter('searchQuery', '')"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                    title="Limpar busca"
+                  >
+                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <!-- Filtro por Eixo -->
+              <div class="lg:col-span-3">
+                <select
+                  onchange="updateFilter('filterEixo', this.value)"
+                  aria-label="Filtrar por Eixo"
+                  class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+                >
+                  <option value="ALL" ${uiState.filterEixo === 'ALL' ? 'selected' : ''}>Todos os Eixos (${appState.eixos.length})</option>
+                  ${appState.eixos.map(e => `
+                    <option value="${e.id}" ${uiState.filterEixo === e.id ? 'selected' : ''}>${escapeHtml(e.titulo)}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <!-- Filtro por Equipe -->
+              <div class="lg:col-span-2">
+                <select
+                  onchange="updateFilter('filterEquipe', this.value)"
+                  aria-label="Filtrar por Equipe"
+                  class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+                >
+                  <option value="ALL" ${uiState.filterEquipe === 'ALL' ? 'selected' : ''}>Todas as Equipes</option>
+                  ${equipesUnicas.map(eq => `
+                    <option value="${escapeHtml(eq)}" ${uiState.filterEquipe === eq ? 'selected' : ''}>${escapeHtml(eq)}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <!-- Filtro por Status -->
+              <div class="lg:col-span-3 flex items-center gap-2">
+                <select
+                  onchange="updateFilter('filterStatus', this.value)"
+                  aria-label="Filtrar por Status"
+                  class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950/10"
+                >
+                  <option value="ALL" ${uiState.filterStatus === 'ALL' ? 'selected' : ''}>Todos os Status</option>
+                  <option value="EM_ANDAMENTO" ${uiState.filterStatus === 'EM_ANDAMENTO' ? 'selected' : ''}>Em Andamento</option>
+                  <option value="CONCLUIDOS" ${uiState.filterStatus === 'CONCLUIDOS' ? 'selected' : ''}>Concluídos</option>
+                  <option value="NAO_INICIADOS" ${uiState.filterStatus === 'NAO_INICIADOS' ? 'selected' : ''}>Não Iniciados</option>
+                  <option value="ATRASADOS" ${uiState.filterStatus === 'ATRASADOS' ? 'selected' : ''}>Com Ações Atrasadas</option>
+                </select>
+
+                ${hasAnyFilter ? `
+                  <button
+                    type="button"
+                    onclick="clearAllFilters()"
+                    title="Limpar todos os filtros"
+                    class="shrink-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                  >
+                    Limpar
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </section>
+
+          <!-- Lista Hierárquica: Nível 1 (Eixos) -> Nível 2 (Objetivos) -> Nível 3 (Ações) -->
+          ${filteredEixos.length === 0 ? `
+            <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-12 text-center">
+              <i data-lucide="folder-search" class="h-8 w-8 text-zinc-400 mx-auto mb-3"></i>
+              <h3 class="text-sm font-semibold text-zinc-900">Nenhum resultado encontrado</h3>
+              <p class="text-xs text-zinc-500 mt-1 mb-4">
+                ${hasAnyFilter ? 'Tente ajustar os filtros ou termos de busca aplicados.' : 'Comece cadastrando um Eixo Estratégico para estruturar suas metas.'}
+              </p>
+              ${hasAnyFilter ? `
+                <button type="button" onclick="clearAllFilters()" class="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-100">
+                  Limpar Filtros
+                </button>
+              ` : `
+                <button type="button" onclick="openEixoModal()" class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800">
+                  <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  <span>Cadastrar Primeiro Eixo</span>
+                </button>
+              `}
+            </div>
+          ` : `
+            <div class="space-y-5">
+              ${filteredEixos.map(({ eixo, metrics: em, objetivos }) => {
+                const isExpanded = uiState.expandedEixos[eixo.id] !== false;
+                return `
+                  <!-- NÍVEL 1: CARD DO EIXO ESTRATÉGICO -->
+                  <section class="rounded-xl border ${em.isConcluido ? 'border-emerald-200' : 'border-zinc-200'} bg-white shadow-xs overflow-hidden transition-all">
+                    <!-- Cabeçalho do Eixo -->
+                    <div class="p-5 sm:p-6 ${em.isConcluido ? 'bg-emerald-50/30' : 'bg-white'}">
+                      <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                        <div class="flex items-start gap-3 flex-1 min-w-0">
+                          <button
+                            type="button"
+                            onclick="toggleEixoExpand('${eixo.id}')"
+                            aria-expanded="${isExpanded}"
+                            title="${isExpanded ? 'Recolher eixo' : 'Expandir eixo'}"
+                            class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 transition-colors"
+                          >
+                            <i data-lucide="${isExpanded ? 'chevron-down' : 'chevron-right'}" class="h-4 w-4"></i>
+                          </button>
+
+                          <div class="space-y-1.5 flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Eixo Estratégico</span>
+                              ${getStatusBadgeHtml(em.status, em.isConcluido ? 'Eixo Concluído' : null)}
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-zinc-950 leading-snug">
+                              ${escapeHtml(eixo.titulo)}
+                            </h3>
+                            <p class="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                              ${escapeHtml(eixo.descricao)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <!-- Ações de Gestão do Eixo -->
+                        <div class="flex flex-wrap items-center gap-2 shrink-0 pl-10 lg:pl-0">
+                          <button
+                            type="button"
+                            onclick="openObjetivoModal(null, '${eixo.id}')"
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-50 hover:bg-zinc-800 transition-colors shadow-2xs"
+                          >
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                            <span>Novo Objetivo</span>
+                          </button>
+                          <button
+                            type="button"
+                            onclick="openEixoModal('${eixo.id}')"
+                            title="Editar Eixo"
+                            class="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors"
+                          >
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span class="hidden sm:inline">Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onclick="confirmDeleteEixo('${eixo.id}')"
+                            title="Excluir Eixo"
+                            class="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Barra de Progresso do Eixo (Baseada nos Objetivos Concluídos) -->
+                      <div class="mt-4 pl-10 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                          <span class="text-zinc-500">
+                            Progresso do Eixo (Objetivos Concluídos)
+                          </span>
+                          <span class="font-semibold text-zinc-900 tabular-nums">
+                            ${em.objetivosConcluidos} de ${em.totalObjetivos} ${em.totalObjetivos === 1 ? 'objetivo' : 'objetivos'} (${em.percentualObjetivos}%)
+                          </span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
+                          <div
+                            class="h-full rounded-full transition-all duration-500 ${em.isConcluido ? 'bg-emerald-600' : 'bg-zinc-900'}"
+                            style="width: ${em.percentualObjetivos}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Corpo Expansível: NÍVEL 2 (OBJETIVOS DO EIXO) -->
+                    ${isExpanded ? `
+                      <div class="border-t border-zinc-200 bg-zinc-50/70 p-4 sm:p-6 space-y-4">
+                        ${objetivos.length === 0 ? `
+                          <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center">
+                            <p class="text-xs font-medium text-zinc-700">Nenhum objetivo associado neste filtro/eixo.</p>
+                            <p class="text-xs text-zinc-500 mt-1 mb-3">Adicione um entregável concreto para começar a acompanhar as ações.</p>
+                            <button
+                              type="button"
+                              onclick="openObjetivoModal(null, '${eixo.id}')"
+                              class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-900 hover:bg-zinc-100"
+                            >
+                              <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                              <span>Cadastrar Objetivo</span>
+                            </button>
+                          </div>
+                        ` : objetivos.map((obj, objIdx) => {
+                          const om = getObjetivoMetrics(obj.id);
+                          return `
+                            <!-- NÍVEL 2: CARD INTERNO DO OBJETIVO (ENTREGÁVEL CONCRETO) -->
+                            <div class="rounded-xl border ${om.isConcluido ? 'border-emerald-200' : 'border-zinc-200'} bg-white shadow-2xs overflow-hidden">
+                              <div class="p-4 sm:p-5 space-y-3.5">
+                                <!-- Cabeçalho do Objetivo -->
+                                <div class="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                                  <div class="space-y-1.5 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                      <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700">
+                                        Entregável #${objIdx + 1}
+                                      </span>
+                                      <span class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-0.5 text-xs font-medium text-zinc-800">
+                                        <i data-lucide="users" class="h-3 w-3 text-zinc-500"></i>
+                                        ${escapeHtml(obj.equipe)}
+                                      </span>
+                                      ${getStatusBadgeHtml(om.status, om.isConcluido ? 'Objetivo Concluído' : null)}
+                                    </div>
+                                    <h4 class="text-sm sm:text-base font-semibold text-zinc-950">
+                                      ${escapeHtml(obj.titulo)}
+                                    </h4>
+                                  </div>
+
+                                  <!-- Botões do Objetivo -->
+                                  <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                                    <button
+                                      type="button"
+                                      onclick="openAcaoModal(null, '${obj.id}')"
+                                      class="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs font-medium text-zinc-900 hover:bg-zinc-100 transition-colors"
+                                    >
+                                      <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                      <span>Nova Ação</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onclick="openObjetivoModal('${obj.id}', '${eixo.id}')"
+                                      title="Editar Objetivo"
+                                      class="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 transition-colors"
+                                    >
+                                      <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onclick="confirmDeleteObjetivo('${obj.id}')"
+                                      title="Excluir Objetivo"
+                                      class="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                    >
+                                      <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <!-- Bloco Destacado: Descritivo (Visão da Gestão) -->
+                                <div class="rounded-lg border border-zinc-200/80 bg-zinc-50 p-3">
+                                  <div class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
+                                    <i data-lucide="eye" class="h-3 w-3"></i>
+                                    <span>Descritivo (Visão da Gestão)</span>
+                                  </div>
+                                  <p class="text-xs text-zinc-700 leading-relaxed">
+                                    ${escapeHtml(obj.descritivo)}
+                                  </p>
+                                </div>
+
+                                <!-- Progresso das Ações do Objetivo -->
+                                <div class="flex items-center gap-3 pt-1">
+                                  <div class="h-1.5 flex-1 rounded-full bg-zinc-100 overflow-hidden">
+                                    <div
+                                      class="h-full rounded-full transition-all duration-500 ${om.isConcluido ? 'bg-emerald-500' : 'bg-blue-600'}"
+                                      style="width: ${om.percentualAcoes}%"
+                                    ></div>
+                                  </div>
+                                  <span class="text-xs font-medium text-zinc-600 tabular-nums shrink-0">
+                                    ${om.acoesConcluidas}/${om.totalAcoes} ações concluídas (${om.percentualAcoes}%)
+                                  </span>
+                                </div>
+                              </div>
+
+                              <!-- NÍVEL 3: LISTA CHECKLIST DE AÇÕES DO OBJETIVO -->
+                              <div class="border-t border-zinc-100 bg-zinc-50/30">
+                                ${om.acoes.length === 0 ? `
+                                  <div class="px-5 py-4 flex items-center justify-between text-xs text-zinc-500">
+                                    <span>Nenhuma ação cadastrada para este objetivo.</span>
+                                    <button type="button" onclick="openAcaoModal(null, '${obj.id}')" class="font-medium text-zinc-900 hover:underline">
+                                      + Adicionar primeira ação
+                                    </button>
+                                  </div>
+                                ` : `
+                                  <div class="divide-y divide-zinc-100">
+                                    ${om.acoes.map(acao => {
+                                      const dl = getAcaoDeadlineStatus(acao);
+                                      return `
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 sm:px-5 py-3 hover:bg-zinc-50 transition-colors">
+                                          <div class="flex items-start gap-3 flex-1 min-w-0">
+                                            <!-- Checkbox customizado acessível -->
+                                            <button
+                                              type="button"
+                                              role="checkbox"
+                                              aria-checked="${acao.concluida}"
+                                              onclick="toggleAcaoConcluida('${acao.id}')"
+                                              class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-950 ${acao.concluida ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-300 bg-white hover:border-zinc-900'}"
+                                              title="${acao.concluida ? 'Desmarcar conclusão' : 'Marcar como concluída'}"
+                                            >
+                                              ${acao.concluida ? '<i data-lucide="check" class="h-3 w-3"></i>' : ''}
+                                            </button>
+
+                                            <span class="text-xs sm:text-[13px] leading-snug ${acao.concluida ? 'line-through text-zinc-400' : 'text-zinc-900 font-medium'}">
+                                              ${escapeHtml(acao.descricao)}
+                                            </span>
+                                          </div>
+
+                                          <!-- Metadados da Ação (Responsável, Prazo e Botões) -->
+                                          <div class="flex flex-wrap items-center gap-2 pl-7 sm:pl-0 shrink-0">
+                                            <span class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-700">
+                                              <i data-lucide="user" class="h-3 w-3 text-zinc-400"></i>
+                                              ${escapeHtml(acao.responsavel)}
+                                            </span>
+
+                                            <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${dl.badgeClass} tabular-nums">
+                                              <i data-lucide="${dl.icon}" class="h-3 w-3"></i>
+                                              ${formatDateBR(acao.prazo)}
+                                            </span>
+
+                                            <div class="flex items-center gap-1 ml-1">
+                                              <button
+                                                type="button"
+                                                onclick="openAcaoModal('${acao.id}', '${obj.id}')"
+                                                title="Editar Ação"
+                                                class="rounded p-1 text-zinc-400 hover:bg-zinc-200/70 hover:text-zinc-800 transition-colors"
+                                              >
+                                                <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onclick="confirmDeleteAcao('${acao.id}')"
+                                                title="Excluir Ação"
+                                                class="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                              >
+                                                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      `;
+                                    }).join('')}
+                                  </div>
+                                `}
+                              </div>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    ` : ''}
+                  </section>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // INTERAÇÕES DE FILTRO E EXPANSÃO
+    // =========================================================================
+
+    function updateFilter(key, value) {
+      uiState[key] = value;
+      renderApp();
+    }
+
+    function clearAllFilters() {
+      uiState.searchQuery = '';
+      uiState.filterEixo = 'ALL';
+      uiState.filterEquipe = 'ALL';
+      uiState.filterStatus = 'ALL';
+      renderApp();
+    }
+
+    function toggleEixoExpand(eixoId) {
+      const current = uiState.expandedEixos[eixoId] !== false;
+      uiState.expandedEixos[eixoId] = !current;
+      renderApp();
+    }
+
+    function toggleAllEixos() {
+      const anyExpanded = appState.eixos.some(e => uiState.expandedEixos[e.id] !== false);
+      appState.eixos.forEach(e => {
+        uiState.expandedEixos[e.id] = !anyExpanded;
+      });
+      renderApp();
+    }
+
+    // =========================================================================
+    // TOGGLE DE CONCLUSÃO DE AÇÃO + RECÁLCULO AUTOMÁTICO E TOASTS
+    // =========================================================================
+
+    function toggleAcaoConcluida(acaoId) {
+      const acao = appState.acoes.find(a => a.id === acaoId);
+      if (!acao) return;
+
+      const obj = appState.objetivos.find(o => o.id === acao.objetivoId);
+      const eixo = obj ? appState.eixos.find(e => e.id === obj.eixoId) : null;
+
+      // Captura status antes da alteração para detectar transições automáticas
+      const prevObjConcluido = obj ? getObjetivoMetrics(obj.id).isConcluido : false;
+      const prevEixoConcluido = eixo ? getEixoMetrics(eixo.id).isConcluido : false;
+
+      // Alterna estado da ação
+      acao.concluida = !acao.concluida;
+      saveToStorage();
+
+      // Verifica status após a alteração
+      const newObjConcluido = obj ? getObjetivoMetrics(obj.id).isConcluido : false;
+      const newEixoConcluido = eixo ? getEixoMetrics(eixo.id).isConcluido : false;
+
+      renderApp();
+
+      // Feedback inteligente em cadeia (Ação -> Objetivo -> Eixo)
+      if (!prevEixoConcluido && newEixoConcluido && eixo) {
+        showToast(
+          'Eixo Estratégico Concluído!',
+          `Todos os objetivos de "${eixo.titulo}" foram 100% entregues.`,
+          'success'
+        );
+      } else if (!prevObjConcluido && newObjConcluido && obj) {
+        showToast(
+          'Objetivo Concluído!',
+          `O entregável "${obj.titulo}" atingiu 100% das ações.`,
+          'success'
+        );
+      } else if (acao.concluida) {
+        showToast('Ação concluída', 'Progresso atualizado automaticamente.', 'success');
+      } else {
+        showToast('Ação reaberta', 'Status do objetivo e eixo recalculados.', 'info');
+      }
+    }
+
+    // =========================================================================
+    // GERENCIAMENTO DE MODAIS (CRUD: EIXO, OBJETIVO, AÇÃO, MILESTONE, CONFIRM)
+    // =========================================================================
+
+    function openModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+      if (modalId === 'modal-milestone-detail') {
+        uiState.activeMilestoneModalId = null;
+      }
+    }
+
+    // --- Modal 1: Eixo Estratégico ---
+    function openEixoModal(eixoId = null) {
+      const form = document.getElementById('form-eixo');
+      const errEl = document.getElementById('eixo-form-error');
+      errEl.classList.add('hidden');
+      form.reset();
+
+      if (eixoId) {
+        const eixo = appState.eixos.find(e => e.id === eixoId);
+        if (!eixo) return;
+        document.getElementById('modal-eixo-title').textContent = 'Editar Eixo Estratégico';
+        document.getElementById('eixo-id').value = eixo.id;
+        document.getElementById('eixo-titulo').value = eixo.titulo;
+        document.getElementById('eixo-descricao').value = eixo.descricao;
+      } else {
+        document.getElementById('modal-eixo-title').textContent = 'Novo Eixo Estratégico';
+        document.getElementById('eixo-id').value = '';
+      }
+
+      openModal('modal-eixo');
+      setTimeout(() => document.getElementById('eixo-titulo').focus(), 50);
+    }
+
+    function submitEixoForm(event) {
+      event.preventDefault();
+      const id = document.getElementById('eixo-id').value.trim();
+      const titulo = document.getElementById('eixo-titulo').value.trim();
+      const descricao = document.getElementById('eixo-descricao').value.trim();
+      const errEl = document.getElementById('eixo-form-error');
+
+      if (!titulo || !descricao) {
+        errEl.textContent = 'Preencha o título e a descrição do eixo estratégico.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      if (id) {
+        const eixo = appState.eixos.find(e => e.id === id);
+        if (eixo) {
+          eixo.titulo = titulo;
+          eixo.descricao = descricao;
+        }
+        showToast('Eixo atualizado', `"${titulo}" foi salvo com sucesso.`, 'success');
+      } else {
+        const newId = generateId('eixo');
+        appState.eixos.push({ id: newId, titulo, descricao });
+        uiState.expandedEixos[newId] = true;
+        showToast('Eixo criado', `"${titulo}" adicionado ao planejamento.`, 'success');
+      }
+
+      saveToStorage();
+      closeModal('modal-eixo');
+      renderApp();
+    }
+
+    // --- Modal 2: Objetivo (Entregável Concreto) ---
+    function openObjetivoModal(objetivoId = null, preselectedEixoId = null) {
+      if (appState.eixos.length === 0) {
+        showToast('Cadastre um Eixo primeiro', 'Crie um Eixo Estratégico antes de adicionar objetivos.', 'info');
+        openEixoModal();
+        return;
+      }
+
+      const form = document.getElementById('form-objetivo');
+      const errEl = document.getElementById('objetivo-form-error');
+      errEl.classList.add('hidden');
+      form.reset();
+
+      // Popula select de Eixos
+      const selectEixo = document.getElementById('objetivo-eixo-id');
+      selectEixo.innerHTML = appState.eixos.map(e => `
+        <option value="${e.id}">${escapeHtml(e.titulo)}</option>
+      `).join('');
+
+      // Popula sugestões de equipes (datalist)
+      const sugestoesPadrao = ['Engenharia', 'Operações', 'TI & Inovação', 'Suprimentos', 'Gestão', 'Financeiro', 'Comercial', 'Pessoas & Cultura'];
+      const equipesExistentes = appState.objetivos.map(o => (o.equipe || '').trim()).filter(Boolean);
+      const todasEquipes = [...new Set([...equipesExistentes, ...sugestoesPadrao])].sort();
+      document.getElementById('equipes-datalist').innerHTML = todasEquipes
+        .map(eq => `<option value="${escapeHtml(eq)}"></option>`)
+        .join('');
+
+      if (objetivoId) {
+        const obj = appState.objetivos.find(o => o.id === objetivoId);
+        if (!obj) return;
+        document.getElementById('modal-objetivo-title').textContent = 'Editar Objetivo (Entregável)';
+        document.getElementById('objetivo-id').value = obj.id;
+        selectEixo.value = obj.eixoId;
+        document.getElementById('objetivo-titulo').value = obj.titulo;
+        document.getElementById('objetivo-equipe').value = obj.equipe;
+        document.getElementById('objetivo-descritivo').value = obj.descritivo;
+      } else {
+        document.getElementById('modal-objetivo-title').textContent = 'Novo Objetivo (Entregável)';
+        document.getElementById('objetivo-id').value = '';
+        if (preselectedEixoId) {
+          selectEixo.value = preselectedEixoId;
+        }
+      }
+
+      openModal('modal-objetivo');
+      setTimeout(() => document.getElementById('objetivo-titulo').focus(), 50);
+    }
+
+    function submitObjetivoForm(event) {
+      event.preventDefault();
+      const id = document.getElementById('objetivo-id').value.trim();
+      const eixoId = document.getElementById('objetivo-eixo-id').value;
+      const titulo = document.getElementById('objetivo-titulo').value.trim();
+      const equipe = document.getElementById('objetivo-equipe').value.trim();
+      const descritivo = document.getElementById('objetivo-descritivo').value.trim();
+      const errEl = document.getElementById('objetivo-form-error');
+
+      if (!eixoId || !titulo || !equipe || !descritivo) {
+        errEl.textContent = 'Todos os campos obrigatórios devem ser preenchidos.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      if (id) {
+        const obj = appState.objetivos.find(o => o.id === id);
+        if (obj) {
+          obj.eixoId = eixoId;
+          obj.titulo = titulo;
+          obj.equipe = equipe;
+          obj.descritivo = descritivo;
+        }
+        showToast('Objetivo atualizado', `Entregável "${titulo}" salvo.`, 'success');
+      } else {
+        appState.objetivos.push({
+          id: generateId('obj'),
+          eixoId,
+          titulo,
+          equipe,
+          descritivo
+        });
+        uiState.expandedEixos[eixoId] = true;
+        showToast('Objetivo criado', `Entregável "${titulo}" vinculado ao eixo.`, 'success');
+      }
+
+      saveToStorage();
+      closeModal('modal-objetivo');
+      renderApp();
+    }
+
+    // --- Modal 3: Ação Executiva ---
+    function openAcaoModal(acaoId = null, objetivoId = null) {
+      const obj = appState.objetivos.find(o => o.id === objetivoId);
+      if (!obj) return;
+
+      const form = document.getElementById('form-acao');
+      const errEl = document.getElementById('acao-form-error');
+      errEl.classList.add('hidden');
+      form.reset();
+
+      document.getElementById('acao-objetivo-id').value = obj.id;
+      document.getElementById('modal-acao-subtitle').textContent = `Objetivo: ${obj.titulo}`;
+
+      // Popula sugestões de responsáveis
+      const respExistentes = [...new Set(appState.acoes.map(a => (a.responsavel || '').trim()).filter(Boolean))].sort();
+      document.getElementById('responsaveis-datalist').innerHTML = respExistentes
+        .map(r => `<option value="${escapeHtml(r)}"></option>`)
+        .join('');
+
+      if (acaoId) {
+        const acao = appState.acoes.find(a => a.id === acaoId);
+        if (!acao) return;
+        document.getElementById('modal-acao-title').textContent = 'Editar Ação Executiva';
+        document.getElementById('acao-id').value = acao.id;
+        document.getElementById('acao-descricao').value = acao.descricao;
+        document.getElementById('acao-responsavel').value = acao.responsavel;
+        document.getElementById('acao-prazo').value = acao.prazo;
+        document.getElementById('acao-concluida').checked = Boolean(acao.concluida);
+      } else {
+        document.getElementById('modal-acao-title').textContent = 'Nova Ação Executiva';
+        document.getElementById('acao-id').value = '';
+        document.getElementById('acao-prazo').value = getOffsetDateISO(14);
+        document.getElementById('acao-concluida').checked = false;
+      }
+
+      openModal('modal-acao');
+      setTimeout(() => document.getElementById('acao-descricao').focus(), 50);
+    }
+
+    function submitAcaoForm(event) {
+      event.preventDefault();
+      const id = document.getElementById('acao-id').value.trim();
+      const objetivoId = document.getElementById('acao-objetivo-id').value;
+      const descricao = document.getElementById('acao-descricao').value.trim();
+      const responsavel = document.getElementById('acao-responsavel').value.trim();
+      const prazo = document.getElementById('acao-prazo').value;
+      const concluida = document.getElementById('acao-concluida').checked;
+      const errEl = document.getElementById('acao-form-error');
+
+      if (!objetivoId || !descricao || !responsavel || !prazo) {
+        errEl.textContent = 'Preencha a descrição, o responsável e o prazo da ação.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const obj = appState.objetivos.find(o => o.id === objetivoId);
+      const eixo = obj ? appState.eixos.find(e => e.id === obj.eixoId) : null;
+      const prevObjConcluido = obj ? getObjetivoMetrics(obj.id).isConcluido : false;
+      const prevEixoConcluido = eixo ? getEixoMetrics(eixo.id).isConcluido : false;
+
+      if (id) {
+        const acao = appState.acoes.find(a => a.id === id);
+        if (acao) {
+          acao.descricao = descricao;
+          acao.responsavel = responsavel;
+          acao.prazo = prazo;
+          acao.concluida = concluida;
+        }
+      } else {
+        appState.acoes.push({
+          id: generateId('ac'),
+          objetivoId,
+          descricao,
+          responsavel,
+          prazo,
+          concluida
+        });
+      }
+
+      saveToStorage();
+      closeModal('modal-acao');
+      renderApp();
+
+      const newObjConcluido = obj ? getObjetivoMetrics(obj.id).isConcluido : false;
+      const newEixoConcluido = eixo ? getEixoMetrics(eixo.id).isConcluido : false;
+
+      if (!prevEixoConcluido && newEixoConcluido && eixo) {
+        showToast('Eixo Estratégico Concluído!', `Todos os objetivos de "${eixo.titulo}" foram concluídos.`, 'success');
+      } else if (!prevObjConcluido && newObjConcluido && obj) {
+        showToast('Objetivo Concluído!', `O entregável "${obj.titulo}" atingiu 100% das ações.`, 'success');
+      } else {
+        showToast(id ? 'Ação atualizada' : 'Ação adicionada', 'Plano de ação salvo com sucesso.', 'success');
+      }
+    }
+
+    // --- Modal 5: Detalhe de Milestone (Roadmap) ---
+    function openMilestoneDetailModal(objetivoId) {
+      uiState.activeMilestoneModalId = objetivoId;
+      renderMilestoneDetailModal(objetivoId);
+      openModal('modal-milestone-detail');
+    }
+
+    function renderMilestoneDetailModal(objetivoId) {
+      const obj = appState.objetivos.find(o => o.id === objetivoId);
+      if (!obj) {
+        closeModal('modal-milestone-detail');
+        return;
+      }
+      const eixo = appState.eixos.find(e => e.id === obj.eixoId);
+      const om = getObjetivoMetrics(obj.id);
+
+      const container = document.getElementById('milestone-detail-content');
+      container.innerHTML = `
+        <div class="border-b border-zinc-200 px-6 py-4 flex items-start justify-between gap-4 bg-zinc-50/60">
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2">
+              ${eixo ? `<span class="text-[11px] font-medium text-zinc-500">${escapeHtml(eixo.titulo)}</span>` : ''}
+              <span class="text-zinc-300">•</span>
+              <span class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-0.5 text-xs font-medium text-zinc-800">
+                <i data-lucide="users" class="h-3 w-3 text-zinc-500"></i>
+                ${escapeHtml(obj.equipe)}
+              </span>
+              ${getStatusBadgeHtml(om.status, om.isConcluido ? 'Objetivo Concluído' : null)}
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-zinc-950">${escapeHtml(obj.titulo)}</h3>
+          </div>
+          <button type="button" onclick="closeModal('modal-milestone-detail')" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-200/70 hover:text-zinc-800">
+            <i data-lucide="x" class="h-4 w-4"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3.5">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">Descritivo (Visão da Gestão)</div>
+            <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed">${escapeHtml(obj.descritivo)}</p>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-zinc-900">Progresso do Entregável</span>
+              <span class="font-semibold text-zinc-900 tabular-nums">${om.acoesConcluidas}/${om.totalAcoes} ações (${om.percentualAcoes}%)</span>
+            </div>
+            <div class="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500 ${om.isConcluido ? 'bg-emerald-600' : 'bg-blue-600'}" style="width: ${om.percentualAcoes}%"></div>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Plano de Ação (${om.totalAcoes})</h4>
+              <button
+                type="button"
+                onclick="openAcaoModal(null, '${obj.id}')"
+                class="inline-flex items-center gap-1 rounded-lg bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-50 hover:bg-zinc-800"
+              >
+                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                <span>Nova Ação</span>
+              </button>
+            </div>
+
+            ${om.acoes.length === 0 ? `
+              <p class="text-xs text-zinc-500 py-4 text-center border border-dashed border-zinc-200 rounded-lg">Nenhuma ação vinculada a este milestone.</p>
+            ` : `
+              <div class="divide-y divide-zinc-100 rounded-lg border border-zinc-200 overflow-hidden">
+                ${om.acoes.map(acao => {
+                  const dl = getAcaoDeadlineStatus(acao);
+                  return `
+                    <div class="flex items-start justify-between gap-3 p-3 bg-white hover:bg-zinc-50">
+                      <div class="flex items-start gap-2.5">
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked="${acao.concluida}"
+                          onclick="toggleAcaoConcluida('${acao.id}')"
+                          class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${acao.concluida ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-300 bg-white hover:border-zinc-900'}"
+                        >
+                          ${acao.concluida ? '<i data-lucide="check" class="h-3 w-3"></i>' : ''}
+                        </button>
+                        <div>
+                          <p class="text-xs font-medium ${acao.concluida ? 'line-through text-zinc-400' : 'text-zinc-900'}">${escapeHtml(acao.descricao)}</p>
+                          <div class="flex flex-wrap items-center gap-2 mt-1">
+                            <span class="text-[11px] text-zinc-500">${escapeHtml(acao.responsavel)}</span>
+                            <span class="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium ${dl.badgeClass} tabular-nums">
+                              ${formatDateBR(acao.prazo)} • ${dl.label}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // =========================================================================
+    // DIALOG DE CONFIRMAÇÃO (EXCLUSÕES E IMPORTAÇÃO .TXT)
+    // =========================================================================
+
+    function openConfirmDialog({ title, message, extraHtml = '', confirmLabel = 'Confirmar', variant = 'danger', onConfirm }) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+
+      const extraEl = document.getElementById('confirm-extra');
+      if (extraHtml) {
+        extraEl.innerHTML = extraHtml;
+        extraEl.classList.remove('hidden');
+      } else {
+        extraEl.innerHTML = '';
+        extraEl.classList.add('hidden');
+      }
+
+      const btn = document.getElementById('confirm-action-btn');
+      const iconWrap = document.getElementById('confirm-icon-wrap');
+
+      btn.textContent = confirmLabel;
+      if (variant === 'primary') {
+        btn.className = 'rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 transition-colors shadow-xs';
+        iconWrap.className = 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 border border-zinc-200';
+        iconWrap.innerHTML = '<i data-lucide="file-check-2" class="h-5 w-5"></i>';
+      } else {
+        btn.className = 'rounded-lg bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 transition-colors shadow-xs';
+        iconWrap.className = 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-100';
+        iconWrap.innerHTML = '<i data-lucide="alert-triangle" class="h-5 w-5"></i>';
+      }
+
+      pendingConfirmCallback = onConfirm;
+      btn.onclick = () => {
+        const cb = pendingConfirmCallback;
+        closeModal('modal-confirm');
+        if (typeof cb === 'function') cb();
+      };
+
+      openModal('modal-confirm');
+    }
+
+    function confirmDeleteEixo(eixoId) {
+      const eixo = appState.eixos.find(e => e.id === eixoId);
+      if (!eixo) return;
+      const objs = appState.objetivos.filter(o => o.eixoId === eixoId);
+      const objIds = new Set(objs.map(o => o.id));
+      const acoesCount = appState.acoes.filter(a => objIds.has(a.objetivoId)).length;
+
+      openConfirmDialog({
+        title: 'Excluir Eixo Estratégico',
+        message: `Tem certeza que deseja excluir o eixo "${eixo.titulo}"? Esta operação também removerá ${objs.length} objetivo(s) e ${acoesCount} ação(ões) vinculadas.`,
+        confirmLabel: 'Excluir Eixo',
+        variant: 'danger',
+        onConfirm: () => {
+          appState.eixos = appState.eixos.filter(e => e.id !== eixoId);
+          appState.objetivos = appState.objetivos.filter(o => o.eixoId !== eixoId);
+          appState.acoes = appState.acoes.filter(a => !objIds.has(a.objetivoId));
+          saveToStorage();
+          renderApp();
+          showToast('Eixo excluído', 'O eixo e seus vínculos foram removidos.', 'info');
+        }
+      });
+    }
+
+    function confirmDeleteObjetivo(objetivoId) {
+      const obj = appState.objetivos.find(o => o.id === objetivoId);
+      if (!obj) return;
+      const acoesCount = appState.acoes.filter(a => a.objetivoId === objetivoId).length;
+
+      openConfirmDialog({
+        title: 'Excluir Objetivo',
+        message: `Deseja excluir o entregável "${obj.titulo}"? Todas as ${acoesCount} ação(ões) associadas também serão excluídas.`,
+        confirmLabel: 'Excluir Objetivo',
+        variant: 'danger',
+        onConfirm: () => {
+          appState.objetivos = appState.objetivos.filter(o => o.id !== objetivoId);
+          appState.acoes = appState.acoes.filter(a => a.objetivoId !== objetivoId);
+          saveToStorage();
+          renderApp();
+          showToast('Objetivo excluído', 'O entregável foi removido do eixo.', 'info');
+        }
+      });
+    }
+
+    function confirmDeleteAcao(acaoId) {
+      const acao = appState.acoes.find(a => a.id === acaoId);
+      if (!acao) return;
+
+      openConfirmDialog({
+        title: 'Excluir Ação',
+        message: `Confirma a exclusão da ação "${acao.descricao}"?`,
+        confirmLabel: 'Excluir Ação',
+        variant: 'danger',
+        onConfirm: () => {
+          appState.acoes = appState.acoes.filter(a => a.id !== acaoId);
+          saveToStorage();
+          renderApp();
+          showToast('Ação excluída', 'Status do objetivo e eixo recalculados.', 'info');
+        }
+      });
+    }
+    // =========================================================================
+    // EXPORTAR E IMPORTAR BACKUP EM ARQUIVO .TXT
+    // =========================================================================
+
+    function handleExportTxt() {
+      try {
+        const gm = getGlobalMetrics();
+        const today = getTodayISO();
+        const exportPayload = {
+          meta: {
+            aplicacao: 'Painel de Metas Estratégicas',
+            versao: '1.0',
+            exportadoEm: new Date().toISOString(),
+            resumo: {
+              totalEixos: gm.totalEixos,
+              totalObjetivos: gm.totalObjetivos,
+              objetivosConcluidos: gm.objetivosConcluidos,
+              totalAcoes: gm.totalAcoes,
+              percentualGlobal: gm.percentualGlobal
+            }
+          },
+          eixos: appState.eixos,
+          objetivos: appState.objetivos,
+          acoes: appState.acoes
+        };
+
+        const jsonText = JSON.stringify(exportPayload, null, 2);
+        const blob = new Blob([jsonText], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `backup-metas-estrategicas-${today}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast(
+          'Backup exportado (.txt)',
+          `Arquivo backup-metas-estrategicas-${today}.txt baixado com sucesso.`,
+          'success'
+        );
+      } catch (err) {
+        console.error('Erro ao exportar backup:', err);
+        showToast('Erro na exportação', 'Não foi possível gerar o arquivo .txt.', 'error');
+      }
+    }
+
+    function triggerImportTxt() {
+      const input = document.getElementById('import-file-input');
+      if (!input) return;
+      input.value = '';
+      input.click();
+    }
+
+    document.getElementById('import-file-input').addEventListener('change', function (event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const content = e.target.result;
+          const parsed = JSON.parse(content);
+
+          // Aceita tanto formato envelopado ({ meta, eixos, objetivos, acoes }) quanto direto ({ eixos, objetivos, acoes })
+          const candidateData = {
+            eixos: parsed.eixos,
+            objetivos: parsed.objetivos,
+            acoes: parsed.acoes
+          };
+
+          if (!validateDataStructure(candidateData)) {
+            showToast(
+              'Arquivo .txt inválido',
+              'A estrutura do backup não contém eixos, objetivos e ações válidos.',
+              'error'
+            );
+            return;
+          }
+
+          const exportedDateStr = parsed.meta && parsed.meta.exportadoEm
+            ? new Date(parsed.meta.exportadoEm).toLocaleString('pt-BR')
+            : 'Data não informada';
+
+          openConfirmDialog({
+            title: 'Importar Backup (.txt)',
+            message: 'Atenção: todos os dados atuais serão integralmente substituídos pelos dados deste arquivo de backup. Deseja prosseguir?',
+            extraHtml: `
+              <div class="space-y-1">
+                <div class="font-semibold text-zinc-900">Resumo do arquivo selecionado:</div>
+                <div>• Arquivo: <strong>${escapeHtml(file.name)}</strong></div>
+                <div>• Gerado em: ${escapeHtml(exportedDateStr)}</div>
+                <div>• Conteúdo: <strong>${candidateData.eixos.length} Eixos</strong>, <strong>${candidateData.objetivos.length} Objetivos</strong> e <strong>${candidateData.acoes.length} Ações</strong></div>
+              </div>
+            `,
+            confirmLabel: 'Substituir Dados Atuais',
+            variant: 'primary',
+            onConfirm: () => {
+              appState = {
+                eixos: candidateData.eixos,
+                objetivos: candidateData.objetivos,
+                acoes: candidateData.acoes
+              };
+              uiState.expandedEixos = {};
+              appState.eixos.forEach(ex => { uiState.expandedEixos[ex.id] = true; });
+              clearAllFilters();
+              saveToStorage();
+              renderApp();
+              showToast(
+                'Backup importado com sucesso!',
+                `${appState.eixos.length} eixos, ${appState.objetivos.length} objetivos e ${appState.acoes.length} ações restaurados.`,
+                'success'
+              );
+            }
+          });
+        } catch (err) {
+          console.error('Erro ao ler backup .txt:', err);
+          showToast(
+            'Falha ao ler arquivo',
+            'Certifique-se de selecionar um arquivo .txt exportado pelo sistema.',
+            'error'
+          );
+        }
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    // =========================================================================
+    // SISTEMA DE TOAST NOTIFICATIONS (CANTO INFERIOR DIREITO)
+    // =========================================================================
+
+    function showToast(title, description = '', type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto rounded-xl border border-zinc-200 bg-white p-4 shadow-lg animate-toast flex items-start gap-3';
+
+      let iconHtml = '<i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 mt-0.5 shrink-0"></i>';
+      if (type === 'error') {
+        iconHtml = '<i data-lucide="alert-circle" class="h-4 w-4 text-red-600 mt-0.5 shrink-0"></i>';
+      } else if (type === 'info') {
+        iconHtml = '<i data-lucide="info" class="h-4 w-4 text-blue-600 mt-0.5 shrink-0"></i>';
+      }
+
+      toast.innerHTML = `
+        ${iconHtml}
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-semibold text-zinc-950">${escapeHtml(title)}</div>
+          ${description ? `<div class="text-xs text-zinc-500 mt-0.5 leading-snug">${escapeHtml(description)}</div>` : ''}
+        </div>
+        <button type="button" class="text-zinc-400 hover:text-zinc-700 p-0.5" aria-label="Fechar notificação">
+          <i data-lucide="x" class="h-3.5 w-3.5"></i>
+        </button>
+      `;
+
+      const closeBtn = toast.querySelector('button');
+      const removeToast = () => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.18s ease';
+        setTimeout(() => {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 180);
+      };
+
+      closeBtn.addEventListener('click', removeToast);
+      container.appendChild(toast);
+      if (window.lucide) window.lucide.createIcons();
+
+      setTimeout(removeToast, 4200);
+    }
+
+    // =========================================================================
+    // ATALHOS DE TECLADO (FECHAR MODAIS COM ESC) E INICIALIZAÇÃO
+    // =========================================================================
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        ['modal-confirm', 'modal-acao', 'modal-objetivo', 'modal-eixo', 'modal-milestone-detail'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && !el.classList.contains('hidden')) {
+            closeModal(id);
+          }
+        });
+      }
+    });
+
+    // Fecha modais ao clicar fora do card (no backdrop)
+    ['modal-confirm', 'modal-acao', 'modal-objetivo', 'modal-eixo', 'modal-milestone-detail'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          if (e.target === el) closeModal(id);
+        });
+      }
+    });
+
+    // Inicializa a aplicação ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromStorage();
+      renderApp();
+    });
+  </script>
+</body>
+</html>

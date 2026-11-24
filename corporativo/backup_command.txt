@@ -1,0 +1,1241 @@
+{
+  "demands": [
+    {
+      "id": "7cf888c4-4806-4e07-aca6-16a0d0939d79",
+      "title": "EFCJ",
+      "done": "Estudo das baterias para tração",
+      "details": "",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "d7323be7-7c28-4d9b-b12c-eab09cb99b2d",
+      "title": "PoC Porta Trem",
+      "done": "",
+      "details": "Empresa DIZZER. Orientado entrar oficialmente",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "99fef602-01e7-4c8d-b604-30652dc97cf1",
+      "title": "RLP-02",
+      "done": "- BOSCH ficou de enviar solução alternativa. Em paralelo, buscar novos orçamentos para reparo e estudar internamente adequar o projeto com base nas demais reguladoras. BOSCH enviará até 24/03 a proposta de uma similar. \n- 27/04/26 - Proposta de seguir com elaboração de CPU e encaminhar para GRC. (Serviço de subsituição da bomba e revisão do motor). \n- 05/05/26 - Seguir no plano \n- 11/05/26 - CPU´s em andamento, previsão até 15/05 enviar para GRC.\" \n- 18/05/26 - Enviar CPU até 19/05/26 \n- 01/06/26 - CPU em análise na GRC, com previsão de retorno hoje. Após inclusão da CPU no SIEC, será solicitado o orçamento, previsto para ocorrer até o dia 05/06/26. \n- 08/06/26 - CPU enviada via SEI em 03/06/2026; no momento, aguarda-se a inclusão no SIEC para viabilizar a solicitação de orçamento, cuja previsão é até o dia 12/06/2026. \n- 22/06/26 - Previsão de Emissão do RAV pela GRC até o dia 30/06/26.",
+      "details": "19/10/26 - Processo no Jurídico.\nBomba condenada pela BOSCH",
+      "status": "Em andamento",
+      "owner": "Wanderson",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "99818878-5c2e-4fe4-be5c-21138fc4d74d",
+      "title": "RLP-04",
+      "done": "- Pregão Eletrônico. Enviado em 20/03 para DOPC \n- 27/04/26 - Em elaboração de parecer jurídico. \n- 05/05/26 - Mesmo status 11/05/26 - Solicitado apoio do Mouzinho para cobrar o jurídico\" \n- 18/05/26 - Processo retornou ao jurídico para chancela. \n- 01/06/26 - Aguardando parecer do jurídico. \n- 08/06/26 - Edital publica essa semana. 22/26/26 - Sessão agendada para o dia 29/06/26.",
+      "details": "19/10/26 - Serviço realizado mas a GOR perdeu o volante de acoplamento do motor. Cobrado posicionamento GOR.\nAtualizados orçamentos e enviado pregão",
+      "status": "Em andamento",
+      "owner": "Wanderson",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "79196c24-3418-43ee-8604-415b3015e63c",
+      "title": "H632",
+      "done": "- Falta comprovações de preço pela CAF. RAV para \n- 27/03 27/04/26 - Definido que será incluído novo item B1 para a \"\"recuperação do carro acidentado\"\" \n- 05/05/26 - Verificar \n- 11/05/26 - Aditivo aguardando parecer jurídico\" \n- 01/06/26 - Foi realizada a revisão das CPUs, sendo solicitado a duplicação do orçamento em 01/06/26. \n- 08/06/26 - Em revisão do orçamento considerando 22 meses. \n- 22/06/26 - Acertado entre as partes as condições do aditivo e aguardando formalização da ARTESP para seguir com o processo.",
+      "details": "19/10/26 - Aditivo Assinado e serviço em execução. Próximo passo é o envio de relatório com as atividades e cronograma.\nDefinido novo item de recuperação",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "6b5e33be-5780-4889-abe6-edb55534e445",
+      "title": "ECS - Esmerilhadora",
+      "done": "Recebido orçamento da remobilização",
+      "details": "Elaborar apresentação executiva.\nEntrar em contato com Iron Train (indicação RUMO).",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "RUMO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "60a87d09-e602-408b-b195-f40f777f8545",
+      "title": "Especificação de novos trens",
+      "done": "Pedido DO",
+      "details": "Em estudo",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "7a373d8d-4555-45ae-96fe-e797e759b33c",
+      "title": "Janela de transferência de empregados",
+      "done": "Lista de Empregados",
+      "details": "Falar com a Angelo\nFalar com o Sérgio",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "3853641e-47e5-4602-a869-534bd20443df",
+      "title": "Wi-Fi nos trens",
+      "done": "Definido local de instalação",
+      "details": "Testes finais para início da PoC",
+      "status": "Concluído",
+      "owner": "WANDERSON NUNES MARTINS <wanderson.martins@cptm.sp.gov.br>",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "f1b51e34-7363-41c8-95e9-75f5ac1a95d5",
+      "title": "Monitores do 8500",
+      "done": "Aguardando protótipo de espelhamento",
+      "details": "Acionar CAF para solução definitiva",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "CAF",
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "0dc267d2-582f-4042-91c2-46bed9ceca0c",
+      "title": "CRMA",
+      "done": "- Foi liberado para operação em 20/03/26, mas sem a implementação do Buster. Falta substituir a embreagem magnética por pneumática. \n- 27/04/26 - Em operação, contudo aguarda cronograma de implementação da modificação. \n- 05/05/26 - De acordo com o cronograma, os testes finais deverão ocorrer em 23/06/26 em Botujuru. \n- 11/05/26 - Mesmo status 18/05/26 - Mesmo status 01/06/26 - Mesmo status até 23/06 - Verificar Acesso \n- 22/06/26 - O cronograma foi revisado, e os testes finais deverão ocorrer na semana de 20/07/26, em Botujuru.",
+      "details": "19/10/26 - Teste de desempenho ok. A questão é o sistema de freio, pois ao tentar fazer os testes apresentou problemas nas mangueiras (substituídas) e também problemas na válvula (necessário aquisição SFF - 30 dias). Contrato ainda no TRP a 5 anos...\nLiberado para operação sem Buster",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "2ba4f7b6-1ecf-46ba-b70f-861bd6e61e69",
+      "title": "VIU",
+      "done": "- Problema na placa do ultrassom. \n- 27/04/26 - Em testes para eliminação do ruído. \n- 05/05/26 - Aguardando a correção do Manual de Operação para iniciar a operação assistida, previsto para iniciar essa semana. \n- 11/05/26 - Problema no conjunto de freios. A Mistras a Via Permanente para análise da causa. Nosso objetivo é saber o motivo da taxa de frenagem estar abaixo do especificado\" \n- 18/05/26 - Ficou de enviar proposta de ajuste no sistema de freios \n- 01/06/26 - Após a substituição das cuícas e da sapata de freio (utilizando-se o mesmo modelo empregado no primeiro comissionamento), foram realizados testes de comissionamento do sistema de freio na madrugada de 01/06/26, cujos resultados ainda não foram analisados. Adicionalmente, constatou-se que o recomissionamento do sistema de freio realizado em dezembro/25 ocorreu com a utilização de sapatas de freio fornecidas pela CPTM (mesmo tipo utilizado na esmerilhadora). Descobriu-se que a sapata em uso foi fornecida pela CPTM como teste. Foi realizado o teste com a sapata original e já com as cuícas substituídas e foi contatado a taxa de 1.02m/s² (parâmetro aceitável seria até 0.85m/s²). Equipe da VP vai ajustar o temo resposta dos freios (hoje em 5s - tolerável é até 3seg) e ajuste da pressão para novos testes. \n- 22/06/26 - Durante os testes para ajuste de pressão, ocorreu dano no eixo da polia tensora, sendo necessária a modificação do projeto de fixação do eixo (substituição da fixação soldada por parafusada). A implementação está prevista até o dia 24/06, com retomada dos testes em 25/06.",
+      "details": "19/10/26 - Durante a revisão de 500h foi identificado partícula metálica no óleo do redutor, oriunda do acoplamento que não esta sendo realizado corretamente. Ação 1: Plano de ação para identificar a causa do desgaste. Ação 2: Desmontar o redutor para avaliar o tamanho do dano nas engrenagens e rolamento. Prazo: Não definido.\nRealizados testes de ultrassom",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "1412a5c3-6402-43ee-bccc-5bb39cb7b5f2",
+      "title": "VOR",
+      "done": "- Contrato paralisado, aguardando assinatura do aditivo. Previsão de liberar para operação em maio/26. \n- 27/04/26 - Contrato retomado em 01/04/26 e as modificações irão ser implementadas até 22/05 (janela, guarda corpo, substituição da grelha da casa de máquinas e a bomba de controle da plataforma em caso de falha). \n- 05/05/26 - Aguardando cronograma de implementação das pendências. \n- 11/05/26 - Mesmo Status\" \n- 01/06/26 - Foi realizada a instalação das janelas, permanecendo pendente a instalação de uma unidade que foi danificada durante o processo. Quanto aos demais pontos pendentes, incluindo a substituição da janela avariada, estamos aguardando o envio, pela Wabtec, do cronograma para regularização das pendências. \n- 08/06/26 - Reunião dia 09/06 com Wabtec para tratativas das pendencias e cronograma. \n- 22/06/26 - A partir de 22/06, a Wabtec realizará a tratativa das pendências e a execução dos testes remanescentes (estanqueidade, aterramento, isolação do pantógrafo de aterramento, desmontagem do guarda-corpo das extremidades, movimentação da plataforma e da bomba independente para sua operação), com previsão de conclusão em 26/06.",
+      "details": "19/10/26 - Resolvido problemas da janela, guarda corpo, fechadura acesso a plataforma. Previsão de TRP hoje.\nContrato retomado e modificações iniciadas",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "2fc3e8a8-0820-45b1-9c05-dc2187f2d413",
+      "title": "VMST",
+      "done": "- 11/05/26 - Aguardando acerto entre Zumm e Via Permanente. \n- 18/05/26 - Acertado entre Zumm e Via Permanente, aguardando cronograma atualizado \n- 01/06/26 - Aguardando o Cronograma atualizado e o Relatório de Evolução. Foram solicitadas, pela ZUMM, amostras de trilho para a realização dos testes da máquina de solda. Mesmo Status \n- 22/06/26 - A ZUMM enviou o cronograma atualizado, com previsão de conclusão da fabricação em 24/07.",
+      "details": "19/10/26 - Vagão bem adiantado na fábrica da VP. Aguardando BALDIN vir ao Brasil para ligar e fazer os ajustes da máquina.\nAguardando alinhamento externo",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO",
+        "VP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "0e532181-a2f8-4e0b-adf9-09a904e6a658",
+      "title": "Revisão norma de homologação",
+      "done": "Solicitada versão editável",
+      "details": "Finalizar revisão até prazo",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-05-29",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "dbe472d4-9e11-4e72-8b4d-ab9875b6828a",
+      "title": "Apresentar estudo do Fator K",
+      "done": "Estudo solicitado",
+      "details": "Consolidar apresentação técnica",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "ec552edc-3668-4a6c-a3c7-4cbd635b89dd",
+      "title": "Revisão da NSS.DF.010 - Incorporação e Controle de Bem Patrimonial.",
+      "done": "Avaliar revisão",
+      "details": "verificar necessidade de consulta a outros deptos",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "52308511-6b09-4505-bad8-c0bec91da2ad",
+      "title": "VPR",
+      "done": "- 05/05/26 - Entregue, porém o acionamento da rampa dos vagões não está funcionando. A Wabtec foi acionada pela garantia. \n- 11/05/26 - Previsão de atuação em 12/05\" \n- 18/05/26 - Resolvido e entregue para operação. \n- 01/06/26 - Os motores de ambos os VPRs apresentaram falha, tendo a Wabtec realizado a retirada para revisão; contudo, em um dos casos não foi possível efetuar o reparo, sendo informado ainda pela empresa que é necessário o acionamento dos motores por um período de 4 horas diárias para manter as condições de funcionamento do sistema, condição considerada não aceitável, motivo pelo qual foi agendada reunião para o dia 02/06/26 com o objetivo de avaliar e definir uma condição operacional adequada. \n- 08/06/26 - Foi realizada, em 02/06/2026, reunião com a Wabtec, na qual foi apresentada proposta de alteração no sistema de alimentação de combustível do motor, com a inclusão de tubulação em substituição às mangueiras atualmente utilizadas, visando melhorar a eficiência do abastecimento. \n- 22/06/26 - Em 22/06/2026, no período de 08 a 19/06, foram realizados testes com os motores, sendo verificado que o motor do VPR-02 apresentou problemas após a revisão geral realizada pela assistência técnica. Nos testes, foi constatado que não havia problemas relacionados à alimentação de combustível. Em 19/06/2026, foi conduzido teste no VPR-01 para verificar possível fuga de carga da bateria, tendo sido confirmada a ocorrência, o que resultou na impossibilidade de acionamento do motor. No momento, aguarda-se parecer da Wabtec para definição dos próximos passos.",
+      "details": "19/10/26 - Assinado hoje o TRD.\nTrem entregue",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "4b31a8a3-6d70-4c67-a2b8-ff402a1c19fe",
+      "title": "VRGM",
+      "done": "- VRGM 01: Garantia em andamento, prazo: início 16/03/26 - Finalizado em 15/05/26 \n- VRGM 02: Garantia em andamento, prazo: início 02/03/26 - Finalizado em 01/05/26 \n- 01/06/26 - Em fase de emissão do TRD. 08/06/26 - Continua sem pendência. \n- 22/06/26 - Mesmo status.",
+      "details": "19/10/26 - TRD assinado. Sem pendencias\nEquipamento entregue",
+      "status": "Pausado",
+      "owner": "",
+      "team": "DOTM",
+      "sourceFile": "DOTM.csv",
+      "updatedAt": "2026-10-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "8d67e6c9-c14e-4fba-8bf0-8d2ee224744c",
+      "title": "ECS Civil",
+      "done": "Monitorar prazos e avançar com as etapas. Aguardando definição UTG e TMD;\nCom a ida do Fábio Seco ao RJ para inspeção de OAEs o Tec. Francisco Assis ficará no seu lugar para dar continuidade ao ECS",
+      "details": "GT em andamento",
+      "status": "Em andamento",
+      "owner": "Sandro",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "GT"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "bdbbc7b0-c1c9-4755-bade-d1ba41d0fb53",
+      "title": "ECS VP",
+      "done": "Realizada reunião sobre novo modelo contratual",
+      "details": "Prorrogar prazo da planilha.\nO GRC está ciente da nossa necessidade de agilizar a emissão da RAV.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "GRC"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "a8ee3292-413c-4059-887b-60f4ed0b724e",
+      "title": "Procedimento de Tala de Alta Performance",
+      "done": "",
+      "details": "Avaliar e revisar",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "83ba67e2-76cf-41fd-bc66-35b126f1f36b",
+      "title": "Janela de transferência de empregados",
+      "done": "Nomes GOO + GOV",
+      "details": "Ver com a Teresinha (Tallyta, Erika, Gustavo, Fernanda)\nConfirmada a vinda da Líder Tallyta no dia 21/07/26.",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-07-21",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "50d0ae67-7c55-4981-90b3-14a0c63ca565",
+      "title": "Passarela Guapituba",
+      "done": "- Em 18/05: Em tratativa com as áreas para elaboração do cronograma de ações.\n- Em 26/05: Encaminhado outro e-mail cobrando informações das equipes de manutenção.\n- Em 01/06: Reunião realizada com os supervisores da DOVP, DOFE e DOVC para alinhamento das atividades.\n- Em 16/06: Durante a reunião de contratos, o DO tomou ciência da dificuldade da GOV em disponibilizar insumos para o escoramento e solicitou o acompanhamento da demanda ao GOM.",
+      "details": "Projeto ajustado e ações distribuídas",
+      "status": "Em andamento",
+      "owner": "Sandro",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-26",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "0c23f8a9-dd83-4925-bbc2-0d3588ba2a3a",
+      "title": "Abalroamento de veículo na Ponte sobre o Rio Tamanduateí",
+      "done": "Equipes do DOTV e DOVC foram realizar inspeção extraordinária",
+      "details": "08/06/2026 - Equipes técnicas foram em campo para avaliar as condições estruturais da Ponte nos dois sentidos (marginal e Mercadão)\n08/06/2026 - Solicitado ao Pirro a interface junto ao CET e Prefeitura para averiguar o registro da ocorrência e os dados do veículo.\nEquipes do DOTV e DOVC estiveram no local, juntamente com representantes da Trivia, mas, não identificou nenhum agravamento na OAE oriundo da colisão.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-08",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "CET",
+        "DE",
+        "DO",
+        "DOTV",
+        "DOVC",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "592d878a-e5c5-418f-bede-1240b1971300",
+      "title": "PoC - Dormente Polimérico",
+      "done": "- Em 18/05: Ajuste da NF de entrada dos materiais.\n- Em 26/05: NF regularizada na CPTM e solicitadas ao Instituto Vidas as planilhas com informações de transporte e data de retirada das amostras para posterior emissão da NF de saída.\n- Em 01/06: NF disponibilizada para o Instituto Transformando Vidas e amostras retiradas do Pátio de SCT.\n- Em 08/06: Solicitadas as informações ao Instituto Transformando Vidas para acompanhamento dos ensaios laboratoriais das amostras.\n- Em 17/06: Reforçado o pedido de acompanhamento dos ensaios junto ao Instituto Transformando Vidas.",
+      "details": "Entrega de dormentes - protótipo",
+      "status": "Em andamento",
+      "owner": "Sandro",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-26",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "f7f28571-a833-4235-a8d5-fd8ec1b2ddbe",
+      "title": "Descarrilhamento do Brás",
+      "done": "",
+      "details": "Avaliando e fechando relatório",
+      "status": "Em andamento",
+      "owner": "Kubota",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "839496f8-4687-4088-ae9b-3b9eeb7dfd03",
+      "title": "Estudo Pátio SCT",
+      "done": "Realizadas inspeções e reuniões técnicas",
+      "details": "Definir quantitativo de colaboradores;\n18/06/26 - A equipe do DOTV esteve no Pátio e verificou que o local onde estava previsto a construção de um grande vestiário esta sendo utilizado.",
+      "status": "Concluído",
+      "owner": "Sandro / Marcelo",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-18",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "DOTV"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "4e9328a9-6e4c-4fbe-bdc2-864491f8f524",
+      "title": "Alinhar MP da equipe GOT",
+      "done": "- Em data não especificada: Necessidade de validar a MP com a GOT.\n- Em 26/05: Reunião realizada com Anderson Calesso para entender o fluxo utilizado na MP da Fernanda ao DRCC.\n- Em 01/06: Informado por Calesso que todas as tratativas deverão ser realizadas pelo Gerente da área em conjunto com a representante do RH (Terezinha).",
+      "details": "Movimentação da Fernanda confirmada",
+      "status": "Em andamento",
+      "owner": "Sandro",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-26",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "5c7b7ceb-1a71-48dc-8418-3138c2cb2ce3",
+      "title": "Aguardar proposta da LORAM",
+      "done": "Realizada reunião técnica com fornecedores",
+      "details": "Solicitado informações adicionais pela LORAM.\n26/05/2026 - Encaminhado para Loram as respostas dos questionários.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-26",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "bb13ea0c-5178-497f-9470-345d7f086d40",
+      "title": "Aprovar HE do AMV Eng. SP",
+      "done": "Comissionamentos executados aos domingos",
+      "details": "Aprovar horas extras\n18/05/26: Inserir de maneira mais legível os dados que medimos. Foco: Gestão do Conhecimento - deixar material legado para que o conhecimento não se perca.\nPróxima inspeção agendada para o dia 28/06/2026 (domingo)",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-28",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "62f88e37-6651-4ce5-9060-8a2177ec1153",
+      "title": "Ajustar projeto da plataforma RGS",
+      "done": "- Em 13/05: DOTV atendeu os apontamentos e solicitou reunião com Rogerio (DOGC) para conclusão da atividade e posterior encaminhamento ao DOVC.\n- Em 21/05: DOGC aceitou os ajustes realizados pela equipe do DOTV.\n- Em 28/05: CPA aceitou os ajustes técnicos realizados pela GOT/DOTV, ficando pendentes as questões de acessibilidade (e-mail encaminhado pela GOT às GOV e GOF).\n- Em 08/06: Prevista inspeção conjunta GOT+DOGC para demonstrar que o remanejamento de 7m elimina o conflito entre a rampa e os bloqueios.\n- Em 19/06: Enviados ao DOTI os desenhos unificados dos projetos DOTV e DOTI para validação, visando o encaminhamento da versão final ao GOT para prosseguimento.",
+      "details": "Elaborada RT e atendidos apontamentos da CPA",
+      "status": "Em andamento",
+      "owner": "Sandro",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-22",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "CPA",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "a117e8a9-5c08-4c2d-90bb-a2a364f291e6",
+      "title": "Iniciar recuperação estrutural do pórtico da subestação de SCT",
+      "done": "Preparada documentação da contratação",
+      "details": "Emitir OS e iniciar serviço, previsto 18/05/26.\nAtividades iniciada pela empresa Defendi\n03/05/2026 - Equipe da GOT/DOTV realizou inspeção inloco e constatou que a recuperação está praticamente finalizada e os serviços prestados estão em conformidade seguindo todos os padrões técnicos.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-05-25",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "DOTV",
+        "GOT",
+        "MP",
+        "TIC"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "e3a66720-915a-49e5-b894-3f82f0066f7e",
+      "title": "Planejar retirada segura da escavadeira da Lapa",
+      "done": "Realizada inspeção conjunta",
+      "details": "Avaliar escoramento e segurança\n01/06/2026 - Escavadeira removida e doação finalizada",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-01",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "e2b3fdc0-f294-40dc-b756-23d2c8d3dd3a",
+      "title": "Concluir recuperação da Ponte Chico da Vargem",
+      "done": "Acompanhamento técnico da obra",
+      "details": "15/05/2026 - Reunião com as equipes da CPTM e MRS e foi informado que devido às chuvas a conclusão da recuperação da ponte foi atrasada em 1 semana (22/05).\n24/05/2026 - Atividades finalizadas;\n18/06/2026 - Data agendada para última inspeção da Ponte Suzano para consolidar a nota técnica e avaliar o comportamento estrutural pós recuperação.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-18",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "MP",
+        "MRS"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "cbf7a5bf-d7c6-4894-b45e-c44754c5c611",
+      "title": "Atualização ET AO3412-1 - JIC´s",
+      "done": "Materiais VP-2026",
+      "details": "GOL solicita antecipação de prazo inicialmente previsto para 16/06/26;\nA atualização solicitada trata-se de um documento elaborado pela DE, o nosso documento é oAA1099-7. Foi orientado que corrijam o cadastro de materiais.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-10-07",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "GOL"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "82dec1e6-8b69-4712-a1f1-e50b7b807e2d",
+      "title": "Emitir laudos de comissionamento TRIVIA",
+      "done": "Realizados comissionamentos técnicos",
+      "details": "Emitir relatórios técnicos.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "c1446b03-7cd6-4476-8319-7773a220522f",
+      "title": "Revisar revitalização estação GPT (Banho de loja)",
+      "done": "Recebida proposta inicial",
+      "details": "Avaliar soluções de engenharia.",
+      "status": "Concluído",
+      "owner": "SANDRO LUIZ SILVA <SANDRO.SILVA@cptm.sp.gov.br>",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "60ec1363-79ec-43c6-b204-b935b0d1f072",
+      "title": "Aguardar orçamento para demolição controlada (Muro do Brás)",
+      "done": "Elaborada RT para apoio jurídico e manutenção",
+      "details": "Aguardando os orçamentos da contratada da VP para iniciar as atividades de demolição controlada. Nossa ação GOT fica como interface para ações de perícia junto ao condomínio.\n16/06/26 - Equipe do DOVC informou sobre a reunião com o DRJC para avaliar a negativa do condomínio em liberar o acesso das equipes para início das obras de demolição do muro.",
+      "status": "Concluído",
+      "owner": "Beatriz Fressato / Tamires Quirino",
+      "team": "DOTV",
+      "sourceFile": "DOTV.csv",
+      "updatedAt": "2026-06-16",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "DOVC",
+        "DRJC",
+        "GOT",
+        "VP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "e14b28a4-4d58-4bb5-b8cc-79a1e6c0366d",
+      "title": "Meta 20-09 - Procedimentos manutenção",
+      "done": "Atualizar procedimento e abrir ATE interna para resolução definitiva",
+      "details": "Em andamento",
+      "status": "Em andamento",
+      "owner": "Erick",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-11-13",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "800bb8bb-727c-4ded-ad68-5e005aa8f6fd",
+      "title": "ECS - CMA",
+      "done": "Definição estratégica de contratação vinculada a Meta Corporativa",
+      "details": "Em construção do modelo, aproximação com a GOF a fim de que eles contribuam para o trabalho.",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "GOF"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "0419df71-7dec-4e9c-bef2-bbebe8ee989e",
+      "title": "CFTV",
+      "done": "Definições estratégicas",
+      "details": "Criado elo técnico com a contratada",
+      "status": "Em andamento",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "ff7120c7-52ca-4268-b047-eb846f687194",
+      "title": "ECS´s DOTI: Mídia; ER´s",
+      "done": "Projeto específico",
+      "details": "Aguardando e-mail inicial do ECS das ER. O e-mail foi enviado. Aguardando o treinamento. O material do ECS dos EL foi encaminhado a equipe para iniciar o desenvolvimento da documentação das ER. Solicitado a GOF informações complementares. Em 01/10, a GOF enviou as informações. Em 14/10, a GOT solicitou definição.",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-10-14",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "ECS",
+        "GOF",
+        "GOT",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "1d032ef3-a9c1-44a4-aa65-317afc71604d",
+      "title": "ECS´s Jessica: Trafo",
+      "done": "Projeto específico",
+      "details": "",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "40c5bed2-6548-4691-a910-29e75810d91b",
+      "title": "Janela de transferência de empregados",
+      "done": "Listar nomes com perfil",
+      "details": "Criar lista. Realizados contatos e alguns solicitaram confirmação da periculosidade. Temos 2 nomes, aguardando confirmação. Eles confirmaram e pediram para realizar a transferência após 21/07/26. Falta realizar as entrevistas.",
+      "status": "Em andamento",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-07-21",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "c5c34031-c5ce-4f05-b307-2f0c30e6b9f7",
+      "title": "NSDO002 - Meta Estratégica 2.14",
+      "done": "Revisar norma",
+      "details": "Em análise. Foi encaminho e-mail às áreas. As áreas não responderam. Elaborar a minuta. A minuta foi encaminhada ao Sr. GOT em 28/07.",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-07-31",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "GOT"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "ec76bf8a-5998-473c-b517-f9708b388803",
+      "title": "Encerrar avaliação da PoC HEXAGON",
+      "done": "Relatório analisado e questionado",
+      "details": "Fazer relatório final e fechar a PoC. \nEmbora a HEXAGON tenha soluções aplicadas em outras ferrovias, não foi possível visualizar o detalhamento dos parâmetros de VP dentro do escopo da PoC, devido à complexidade da ferramenta de SW necessária para realizar o tratamento dos dados, o que consiste no produto ofertado pela empresa como solução customizada para cada cliente. \nRealizar o relatório final. Previsão 26/06.",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-06-26",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "HEXAGON",
+        "MP",
+        "VP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "7e01f40d-2550-424a-b660-444796764d2e",
+      "title": "PoC da fibra",
+      "done": "- Em 13/06, o DOTI informou que foi liberada a extensão do prazo até 30/09/26. \n- Em 01/10, o DOTI informou que o prazo pode ser estendido até 18/11/26.",
+      "details": "Apresentar resultado ou formalizar extensão. Aguardando a resposta da Sra. Diana sobre a extensão até 14/07. Estudo em andamento.\nPrazo final : 18/11/26",
+      "status": "Em andamento",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-11-18",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "d2a014e4-6958-4928-9e2c-545e087d746f",
+      "title": "Ar Condicionado Sala GFI",
+      "done": "Estudo GOT",
+      "details": "Limpar ruído. As equipes do DOFS e DOTI estão atuando em conjunto.\nPassar e-mail com as informações que avançaram e próximos passos. ok. As tratativas foram realizadas e o Eng. Anderson (GOF/DOFS) está ajustando os detalhes da execução com o Sr. Agenor.",
+      "status": "Concluído",
+      "owner": "",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "DOFS",
+        "DOTI",
+        "GOF",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "86f4d79c-769e-4f9b-908b-b17c57a2039a",
+      "title": "Aguardar retorno da ENEL sobre Fepasinha",
+      "done": "Projeto iniciado",
+      "details": "Cobrar resposta formal do Antônio Carlos sobre a perda da Fepasinha. O Antônio Carlos respondeu e o DOTI informou ao DFAS que a Fepasinha não será utilizada e solicitou o cancelamento do processo junto à ENEL.",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-05-19",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DFAS",
+        "DO",
+        "DOTI",
+        "ENEL"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "2f7ad17b-293c-4405-a116-cb0a3deb0ce8",
+      "title": "Validar solução LED para sinaleiro",
+      "done": "Desenvolvido e aprovado protótipo LED",
+      "details": "Cadastrar material aprovado. Falta concluir o RTH. O RTH foi concluído e assinado. O material foi cadastrado.",
+      "status": "Concluído",
+      "owner": "Dirceu",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "35a013f1-46fb-4eab-851e-21631957890e",
+      "title": "Relatório MCH - Linha 10",
+      "done": "- Em 16/10, o DOTI enviou a GOT o relatório de setembro no novo formato.",
+      "details": "Foco na linha 10 com informações que sejam qualitativas e ajudem a manutenção. A nova versão do relatório foi enviada para análise. Falta realizar alguns ajustes com o Jonatas. Analisados planos e registros de manutenção",
+      "status": "Em andamento",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "363694d4-aba6-436a-856d-3d0518e8de76",
+      "title": "Encerrar tratativa MP Rudivaldo",
+      "done": "- Em 15/09, foi realizada uma reunião com a Gláucia. \n- Em 02/10, o DOTI enviou a GOT a justificativa para permanência do Rudivaldo, conforme solicitado na reunião com RH.",
+      "details": "Acompanhar tratativa final e decisão GOM. O DOFS questionou por que o Rudivaldo está com os treinamentos de exigência legal vencidos. A Sra. Rita (RH) enviou a ficha de análise de risco para prosseguimento da MP. A Teresinha cobrou a regularização. Aguardando reunião (GOT/GRH). Enviada cronologia à GOM",
+      "status": "Em andamento",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "DOFS",
+        "GOM",
+        "GOT",
+        "GRH",
+        "MP",
+        "RH"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "528fcaa0-94b2-4895-8637-7e6e4c2c646f",
+      "title": "Validar PCDS Gen 4",
+      "done": "- Em data não especificada: GOF aprovou e o DOTI enviou a documentação à AUSTROS.\n- Em data não especificada: AUSTROS retornou e o DOTI solicitou análise do DOTM.\n- Em data não especificada: DOTM informou que responderia até 06/08.\n- Em 07/08: Respondido que será necessária uma inspeção.\n- Em data não especificada: Inspeção agendada para 11/08.\n- Em 11/08: Inspeção realizada e solução para a instalação do GEN4 fixo indicada pelo DOTM.\n- Em data não especificada: E-mail da AUSTROS analisado e DOTI solicitou atualização do projeto à AUSTROS.\n- Em 21/08: DOTI cobrou a AUSTROS, que informou aguardar a Telemattica.\n- Em data não especificada: AUSTROS enviou o projeto e o DOTM iniciou a análise.\n- Em 11/09: DOTM aprovou com comentários, solicitando indicação de forma de vedação para os parafusos de fixação.\n- Em 14/10: Sr. Fabio (DOTM) aprovou a vedação proposta pela AUSTROS.\n- Em data não especificada (status atual): Instalação das duas unidades móveis em andamento.",
+      "details": "Solicitado de acordo à GOF",
+      "status": "Em andamento",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "GOF"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "3c7b1173-a6de-4041-97b4-3f34ab899422",
+      "title": "Avaliar falha do ALE30H (Central BV)",
+      "done": "Identificado mau funcionamento sem fonte externa",
+      "details": "Continuar estudo técnico",
+      "status": "Concluído",
+      "owner": "Dirceu",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "5c427214-2bd3-43f4-a34f-94d1011651b7",
+      "title": "Avaliar upgrade das consoles do CCO",
+      "done": "Estudo técnico encaminhado à TIC",
+      "details": "Concluir análise de interferências",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "d3e2dff0-39c9-4a36-9d98-b0e1c2cfa196",
+      "title": "Validar aditivo da telefonia Linha 10",
+      "done": "Estudo de segregação iniciado e aditivo validado",
+      "details": "Acompanhar aditivo e dar o suporte necessário a GOF. O aditivo foi realizado.",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO",
+        "GOF",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "39ce30ba-e3af-40a5-a30f-c93aa52dcf76",
+      "title": "Planejamento de manutenção enviado",
+      "done": "Elaboradas TAGs, arborização, PCM e gestão do conhecimento",
+      "details": "Aguardar análise da proposta enviada",
+      "status": "Pausado",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "dd878815-76d0-4112-bad5-8c079b1331f4",
+      "title": "Estruturar gestão do conhecimento",
+      "done": "Proposto projeto piloto de capacitação",
+      "details": "Definir implementação do piloto. Em 18/09, enviamos o Mapeamento solicitado pela GOT.",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "2026-09-18",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO",
+        "GOT",
+        "MP"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "720cd348-a421-4457-828e-028465003553",
+      "title": "Aguardar proposta do PL-MCH",
+      "done": "Tema não atribuído ao DOTI",
+      "details": "Aguardando a proposta do DOVL.",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO",
+        "DOVL"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "50f96095-460b-4d0c-bc6f-2b81baf41f63",
+      "title": "Ajustar assinaturas de documentos",
+      "done": "Avaliadas responsabilidades de assinatura",
+      "details": "Validar RT e assinaturas finais",
+      "status": "Concluído",
+      "owner": "ALLAN DO NASCIMENTO SILVA <allan.silva@cptm.sp.gov.br>",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "45cf0c9c-c631-4a9b-a19c-50d04a01ed2b",
+      "title": "Finalizar estudo de redundância PNP",
+      "done": "- Em 18/09, conversei o Sup. Rodrigo e retomaremos o assunto na próxima semana.",
+      "details": "Finalizar o relatório com a arquitetura e diagramas. Foi realizada uma visita técnica para verificar a possibilidade de automatizar o gerador. Aguardando retorno do Sup. Rodrigo. Realizada visita e emitido relatório preliminar",
+      "status": "Pausado",
+      "owner": "Allan",
+      "team": "DOTI",
+      "sourceFile": "DOTI.csv",
+      "updatedAt": "",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "452603bb-57e3-48c7-979e-a94aeb7b6acb",
+      "title": "Acompanhamento de reunião técnica da modernização do pátio MAU",
+      "done": "Enviado e-mail para consulta da GOF das informações. Posicionamento da GOF sobre o miniSTO para a DE",
+      "details": "Pendente de posicionamento para a reunião da DE.",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-06",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "c05c9b63-8ccc-4c53-8d9d-b4acb1014fb9",
+      "title": "Preenchimento da ficha de especificação de conhecimento",
+      "done": "Enviado e-mails para os gerentes",
+      "details": "Prazo vencido, sem retorno recebido até o momento, exceto da GOF (avaliar cobrança).",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-06",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "CET",
+        "DO",
+        "GOF"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "3ba3a20e-b55b-4701-b203-ff1a8082c859",
+      "title": "Coleta de intenções de ECS para o planejamento de 2027",
+      "done": "Enviado modelo usado ano passado para verificação se ainda atende",
+      "details": "Pendente de envio/alinhamento do e-mail.",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-06",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "e1ee1156-cdb0-4799-82dd-ff1a0a854536",
+      "title": "Revisão do documento de planejamento da GOT",
+      "done": "Eixos e objetivos criados e enviados para avalição GOT",
+      "details": "Revisão parcial dos pontos",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-06",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "ab59b11d-45d7-419e-882c-b5f830af452d",
+      "title": "Criação de apresentação institucional da GOT com eixos e objetivos",
+      "done": "Apresentação criada",
+      "details": "Aguardando eixos e objetivos para finalização e apresentação da minuta",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-06",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "6765dd32-472b-4fd5-885c-17d1d3c57652",
+      "title": "Elaboração de minuta de documento para governança de monitoramento de ativos",
+      "done": "Minuta elaborada",
+      "details": "Em revisão inicial pelo Estevão, antes de submissão para revisão da GOT",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-13",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "GOT"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "fcdb5090-0a97-4f24-8932-61c2cc70fc12",
+      "title": "Elaboração de Procedimento de Manutenção de Ocorrências Diferenciadas",
+      "done": "PM elaborado",
+      "details": "PM em fase final de revisão conforme últimas solicitações de alteração",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-12-31",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "aa2aa89d-76ed-4ff1-87f1-c8ac207d5af6",
+      "title": "Revisão do Relatório de MCH",
+      "done": "Relatório atualizado",
+      "details": "Pendente de verificação se será possível fazer integração dos dados do relatório com dados de OSM",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-30",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "34d86d80-e384-4c95-83f1-c84a80c576f5",
+      "title": "Desenvolvimento de monitoramento de R/A interno CPTM",
+      "done": "Realizados refinamentos no AURA para análise dos dados. Realizada aproximação com a GFI sobre possibilidades. Alguns materiais reunidos.",
+      "details": "Elaborada apresentação do protótipo com plano de ação",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-12-31",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    },
+    {
+      "id": "bada9cc8-fa17-4a49-9f66-abd4afcde36a",
+      "title": "Mentoria no programa Profissional Inovador",
+      "done": "Realizadas reuniões com os mentorados",
+      "details": "Prestado apoio às equipes respondendo dúvidas e conectando a pessoas e áreas necessárias. Haverá mudança no cronograma, por isso aguarda reunião com o DPIN",
+      "status": "Em andamento",
+      "owner": "Jonny",
+      "team": "ESTRATÉGICO",
+      "sourceFile": "ESTRATÉGICO.csv",
+      "updatedAt": "2026-11-13",
+      "importedAt": "2026-11-09",
+      "dependencies": [
+        "DE",
+        "DO"
+      ],
+      "createdAt": "2026-11-09"
+    }
+  ],
+  "imports": [
+    {
+      "team": "DOTM",
+      "file": "DOTM.csv",
+      "count": 19,
+      "at": "2026-11-09T17:50:24.683Z"
+    },
+    {
+      "team": "DOTV",
+      "file": "DOTV.csv",
+      "count": 20,
+      "at": "2026-11-09T17:50:24.691Z"
+    },
+    {
+      "team": "DOTI",
+      "file": "DOTI.csv",
+      "count": 23,
+      "at": "2026-11-09T17:50:24.699Z"
+    },
+    {
+      "team": "ESTRATÉGICO",
+      "file": "ESTRATÉGICO.csv",
+      "count": 10,
+      "at": "2026-11-09T17:50:24.701Z"
+    }
+  ]
+}

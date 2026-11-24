@@ -290,6 +290,51 @@
             const anos = Math.floor(dias / 365);
             return `há cerca de ${anos} ano${anos === 1 ? '' : 's'}`;
         }
+        function obterPosicaoPantografoExibicao(veiculo) {
+            const posicao = String(veiculo?.pantograph_status?.position || '').toUpperCase();
+            return posicao === 'UP' ? 'LEVANTADO' : (posicao ? 'ABAIXADO' : 'NÃO INFORMADO');
+        }
+        function obterIdVeiculoSaude(veiculo) {
+            return String(veiculo?.name || veiculo?.id || 'Não informado');
+        }
+        function ordenarVeiculosSaude(veiculos, ordenacao = null) {
+            const registros = [...(Array.isArray(veiculos) ? veiculos : [])];
+            const compararTexto = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), 'pt-BR', { sensitivity: 'base', numeric: true });
+            const compararNumero = (a, b) => {
+                const numeroA = Number(a);
+                const numeroB = Number(b);
+                const validoA = Number.isFinite(numeroA);
+                const validoB = Number.isFinite(numeroB);
+                if (validoA !== validoB) return validoA ? -1 : 1;
+                return validoA ? numeroA - numeroB : 0;
+            };
+            const compararData = (a, b) => {
+                const dataA = a ? new Date(a).getTime() : NaN;
+                const dataB = b ? new Date(b).getTime() : NaN;
+                const validoA = Number.isFinite(dataA);
+                const validoB = Number.isFinite(dataB);
+                if (validoA !== validoB) return validoA ? -1 : 1;
+                return validoA ? dataA - dataB : 0;
+            };
+            if (!ordenacao) {
+                return registros.sort((a, b) => {
+                    const levantadoA = obterPosicaoPantografoExibicao(a) === 'LEVANTADO';
+                    const levantadoB = obterPosicaoPantografoExibicao(b) === 'LEVANTADO';
+                    if (levantadoA !== levantadoB) return levantadoA ? -1 : 1;
+                    return compararTexto(obterIdVeiculoSaude(a), obterIdVeiculoSaude(b));
+                });
+            }
+            const direcao = ordenacao.direcao === 'desc' ? -1 : 1;
+            return registros.sort((a, b) => {
+                let resultado = 0;
+                if (ordenacao.coluna === 'idVeiculo') resultado = compararTexto(obterIdVeiculoSaude(a), obterIdVeiculoSaude(b));
+                if (ordenacao.coluna === 'bateria') resultado = compararNumero(a?.battery_level, b?.battery_level);
+                if (ordenacao.coluna === 'ultimoCheckin') resultado = compararData(a?.last_checkin, b?.last_checkin);
+                if (ordenacao.coluna === 'posicaoPantografo') resultado = compararTexto(obterPosicaoPantografoExibicao(a), obterPosicaoPantografoExibicao(b));
+                if (ordenacao.coluna === 'posicaoAtualizadaEm') resultado = compararData(a?.pantograph_status?.position_updated_at, b?.pantograph_status?.position_updated_at);
+                return (resultado || compararTexto(obterIdVeiculoSaude(a), obterIdVeiculoSaude(b))) * direcao;
+            });
+        }
         function renderizarLinhasSaude(veiculos) {
             const registros = Array.isArray(veiculos) ? veiculos : [];
             if (!registros.length) return '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum veículo encontrado.</td></tr>';
@@ -298,11 +343,11 @@
                 const pantografoLevantado = posicao === 'UP';
                 const bateria = Number.isFinite(Number(veiculo?.battery_level)) ? `${Number(veiculo.battery_level)}%` : 'Não informado';
                 const status = veiculo?.health_status || 'Não informado';
-                const posicaoExibicao = pantografoLevantado ? 'LEVANTADO' : (posicao ? 'ABAIXADO' : 'NÃO INFORMADO');
+                const posicaoExibicao = obterPosicaoPantografoExibicao(veiculo);
                 const corIndicador = pantografoLevantado ? 'bg-[#16A34A]' : 'bg-[#FF0000]';
                 return `
                     <tr class="hover:bg-gray-50 transition-colors bg-white">
-                        <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full ${corIndicador}"></div><span class="text-gray-800 font-medium">${veiculo?.name || veiculo?.id || 'Não informado'}</span></div></td>
+                        <td class="px-4 py-3 whitespace-nowrap"><div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full ${corIndicador}"></div><span class="text-gray-800 font-medium">${obterIdVeiculoSaude(veiculo)}</span></div></td>
                         <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${bateria}</td>
                         <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${formatarTempoRelativo(veiculo?.last_checkin)}</td>
                         <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${status}</td>
@@ -440,6 +485,18 @@
 
         function renderDashboard(container) {
             destroyActiveCharts();
+            let veiculosSaude = [];
+            let ordenacaoSaude = null;
+            const iconeOrdenacaoSaude = coluna => {
+                if (!ordenacaoSaude || ordenacaoSaude.coluna !== coluna) return '<i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>';
+                return `<i data-lucide="${ordenacaoSaude.direcao === 'asc' ? 'arrow-up' : 'arrow-down'}" class="w-3.5 h-3.5"></i>`;
+            };
+            const cabecalhoOrdenavelSaude = (rotulo, coluna, classe = '') => `
+                <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap ${classe}">
+                    <button type="button" data-saude-sort="${coluna}" class="inline-flex w-full items-center gap-1.5 hover:text-gray-900" aria-label="Ordenar por ${rotulo}">
+                        <span>${rotulo}</span>${iconeOrdenacaoSaude(coluna)}
+                    </button>
+                </th>`;
             container.innerHTML = `
                 <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                     <div class="flex items-center justify-between mb-6 border-l-4 border-accent pl-3">
@@ -447,23 +504,23 @@
                     </div>
                     <div class="flex flex-col gap-6">
                         <div class="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg p-5 flex flex-col shadow-sm">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 text-center">Severidade dos 100 Alarmes Mais Recentes</h3>
+                            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 text-center">Severidade dos 500 Alarmes Mais Recentes</h3>
                             <div class="h-64 relative w-full flex-grow"><canvas id="niveisChart"></canvas></div>
                         </div>
                         <div class="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg flex flex-col shadow-sm overflow-hidden">
                             <div class="p-5 border-b border-[#E5E7EB] bg-white">
-                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Saúde do Sistema (em desenvolvimento)</h3>
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Saúde do Sistema</h3>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm border-collapse">
                                     <thead>
                                         <tr class="border-b border-[#E5E7EB] bg-white text-gray-600 font-semibold">
-                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">ID do Veículo</th>
-                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Bateria</th>
-                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Último Check-in</th>
+                                            ${cabecalhoOrdenavelSaude('ID do Veículo', 'idVeiculo')}
+                                            ${cabecalhoOrdenavelSaude('Bateria', 'bateria')}
+                                            ${cabecalhoOrdenavelSaude('Último Check-in', 'ultimoCheckin')}
                                             <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Status</th>
-                                            <th class="px-4 py-3 border-r border-[#E5E7EB] whitespace-nowrap">Posição do Pantógrafo</th>
-                                            <th class="px-4 py-3 whitespace-nowrap leading-tight">Posição do Pantógrafo<br>Atualizada Em</th>
+                                            ${cabecalhoOrdenavelSaude('Posição do Pantógrafo', 'posicaoPantografo')}
+                                            ${cabecalhoOrdenavelSaude('Posição do Pantógrafo<br>Atualizada Em', 'posicaoAtualizadaEm', 'leading-tight')}
                                         </tr>
                                     </thead>
                                     <tbody id="saude-sistema-tbody" class="divide-y divide-[#E5E7EB]">
@@ -488,10 +545,29 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
             activeCharts.push(niveisChart);
+            function atualizarTabelaSaude() {
+                const tbody = document.getElementById('saude-sistema-tbody');
+                if (tbody) tbody.innerHTML = renderizarLinhasSaude(ordenarVeiculosSaude(veiculosSaude, ordenacaoSaude));
+                container.querySelectorAll('[data-saude-sort]').forEach(botao => {
+                    const coluna = botao.dataset.saudeSort;
+                    const iconeAtual = botao.querySelector('i');
+                    if (iconeAtual) iconeAtual.setAttribute('data-lucide', ordenacaoSaude?.coluna === coluna ? (ordenacaoSaude.direcao === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrow-up-down');
+                });
+                lucide.createIcons();
+            }
+            container.querySelectorAll('[data-saude-sort]').forEach(botao => {
+                botao.addEventListener('click', () => {
+                    const coluna = botao.dataset.saudeSort;
+                    ordenacaoSaude = ordenacaoSaude?.coluna === coluna
+                        ? { coluna, direcao: ordenacaoSaude.direcao === 'asc' ? 'desc' : 'asc' }
+                        : { coluna, direcao: 'asc' };
+                    atualizarTabelaSaude();
+                });
+            });
             carregarDadosSaude().then(veiculos => {
                 if (activeScreen !== 'dashboard') return;
-                const tbody = document.getElementById('saude-sistema-tbody');
-                if (tbody) tbody.innerHTML = renderizarLinhasSaude(veiculos);
+                veiculosSaude = Array.isArray(veiculos) ? veiculos : [];
+                atualizarTabelaSaude();
             }).catch(error => {
                 console.error('Erro ao carregar saúde do sistema:', error);
                 if (activeScreen !== 'dashboard') return;

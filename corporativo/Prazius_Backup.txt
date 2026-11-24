@@ -1,0 +1,815 @@
+{
+  "metadata": {
+    "export_date": "2026-11-06T14:13:01.132Z",
+    "app": "Prazius Gantt"
+  },
+  "settings": {
+    "groupByTeam": false,
+    "groupByPosition": false,
+    "sidebarWidth": "466px"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "name": "REDE INDUSTRIAL",
+      "start": "2026-02-20",
+      "end": "2027-02-11",
+      "color": "yellow",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-01-05"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-05-20"
+        }
+      ],
+      "team": "DOTI",
+      "position": "Em produção",
+      "contractedCompany": "N/A - Investimento",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "VARAS",
+      "start": "2026-02-20",
+      "end": "2026-08-05",
+      "color": "green",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-05-27"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-11-27"
+        }
+      ],
+      "team": "DOTI",
+      "position": "Em gestão",
+      "contractedCompany": "S.T.E.E",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "PCDS",
+      "start": "2026-11-15",
+      "end": "2027-04-01",
+      "color": "black",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-03-01"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-07-15"
+        }
+      ],
+      "team": "DOTI",
+      "position": "Aguardando",
+      "contractedCompany": "AUSTROS - Investimento",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "VP L10",
+      "start": "2026-04-01",
+      "end": "2026-08-19",
+      "color": "green",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-06-30"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-12-03"
+        }
+      ],
+      "team": "DOTV",
+      "position": "Em gestão",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "MANUTENÇÃO CIVIL",
+      "start": "2026-04-01",
+      "end": "2027-01-06",
+      "color": "yellow",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-11-24"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-04-15"
+        }
+      ],
+      "team": "DOTV",
+      "position": "Em produção",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ],
+      "contractedCompany": ""
+    },
+    {
+      "id": 15,
+      "name": "COMUNICAÇÃO VISUAL",
+      "start": "2026-05-01",
+      "end": "2026-10-30",
+      "color": "green",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-09-25"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-12-29"
+        }
+      ],
+      "team": "DOTI",
+      "position": "Em gestão",
+      "contractedCompany": "",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "TRANSFORMADORES",
+      "start": "2026-02-19",
+      "end": "2027-01-08",
+      "color": "yellow",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-11-27"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-04-22"
+        }
+      ],
+      "position": "Em produção",
+      "contractedCompany": "",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "SF6",
+      "start": "2026-01-03",
+      "end": "2026-04-16",
+      "color": "green",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-02-19"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-09-18"
+        }
+      ],
+      "position": "Em gestão",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ],
+      "contractedCompany": ""
+    },
+    {
+      "id": 23,
+      "name": "AVCB (GPT, MOC, RPI)",
+      "start": "2026-11-15",
+      "end": "2027-04-06",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-03-01"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-07-15"
+        }
+      ],
+      "position": "Aguardando",
+      "contractedCompany": "",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "name": "RLP-04",
+      "start": "2026-02-10",
+      "end": "2026-07-02",
+      "color": "green",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-03-25"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-08-19"
+        }
+      ],
+      "position": "Em gestão"
+    },
+    {
+      "id": 25,
+      "name": "RLP-02",
+      "start": "2026-02-26",
+      "end": "2026-05-14",
+      "color": "green",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-04-28"
+        },
+        {
+          "name": "Contrato",
+          "date": "2026-12-15"
+        }
+      ],
+      "position": "Em gestão",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ],
+      "contractedCompany": ""
+    },
+    {
+      "id": 26,
+      "name": "MANUTENÇÃO ESCADAS",
+      "start": "2026-07-15",
+      "end": "2026-12-03",
+      "color": "yellow",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-11-16"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-03-04"
+        }
+      ],
+      "position": "Em produção",
+      "contractedCompany": "MIHL",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "DLV RGS",
+      "start": "2026-01-01",
+      "end": "2026-08-25",
+      "position": "Em gestão",
+      "color": "green",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name": "SPENO",
+      "start": "2026-08-01",
+      "end": "2027-01-20",
+      "position": "Em produção",
+      "color": "yellow",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-12-15"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "32 TRENS",
+      "start": "2026-03-15",
+      "end": "2026-11-13",
+      "position": "Em produção",
+      "color": "yellow",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-05-06"
+        }
+      ],
+      "contractedCompany": "CAF - Investimento"
+    },
+    {
+      "id": 31,
+      "name": "ELEVADORES",
+      "start": "2026-01-01",
+      "end": "2026-06-25",
+      "position": "Em gestão",
+      "color": "green",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-04-29"
+        }
+      ],
+      "contractedCompany": "MIHL"
+    },
+    {
+      "id": 32,
+      "name": "CONTROLE PRAGAS",
+      "start": "2026-10-02",
+      "end": "2027-01-08",
+      "position": "Em produção",
+      "color": "yellow",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-12-07"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-03-25"
+        }
+      ],
+      "contractedCompany": "NIKKEY",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "name": "ANÁLISE ÓLEO LOCOMOTIVAS",
+      "start": "2026-11-16",
+      "end": "2027-02-26",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-01-27"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-05-10"
+        }
+      ],
+      "contractedCompany": "LENCO",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "name": "LIMPEZA RESERVATÓRIOS ÁGUA",
+      "start": "2027-01-20",
+      "end": "2027-04-23",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-03-24"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-07-05"
+        }
+      ],
+      "contractedCompany": "AMB TEC",
+      "history": [
+        {
+          "text": "Atualizado conforme controle DOPC 107",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "name": "LIMPEZA FOSSAS SÉPTICAS",
+      "start": "2026-09-15",
+      "end": "2026-12-30",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-11-30"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-03-14"
+        }
+      ],
+      "contractedCompany": "ALTERNATIVA"
+    },
+    {
+      "id": 36,
+      "name": "VEDAÇÃO DE FAIXA",
+      "start": "2026-10-20",
+      "end": "2027-02-03",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-01-04"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-04-18"
+        }
+      ],
+      "contractedCompany": "J.L.A - Investimento"
+    },
+    {
+      "id": 37,
+      "name": "RADIOCOMUNICAÇÃO",
+      "start": "2026-11-10",
+      "end": "2027-03-26",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-02-24"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-06-08"
+        }
+      ],
+      "contractedCompany": "ESAT"
+    },
+    {
+      "id": 38,
+      "name": "CALIBRAÇÃO INSTRUMENTOS",
+      "start": "2027-01-06",
+      "end": "2027-04-22",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-03-23"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-07-05"
+        }
+      ],
+      "contractedCompany": "IPT"
+    },
+    {
+      "id": 39,
+      "name": "CALIBRAÇÃO INSTRUMENTOS",
+      "start": "2027-05-21",
+      "end": "2027-09-04",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-08-05"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-11-17"
+        }
+      ],
+      "contractedCompany": "MEC Q"
+    },
+    {
+      "id": 40,
+      "name": "LIMPEZA DE DUTOS VENTILAÇÃO",
+      "start": "2027-05-08",
+      "end": "2027-08-22",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-07-23"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-11-04"
+        }
+      ],
+      "contractedCompany": "AIR CARE"
+    },
+    {
+      "id": 41,
+      "name": "OPERAÇÃO SUBESTAÇÃO",
+      "start": "2027-06-05",
+      "end": "2027-09-19",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-08-20"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-12-02"
+        }
+      ],
+      "contractedCompany": "TERWAN"
+    },
+    {
+      "id": 42,
+      "name": "LIMPEZA BASES MANUTENÇÃO",
+      "start": "2027-08-04",
+      "end": "2027-11-18",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTV",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-10-19"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-01-31"
+        }
+      ],
+      "contractedCompany": "ALP SANTOS"
+    },
+    {
+      "id": 43,
+      "name": "ELEVADORES",
+      "start": "2027-10-23",
+      "end": "2028-02-06",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2028-01-07"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-04-20"
+        }
+      ],
+      "contractedCompany": "DIRSAN"
+    },
+    {
+      "id": 44,
+      "name": "MANUTENÇÃO SÉRIE 8500",
+      "start": "2027-12-31",
+      "end": "2028-03-18",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2028-02-17"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-05-31"
+        }
+      ],
+      "contractedCompany": "CAF"
+    },
+    {
+      "id": 45,
+      "name": "CENTRAIS TELEFÔNICAS",
+      "start": "2028-06-07",
+      "end": "2028-09-21",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2028-08-22"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-12-04"
+        }
+      ],
+      "contractedCompany": "3CORP"
+    },
+    {
+      "id": 47,
+      "name": "MANUTENÇÃO SÉRIE 9000",
+      "start": "2026-11-01",
+      "end": "2027-02-15",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-01-16"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-04-30"
+        }
+      ],
+      "contractedCompany": "CAF"
+    },
+    {
+      "id": 48,
+      "name": "MANUTENÇÃO SÉRIE 2070",
+      "start": "2028-04-13",
+      "end": "2028-07-28",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2028-06-28"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-10-10"
+        }
+      ],
+      "contractedCompany": "CAF"
+    },
+    {
+      "id": 49,
+      "name": "MANUTENÇÃO SÉRIE 7000/75000",
+      "start": "2027-11-02",
+      "end": "2028-02-16",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTM",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2028-01-17"
+        },
+        {
+          "name": "Contrato",
+          "date": "2028-04-30"
+        }
+      ],
+      "contractedCompany": "CAF"
+    },
+    {
+      "id": 50,
+      "name": "HIGIENIZAÇÃO AC DO CCO",
+      "start": "2026-10-02",
+      "end": "2027-01-16",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [],
+      "contractedCompany": "J.A. SANTOS",
+      "history": [
+        {
+          "text": "Deve ser finalizado com a concessão",
+          "date": "06-11-2026"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name": "COLETA DE ÓLEO TRAFO",
+      "start": "2026-10-16",
+      "end": "2027-01-30",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2026-12-31"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-04-04"
+        }
+      ],
+      "contractedCompany": "LIQUITEC"
+    },
+    {
+      "id": 52,
+      "name": "QUALIDADE DO AR",
+      "start": "2027-04-16",
+      "end": "2027-07-31",
+      "position": "Aguardando",
+      "color": "black",
+      "team": "DOTI",
+      "milestones": [
+        {
+          "name": "Valoração",
+          "date": "2027-07-01"
+        },
+        {
+          "name": "Contrato",
+          "date": "2027-10-03"
+        }
+      ],
+      "contractedCompany": "GHS"
+    },
+    {
+      "id": 53,
+      "name": "AVCB (LUZ)",
+      "contractedCompany": "CTM Life",
+      "start": "2026-07-28",
+      "end": "2026-11-11",
+      "position": "Cabe Aditivo",
+      "color": "white",
+      "team": "DOTI",
+      "milestones": [],
+      "history": [
+        {
+          "text": "Deve ser finalizado com a concessão",
+          "date": "06-11-2026"
+        }
+      ]
+    }
+  ]
+}

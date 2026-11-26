@@ -132,7 +132,7 @@
                 <div class="h-10 flex items-center px-4 shrink-0">
                     <div class="w-8"></div>
                     <div class="flex-1 flex items-center gap-1">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome da Tarefa</span>
+                        <input type="text" id="taskSearch" oninput="app.filterTasks(this.value)" class="flex-1 min-w-0 px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 placeholder-slate-400 bg-white" placeholder="Buscar tarefa..." aria-label="Buscar tarefa">
                         <div class="ml-auto flex gap-1">
                             <button id="groupTeamBtn" onclick="app.toggleGroupTeam()" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center rounded p-1 hover:bg-slate-200" title="Agrupar por Equipe">
                                 <span class="material-symbols-outlined text-[16px]">workspaces</span>
@@ -374,6 +374,7 @@
             let groupByTeam = false;
             let groupByPosition = false;
             let activeColorFilter = null;
+            let taskSearchQuery = '';
             
             let sortConfig = {
                 milestone: 'Valoração',
@@ -445,7 +446,8 @@
                 toastIcon: document.getElementById('appToastIcon'),
                 toastMessage: document.getElementById('appToastMessage'),
                 globalTooltip: document.getElementById('globalTooltip'),
-                backupTimestampText: document.getElementById('backupTimestampText')
+                backupTimestampText: document.getElementById('backupTimestampText'),
+                taskSearch: document.getElementById('taskSearch')
             };
 
             const dateUtils = {
@@ -699,6 +701,10 @@
                     validTasks = [...tasks];
                 }
 
+                if (taskSearchQuery) {
+                    validTasks = validTasks.filter(t => (t.name || '').toLocaleLowerCase('pt-BR').includes(taskSearchQuery));
+                }
+
                 validTasks.sort((a, b) => {
                     if (sortConfig.milestone) {
                         const msA = (a.milestones || []).find(m => m.name === sortConfig.milestone);
@@ -937,6 +943,11 @@
                     }
                 }
 
+                if (visibleTasks.length === 0) {
+                    dom.taskList.innerHTML = '<div class="px-4 py-6 text-center text-xs text-slate-400">Nenhum resultado encontrado.</div>';
+                    return;
+                }
+
                 visibleTasks.forEach((task, index) => {
                     if (task._type === 'team_header') {
                         const row = document.createElement('div');
@@ -1115,6 +1126,11 @@
             function toggleColorFilter(color) {
                 activeColorFilter = (activeColorFilter === color) ? null : color;
                 calculateProjectBounds();
+                render();
+            }
+
+            function filterTasks(value) {
+                taskSearchQuery = (value || '').trim().toLocaleLowerCase('pt-BR');
                 render();
             }
 
@@ -1816,6 +1832,7 @@
                 toggleGroupTeam,
                 toggleGroupPosition,
                 toggleColorFilter,
+                filterTasks,
                 openCalculator,
                 exportData,
                 updateFromBackup,

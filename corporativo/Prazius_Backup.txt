@@ -1,28 +1,28 @@
 {
   "metadata": {
-    "export_date": "2026-11-06T14:13:01.132Z",
+    "export_date": "2026-11-26T18:41:40.586Z",
     "app": "Prazius Gantt"
   },
   "settings": {
     "groupByTeam": false,
     "groupByPosition": false,
-    "sidebarWidth": "466px"
+    "sidebarWidth": "437px"
   },
   "tasks": [
     {
       "id": 1,
       "name": "REDE INDUSTRIAL",
       "start": "2026-02-20",
-      "end": "2027-02-11",
+      "end": "2027-08-17",
       "color": "yellow",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2027-01-05"
+          "date": "2027-07-09"
         },
         {
           "name": "Contrato",
-          "date": "2027-05-20"
+          "date": "2027-12-02"
         }
       ],
       "team": "DOTI",
@@ -65,16 +65,16 @@
       "id": 9,
       "name": "PCDS",
       "start": "2026-11-15",
-      "end": "2027-04-01",
+      "end": "2027-04-15",
       "color": "black",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2027-03-01"
+          "date": "2027-03-08"
         },
         {
           "name": "Contrato",
-          "date": "2027-07-15"
+          "date": "2027-07-22"
         }
       ],
       "team": "DOTI",
@@ -100,7 +100,7 @@
         },
         {
           "name": "Contrato",
-          "date": "2026-12-03"
+          "date": "2026-12-10"
         }
       ],
       "team": "DOTV",
@@ -116,16 +116,16 @@
       "id": 14,
       "name": "MANUTENÇÃO CIVIL",
       "start": "2026-04-01",
-      "end": "2027-01-06",
+      "end": "2027-05-17",
       "color": "yellow",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2026-11-24"
+          "date": "2027-04-07"
         },
         {
           "name": "Contrato",
-          "date": "2027-04-15"
+          "date": "2027-08-26"
         }
       ],
       "team": "DOTV",
@@ -151,7 +151,7 @@
         },
         {
           "name": "Contrato",
-          "date": "2026-12-29"
+          "date": "2027-01-04"
         }
       ],
       "team": "DOTI",
@@ -168,17 +168,17 @@
       "id": 19,
       "name": "TRANSFORMADORES",
       "start": "2026-02-19",
-      "end": "2027-01-08",
+      "end": "2027-02-11",
       "color": "yellow",
       "team": "DOTI",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2026-11-27"
+          "date": "2026-12-21"
         },
         {
           "name": "Contrato",
-          "date": "2027-04-22"
+          "date": "2027-05-27"
         }
       ],
       "position": "Em produção",
@@ -220,17 +220,17 @@
       "id": 23,
       "name": "AVCB (GPT, MOC, RPI)",
       "start": "2026-11-15",
-      "end": "2027-04-06",
+      "end": "2027-07-19",
       "color": "black",
       "team": "DOTI",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2027-03-01"
+          "date": "2027-06-11"
         },
         {
           "name": "Contrato",
-          "date": "2027-07-15"
+          "date": "2027-10-28"
         }
       ],
       "position": "Aguardando",
@@ -291,17 +291,17 @@
       "id": 26,
       "name": "MANUTENÇÃO ESCADAS",
       "start": "2026-07-15",
-      "end": "2026-12-03",
+      "end": "2026-12-02",
       "color": "yellow",
       "team": "DOTI",
       "milestones": [
         {
           "name": "Valoração",
-          "date": "2026-11-16"
+          "date": "2026-11-17"
         },
         {
           "name": "Contrato",
-          "date": "2027-03-04"
+          "date": "2027-03-11"
         }
       ],
       "position": "Em produção",
@@ -383,7 +383,7 @@
       "id": 32,
       "name": "CONTROLE PRAGAS",
       "start": "2026-10-02",
-      "end": "2027-01-08",
+      "end": "2027-01-12",
       "position": "Em produção",
       "color": "yellow",
       "team": "DOTV",
@@ -394,7 +394,7 @@
         },
         {
           "name": "Contrato",
-          "date": "2027-03-25"
+          "date": "2027-04-02"
         }
       ],
       "contractedCompany": "NIKKEY",
@@ -409,7 +409,7 @@
       "id": 33,
       "name": "ANÁLISE ÓLEO LOCOMOTIVAS",
       "start": "2026-11-16",
-      "end": "2027-02-26",
+      "end": "2027-03-03",
       "position": "Aguardando",
       "color": "black",
       "team": "DOTI",
@@ -420,7 +420,7 @@
         },
         {
           "name": "Contrato",
-          "date": "2027-05-10"
+          "date": "2027-05-18"
         }
       ],
       "contractedCompany": "LENCO",
@@ -435,7 +435,7 @@
       "id": 34,
       "name": "LIMPEZA RESERVATÓRIOS ÁGUA",
       "start": "2027-01-20",
-      "end": "2027-04-23",
+      "end": "2027-04-28",
       "position": "Aguardando",
       "color": "black",
       "team": "DOTI",

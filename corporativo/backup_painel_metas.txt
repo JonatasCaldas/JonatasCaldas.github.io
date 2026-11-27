@@ -1,0 +1,763 @@
+{
+  "meta": {
+    "aplicacao": "Painel de Metas Estratégicas",
+    "versao": "1.0",
+    "exportadoEm": "2026-11-23T15:59:38.799Z",
+    "resumo": {
+      "totalEixos": 6,
+      "totalObjetivos": 23,
+      "objetivosConcluidos": 0,
+      "totalAcoes": 69,
+      "percentualGlobal": 0
+    }
+  },
+  "eixos": [
+    {
+      "id": "eixo_mwtdrpgt_xtfwx",
+      "titulo": "Gestão  de Ativos",
+      "descricao": "Implantar uma abordagem cultural estruturada de Gestão de Ativos baseada em risco, custo e desempenho para extrair maior valor dos ativos."
+    },
+    {
+      "id": "eixo_mwtf70ma_shmnj",
+      "titulo": "Gerenciamento da Manutenção",
+      "descricao": "Análise de desempenho da manutenção, controle de atuações preventivas, análise de falhas, Indicadores."
+    },
+    {
+      "id": "eixo_mwtfj8na_asj7x",
+      "titulo": "Gestão de Processos",
+      "descricao": "Garantir controle, rastreabilidade e fluxos dos processos e framework para tomadas de decisão"
+    },
+    {
+      "id": "eixo_mwtfqewa_q1toc",
+      "titulo": "Engenharia de Contratação",
+      "descricao": "Transformar a CPTM em referência técnica na elaboração de Expedientes de Contratação de Serviços"
+    },
+    {
+      "id": "eixo_mwtfzsok_gjeld",
+      "titulo": "Inovação e Transformação Digital",
+      "descricao": "Entender a dinâmica do mercado e estar atento às inovações, tendências e novas formas de interação no âmbito da engenharia de Manutenção"
+    },
+    {
+      "id": "eixo_mwtg4p4o_6omhv",
+      "titulo": "Pessoas e Desenvolvimento Técnico",
+      "descricao": "Preservar e multiplicar conhecimento de engenharia e implementar o programa de Gestão de Conhecimento"
+    }
+  ],
+  "objetivos": [
+    {
+      "id": "obj_mwtdsjdp_lsjcl",
+      "eixoId": "eixo_mwtdrpgt_xtfwx",
+      "titulo": "Programa Asset Management para Subestações",
+      "equipe": "DOTI",
+      "descritivo": "Estruturar a gestão do ciclo de vida dos ativos de subestações."
+    },
+    {
+      "id": "obj_mwte5ksj_cs9ud",
+      "eixoId": "eixo_mwtdrpgt_xtfwx",
+      "titulo": "Implementação das ações da meta estratégica 4.04",
+      "equipe": "GOT",
+      "descritivo": "Implementar e consolidar as entregas previstas na meta estratégica 4.04."
+    },
+    {
+      "id": "obj_mwte9kyz_126qq",
+      "eixoId": "eixo_mwtdrpgt_xtfwx",
+      "titulo": "Gestão de ativos suportada pela Engenharia da Confiabilidade",
+      "equipe": "GOT",
+      "descritivo": "Incorporar critérios de confiabilidade à gestão e priorização dos ativos."
+    },
+    {
+      "id": "obj_mwtf67x6_5jvz2",
+      "eixoId": "eixo_mwtdrpgt_xtfwx",
+      "titulo": "Estudo de internalização da Manutenção de trens",
+      "equipe": "DOTM",
+      "descritivo": "Avaliar e estudar técnicas que envolvam todos os aspectos de gestão de ativos (Custo, risco, desempenho) para subsidiar a tomada de decisão de gestão."
+    },
+    {
+      "id": "obj_mwtf7scf_5xows",
+      "eixoId": "eixo_mwtf70ma_shmnj",
+      "titulo": "Mapeamento, classificação e estruturação dos ativos conforme NBR",
+      "equipe": "Deptos",
+      "descritivo": "Estruturar o cadastro e a criticidade dos ativos"
+    },
+    {
+      "id": "obj_mwtfba6g_a0gqk",
+      "eixoId": "eixo_mwtf70ma_shmnj",
+      "titulo": "Definição das estratégias de manutenção doas ativos",
+      "equipe": "Deptos",
+      "descritivo": "Definir a estratégia de manutenção adequada a cada ativo"
+    },
+    {
+      "id": "obj_mwtffzrq_1198e",
+      "eixoId": "eixo_mwtf70ma_shmnj",
+      "titulo": "Estabelecer controle das manutenções  preventivas dos sistemas críticos",
+      "equipe": "Deptos",
+      "descritivo": "Centralizar, aprimorar, padronizar e controlar as preventivas dos sistemas críticos (RA, SUB, SIN, MCH, MR e VP)"
+    },
+    {
+      "id": "obj_mwtfh9t1_o1k6w",
+      "eixoId": "eixo_mwtf70ma_shmnj",
+      "titulo": "Revisão da Arborização do SICOM",
+      "equipe": "Deptos",
+      "descritivo": "Reestruturar a hierarquia dos ativos no SICOM"
+    },
+    {
+      "id": "obj_mwtfjnz5_9fw9m",
+      "eixoId": "eixo_mwtfj8na_asj7x",
+      "titulo": "Revisão dos Indicadores de produção GOT",
+      "equipe": "GOT",
+      "descritivo": "Adequar os indicadores à atuação e aos resultados da GOT"
+    },
+    {
+      "id": "obj_mwtfk834_wu7fa",
+      "eixoId": "eixo_mwtfj8na_asj7x",
+      "titulo": "Mapeamento e revisão de Processos",
+      "equipe": "Estratégico",
+      "descritivo": "Mapear, revisar e publicar os processos da GOT, exceto contratação"
+    },
+    {
+      "id": "obj_mwtfkhw8_nvikj",
+      "eixoId": "eixo_mwtfj8na_asj7x",
+      "titulo": "Governança de dados e documentações Técnicas",
+      "equipe": "Deptos",
+      "descritivo": "Definir, padronizar diretórios/terminologias e garantir que todos os documentos de trabalho GOT estejam em ambiente adequado, seguro e confiável"
+    },
+    {
+      "id": "obj_mwtfky51_wetr1",
+      "eixoId": "eixo_mwtfj8na_asj7x",
+      "titulo": "Estruturar o controle de homologação de veículos",
+      "equipe": "DOTM",
+      "descritivo": "Definir, mapear, criar norma específica sobre o assunto, determinar os fluxos de acionamento e estudar o tema rodoferroviários de forma a verificar sua viabilização da CPTM"
+    },
+    {
+      "id": "obj_mwtfr7le_k6sf1",
+      "eixoId": "eixo_mwtfqewa_q1toc",
+      "titulo": "Estruturação dos fluxos e processos da contratação",
+      "equipe": "NEC",
+      "descritivo": "Padronizar o processo de contratação da GOT"
+    },
+    {
+      "id": "obj_mwtfrhtb_byhu7",
+      "eixoId": "eixo_mwtfqewa_q1toc",
+      "titulo": "Planejamento de Contratações Anual",
+      "equipe": "NEC",
+      "descritivo": "Consolidar e priorizar as contratações anuais da GOT."
+    },
+    {
+      "id": "obj_mwtfs0r7_djf4p",
+      "eixoId": "eixo_mwtfqewa_q1toc",
+      "titulo": "Formação e treinamento para capacitar o Núcleo de Engenharia de Contratação",
+      "equipe": "NEC",
+      "descritivo": "Capacitar o NEC para condução das contratações"
+    },
+    {
+      "id": "obj_mwtfsu3g_t0fq3",
+      "eixoId": "eixo_mwtfqewa_q1toc",
+      "titulo": "Formação e treinamento para equipes do time técnico dos deptos",
+      "equipe": "NEC",
+      "descritivo": "Capacitar as equipes técnicas para atuação nas contratações"
+    },
+    {
+      "id": "obj_mwtg07mw_nox4b",
+      "eixoId": "eixo_mwtfzsok_gjeld",
+      "titulo": "Criar grupo centralizador para iniciativas de inovação e desenvolvimento",
+      "equipe": "Deptos",
+      "descritivo": "Centralizar e coordenar as iniciativas de inovação da GOT"
+    },
+    {
+      "id": "obj_mwtg0zhm_jtbn8",
+      "eixoId": "eixo_mwtfzsok_gjeld",
+      "titulo": "Aplicação de IA nos processos de Engenharia",
+      "equipe": "Assessoria",
+      "descritivo": "Aplicar IA para otimizar processos de Engenharia"
+    },
+    {
+      "id": "obj_mwtg1d2l_y0jqa",
+      "eixoId": "eixo_mwtfzsok_gjeld",
+      "titulo": "Aplicar modelo piloto de Digital Twin",
+      "equipe": "DOTV",
+      "descritivo": "Validar o uso de Digital Twin em ativos da GOT"
+    },
+    {
+      "id": "obj_mwtg5168_gmprd",
+      "eixoId": "eixo_mwtg4p4o_6omhv",
+      "titulo": "Implementar programa de gestão do conhecimento na GOM",
+      "equipe": "GOT",
+      "descritivo": "Estruturar e disseminar o conhecimento na GOM"
+    },
+    {
+      "id": "obj_mwtg5cy6_gbh4i",
+      "eixoId": "eixo_mwtg4p4o_6omhv",
+      "titulo": "Adotar o programa de Gestão do Conhecimento para DOTI, DOTV e DOTM",
+      "equipe": "Deptos",
+      "descritivo": "Expandir a Gestão do Conhecimento para DOTI, DOTV e DOTM"
+    },
+    {
+      "id": "obj_mwtg5mbv_vtgkq",
+      "eixoId": "eixo_mwtg4p4o_6omhv",
+      "titulo": "Implementar programa Microlearning",
+      "equipe": "GOT",
+      "descritivo": "Promover capacitação contínua por conteúdos rápidos e objetivos"
+    },
+    {
+      "id": "obj_mwtg5x9m_gkqon",
+      "eixoId": "eixo_mwtg4p4o_6omhv",
+      "titulo": "Implementar programa de desenvolvimento em Língua Inglesa - Go On Talk  - GOT",
+      "equipe": "GOT",
+      "descritivo": "Desenvolver a comunicação em inglês para reuniões de trabalho com fornecedores estrangeiros"
+    }
+  ],
+  "acoes": [
+    {
+      "id": "ac_mwtdtbev_bifdr",
+      "objetivoId": "obj_mwtdsjdp_lsjcl",
+      "descricao": "Definir escopo, diretrizes e critérios do programa",
+      "responsavel": "Allan",
+      "prazo": "2027-01-29",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtdwghq_43egm",
+      "objetivoId": "obj_mwtdsjdp_lsjcl",
+      "descricao": "Mapear e priorizar ativos críticos.",
+      "responsavel": "Allan",
+      "prazo": "2027-01-29",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtdwrfw_jxit8",
+      "objetivoId": "obj_mwtdsjdp_lsjcl",
+      "descricao": "Definir indicadores e critérios para decisão sobre os ativos.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-09",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtdx1to_n3vtg",
+      "objetivoId": "obj_mwtdsjdp_lsjcl",
+      "descricao": "Estruturar planos de ação para os ativos priorizados.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-10",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtdygta_fh9wx",
+      "objetivoId": "obj_mwtdsjdp_lsjcl",
+      "descricao": "Implantar rotina de acompanhamento dos resultados.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-17",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte64z8_m0jxh",
+      "objetivoId": "obj_mwte5ksj_cs9ud",
+      "descricao": "Desdobrar a meta em ações e entregáveis.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-09",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte8fcf_wbxg0",
+      "objetivoId": "obj_mwte5ksj_cs9ud",
+      "descricao": "Definir responsáveis, prazos e critérios de conclusão.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-17",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte8oka_e8qjs",
+      "objetivoId": "obj_mwte5ksj_cs9ud",
+      "descricao": "Executar e acompanhar as ações definidas.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-24",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte8xyf_v8nye",
+      "objetivoId": "obj_mwte5ksj_cs9ud",
+      "descricao": "Tratar impedimentos.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-24",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte97dd_n3fsb",
+      "objetivoId": "obj_mwte5ksj_cs9ud",
+      "descricao": "Consolidar e evidenciar os resultados.",
+      "responsavel": "Allan",
+      "prazo": "2027-02-26",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwte9vrb_exf3t",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Definir metodologias e critérios de confiabilidade aplicáveis.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-09",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtea4a6_x9b5j",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Identificar ativos críticos e modos de falha relevantes.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-11",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwteadv6_rfqs7",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Realizar análises de confiabilidade e risco.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-17",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwteayxi_8busi",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Incorporar os resultados à priorização de intervenções e investimentos.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-17",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwteb8ed_ijkt2",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Realizar benchmarck com empresas que possuem esse processo",
+      "responsavel": "Allan",
+      "prazo": "2027-03-24",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtebg2l_41sfl",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Treinar time da engenharia",
+      "responsavel": "Allan",
+      "prazo": "2027-03-23",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtebq6r_zsvg8",
+      "objetivoId": "obj_mwte9kyz_126qq",
+      "descricao": "Monitorar indicadores e efetividade das recomendações.",
+      "responsavel": "Allan",
+      "prazo": "2027-03-26",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtf9z7u_vmdem",
+      "objetivoId": "obj_mwtf7scf_5xows",
+      "descricao": "Cadastrar e classificar os ativos",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-06",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfaatq_s4oan",
+      "objetivoId": "obj_mwtf7scf_5xows",
+      "descricao": "Realizar o tageamento dos ativos",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfajld_0tjty",
+      "objetivoId": "obj_mwtf7scf_5xows",
+      "descricao": "Definir a criticidade dos ativos",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfdf5c_36u43",
+      "objetivoId": "obj_mwtfba6g_a0gqk",
+      "descricao": "Mapear os ativos e estratégias atuais",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfeb85_l2fd5",
+      "objetivoId": "obj_mwtfba6g_a0gqk",
+      "descricao": "Definir critérios para seleção da estratégia de manutenção.",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfel2j_9ob2t",
+      "objetivoId": "obj_mwtfba6g_a0gqk",
+      "descricao": "Classificar os ativos entre corretiva",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfey0d_gbfxx",
+      "objetivoId": "obj_mwtfba6g_a0gqk",
+      "descricao": "Classificar os ativos entre corretiva, preventiva, preditiva ou monitoramento contínuo",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfgbdh_bza5n",
+      "objetivoId": "obj_mwtffzrq_1198e",
+      "descricao": "Mapear como as áreas controlam as preventivas",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfgipu_0ocir",
+      "objetivoId": "obj_mwtffzrq_1198e",
+      "descricao": "Centralizar o controle das preventivas na GOT",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfgt75_t68q1",
+      "objetivoId": "obj_mwtffzrq_1198e",
+      "descricao": "Criar módulo de preventivas no SICOM",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfhkoa_ni9n6",
+      "objetivoId": "obj_mwtfh9t1_o1k6w",
+      "descricao": "Mapear a arborização atual",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfhrfn_hi88b",
+      "objetivoId": "obj_mwtfh9t1_o1k6w",
+      "descricao": "Definir a estrutura e os critérios de hierarquização",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfhzea_xmrll",
+      "objetivoId": "obj_mwtfh9t1_o1k6w",
+      "descricao": "Revisar e atualizar a arborização no SICOM",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfmalv_ichcd",
+      "objetivoId": "obj_mwtfjnz5_9fw9m",
+      "descricao": "Mapear e avaliar os indicadores atuais",
+      "responsavel": "Tech",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfmkut_c0cmv",
+      "objetivoId": "obj_mwtfjnz5_9fw9m",
+      "descricao": "Definir indicadores, critérios e metas de acompanhamento",
+      "responsavel": "Tech",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfmul9_m9nud",
+      "objetivoId": "obj_mwtfjnz5_9fw9m",
+      "descricao": "Implantar e divulgar o novo conjunto de indicadores",
+      "responsavel": "Tech",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfn871_sdaz9",
+      "objetivoId": "obj_mwtfk834_wu7fa",
+      "descricao": "Mapear processos não existentes",
+      "responsavel": "Jonny",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfnktt_vm20m",
+      "objetivoId": "obj_mwtfk834_wu7fa",
+      "descricao": "Revisar e padronizar os processos existentes de Homologação, ATE, PoC, SESuite e COPESE",
+      "responsavel": "Jonny",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfnzcc_36fo3",
+      "objetivoId": "obj_mwtfk834_wu7fa",
+      "descricao": "Publicar os processos no portal, garantindo transparência e acesso",
+      "responsavel": "Jonny",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtft9ac_jzhhq",
+      "objetivoId": "obj_mwtfr7le_k6sf1",
+      "descricao": "Mapear o fluxo atual e identificar lacunas",
+      "responsavel": "Jess",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtftkj5_tho0h",
+      "objetivoId": "obj_mwtfr7le_k6sf1",
+      "descricao": "Definir papéis, etapas, critérios e documentos",
+      "responsavel": "Jess",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfu1lq_j20uq",
+      "objetivoId": "obj_mwtfr7le_k6sf1",
+      "descricao": "Formalizar e publicar o fluxo de contratação",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfun8o_mzo2r",
+      "objetivoId": "obj_mwtfrhtb_byhu7",
+      "descricao": "Levantar as necessidades de contratação das gerências",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfuvaw_0jxog",
+      "objetivoId": "obj_mwtfrhtb_byhu7",
+      "descricao": "Priorizar e definir o cronograma anual",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfv4z1_mn2ld",
+      "objetivoId": "obj_mwtfrhtb_byhu7",
+      "descricao": "Consolidar e acompanhar o plano de contratações",
+      "responsavel": "Eduardo",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfvf3e_q9jc4",
+      "objetivoId": "obj_mwtfsu3g_t0fq3",
+      "descricao": "Identificar necessidades de capacitação das equipes",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-02-04",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfvn6v_b0wr4",
+      "objetivoId": "obj_mwtfsu3g_t0fq3",
+      "descricao": "Desenvolver treinamento sobre responsabilidades e documentos técnicos",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2027-02-04",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfvw1l_kat62",
+      "objetivoId": "obj_mwtfsu3g_t0fq3",
+      "descricao": "Realizar treinamentos e disponibilizar material de referência.",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfwfgs_h6eof",
+      "objetivoId": "obj_mwtfs0r7_djf4p",
+      "descricao": "Mapear competências e necessidades de capacitação",
+      "responsavel": "Jess",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfwnzh_r57di",
+      "objetivoId": "obj_mwtfs0r7_djf4p",
+      "descricao": "Estruturar trilha de formação em contratação",
+      "responsavel": "Jess",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtfww6v_qcakj",
+      "objetivoId": "obj_mwtfs0r7_djf4p",
+      "descricao": "Executar treinamentos e avaliar a capacitação",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg1q7w_5e5wq",
+      "objetivoId": "obj_mwtg07mw_nox4b",
+      "descricao": "Definir estrutura, participantes e responsabilidades do grupo",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg23bd_tio1o",
+      "objetivoId": "obj_mwtg07mw_nox4b",
+      "descricao": "Mapear e priorizar as iniciativas de inovação",
+      "responsavel": "Jonny",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg2k7i_ib1o5",
+      "objetivoId": "obj_mwtg07mw_nox4b",
+      "descricao": "Estabelecer interface com DPIN, GFI e demais áreas de inovação",
+      "responsavel": "Jonny",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg2skj_zauog",
+      "objetivoId": "obj_mwtg0zhm_jtbn8",
+      "descricao": "Mapear processos e casos de uso aplicáveis à IA",
+      "responsavel": "Tech",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg319v_gwhal",
+      "objetivoId": "obj_mwtg0zhm_jtbn8",
+      "descricao": "Priorizar e desenvolver soluções-piloto",
+      "responsavel": "Tech",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg3b53_bsmst",
+      "objetivoId": "obj_mwtg0zhm_jtbn8",
+      "descricao": "Avaliar resultados e implantar as soluções aprovadas",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg3rql_t4ybw",
+      "objetivoId": "obj_mwtg1d2l_y0jqa",
+      "descricao": "Definir ativo e caso de uso para o piloto",
+      "responsavel": "Sandro",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg3zxt_c6lg1",
+      "objetivoId": "obj_mwtg1d2l_y0jqa",
+      "descricao": "Desenvolver e integrar o modelo Digital Twin",
+      "responsavel": "Sandro",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg48k0_vsyve",
+      "objetivoId": "obj_mwtg1d2l_y0jqa",
+      "descricao": "Validar resultados e definir estratégia de expansão",
+      "responsavel": "Robson",
+      "prazo": "2027-01-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg6f1u_k4ke1",
+      "objetivoId": "obj_mwtg5168_gmprd",
+      "descricao": "Mapear conhecimentos críticos da GOM",
+      "responsavel": "Estratégico",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg6qdz_7w2a2",
+      "objetivoId": "obj_mwtg5168_gmprd",
+      "descricao": "Estruturar métodos de registro, compartilhamento e retenção",
+      "responsavel": "Jonny",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg6y78_66kms",
+      "objetivoId": "obj_mwtg5168_gmprd",
+      "descricao": "Implantar e acompanhar o programa.",
+      "responsavel": "Jonny",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg7td4_d0tzt",
+      "objetivoId": "obj_mwtg5cy6_gbh4i",
+      "descricao": "Apresentar e alinhar o programa com os departamentos",
+      "responsavel": "Robson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg816z_e21v7",
+      "objetivoId": "obj_mwtg5cy6_gbh4i",
+      "descricao": "Adaptar o modelo às necessidades de cada área",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg88an_mzopp",
+      "objetivoId": "obj_mwtg5cy6_gbh4i",
+      "descricao": "Implantar e acompanhar a adesão ao programa",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg8hzk_sw5sx",
+      "objetivoId": "obj_mwtg5x9m_gkqon",
+      "descricao": "Identificar necessidades e níveis de proficiência",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg8q1k_etvdr",
+      "objetivoId": "obj_mwtg5x9m_gkqon",
+      "descricao": "Estruturar encontros práticos voltados ao ambiente de trabalho",
+      "responsavel": "Jonny",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg8xjz_3j9hi",
+      "objetivoId": "obj_mwtg5x9m_gkqon",
+      "descricao": "Realizar os encontros e acompanhar a evolução dos participantes",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg97fm_kttpw",
+      "objetivoId": "obj_mwtg5mbv_vtgkq",
+      "descricao": "Disponibilizar os conteúdos e acompanhar a participação",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-09",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg9fg5_xtvdv",
+      "objetivoId": "obj_mwtg5mbv_vtgkq",
+      "descricao": "Estruturar e produzir conteúdos de Microlearning",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-08",
+      "concluida": false
+    },
+    {
+      "id": "ac_mwtg9qz5_zfucp",
+      "objetivoId": "obj_mwtg5mbv_vtgkq",
+      "descricao": "Mapear temas prioritários para capacitação",
+      "responsavel": "Allan/Sandro/Wanderson",
+      "prazo": "2026-12-07",
+      "concluida": false
+    }
+  ]
+}

@@ -167,7 +167,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-500">
       <div class="flex items-center gap-2">
         <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-        <span>Sincronizado automaticamente no navegador (<code class="font-mono text-[11px] bg-zinc-100 px-1 py-0.5 rounded">localStorage</code>)</span>
+        <span>Sincronizado automaticamente no navegador (<code class="font-mono text-[11px] bg-zinc-100 px-1 py-0.5 rounded">localStorage</code>) • <span id="backup-timestamp">backup não carregado</span></span>
       </div>
       <div id="footer-stats" class="tabular-nums"></div>
     </div>
@@ -451,6 +451,8 @@
 
     // Chave obrigatória de persistência no localStorage
     const STORAGE_KEY = 'strategic_goals_app_v1';
+    const BACKUP_TIMESTAMP_KEY = 'strategic_goals_backup_timestamp';
+    const BACKUP_URL = new URL('./backup_painel_metas.txt', window.location.href).href;
 
     // Estado central da aplicação
     let appState = {
@@ -845,6 +847,29 @@
           uiState.expandedEixos[e.id] = true;
         }
       });
+    }
+
+    function formatBackupTimestamp(value) {
+      if (!value) return null;
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      }).format(date);
+    }
+
+    function setBackupTimestamp(value) {
+      const formatted = formatBackupTimestamp(value);
+      const el = document.getElementById('backup-timestamp');
+      if (el) el.textContent = formatted ? `atualizado em ${formatted}` : 'backup não carregado';
+      if (formatted) localStorage.setItem(BACKUP_TIMESTAMP_KEY, formatted);
+      else localStorage.removeItem(BACKUP_TIMESTAMP_KEY);
+    }
+
+    function restoreBackupTimestamp() {
+      const saved = localStorage.getItem(BACKUP_TIMESTAMP_KEY);
+      const el = document.getElementById('backup-timestamp');
+      if (el) el.textContent = saved ? `atualizado em ${saved}` : 'backup não carregado';
     }
 
     function validateDataStructure(data) {
@@ -2872,7 +2897,7 @@
 
         const link = document.createElement('a');
         link.href = url;
-        link.download = `backup-metas-estrategicas-${today}.txt`;
+        link.download = 'backup_painel_metas.txt';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2880,7 +2905,7 @@
 
         showToast(
           'Backup exportado (.txt)',
-          `Arquivo backup-metas-estrategicas-${today}.txt baixado com sucesso.`,
+          'Arquivo backup_painel_metas.txt baixado com sucesso.',
           'success'
         );
       } catch (err) {
@@ -2945,6 +2970,7 @@
                 objetivos: candidateData.objetivos,
                 acoes: candidateData.acoes
               };
+              setBackupTimestamp(parsed.meta && parsed.meta.exportadoEm);
               uiState.expandedEixos = {};
               appState.eixos.forEach(ex => { uiState.expandedEixos[ex.id] = true; });
               clearAllFilters();
@@ -2969,6 +2995,52 @@
 
       reader.readAsText(file, 'UTF-8');
     });
+
+    async function loadAutomaticBackup() {
+      try {
+        const response = await fetch(`${BACKUP_URL}?v=${Date.now()}`, {
+          credentials: 'include',
+          cache: 'no-store',
+          headers: { Accept: 'text/plain, application/json' }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const content = await response.text();
+        const normalizedContent = content.replace(/^\uFEFF/, '').trim();
+        if (/^<!doctype html|^<html/i.test(normalizedContent)) {
+          throw new Error('O servidor retornou uma página HTML em vez do arquivo de backup.');
+        }
+        const parsed = JSON.parse(normalizedContent);
+        const candidateData = {
+          eixos: parsed.eixos,
+          objetivos: parsed.objetivos,
+          acoes: parsed.acoes
+        };
+        if (!validateDataStructure(candidateData)) {
+          throw new Error('A estrutura do backup não contém eixos, objetivos e ações válidos.');
+        }
+        appState = candidateData;
+        uiState.expandedEixos = {};
+        appState.eixos.forEach(e => { uiState.expandedEixos[e.id] = true; });
+        saveToStorage();
+        setBackupTimestamp(parsed.meta && parsed.meta.exportadoEm);
+        renderApp();
+        showToast(
+          'Backup carregado automaticamente',
+          `${appState.eixos.length} eixos, ${appState.objetivos.length} objetivos e ${appState.acoes.length} ações atualizados.`,
+          'success'
+        );
+      } catch (error) {
+        console.error('Erro ao carregar backup automático:', error);
+        const localFile = window.location.protocol === 'file:';
+        showToast(
+          'Backup automático não carregado',
+          localFile
+            ? 'O backup não pode ser acessado ao abrir o HTML como arquivo local. Publique e abra a aplicação pelo servidor.'
+            : `Os dados locais foram mantidos. Motivo: ${error.message}`,
+          'error'
+        );
+      }
+    }
 
     // =========================================================================
     // SISTEMA DE TOAST NOTIFICATIONS (CANTO INFERIOR DIREITO)
@@ -3044,7 +3116,9 @@
     // Inicializa a aplicação ao carregar a página
     window.addEventListener('DOMContentLoaded', () => {
       loadFromStorage();
+      restoreBackupTimestamp();
       renderApp();
+      window.setTimeout(loadAutomaticBackup, 0);
     });
   </script>
 </body>
